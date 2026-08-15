@@ -27,7 +27,7 @@ export default function RoomActions({
   const supabase = createClient();
   const [joinCode, setJoinCode] = useState("");
   const [cohort, setCohort] = useState(initialCohort);
-  const [exercise, setExercise] = useState<"job" | "workflow">("job");
+  const [exercise, setExercise] = useState<"job" | "workflow" | "solo">("job");
   const [busy, setBusy] = useState<"host" | "join" | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -42,7 +42,8 @@ export default function RoomActions({
         .insert({
           code,
           host_id: userId,
-          status: "waiting",
+          // solo needs no partner, so it's active immediately
+          status: exercise === "solo" ? "active" : "waiting",
           cohort: cohort.trim() || null,
           exercise,
         })
@@ -126,24 +127,32 @@ export default function RoomActions({
         </p>
         <div className="mt-3">
           <label className="lbl">Exercise</label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
             {[
-              { key: "job", title: "Reimagine your job", sub: "~30 min · paired" },
-              { key: "workflow", title: "Reimagine a workflow", sub: "~30 min · shared" },
+              { key: "job", title: "Reimagine your job", sub: "~30 min · paired with a partner" },
+              { key: "workflow", title: "Reimagine a workflow", sub: "~30 min · shared canvas with a partner" },
+              { key: "solo", title: "Solo with an AI partner", sub: "~18 min · no partner needed" },
             ].map((o) => (
               <button
                 key={o.key}
                 type="button"
-                onClick={() => setExercise(o.key as "job" | "workflow")}
+                onClick={() => setExercise(o.key as "job" | "workflow" | "solo")}
                 className={
-                  "rounded-xl border-2 p-3 text-left transition " +
+                  "flex w-full items-center justify-between rounded-xl border-2 p-3 text-left transition " +
                   (exercise === o.key
                     ? "border-ink bg-slate-50"
                     : "border-slate-200 hover:border-slate-300")
                 }
               >
-                <div className="text-sm font-semibold">{o.title}</div>
-                <div className="text-xs text-slate-400">{o.sub}</div>
+                <div>
+                  <div className="text-sm font-semibold">{o.title}</div>
+                  <div className="text-xs text-slate-400">{o.sub}</div>
+                </div>
+                {o.key === "solo" && (
+                  <span className="rounded-full bg-ai/10 px-2 py-0.5 text-xs font-medium text-ai">
+                    AI
+                  </span>
+                )}
               </button>
             ))}
           </div>

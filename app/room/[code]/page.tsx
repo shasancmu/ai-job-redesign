@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasAccess } from "@/lib/entitlement";
 import Room from "@/components/Room";
 import WorkflowRoom from "@/components/WorkflowRoom";
+import SoloRoom from "@/components/SoloRoom";
 
 export default async function RoomPage({
   params,
@@ -29,6 +30,30 @@ export default async function RoomPage({
 
   const amHost = session.host_id === user.id;
   const amGuest = session.guest_id === user.id;
+
+  // Solo (AI partner): single-user, only the host belongs here.
+  if (session.exercise === "solo") {
+    if (!amHost) redirect("/dashboard");
+    await supabase
+      .from("workspaces")
+      .upsert(
+        { session_id: session.id, author_id: user.id },
+        { onConflict: "session_id,author_id" }
+      );
+    const { data: workspace } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
+    return (
+      <SoloRoom
+        me={user.id}
+        initialSession={session}
+        initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
+      />
+    );
+  }
 
   // Allow joining directly from a shared room URL.
   if (!amHost && !amGuest) {

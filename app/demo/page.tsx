@@ -111,7 +111,11 @@ export default function DemoPage() {
       <div className="mb-4 rounded-xl bg-blue-50 px-4 py-2 text-sm text-blue-800">
         Preview — the Job exercise, mock data.{" "}
         <Link href="/demo/workflow" className="font-semibold underline">
-          See the Workflow exercise
+          Workflow exercise
+        </Link>{" "}
+        ·{" "}
+        <Link href="/demo/solo" className="font-semibold underline">
+          Solo with AI
         </Link>{" "}
         ·{" "}
         <Link href="/" className="font-semibold underline">

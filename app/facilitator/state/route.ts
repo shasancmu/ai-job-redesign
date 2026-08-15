@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin, UNTAGGED } from "@/lib/admin";
 import { PHASES } from "@/lib/exercise";
 import { WORKFLOW_STEPS } from "@/lib/workflow";
+import { SOLO_STEPS } from "@/lib/solo";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,7 +50,12 @@ export async function GET(request: Request) {
     (id && profiles.find((p) => p.id === id)?.display_name) || null;
 
   const rooms = (sessions || []).map((s: any) => {
-    const steps = s.exercise === "workflow" ? WORKFLOW_STEPS : PHASES;
+    const steps =
+      s.exercise === "workflow"
+        ? WORKFLOW_STEPS
+        : s.exercise === "solo"
+          ? SOLO_STEPS
+          : PHASES;
     const step = steps[s.phase] || steps[0];
     return {
       id: s.id,

@@ -256,6 +256,8 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
 
               {s.exercise === "workflow" ? (
                 <WorkflowView doc={docFor(s.id)} />
+              ) : s.exercise === "solo" ? (
+                <SoloView authorName={nameOf(s.host_id)} ws={wsFor(s.id, s.host_id)} />
               ) : (
                 <div className="grid gap-5 md:grid-cols-2">
                   <ParticipantColumn
@@ -341,6 +343,41 @@ function ParticipantColumn({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function SoloView({ authorName, ws }: { authorName: string; ws: any }) {
+  if (!ws) {
+    return (
+      <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">
+        {authorName} — no data.
+      </div>
+    );
+  }
+  const chat: any[] = ws.interview_chat || [];
+  return (
+    <div className="grid gap-5 md:grid-cols-2">
+      <ParticipantColumn authorName={authorName} subjectName="their own job" ws={ws} />
+      <div className="rounded-xl border border-slate-200 p-4">
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+          AI interview transcript
+        </div>
+        {chat.length === 0 ? (
+          <div className="mt-2 text-sm text-slate-300">— none —</div>
+        ) : (
+          <div className="mt-2 space-y-2">
+            {chat.map((m, i) => (
+              <div key={i} className="text-sm">
+                <span className={m.role === "user" ? "font-semibold text-slate-700" : "font-semibold text-ai"}>
+                  {m.role === "user" ? `${authorName}: ` : "AI: "}
+                </span>
+                <span className="text-slate-600">{m.content}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

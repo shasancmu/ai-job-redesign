@@ -50,6 +50,8 @@ create table if not exists public.workspaces (
   owner_job_title text default '',
   owner_job_description text default '',
   interview_notes text default '',
+  -- solo "AI partner" mode: the interview transcript [{role, content}]
+  interview_chat jsonb not null default '[]'::jsonb,
   real_job text default '',
   strategic_outcome text default '',
   insight text default '',
@@ -64,6 +66,9 @@ create table if not exists public.workspaces (
 );
 
 create index if not exists workspaces_session_idx on public.workspaces (session_id);
+
+-- Add interview_chat to any pre-existing workspaces table.
+alter table public.workspaces add column if not exists interview_chat jsonb not null default '[]'::jsonb;
 
 -- --- helper: am I a participant of this session? --------------------------
 create or replace function public.is_session_participant(sess uuid)
