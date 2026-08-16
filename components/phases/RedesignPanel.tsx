@@ -4,9 +4,10 @@ import { useState } from "react";
 import { emptyGrid } from "@/lib/exercise";
 import GridEditor from "@/components/GridEditor";
 import PartnerJobCard from "@/components/PartnerJobCard";
+import BuildPlan from "@/components/BuildPlan";
 
 export default function RedesignPanel(props: any) {
-  const { myWorkspace, partnerWorkspace, updateMine, partnerProfile } = props;
+  const { myWorkspace, partnerWorkspace, updateMine, partnerProfile, session } = props;
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [rationale, setRationale] = useState<string | null>(null);
@@ -86,51 +87,15 @@ export default function RedesignPanel(props: any) {
         />
       </div>
 
-      <ExecutionPlan grid={grid} job={partnerJob} />
-    </div>
-  );
-}
-
-// "How do we actually do this?" — recipes for the AI-assigned tasks.
-function ExecutionPlan({ grid, job }: { grid: Record<string, string[]>; job: any }) {
-  const [text, setText] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const aiTasks = ["search", "structure", "think", "translate"].flatMap((k) => grid[k] || []);
-
-  async function run() {
-    setBusy(true);
-    setErr(null);
-    try {
-      const res = await fetch("/api/execution", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...job, aiTasks }),
-      });
-      const d = await res.json();
-      if (d.text) setText(d.text);
-      else if (d.reason === "no-tasks") setErr("Give AI some tasks first, then generate the plan.");
-      else if (d.reason === "ai-off") setErr("AI isn't set up for this session.");
-      else setErr("Couldn't build the plan.");
-    } catch {
-      setErr("Couldn't build the plan.");
-    }
-    setBusy(false);
-  }
-
-  return (
-    <div className="card p-5">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <div className="text-sm font-bold text-ink">Make it real</div>
-          <p className="text-sm text-slate2">Turn the AI tasks into a plan they could start this week.</p>
-        </div>
-        <button onClick={run} disabled={busy || aiTasks.length === 0} className="btn-ghost text-sm">
-          {busy ? "Building…" : "✨ How to execute"}
-        </button>
-      </div>
-      {err && <p className="mt-2 text-sm text-clay">{err}</p>}
-      {text && <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate2">{text}</div>}
+      {session?.id && session?.code && (
+        <BuildPlan
+          sessionId={session.id}
+          code={session.code}
+          jobTitle={partnerJob.jobTitle}
+          jobDescription={partnerJob.jobDescription}
+          grid={grid}
+        />
+      )}
     </div>
   );
 }

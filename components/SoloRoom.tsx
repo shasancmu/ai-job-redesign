@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { SOLO_STEPS } from "@/lib/solo";
 import GridEditor from "@/components/GridEditor";
 import Timer from "@/components/Timer";
+import BuildPlan from "@/components/BuildPlan";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -121,7 +122,7 @@ export default function SoloRoom({
         )}
 
         {step.key === "redesign" && (
-          <Redesign ws={ws} update={update} />
+          <Redesign ws={ws} update={update} session={session} />
         )}
 
         {step.key === "final" && (
@@ -273,7 +274,7 @@ function Interview({ ws, update }: { ws: any; update: (p: any) => void }) {
   );
 }
 
-function Redesign({ ws, update }: { ws: any; update: (p: any) => void }) {
+function Redesign({ ws, update, session }: { ws: any; update: (p: any) => void; session: any }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [rationale, setRationale] = useState<string | null>(null);
@@ -336,60 +337,13 @@ function Redesign({ ws, update }: { ws: any; update: (p: any) => void }) {
         />
       </div>
 
-      <ExecutionPlan ws={ws} />
-    </div>
-  );
-}
-
-// "How do we actually do this?" — concrete recipes for the AI-assigned tasks.
-function ExecutionPlan({ ws }: { ws: any }) {
-  const [text, setText] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  const aiTasks = ["search", "structure", "think", "translate"].flatMap(
-    (k) => (ws.grid?.[k] || []) as string[]
-  );
-
-  async function run() {
-    setBusy(true);
-    setErr(null);
-    try {
-      const res = await fetch("/api/execution", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jobTitle: ws.owner_job_title,
-          jobDescription: ws.owner_job_description,
-          aiTasks,
-        }),
-      });
-      const d = await res.json();
-      if (d.text) setText(d.text);
-      else if (d.reason === "no-tasks") setErr("Assign some work to AI first, then generate the plan.");
-      else if (d.reason === "ai-off") setErr("AI isn't set up for this session.");
-      else setErr("Couldn't build the plan.");
-    } catch {
-      setErr("Couldn't build the plan.");
-    }
-    setBusy(false);
-  }
-
-  return (
-    <div className="card p-5">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <div className="text-sm font-bold text-ink">Make it real</div>
-          <p className="text-sm text-slate2">Turn the AI tasks into a plan you could start this week.</p>
-        </div>
-        <button onClick={run} disabled={busy || aiTasks.length === 0} className="btn-ghost text-sm">
-          {busy ? "Building…" : "✨ How to execute"}
-        </button>
-      </div>
-      {err && <p className="mt-2 text-sm text-clay">{err}</p>}
-      {text && (
-        <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate2">{text}</div>
-      )}
+      <BuildPlan
+        sessionId={session.id}
+        code={session.code}
+        jobTitle={ws.owner_job_title}
+        jobDescription={ws.owner_job_description}
+        grid={ws.grid || {}}
+      />
     </div>
   );
 }

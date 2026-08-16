@@ -137,6 +137,62 @@ Rules: 6–10 steps, each a short action phrase (max ~12 words), in the order th
   }
 }
 
+// A polished, structured implementation plan for the reimagined role — both the
+// human half (value + how to excel) and the AI half (concrete recipes).
+export async function implementationPlanAI(
+  job: { title?: string; description?: string },
+  humanTasks: string[],
+  aiTasks: string[]
+): Promise<any> {
+  const messages: ChatMsg[] = [
+    {
+      role: "system",
+      content: `You write a polished "reimagined role" implementation plan. The organizing idea is SUPERADDITIVE: AI absorbs volume, search, and first drafts so the person's judgment, taste, and relationships compound — the pair is worth more than either alone.
+
+Return STRICT JSON only:
+{
+ "headline": "3-6 word name for the reimagined role",
+ "summary": "3-4 sentences, second person. Lead with the VALUE this person creates and for whom (customer, org, manager); then how AI makes it possible; make the human×AI superadditive logic explicit and concrete. Detailed, not generic.",
+ "superadditive": "one sharp sentence on why human + AI here beats either alone",
+ "human": [{"task":"short title","value":"the value this creates and for whom","excel":"how to be truly great at it, and what to protect"}],
+ "ai": [{"task":"short title","how":"the concrete mechanism (a recurring assistant prompt, a specific tool/integration, a small automation)","prompt":"a 1-2 sentence starter prompt to paste","cadence":"daily | weekly | per-project","check":"what the human must verify before trusting it"}]
+}
+Rules: cover EVERY human task and EVERY AI task given. For human tasks give value + how-to-excel (never an AI recipe). For AI tasks give the practical recipe. Be specific to THIS role — no vague "leverage AI". Keep each field tight.`,
+    },
+    {
+      role: "user",
+      content: `Role: ${job.title || "(untitled)"} — ${job.description || ""}\n\nHuman keeps:\n${humanTasks.map((t) => `- ${t}`).join("\n") || "(none)"}\n\nAI takes:\n${aiTasks.map((t) => `- ${t}`).join("\n") || "(none)"}`,
+    },
+  ];
+  const raw = await complete(messages, { json: true, temperature: 0.5 });
+  try {
+    const p = extractJson(raw);
+    return {
+      headline: String(p.headline || "").slice(0, 80),
+      summary: String(p.summary || ""),
+      superadditive: String(p.superadditive || ""),
+      human: Array.isArray(p.human)
+        ? p.human.slice(0, 12).map((h: any) => ({
+            task: String(h.task || ""),
+            value: String(h.value || ""),
+            excel: String(h.excel || ""),
+          }))
+        : [],
+      ai: Array.isArray(p.ai)
+        ? p.ai.slice(0, 12).map((a: any) => ({
+            task: String(a.task || ""),
+            how: String(a.how || ""),
+            prompt: String(a.prompt || ""),
+            cadence: String(a.cadence || ""),
+            check: String(a.check || ""),
+          }))
+        : [],
+    };
+  } catch {
+    return { headline: "", summary: raw.slice(0, 600), superadditive: "", human: [], ai: [] };
+  }
+}
+
 export async function networkInsightAI(metrics: any): Promise<string> {
   const messages: ChatMsg[] = [
     {

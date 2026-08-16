@@ -65,9 +65,14 @@ create table if not exists public.workspaces (
   -- feedback left by the SUBJECT on this design: { plus, minus, question, idea }
   feedback jsonb not null default '{}'::jsonb,
   final_description text default '',
+  -- the generated implementation plan (headline, summary, human[], ai[], superadditive)
+  plan jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now(),
   unique (session_id, author_id)
 );
+
+-- Add plan to any pre-existing workspaces table.
+alter table public.workspaces add column if not exists plan jsonb not null default '{}'::jsonb;
 
 create index if not exists workspaces_session_idx on public.workspaces (session_id);
 
