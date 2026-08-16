@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { UNTAGGED } from "@/lib/admin";
+import { PHASES } from "@/lib/exercise";
+
+const BREAK_INDEX = PHASES.findIndex((p) => p.mode === "break");
 
 type Room = {
   id: string;
@@ -113,8 +116,18 @@ export default function Cockpit({
 
       {/* Controls */}
       <div className="card mb-5 p-4">
+        {BREAK_INDEX >= 0 && (
+          <button
+            onClick={() =>
+              control({ op: "goto", phase: BREAK_INDEX + 1 }, "Resumed all rooms from the break")
+            }
+            className="btn-primary mb-4 w-full sm:w-auto"
+          >
+            ▶ Resume all rooms from the break
+          </button>
+        )}
         <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-          Move everyone to a step
+          Or move everyone to a step
         </div>
         <div className="mt-2 flex flex-wrap gap-2">
           {stepLabels.map((t, i) => (
