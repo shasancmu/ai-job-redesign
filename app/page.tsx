@@ -39,13 +39,14 @@ export default async function Home() {
           </nav>
 
           <div className="max-w-2xl pb-28 pt-16 sm:pb-36 sm:pt-24">
-            <span className="eyebrow">In the age of AI</span>
+            <span className="eyebrow">Strategic org design in the age of AI</span>
             <h1 className="display mt-4 text-[2.75rem] text-ink sm:text-[4rem]">
               Human + AI, worth more together.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate2">
-              Hands-on modules that redesign work for the age of AI — run them in
-              a workshop, across your team, or on your own.
+              Everyone&apos;s asking how to use AI. The sharper question is how to
+              use <span className="text-ink">humans</span>. Hands-on modules that
+              redesign the work so people and AI each do what they do best.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/login" className="btn-primary">
@@ -59,8 +60,22 @@ export default async function Home() {
         </div>
       </div>
 
+      {/* Thesis */}
+      <section className="mx-auto mt-4 max-w-4xl px-6 text-center sm:mt-10">
+        <p className="text-2xl font-semibold leading-snug tracking-tight text-ink sm:text-[1.9rem]">
+          AI is far more capable than we&apos;re treating it — we&apos;re using a{" "}
+          <span className="text-amber">Ferrari for grocery runs</span>. Humans are
+          far more valuable than we deploy them — we&apos;re using{" "}
+          <span className="text-sage">architects to lay bricks</span>.
+        </p>
+        <p className="mt-4 text-slate2">
+          Companies that gain from AI rethink the work — they don&apos;t patch it.
+          Every module helps you do exactly that.
+        </p>
+      </section>
+
       {/* Modules */}
-      <section className="mx-auto max-w-6xl px-6">
+      <section className="mx-auto mt-16 max-w-6xl px-6">
         <span className="eyebrow">The modules</span>
         <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {MODULES.map((m) => (
