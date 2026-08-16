@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/entitlement";
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { isAdmin } from "@/lib/admin";
+import { titleCaseName } from "@/lib/name";
 import { MODULES, moduleByExercise } from "@/lib/modules";
 import Catalog from "@/components/Catalog";
 import Footer from "@/components/Footer";
@@ -26,10 +27,18 @@ export default async function Dashboard({
     .eq("id", user.id)
     .maybeSingle();
   if (!profile) {
-    const display =
-      (user.user_metadata?.display_name as string) || user.email?.split("@")[0] || "You";
+    const display = titleCaseName(
+      (user.user_metadata?.display_name as string) || user.email?.split("@")[0] || "You"
+    );
     await supabase.from("profiles").insert({ id: user.id, display_name: display });
     profile = { id: user.id, display_name: display } as any;
+  } else if (profile.display_name) {
+    // Backfill legacy names to proper case (fixes names saved before this rule).
+    const clean = titleCaseName(profile.display_name);
+    if (clean !== profile.display_name) {
+      await supabase.from("profiles").update({ display_name: clean }).eq("id", user.id);
+      profile.display_name = clean;
+    }
   }
 
   const instructor = isAdmin(user.email);

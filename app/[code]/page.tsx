@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizeCode } from "@/lib/classes";
+import { titleCaseName } from "@/lib/name";
 import { isAdmin } from "@/lib/admin";
 import Catalog from "@/components/Catalog";
 import Logo from "@/components/Logo";
@@ -58,7 +59,7 @@ export default async function ClassPage({ params }: { params: { code: string } }
     );
   }
 
-  // Ensure a profile exists.
+  // Ensure a profile exists (and proper-case the name).
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, display_name")
@@ -67,9 +68,15 @@ export default async function ClassPage({ params }: { params: { code: string } }
   if (!profile) {
     await supabase.from("profiles").insert({
       id: user.id,
-      display_name:
-        (user.user_metadata?.display_name as string) || user.email?.split("@")[0] || "You",
+      display_name: titleCaseName(
+        (user.user_metadata?.display_name as string) || user.email?.split("@")[0] || "You"
+      ),
     });
+  } else if (profile.display_name) {
+    const clean = titleCaseName(profile.display_name);
+    if (clean !== profile.display_name) {
+      await supabase.from("profiles").update({ display_name: clean }).eq("id", user.id);
+    }
   }
 
   // Enroll (idempotent).
