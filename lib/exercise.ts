@@ -81,6 +81,7 @@ export type Cell = {
   label: string; // Search / Structure / Lead ...
   verb: string; // AI: Search
   gloss: string;
+  example: string; // a spelled-out example of a contribution
   verbs: string[];
 };
 
@@ -91,6 +92,7 @@ export const CELLS: Cell[] = [
     label: "Search",
     verb: "AI: Search",
     gloss: "Find and surface what's out there.",
+    example: "e.g. Run a daily literature review on our topic area and summarize what's new",
     verbs: ["Find", "Retrieve", "Scan", "Discover", "Locate", "Surface", "Mine", "Aggregate", "Crawl", "Identify"],
   },
   {
@@ -99,6 +101,7 @@ export const CELLS: Cell[] = [
     label: "Structure",
     verb: "AI: Structure",
     gloss: "Impose order on the mess.",
+    example: "e.g. Organize incoming requests into themes and tag each by urgency",
     verbs: ["Organize", "Categorize", "Tag", "Format", "Cluster", "Sort", "Map", "Outline", "Index", "Standardize"],
   },
   {
@@ -107,6 +110,7 @@ export const CELLS: Cell[] = [
     label: "Think",
     verb: "AI: Think",
     gloss: "Reason across the material.",
+    example: "e.g. Compare our options against the data and flag the trade-offs",
     verbs: ["Analyze", "Reason", "Calculate", "Compare", "Predict", "Synthesize", "Infer", "Model"],
   },
   {
@@ -115,6 +119,7 @@ export const CELLS: Cell[] = [
     label: "Translate",
     verb: "AI: Translate",
     gloss: "Reshape it for the audience.",
+    example: "e.g. Turn the analysis into a one-page brief for the exec team",
     verbs: ["Convert", "Summarize", "Rephrase", "Adapt", "Simplify", "Reformat", "Explain"],
   },
   {
@@ -123,6 +128,7 @@ export const CELLS: Cell[] = [
     label: "Lead",
     verb: "Human: Lead",
     gloss: "Set direction and bring people with you.",
+    example: "e.g. Decide where the organization needs to go next, and rally people to it",
     verbs: ["Vision", "Inspire", "Direct", "Champion", "Mentor", "Set strategy", "Motivate", "Align", "Advocate"],
   },
   {
@@ -131,6 +137,7 @@ export const CELLS: Cell[] = [
     label: "Own",
     verb: "Human: Own",
     gloss: "Put your name on it.",
+    example: "e.g. Put my name on the recommendation and stand behind it with the board",
     verbs: ["Commit", "Be accountable", "Approve", "Follow through", "Stand behind", "Defend", "Bet"],
   },
   {
@@ -139,6 +146,7 @@ export const CELLS: Cell[] = [
     label: "Judge",
     verb: "Human: Judge",
     gloss: "Decide what's good and what isn't.",
+    example: "e.g. Decide which of the AI's drafts is actually good enough to ship",
     verbs: ["Discern", "Weigh", "Evaluate quality", "Apply taste", "Sanity-check", "Veto", "Trust"],
   },
   {
@@ -147,6 +155,7 @@ export const CELLS: Cell[] = [
     label: "Integrate",
     verb: "Human: Integrate",
     gloss: "Connect it to people and context.",
+    example: "e.g. Build the client relationship that makes the deal real",
     verbs: ["Contextualize", "Connect", "Build relationships", "Negotiate", "Convince", "Empathize"],
   },
 ];

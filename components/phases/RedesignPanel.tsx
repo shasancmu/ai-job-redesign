@@ -1,205 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { AI_CELLS, HUMAN_CELLS, emptyGrid, Cell } from "@/lib/exercise";
+import { emptyGrid } from "@/lib/exercise";
+import GridEditor from "@/components/GridEditor";
 import PartnerJobCard from "@/components/PartnerJobCard";
 
 export default function RedesignPanel(props: any) {
-  const { myWorkspace, updateMine } = props;
-  if (!myWorkspace) return <div className="text-slate-400">Loading…</div>;
-
-  const grid: Record<string, string[]> = { ...emptyGrid(), ...(myWorkspace.grid || {}) };
-
-  function setCell(key: string, items: string[]) {
-    updateMine({ grid: { ...grid, [key]: items } });
-  }
-  function toggle(key: string, verb: string) {
-    const cur = grid[key] || [];
-    setCell(key, cur.includes(verb) ? cur.filter((v) => v !== verb) : [...cur, verb]);
-  }
-  function remove(key: string, verb: string) {
-    setCell(key, (grid[key] || []).filter((v) => v !== verb));
-  }
-  function addCustom(key: string, verb: string) {
-    const v = verb.trim();
-    if (!v) return;
-    const cur = grid[key] || [];
-    if (!cur.includes(v)) setCell(key, [...cur, v]);
-  }
+  const { myWorkspace, updateMine, partnerProfile } = props;
+  if (!myWorkspace) return <div className="text-slate2">Loading…</div>;
+  const partnerName = partnerProfile?.display_name || "your partner";
+  const grid = { ...emptyGrid(), ...(myWorkspace.grid || {}) };
 
   return (
     <div className="space-y-5">
       <PartnerJobCard {...props} />
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Column
-          title="Give to AI"
-          role="ai"
-          cells={AI_CELLS}
-          grid={grid}
-          onToggle={toggle}
-          onRemove={remove}
-          onAdd={addCustom}
-        />
-        <Column
-          title="Keep human"
-          role="human"
-          cells={HUMAN_CELLS}
-          grid={grid}
-          onToggle={toggle}
-          onRemove={remove}
-          onAdd={addCustom}
-        />
-      </div>
+      <GridEditor grid={grid} onChange={(g) => updateMine({ grid: g })} />
 
       <div className="card p-5">
-        <label className="lbl">
-          Your partner&apos;s new job description
-        </label>
-        <p className="mb-2 text-sm text-slate-500">
-          Pull it together: what is their reimagined role, and how does AI make
-          it possible?
+        <label className="lbl">{partnerName}&apos;s reimagined role</label>
+        <p className="mb-2 text-sm text-slate2">
+          Pull it together: what does {partnerName} focus on — the value only they create — and how
+          does AI make it possible?
         </p>
         <textarea
           className="field min-h-[130px]"
-          placeholder="In the redesigned role, [name] focuses on… while AI handles…"
+          placeholder={`In the redesigned role, ${partnerName} spends their time on… while AI handles…`}
           value={myWorkspace.new_job_description || ""}
           onChange={(e) => updateMine({ new_job_description: e.target.value })}
         />
       </div>
-    </div>
-  );
-}
-
-function Column({
-  title,
-  role,
-  cells,
-  grid,
-  onToggle,
-  onRemove,
-  onAdd,
-}: {
-  title: string;
-  role: "ai" | "human";
-  cells: Cell[];
-  grid: Record<string, string[]>;
-  onToggle: (k: string, v: string) => void;
-  onRemove: (k: string, v: string) => void;
-  onAdd: (k: string, v: string) => void;
-}) {
-  const accent = role === "ai" ? "text-ai" : "text-human";
-  const ring = role === "ai" ? "border-blue-200" : "border-orange-200";
-  return (
-    <div className={"card border-2 p-4 " + ring}>
-      <div className={"mb-3 text-sm font-bold uppercase tracking-wide " + accent}>
-        {title}
-      </div>
-      <div className="space-y-3">
-        {cells.map((c) => (
-          <CellBox
-            key={c.key}
-            cell={c}
-            assigned={grid[c.key] || []}
-            onToggle={onToggle}
-            onRemove={onRemove}
-            onAdd={onAdd}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function CellBox({
-  cell,
-  assigned,
-  onToggle,
-  onRemove,
-  onAdd,
-}: {
-  cell: Cell;
-  assigned: string[];
-  onToggle: (k: string, v: string) => void;
-  onRemove: (k: string, v: string) => void;
-  onAdd: (k: string, v: string) => void;
-}) {
-  const [custom, setCustom] = useState("");
-  const [open, setOpen] = useState(false);
-  const isAi = cell.role === "ai";
-
-  return (
-    <div className="rounded-xl border border-slate-200 p-3">
-      <div className="flex items-baseline justify-between">
-        <div>
-          <span className={"font-semibold " + (isAi ? "text-ai" : "text-human")}>
-            {cell.label}
-          </span>
-          <span className="ml-2 text-xs text-slate-400">{cell.gloss}</span>
-        </div>
-        <button
-          onClick={() => setOpen((o) => !o)}
-          className="text-xs text-slate-400 hover:text-slate-600"
-        >
-          {open ? "hide" : "verbs"}
-        </button>
-      </div>
-
-      {assigned.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {assigned.map((v) => (
-            <button
-              key={v}
-              onClick={() => onRemove(cell.key, v)}
-              className={
-                "group inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium " +
-                (isAi ? "bg-blue-100 text-blue-800" : "bg-orange-100 text-orange-800")
-              }
-              title="Remove"
-            >
-              {v}
-              <span className="opacity-40 group-hover:opacity-100">×</span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {open && (
-        <div className="mt-2 flex flex-wrap gap-1.5 border-t border-slate-100 pt-2">
-          {cell.verbs.map((v) => {
-            const on = assigned.includes(v);
-            return (
-              <button
-                key={v}
-                onClick={() => onToggle(cell.key, v)}
-                className={
-                  "rounded-full border px-2.5 py-1 text-xs transition " +
-                  (on
-                    ? "border-transparent bg-slate-800 text-white"
-                    : "border-slate-200 text-slate-500 hover:border-slate-400")
-                }
-              >
-                {v}
-              </button>
-            );
-          })}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              onAdd(cell.key, custom);
-              setCustom("");
-            }}
-            className="flex w-full items-center gap-1 pt-1"
-          >
-            <input
-              value={custom}
-              onChange={(e) => setCustom(e.target.value)}
-              placeholder="add your own…"
-              className="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs outline-none focus:border-slate-400"
-            />
-          </form>
-        </div>
-      )}
     </div>
   );
 }
