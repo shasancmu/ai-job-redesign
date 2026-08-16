@@ -7,6 +7,7 @@ import Room from "@/components/Room";
 import WorkflowRoom from "@/components/WorkflowRoom";
 import SoloRoom from "@/components/SoloRoom";
 import BenchmarkRoom from "@/components/BenchmarkRoom";
+import NetworkRoom from "@/components/NetworkRoom";
 
 export default async function RoomPage({
   params,
@@ -45,6 +46,12 @@ export default async function RoomPage({
   if (session.exercise === "benchmark") {
     if (!amHost) redirect("/dashboard");
     return <BenchmarkRoom me={user.id} session={session} />;
+  }
+
+  // Network survey: single-user, only the host belongs here.
+  if (session.exercise === "network") {
+    if (!amHost) redirect("/dashboard");
+    return <NetworkRoom me={user.id} session={session} />;
   }
 
   // Solo (AI partner): single-user, only the host belongs here.

@@ -186,6 +186,41 @@ create policy "workflow update" on public.workflow_docs
   with check (public.is_session_participant(session_id));
 
 -- ============================================================================
+-- Network survey: roster (per cohort) + each person's nominations.
+-- Roster is service-role-only (read/written via routes). Responses are owned
+-- by each user; the live graph is aggregated server-side and anonymized.
+-- ============================================================================
+create table if not exists public.network_config (
+  cohort text primary key,
+  roster jsonb not null default '[]'::jsonb, -- [{ id, name }]
+  updated_at timestamptz not null default now()
+);
+alter table public.network_config enable row level security;
+-- (no policies — service role only)
+
+create table if not exists public.network_responses (
+  cohort text not null,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  self_id text, -- the roster id this person claimed as themselves
+  advice jsonb not null default '[]'::jsonb, -- [roster ids]
+  friends jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now(),
+  primary key (cohort, user_id)
+);
+create index if not exists network_responses_cohort_idx on public.network_responses (cohort);
+alter table public.network_responses enable row level security;
+
+drop policy if exists "network read own" on public.network_responses;
+create policy "network read own" on public.network_responses
+  for select using (user_id = auth.uid());
+drop policy if exists "network insert own" on public.network_responses;
+create policy "network insert own" on public.network_responses
+  for insert with check (user_id = auth.uid());
+drop policy if exists "network update own" on public.network_responses;
+create policy "network update own" on public.network_responses
+  for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- ============================================================================
 -- Benchmark config: the instructor's question set, edited in-app and stored
 -- here (never in the codebase). RLS is ON with NO policies, so ONLY the service
 -- role can read/write it — answers never reach the browser directly.

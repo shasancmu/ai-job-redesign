@@ -215,6 +215,12 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
           >
             Benchmark
           </Link>
+          <Link
+            href={`/facilitator/network?cohort=${encodeURIComponent(cohort)}`}
+            className="btn-ghost text-sm"
+          >
+            Network
+          </Link>
           {sessionIds.length > 0 && (
             <a
               href={`/facilitator/export?cohort=${encodeURIComponent(cohort)}`}

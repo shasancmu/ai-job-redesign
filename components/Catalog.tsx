@@ -41,7 +41,8 @@ export default function Catalog({
     setBusy(slug);
     for (let attempt = 0; attempt < 5; attempt++) {
       const code = makeCode();
-      const soloish = exercise === "solo" || exercise === "benchmark";
+      const soloish =
+        exercise === "solo" || exercise === "benchmark" || exercise === "network";
       const { data, error } = await supabase
         .from("sessions")
         .insert({
@@ -56,7 +57,7 @@ export default function Catalog({
       if (!error && data) {
         if (exercise === "workflow") {
           await supabase.from("workflow_docs").upsert({ session_id: data.id }, { onConflict: "session_id" });
-        } else if (exercise !== "benchmark") {
+        } else if (exercise !== "benchmark" && exercise !== "network") {
           await supabase
             .from("workspaces")
             .upsert({ session_id: data.id, author_id: userId }, { onConflict: "session_id,author_id" });
@@ -174,7 +175,9 @@ export default function Catalog({
                 >
                   {busy === m.slug
                     ? "Opening…"
-                    : m.exercise === "solo" || m.exercise === "benchmark"
+                    : m.exercise === "solo" ||
+                        m.exercise === "benchmark" ||
+                        m.exercise === "network"
                       ? "Start"
                       : "Open a room"}
                 </button>

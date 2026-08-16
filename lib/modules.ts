@@ -6,7 +6,7 @@
 
 export type ModuleDef = {
   slug: string; // stable id used in entitlements + URLs, e.g. "reimagine-job"
-  exercise: "job" | "workflow" | "solo" | "benchmark"; // which room engine renders it
+  exercise: "job" | "workflow" | "solo" | "benchmark" | "network"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -62,6 +62,22 @@ export const MODULES: ModuleDef[] = [
     emoji: "⏱️",
     priceCents: 0,
     priceEnv: "STRIPE_PRICE_BENCHMARK",
+    forSale: false,
+    instructorTool: true,
+  },
+  {
+    slug: "network",
+    exercise: "network",
+    name: "The Network",
+    tagline: "Map the room's real network — live, and anonymous.",
+    description:
+      "Everyone names who they go to for advice and who they call a friend. Watch the advice and friendship networks draw themselves live — then reveal who's most central.",
+    mode: "Live survey",
+    minutes: 8,
+    ai: false,
+    emoji: "🕸️",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_NETWORK",
     forSale: false,
     instructorTool: true,
   },

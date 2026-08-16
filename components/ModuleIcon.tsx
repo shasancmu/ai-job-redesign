@@ -37,6 +37,17 @@ export default function ModuleIcon({
           <path d="M6.8 11 10.2 7M13.8 7l3.4 4M17.2 13l-3.4 4M10.2 17 6.8 13" />
         </svg>
       );
+    case "network": // connected nodes
+      return (
+        <svg {...common}>
+          <circle cx="6" cy="7" r="2" />
+          <circle cx="18" cy="6" r="2" />
+          <circle cx="17" cy="17" r="2" />
+          <circle cx="7" cy="17" r="2" />
+          <circle cx="12" cy="12" r="2.2" />
+          <path d="M7.6 8.2 10.6 10.6M16.4 7.2 13.4 10.6M15.6 15.6 13.4 13.4M8.4 15.6 10.6 13.4" />
+        </svg>
+      );
     case "benchmark": // a gauge / timer
       return (
         <svg {...common}>
