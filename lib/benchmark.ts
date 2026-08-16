@@ -1,12 +1,10 @@
 // ============================================================================
-// Timed benchmark config.
+// Benchmark config types + defaults.
 //
-// The answer key is pre-wired (B, D, A, A, E, D, A). To make the module usable,
-// paste each question's passage into `prompt` and its five choices into
-// `options[].text` below. (The LSAT April 2025 questions are LSAC-copyrighted —
-// paste from your licensed copy, or swap in your own / licensed questions.)
-//
-// `timeLimitSec` controls the countdown for the whole set — tune to taste.
+// Question TEXT is never stored here — the instructor enters it in-app
+// (Facilitator → The Benchmark → Edit questions), and it's saved to the
+// service-role-only `benchmark_config` table. This file only carries the
+// structure and the pre-wired answer key.
 // ============================================================================
 
 export type BenchOption = { key: string; text: string };
@@ -16,35 +14,60 @@ export type BenchQuestion = {
   options: BenchOption[];
   answer: string; // "A".."E"
 };
+export type BenchConfig = {
+  title: string;
+  timeLimitSec: number;
+  questions: BenchQuestion[];
+};
 
 const ANSWER_KEY = ["B", "D", "A", "A", "E", "D", "A"];
 
-export const BENCHMARK = {
+export const DEFAULT_CONFIG: BenchConfig = {
   title: "Logical Reasoning — Diagnostic",
-  intro:
-    "Seven logical-reasoning questions. For each, pick the single best answer. You're timed — work quickly and carefully.",
-  timeLimitSec: 8 * 60, // 8 minutes for 7 questions — change as you like
-  source: "LSAT, April 2025 (Form LTDA03). For licensed educational use.",
-  aiNote:
-    "On this kind of reasoning test, a small AI model scores around the 92nd–98th percentile — in minutes, for pennies. The question isn't whether AI can do this. It's what only you can.",
-  questions: ANSWER_KEY.map<BenchQuestion>((answer, i) => ({
+  timeLimitSec: 8 * 60,
+  questions: ANSWER_KEY.map((answer, i) => ({
     id: i + 1,
-    prompt: "", // ← paste Question ${i+1}'s passage/stem here
-    options: ["A", "B", "C", "D", "E"].map((key) => ({ key, text: "" })), // ← paste each choice
+    prompt: "",
+    options: ["A", "B", "C", "D", "E"].map((key) => ({ key, text: "" })),
     answer,
   })),
 };
 
-export const BENCHMARK_TOTAL = BENCHMARK.questions.length;
+export const AI_NOTE =
+  "On this kind of reasoning test, a small AI model scores around the 92nd–98th percentile — in minutes, for pennies. The question isn't whether AI can do this. It's what only you can.";
 
-// True once the questions have actually been filled in.
-export const BENCHMARK_READY = BENCHMARK.questions.every(
-  (q) => q.prompt.trim().length > 0 && q.options.every((o) => o.text.trim().length > 0)
-);
+export function configReady(c: BenchConfig): boolean {
+  return (
+    c.questions.length > 0 &&
+    c.questions.every(
+      (q) => q.prompt.trim().length > 0 && q.options.every((o) => o.text.trim().length > 0)
+    )
+  );
+}
 
-export function scoreAnswers(answers: Record<string, string>): number {
-  return BENCHMARK.questions.reduce(
+export function scoreConfig(c: BenchConfig, answers: Record<string, string>): number {
+  return c.questions.reduce(
     (s, q) => s + (answers[String(q.id)] === q.answer ? 1 : 0),
     0
   );
+}
+
+// Normalize arbitrary saved JSON into a safe BenchConfig.
+export function coerceConfig(raw: any): BenchConfig {
+  if (!raw || !Array.isArray(raw.questions) || raw.questions.length === 0) {
+    return DEFAULT_CONFIG;
+  }
+  return {
+    title: String(raw.title || DEFAULT_CONFIG.title),
+    timeLimitSec: Math.max(30, parseInt(raw.timeLimitSec, 10) || DEFAULT_CONFIG.timeLimitSec),
+    questions: raw.questions.map((q: any, i: number) => ({
+      id: Number(q.id) || i + 1,
+      prompt: String(q.prompt || ""),
+      options: (Array.isArray(q.options) ? q.options : []).map((o: any, j: number) => ({
+        key: String(o.key || ["A", "B", "C", "D", "E"][j] || j),
+        text: String(o.text || ""),
+      })),
+      answer: String(q.answer || "A"),
+    })),
+  };
 }

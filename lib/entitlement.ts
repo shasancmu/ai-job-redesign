@@ -1,4 +1,5 @@
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
+import { moduleBySlug } from "@/lib/modules";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // The set of things a user is entitled to: module slugs and/or "all".
@@ -21,6 +22,8 @@ export async function hasModuleAccess(
   moduleSlug: string,
   isInstructor = false
 ): Promise<boolean> {
+  // Free / instructor-run modules are never gated.
+  if (moduleBySlug(moduleSlug)?.forSale === false) return true;
   if (!PAYMENTS_ENABLED) return true;
   if (isInstructor) return true;
   const ents = await getEntitlements(supabase, userId);

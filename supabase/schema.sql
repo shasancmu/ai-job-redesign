@@ -186,6 +186,19 @@ create policy "workflow update" on public.workflow_docs
   with check (public.is_session_participant(session_id));
 
 -- ============================================================================
+-- Benchmark config: the instructor's question set, edited in-app and stored
+-- here (never in the codebase). RLS is ON with NO policies, so ONLY the service
+-- role can read/write it — answers never reach the browser directly.
+-- ============================================================================
+create table if not exists public.benchmark_config (
+  id text primary key default 'default',
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+alter table public.benchmark_config enable row level security;
+-- (deliberately no policies — service role only)
+
+-- ============================================================================
 -- Benchmark results: one row per person per timed-benchmark attempt. The
 -- facilitator histogram aggregates these by cohort (score distribution).
 -- ============================================================================

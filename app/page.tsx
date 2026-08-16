@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { MODULES } from "@/lib/modules";
+import { SALEABLE_MODULES } from "@/lib/modules";
 import Logo from "@/components/Logo";
 import ModuleIcon from "@/components/ModuleIcon";
 import Footer from "@/components/Footer";
@@ -78,7 +78,7 @@ export default async function Home() {
       <section className="mx-auto mt-16 max-w-6xl px-6">
         <span className="eyebrow">The modules</span>
         <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {MODULES.map((m) => (
+          {SALEABLE_MODULES.map((m) => (
             <div key={m.slug} className="card p-6 transition hover:shadow-lift">
               <div
                 className={

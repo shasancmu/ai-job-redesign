@@ -30,7 +30,12 @@ export default async function FacilitatorBenchmark({
         >
           ← {label}
         </Link>
-        <h1 className="mt-1 text-3xl font-bold text-ink">The Benchmark — live</h1>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-3xl font-bold text-ink">The Benchmark — live</h1>
+          <Link href="/facilitator/benchmark/edit" className="btn-ghost text-sm">
+            Edit questions
+          </Link>
+        </div>
         <p className="text-slate2">Scores update as the room submits. Project this.</p>
       </div>
 

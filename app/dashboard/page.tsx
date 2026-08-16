@@ -36,7 +36,8 @@ export default async function Dashboard({
   const ents = await getEntitlements(supabase, user.id);
   const unlocked: Record<string, boolean> = {};
   for (const m of MODULES) {
-    unlocked[m.slug] = !PAYMENTS_ENABLED || instructor || ents.has("all") || ents.has(m.slug);
+    unlocked[m.slug] =
+      m.forSale === false || !PAYMENTS_ENABLED || instructor || ents.has("all") || ents.has(m.slug);
   }
 
   const { data: sessions } = await supabase

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { BENCHMARK_TOTAL } from "@/lib/benchmark";
+import { DEFAULT_CONFIG, coerceConfig } from "@/lib/benchmark";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,6 +23,20 @@ export async function GET(request: Request) {
   } catch {
     return Response.json({ error: "service role not set" }, { status: 500 });
   }
+
+  // Total number of questions comes from the current config.
+  let benchTotal = DEFAULT_CONFIG.questions.length;
+  try {
+    const { data: cfgRow } = await admin
+      .from("benchmark_config")
+      .select("data")
+      .eq("id", "default")
+      .maybeSingle();
+    if (cfgRow?.data) benchTotal = coerceConfig(cfgRow.data).questions.length;
+  } catch {
+    /* fall back to default */
+  }
+  const BENCHMARK_TOTAL = benchTotal;
 
   let q = admin
     .from("benchmark_results")

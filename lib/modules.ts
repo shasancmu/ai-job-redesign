@@ -16,6 +16,8 @@ export type ModuleDef = {
   emoji: string;
   priceCents: number; // display price (Stripe is source of truth for charging)
   priceEnv: string; // env var holding this module's Stripe price id
+  forSale?: boolean; // false = free, instructor-run, hidden from the sales page
+  instructorTool?: boolean; // shown with an "instructor tool" tag
 };
 
 export const MODULES: ModuleDef[] = [
@@ -58,8 +60,10 @@ export const MODULES: ModuleDef[] = [
     minutes: 10,
     ai: false,
     emoji: "⏱️",
-    priceCents: 500,
+    priceCents: 0,
     priceEnv: "STRIPE_PRICE_BENCHMARK",
+    forSale: false,
+    instructorTool: true,
   },
   {
     slug: "solo-ai",
@@ -84,6 +88,9 @@ export const ALL_ACCESS = {
   priceCents: 2900,
   priceEnv: "STRIPE_PRICE_ID",
 };
+
+// Modules sold on the public marketing page (excludes free instructor tools).
+export const SALEABLE_MODULES = MODULES.filter((m) => m.forSale !== false);
 
 export function moduleBySlug(slug: string): ModuleDef | undefined {
   return MODULES.find((m) => m.slug === slug);

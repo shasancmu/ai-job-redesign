@@ -158,10 +158,13 @@ export default function Catalog({
               </div>
               <h3 className="mt-4 text-lg font-bold text-ink">{m.name}</h3>
               <p className="mt-1.5 flex-1 text-sm leading-relaxed text-slate2">{m.tagline}</p>
-              <div className="mt-4 flex items-center gap-2 text-xs text-ink/45">
+              <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-ink/45">
                 <span className="rounded-full border border-line px-2 py-0.5 text-ink/60">{m.mode}</span>
                 <span>{m.minutes} min</span>
                 {m.ai && <span className="rounded-full bg-amber-soft px-2 py-0.5 font-medium text-amber">AI</span>}
+                {m.instructorTool && (
+                  <span className="rounded-full bg-sky-soft px-2 py-0.5 font-medium text-sky">Instructor tool · free</span>
+                )}
               </div>
               {open ? (
                 <button
@@ -169,7 +172,11 @@ export default function Catalog({
                   disabled={busy !== null}
                   className="btn-primary mt-5"
                 >
-                  {busy === m.slug ? "Opening…" : m.exercise === "solo" ? "Start" : "Open a room"}
+                  {busy === m.slug
+                    ? "Opening…"
+                    : m.exercise === "solo" || m.exercise === "benchmark"
+                      ? "Start"
+                      : "Open a room"}
                 </button>
               ) : (
                 <Link href={`/paywall?module=${m.slug}`} className="btn-dark mt-5">

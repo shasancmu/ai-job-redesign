@@ -3,76 +3,68 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import {
-  BENCHMARK,
-  BENCHMARK_TOTAL,
-  BENCHMARK_READY,
-  scoreAnswers,
-} from "@/lib/benchmark";
+import { AI_NOTE } from "@/lib/benchmark";
 import BenchmarkHistogram from "@/components/BenchmarkHistogram";
 
-type Phase = "intro" | "quiz" | "done";
+type Phase = "loading" | "intro" | "quiz" | "done";
+type Q = { id: number; prompt: string; options: { key: string; text: string }[] };
+type Cfg = { title: string; timeLimitSec: number; total: number; ready: boolean; questions: Q[] };
 
-export default function BenchmarkRoom({
-  me,
-  session,
-}: {
-  me: string;
-  session: any;
-}) {
+export default function BenchmarkRoom({ me, session }: { me: string; session: any }) {
   const supabase = createClient();
-  const [phase, setPhase] = useState<Phase>("intro");
+  const [phase, setPhase] = useState<Phase>("loading");
+  const [cfg, setCfg] = useState<Cfg | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [score, setScore] = useState<number | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const submitted = useRef(false);
 
-  // If this attempt was already submitted, jump to results.
+  // Load the question set + any prior result.
   useEffect(() => {
-    supabase
-      .from("benchmark_results")
-      .select("score")
-      .eq("session_id", session.id)
-      .eq("user_id", me)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data) {
-          setScore(data.score);
-          setPhase("done");
-        }
-      });
+    (async () => {
+      const [cfgRes, prior] = await Promise.all([
+        fetch("/api/benchmark/config", { cache: "no-store" }).then((r) => r.json()),
+        supabase
+          .from("benchmark_results")
+          .select("score")
+          .eq("session_id", session.id)
+          .eq("user_id", me)
+          .maybeSingle(),
+      ]);
+      setCfg(cfgRes);
+      if (prior.data) {
+        setScore(prior.data.score);
+        setPhase("done");
+      } else {
+        setPhase("intro");
+      }
+    })();
   }, [supabase, session.id, me]);
 
-  // Countdown tick.
   useEffect(() => {
     if (phase !== "quiz") return;
     const id = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(id);
   }, [phase]);
 
+  const total = cfg?.total ?? 0;
+  const limit = cfg?.timeLimitSec ?? 480;
   const remaining =
-    startedAt != null
-      ? Math.max(0, BENCHMARK.timeLimitSec - Math.floor((now - startedAt) / 1000))
-      : BENCHMARK.timeLimitSec;
+    startedAt != null ? Math.max(0, limit - Math.floor((now - startedAt) / 1000)) : limit;
 
   const submit = useCallback(async () => {
     if (submitted.current) return;
     submitted.current = true;
-    const s = scoreAnswers(answers);
-    setScore(s);
+    const res = await fetch("/api/benchmark/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId: session.id, cohort: session.cohort || null, answers }),
+    }).then((r) => r.json());
+    setScore(res.score ?? 0);
     setPhase("done");
-    await supabase.from("benchmark_results").insert({
-      session_id: session.id,
-      user_id: me,
-      cohort: session.cohort || null,
-      answers,
-      score: s,
-      total: BENCHMARK_TOTAL,
-    });
-  }, [answers, supabase, session.id, session.cohort, me]);
+  }, [answers, session.id, session.cohort]);
 
-  // Auto-submit when time runs out.
   useEffect(() => {
     if (phase === "quiz" && remaining === 0) submit();
   }, [phase, remaining, submit]);
@@ -86,30 +78,28 @@ export default function BenchmarkRoom({
         <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
           ← Exit
         </Link>
-        <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">
-          The Benchmark
-        </span>
+        <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">The Benchmark</span>
       </div>
 
-      {/* ---------- intro ---------- */}
-      {phase === "intro" && (
+      {phase === "loading" && <div className="text-slate2">Loading…</div>}
+
+      {phase === "intro" && cfg && (
         <div className="card p-8">
-          <h1 className="text-2xl font-bold text-ink">{BENCHMARK.title}</h1>
-          <p className="mt-3 leading-relaxed text-slate2">{BENCHMARK.intro}</p>
+          <h1 className="text-2xl font-bold text-ink">{cfg.title}</h1>
+          <p className="mt-3 leading-relaxed text-slate2">
+            {cfg.total} questions, timed. For each, pick the single best answer — work quickly and
+            carefully.
+          </p>
           <div className="mt-5 flex flex-wrap gap-4 text-sm text-slate2">
+            <span className="rounded-lg bg-mist px-3 py-1.5">{cfg.total} questions</span>
             <span className="rounded-lg bg-mist px-3 py-1.5">
-              {BENCHMARK_TOTAL} questions
-            </span>
-            <span className="rounded-lg bg-mist px-3 py-1.5">
-              {Math.round(BENCHMARK.timeLimitSec / 60)} min · timed
+              {Math.round(cfg.timeLimitSec / 60)} min · timed
             </span>
           </div>
-
-          {!BENCHMARK_READY ? (
+          {!cfg.ready ? (
             <div className="mt-6 rounded-xl bg-amber-soft px-4 py-3 text-sm text-ink">
-              <b>Setup needed:</b> the questions haven&apos;t been added yet. Paste
-              them into <code>lib/benchmark.ts</code> (the answer key is already
-              wired), then redeploy.
+              <b>Not set up yet.</b> The questions haven&apos;t been added. In Facilitator → The
+              Benchmark → <b>Edit questions</b>, paste them in (the answer key is already wired).
             </div>
           ) : (
             <button
@@ -126,12 +116,11 @@ export default function BenchmarkRoom({
         </div>
       )}
 
-      {/* ---------- quiz ---------- */}
-      {phase === "quiz" && (
+      {phase === "quiz" && cfg && (
         <div>
           <div className="sticky top-0 z-10 -mx-5 mb-4 flex items-center justify-between border-b border-line bg-paper/90 px-5 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border sm:px-4">
             <span className="text-sm text-slate2">
-              {Object.keys(answers).length}/{BENCHMARK_TOTAL} answered
+              {Object.keys(answers).length}/{total} answered
             </span>
             <span
               className={
@@ -144,28 +133,22 @@ export default function BenchmarkRoom({
           </div>
 
           <div className="space-y-4">
-            {BENCHMARK.questions.map((q) => (
+            {cfg.questions.map((q) => (
               <div key={q.id} className="card p-5">
                 <div className="text-xs font-semibold uppercase tracking-wide text-sage">
-                  Question {q.id} of {BENCHMARK_TOTAL}
+                  Question {q.id} of {total}
                 </div>
-                <p className="mt-2 whitespace-pre-wrap leading-relaxed text-ink">
-                  {q.prompt}
-                </p>
+                <p className="mt-2 whitespace-pre-wrap leading-relaxed text-ink">{q.prompt}</p>
                 <div className="mt-4 space-y-2">
                   {q.options.map((o) => {
                     const chosen = answers[String(q.id)] === o.key;
                     return (
                       <button
                         key={o.key}
-                        onClick={() =>
-                          setAnswers((a) => ({ ...a, [String(q.id)]: o.key }))
-                        }
+                        onClick={() => setAnswers((a) => ({ ...a, [String(q.id)]: o.key }))}
                         className={
                           "flex w-full items-start gap-3 rounded-xl border px-3.5 py-2.5 text-left text-sm transition " +
-                          (chosen
-                            ? "border-sage bg-sage-soft"
-                            : "border-line hover:border-slate-300")
+                          (chosen ? "border-sage bg-sage-soft" : "border-line hover:border-slate-300")
                         }
                       >
                         <span
@@ -193,20 +176,15 @@ export default function BenchmarkRoom({
         </div>
       )}
 
-      {/* ---------- done ---------- */}
       {phase === "done" && (
         <div className="space-y-5">
           <div className="card p-8 text-center">
-            <div className="text-sm font-semibold uppercase tracking-wide text-slate2">
-              Your score
-            </div>
+            <div className="text-sm font-semibold uppercase tracking-wide text-slate2">Your score</div>
             <div className="mt-1 text-5xl font-bold text-ink">
               {score}
-              <span className="text-2xl text-slate2">/{BENCHMARK_TOTAL}</span>
+              <span className="text-2xl text-slate2">/{total || (cfg?.total ?? 7)}</span>
             </div>
-            <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-slate2">
-              {BENCHMARK.aiNote}
-            </p>
+            <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-slate2">{AI_NOTE}</p>
           </div>
 
           <div className="card p-6">
