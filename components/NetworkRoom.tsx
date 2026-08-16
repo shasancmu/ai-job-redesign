@@ -43,6 +43,20 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
     })();
   }, []); // eslint-disable-line
 
+  // Set my identity (pick existing OR add new) via one endpoint that prevents
+  // duplicate/orphan roster entries.
+  async function identify(payload: { pickId?: string; name?: string }) {
+    const r = await fetch("/api/network/join", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cohort, ...payload }),
+    }).then((x) => x.json());
+    if (r.id) {
+      setRoster(r.roster || []);
+      setSelfId(r.id);
+    }
+  }
+
   async function submit() {
     setBusy(true);
     await fetch("/api/network/submit", {
@@ -79,18 +93,8 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
           <SelfPicker
             roster={roster}
             selfId={selfId}
-            onPick={setSelfId}
-            onAdd={async (name) => {
-              const r = await fetch("/api/network/join", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ cohort, name }),
-              }).then((x) => x.json());
-              if (r.id) {
-                setRoster(r.roster || []);
-                setSelfId(r.id);
-              }
-            }}
+            onPick={(id) => identify({ pickId: id })}
+            onAdd={(name) => identify({ name })}
           />
           <StickyNext
             disabled={!selfId}
