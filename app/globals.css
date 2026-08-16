@@ -4,13 +4,14 @@
 
 :root {
   color-scheme: light;
-  --paper: #fbfaf4;
-  --ink: #23241d;
-  --line: #ece6d6;
-  --sage: #4a6a4e;
-  --amber: #ce8f2c;
-  --clay: #b4623f;
-  --sky: #5b7fa6;
+  --paper: #ffffff;
+  --ink: #14283a;
+  --slate2: #47586a;
+  --line: #e7ebf0;
+  --sage: #3f7a52;
+  --amber: #c98a2b;
+  --clay: #c06a47;
+  --sky: #4e79c9;
 }
 
 html,
@@ -21,88 +22,126 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* A soft, image-free sunlit atmosphere behind everything. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(58% 46% at 90% -6%, rgba(206, 143, 44, 0.16), transparent 70%),
-    radial-gradient(46% 42% at -6% 104%, rgba(74, 106, 78, 0.12), transparent 72%);
-}
-
-/* Display serif for headings — warm, authentic. */
 h1,
 h2,
 h3 {
-  font-family: var(--font-display), Georgia, serif;
-  font-weight: 500;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.022em;
+  font-weight: 700;
+}
+h1 {
+  font-weight: 600;
+  letter-spacing: -0.028em;
+}
+.display {
+  font-weight: 600;
+  letter-spacing: -0.028em;
+  line-height: 1.06;
 }
 
-.font-display {
-  font-family: var(--font-display), Georgia, serif;
+/* ---- Stripe-style flowing gradient ribbon (sunrise palette) -------------- */
+.hero-wrap {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.ribbon,
+.ribbon-2 {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  filter: blur(70px) saturate(1.08);
+  border-radius: 46% 54% 50% 50%;
+}
+.ribbon {
+  top: -30%;
+  right: -14%;
+  width: 74%;
+  height: 175%;
+  opacity: 0.72;
+  transform: rotate(-16deg);
+  background: conic-gradient(
+    from 205deg at 55% 45%,
+    #7fa8e0 0deg,
+    #b98fd6 55deg,
+    #e98aa0 125deg,
+    #f2a24e 195deg,
+    #f7c86b 245deg,
+    #93cba6 310deg,
+    #7fa8e0 360deg
+  );
+}
+.ribbon-2 {
+  top: -10%;
+  right: 20%;
+  width: 42%;
+  height: 120%;
+  opacity: 0.5;
+  transform: rotate(14deg);
+  background: conic-gradient(
+    from 20deg at 50% 50%,
+    #f7c86b,
+    #e98aa0,
+    #b98fd6,
+    #93cba6,
+    #f7c86b
+  );
 }
 
 /* ---- components ---------------------------------------------------------- */
 .card {
-  @apply rounded-2xl border bg-white/85 shadow-soft backdrop-blur-sm;
+  @apply rounded-2xl border bg-white;
   border-color: var(--line);
+  box-shadow: 0 1px 2px rgba(20, 40, 58, 0.04), 0 6px 20px -12px rgba(20, 40, 58, 0.12);
 }
 
 .btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50;
+  @apply inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold transition;
+  @apply disabled:cursor-not-allowed disabled:opacity-50;
 }
 .btn-primary {
   @apply btn text-white;
-  background: var(--ink);
+  background: var(--sage);
+  box-shadow: 0 1px 1px rgba(20, 40, 58, 0.06), 0 2px 6px rgba(63, 122, 82, 0.28);
 }
 .btn-primary:hover {
-  background: #34362c;
+  background: #366a47;
+  transform: translateY(-1px);
 }
-.btn-brand {
+.btn-dark {
   @apply btn text-white;
-  background: var(--sage);
+  background: var(--ink);
 }
-.btn-brand:hover {
-  background: #3d5a41;
+.btn-dark:hover {
+  background: #1f3a52;
+  transform: translateY(-1px);
 }
 .btn-ghost {
-  @apply btn bg-white/70 text-ink;
+  @apply btn bg-white text-ink;
   border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(20, 40, 58, 0.05);
 }
 .btn-ghost:hover {
-  background: var(--sage-soft, #eaf0e5);
-  border-color: #d8ceb8;
+  border-color: #d3dae2;
+  transform: translateY(-1px);
 }
 
 .field {
-  @apply w-full rounded-xl bg-white/80 px-3.5 py-2.5 text-ink outline-none transition;
+  @apply w-full rounded-xl bg-white px-3.5 py-2.5 text-ink outline-none transition;
   border: 1px solid var(--line);
 }
 .field:focus {
   border-color: var(--sage);
-  box-shadow: 0 0 0 3px rgba(74, 106, 78, 0.12);
+  box-shadow: 0 0 0 3px rgba(63, 122, 82, 0.14);
 }
 label.lbl {
   @apply mb-1.5 block text-sm font-medium;
-  color: #6b6a5c;
+  color: var(--slate2);
 }
 textarea.field {
   @apply min-h-[92px] resize-y leading-relaxed;
 }
 
-/* A subtle geometric eyebrow rule used above section labels. */
 .eyebrow {
-  @apply inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em];
+  @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em];
   color: var(--sage);
-}
-.eyebrow::before {
-  content: "";
-  width: 1.4rem;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, var(--amber), var(--sage));
 }

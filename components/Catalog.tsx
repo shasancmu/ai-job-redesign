@@ -5,11 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { MODULES, formatPrice } from "@/lib/modules";
+import ModuleIcon from "@/components/ModuleIcon";
 
-const ACCENT: Record<string, { chip: string; bar: string }> = {
-  "reimagine-job": { chip: "bg-sage-soft text-sage", bar: "#4A6A4E" },
-  "reimagine-workflow": { chip: "bg-sky-soft text-sky", bar: "#5B7FA6" },
-  "solo-ai": { chip: "bg-amber-soft text-amber", bar: "#CE8F2C" },
+const ACCENT: Record<string, string> = {
+  "reimagine-job": "bg-sage-soft text-sage",
+  "reimagine-workflow": "bg-sky-soft text-sky",
+  "solo-ai": "bg-amber-soft text-amber",
 };
 
 function makeCode() {
@@ -148,30 +149,29 @@ export default function Catalog({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {MODULES.map((m) => {
           const open = !!unlocked[m.slug];
-          const a = ACCENT[m.slug] || { chip: "bg-sage-soft text-sage", bar: "#4A6A4E" };
+          const chip = ACCENT[m.slug] || "bg-sage-soft text-sage";
           return (
-            <div key={m.slug} className="card relative flex flex-col overflow-hidden p-5">
-              <span className="absolute inset-x-0 top-0 h-1" style={{ background: a.bar }} />
-              <div className={"flex h-11 w-11 items-center justify-center rounded-xl text-2xl " + a.chip}>
-                {m.emoji}
+            <div key={m.slug} className="card flex flex-col p-6 transition hover:shadow-lift">
+              <div className={"flex h-11 w-11 items-center justify-center rounded-xl " + chip}>
+                <ModuleIcon slug={m.slug} />
               </div>
-              <h3 className="mt-3 text-xl">{m.name}</h3>
-              <p className="mt-1 flex-1 text-sm leading-relaxed text-ink/60">{m.tagline}</p>
-              <div className="mt-3 flex items-center gap-2 text-xs">
+              <h3 className="mt-4 text-lg font-bold text-ink">{m.name}</h3>
+              <p className="mt-1.5 flex-1 text-sm leading-relaxed text-slate2">{m.tagline}</p>
+              <div className="mt-4 flex items-center gap-2 text-xs text-ink/45">
                 <span className="rounded-full border border-line px-2 py-0.5 text-ink/60">{m.mode}</span>
-                <span className="text-ink/45">{m.minutes} min</span>
+                <span>{m.minutes} min</span>
                 {m.ai && <span className="rounded-full bg-amber-soft px-2 py-0.5 font-medium text-amber">AI</span>}
               </div>
               {open ? (
                 <button
                   onClick={() => openModule(m.slug, m.exercise)}
                   disabled={busy !== null}
-                  className="btn-primary mt-4"
+                  className="btn-primary mt-5"
                 >
                   {busy === m.slug ? "Opening…" : m.exercise === "solo" ? "Start" : "Open a room"}
                 </button>
               ) : (
-                <Link href={`/paywall?module=${m.slug}`} className="btn-brand mt-4">
+                <Link href={`/paywall?module=${m.slug}`} className="btn-dark mt-5">
                   Unlock — {formatPrice(m.priceCents)}
                 </Link>
               )}

@@ -8,29 +8,29 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        paper: "#FBFAF4", // sunlit off-white
-        ink: "#23241D", // warm near-black
-        line: "#ECE6D6", // warm border
-        // brand naturals — colorful but subtle
-        sage: { DEFAULT: "#4A6A4E", soft: "#EAF0E5" }, // plants / primary
-        amber: { DEFAULT: "#CE8F2C", soft: "#FBEECF" }, // sunlight
-        clay: { DEFAULT: "#B4623F", soft: "#F6E3D8" }, // terracotta
-        sky: { DEFAULT: "#5B7FA6", soft: "#E5ECF4" }, // dusty blue
-        // engine roles, re-harmonized to the palette
-        ai: "#5B7FA6",
-        human: "#B4623F",
+        paper: "#FFFFFF",
+        mist: "#F6F8FB", // light section background
+        ink: "#14283A", // deep navy (Stripe-like)
+        slate2: "#47586A", // muted slate-blue body text
+        line: "#E7EBF0", // crisp cool border
+        sage: { DEFAULT: "#3F7A52", soft: "#E7F1EA" }, // primary / plants
+        amber: { DEFAULT: "#C98A2B", soft: "#FBEFD6" }, // sunlight
+        clay: { DEFAULT: "#C06A47", soft: "#F7E5DB" },
+        sky: { DEFAULT: "#4E79C9", soft: "#E6EDFA" },
+        ai: "#4E79C9",
+        human: "#C06A47",
       },
       fontFamily: {
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
-        display: ["var(--font-display)", "Georgia", "serif"],
       },
       boxShadow: {
-        soft: "0 1px 2px rgba(35,36,29,.04), 0 10px 30px -14px rgba(35,36,29,.12)",
-        lift: "0 2px 6px rgba(35,36,29,.05), 0 18px 40px -18px rgba(35,36,29,.18)",
+        soft: "0 1px 2px rgba(26,39,51,.04), 0 6px 20px -8px rgba(26,39,51,.10)",
+        lift: "0 2px 4px rgba(26,39,51,.05), 0 20px 40px -20px rgba(26,39,51,.22)",
+        btn: "0 1px 1px rgba(26,39,51,.06), 0 2px 6px rgba(26,39,51,.12)",
       },
       borderRadius: {
-        xl: "0.9rem",
-        "2xl": "1.15rem",
+        xl: "0.75rem",
+        "2xl": "1rem",
       },
     },
   },

@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-import { Fraunces, Manrope } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { BRAND } from "@/lib/brand";
 
-// Warm, characterful serif for display; clean geometric humanist sans for UI.
-const display = Fraunces({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-display",
-  display: "swap",
-});
-const sans = Manrope({
+// One crisp grotesk family, used with tight tracking — the Stripe signature.
+const sans = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
   variable: "--font-sans",
@@ -29,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable}`}>
+    <html lang="en" className={sans.variable}>
       <body className="min-h-screen font-sans antialiased">{children}</body>
     </html>
   );

@@ -26,7 +26,7 @@ export default function Logo({
         </g>
       </svg>
       {wordmark && (
-        <span className="font-display text-[1.15rem] font-medium tracking-tight text-ink">
+        <span className="text-[1.1rem] font-bold tracking-tight text-ink">
           {BRAND.name}
         </span>
       )}
