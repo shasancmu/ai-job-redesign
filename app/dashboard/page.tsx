@@ -54,7 +54,27 @@ export default async function Dashboard({
     .select("*")
     .or(`host_id.eq.${user.id},guest_id.eq.${user.id}`)
     .order("created_at", { ascending: false })
-    .limit(12);
+    .limit(30);
+
+  // Which modules has this person completed, and where's their last run?
+  const [{ data: bench }, { data: net }] = await Promise.all([
+    supabase.from("benchmark_results").select("session_id").eq("user_id", user.id).limit(1),
+    supabase.from("network_responses").select("cohort").eq("user_id", user.id).limit(1),
+  ]);
+  const benchmarkDone = (bench?.length || 0) > 0;
+  const networkDone = (net?.length || 0) > 0;
+  const completed: Record<string, boolean> = {};
+  const lastCode: Record<string, string> = {};
+  for (const m of MODULES) {
+    const runs = (sessions || []).filter((s: any) => s.exercise === m.exercise);
+    if (runs[0]) lastCode[m.slug] = runs[0].code;
+    completed[m.slug] =
+      m.exercise === "benchmark"
+        ? benchmarkDone
+        : m.exercise === "network"
+          ? networkDone
+          : runs.some((s: any) => s.status === "done");
+  }
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
@@ -81,6 +101,8 @@ export default async function Dashboard({
           userId={user.id}
           unlocked={unlocked}
           initialCohort={searchParams.cohort || ""}
+          completed={completed}
+          lastCode={lastCode}
         />
       </section>
 

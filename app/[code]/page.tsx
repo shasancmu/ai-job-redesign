@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizeCode } from "@/lib/classes";
 import { titleCaseName } from "@/lib/name";
 import { isAdmin } from "@/lib/admin";
+import { moduleBySlug } from "@/lib/modules";
 import Catalog from "@/components/Catalog";
 import Logo from "@/components/Logo";
 import Footer from "@/components/Footer";
@@ -88,6 +89,34 @@ export default async function ClassPage({ params }: { params: { code: string } }
   const unlocked: Record<string, boolean> = {};
   for (const s of moduleSlugs) unlocked[s] = true; // class members get the class's modules
 
+  // Completion within THIS class.
+  const [{ data: mySessions }, { data: bench }, { data: net }] = await Promise.all([
+    supabase
+      .from("sessions")
+      .select("code, exercise, status, created_at")
+      .eq("cohort", code)
+      .or(`host_id.eq.${user.id},guest_id.eq.${user.id}`)
+      .order("created_at", { ascending: false }),
+    supabase.from("benchmark_results").select("session_id").eq("user_id", user.id).eq("cohort", code).limit(1),
+    supabase.from("network_responses").select("cohort").eq("user_id", user.id).eq("cohort", code).limit(1),
+  ]);
+  const benchmarkDone = (bench?.length || 0) > 0;
+  const networkDone = (net?.length || 0) > 0;
+  const completed: Record<string, boolean> = {};
+  const lastCode: Record<string, string> = {};
+  for (const slug of moduleSlugs) {
+    const m = moduleBySlug(slug);
+    if (!m) continue;
+    const runs = (mySessions || []).filter((s: any) => s.exercise === m.exercise);
+    if (runs[0]) lastCode[slug] = runs[0].code;
+    completed[slug] =
+      m.exercise === "benchmark"
+        ? benchmarkDone
+        : m.exercise === "network"
+          ? networkDone
+          : runs.some((s: any) => s.status === "done");
+  }
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between gap-3">
@@ -111,7 +140,14 @@ export default async function ClassPage({ params }: { params: { code: string } }
       {moduleSlugs.length === 0 ? (
         <p className="text-slate2">Your facilitator hasn&apos;t added modules to this class yet.</p>
       ) : (
-        <Catalog userId={user.id} unlocked={unlocked} moduleSlugs={moduleSlugs} fixedCohort={code} />
+        <Catalog
+          userId={user.id}
+          unlocked={unlocked}
+          moduleSlugs={moduleSlugs}
+          fixedCohort={code}
+          completed={completed}
+          lastCode={lastCode}
+        />
       )}
 
       <Footer />

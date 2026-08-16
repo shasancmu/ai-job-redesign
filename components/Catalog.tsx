@@ -30,12 +30,16 @@ export default function Catalog({
   initialCohort = "",
   moduleSlugs,
   fixedCohort,
+  completed = {},
+  lastCode = {},
 }: {
   userId: string;
   unlocked: Record<string, boolean>;
   initialCohort?: string;
   moduleSlugs?: string[];
   fixedCohort?: string;
+  completed?: Record<string, boolean>;
+  lastCode?: Record<string, string>;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -91,27 +95,42 @@ export default function Catalog({
                 <span className="rounded-full border border-line px-2 py-0.5 text-ink/60">{m.mode}</span>
                 <span>{m.minutes} min</span>
                 {m.ai && <span className="rounded-full bg-amber-soft px-2 py-0.5 font-medium text-amber">AI</span>}
+                {completed[m.slug] && (
+                  <span className="rounded-full bg-sage-soft px-2 py-0.5 font-medium text-sage">✓ Done</span>
+                )}
               </div>
 
               {!open ? (
                 <Link href={`/paywall?module=${m.slug}`} className="btn-dark mt-5">
                   Unlock — {formatPrice(m.priceCents)}
                 </Link>
-              ) : paired ? (
-                <Link
-                  href={`/pair/${m.slug}${cohort ? `?cohort=${encodeURIComponent(cohort)}` : ""}`}
-                  className="btn-primary mt-5"
-                >
-                  Pair up →
-                </Link>
               ) : (
-                <button
-                  onClick={() => startSolo(m.slug, m.exercise)}
-                  disabled={busy !== null}
-                  className="btn-primary mt-5"
-                >
-                  {busy === m.slug ? "Starting…" : "Start"}
-                </button>
+                <div className="mt-5 space-y-2">
+                  {paired ? (
+                    <Link
+                      href={`/pair/${m.slug}${cohort ? `?cohort=${encodeURIComponent(cohort)}` : ""}`}
+                      className="btn-primary w-full"
+                    >
+                      {completed[m.slug] ? "Do it again" : "Pair up →"}
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={() => startSolo(m.slug, m.exercise)}
+                      disabled={busy !== null}
+                      className="btn-primary w-full"
+                    >
+                      {busy === m.slug ? "Starting…" : completed[m.slug] ? "Do it again" : "Start"}
+                    </button>
+                  )}
+                  {completed[m.slug] && lastCode[m.slug] && (
+                    <Link
+                      href={`/room/${lastCode[m.slug]}`}
+                      className="block text-center text-sm text-slate2 hover:text-ink"
+                    >
+                      View last result →
+                    </Link>
+                  )}
+                </div>
               )}
             </div>
           );
