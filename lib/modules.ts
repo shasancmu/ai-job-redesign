@@ -6,7 +6,7 @@
 
 export type ModuleDef = {
   slug: string; // stable id used in entitlements + URLs, e.g. "reimagine-job"
-  exercise: "job" | "workflow" | "solo" | "benchmark" | "network"; // which room engine renders it
+  exercise: "job" | "workflow" | "solo" | "benchmark" | "network" | "workflow-solo"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -64,6 +64,20 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_BENCHMARK",
     forSale: false,
     instructorTool: true,
+  },
+  {
+    slug: "workflow-solo",
+    exercise: "workflow-solo",
+    name: "Reimagine a Workflow — Solo",
+    tagline: "AI interviews you, then redraws your workflow with AI + humans in the right seats.",
+    description:
+      "No partner needed. Describe a workflow, let AI interview you to understand it, then watch it draw the flow — recolor and refine who does what, and end with a redesigned AI+Human workflow.",
+    mode: "Solo + AI",
+    minutes: 30,
+    ai: true,
+    emoji: "🔧",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_WORKFLOW_SOLO",
   },
   {
     slug: "network",

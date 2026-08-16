@@ -57,6 +57,45 @@ export const WORKFLOW_STEPS: WFStep[] = [
 
 export const WORKFLOW_TOTAL = WORKFLOW_STEPS.reduce((s, x) => s + x.minutes, 0);
 
+// Solo, AI-assisted version — you + AI, no partner.
+export const SOLO_WORKFLOW_STEPS: WFStep[] = [
+  {
+    key: "name",
+    index: 0,
+    title: "Name the workflow",
+    subtitle: "Pick one worth redesigning. In a line, what is it — and what breaks if you don't fix it?",
+    minutes: 3,
+  },
+  {
+    key: "interview",
+    index: 1,
+    title: "Tell the AI about it",
+    subtitle: "Answer a few questions so the AI understands how the workflow actually runs today.",
+    minutes: 6,
+  },
+  {
+    key: "map",
+    index: 2,
+    title: "Draw it out",
+    subtitle: "AI sketches the flow from what you told it. Add, remove, split, or recolor the steps.",
+    minutes: 8,
+  },
+  {
+    key: "tradeoffs",
+    index: 3,
+    title: "The three trade-offs",
+    subtitle: "AI pulls toward more, toward generality, toward chaos. Decide where each has to hold the line.",
+    minutes: 7,
+  },
+  {
+    key: "redesign",
+    index: 4,
+    title: "Your AI + Human workflow",
+    subtitle: "The redesigned workflow. Finish the thought: we'd stop ___ and start ___.",
+    minutes: 6,
+  },
+];
+
 // Node roles — green human, gold AI (the logo), purple for both.
 export const STEP_ROLES = [
   { key: "human", label: "Human", color: "#3F7A52" },

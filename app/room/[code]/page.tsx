@@ -9,6 +9,7 @@ import WorkflowRoom from "@/components/WorkflowRoom";
 import SoloRoom from "@/components/SoloRoom";
 import BenchmarkRoom from "@/components/BenchmarkRoom";
 import NetworkRoom from "@/components/NetworkRoom";
+import SoloWorkflowRoom from "@/components/SoloWorkflowRoom";
 
 export default async function RoomPage({
   params,
@@ -54,6 +55,26 @@ export default async function RoomPage({
   if (session.exercise === "network") {
     if (!amHost) redirect("/dashboard");
     return <NetworkRoom me={user.id} session={session} />;
+  }
+
+  // Solo workflow (AI): single-user, only the host belongs here.
+  if (session.exercise === "workflow-solo") {
+    if (!amHost) redirect("/dashboard");
+    await supabase
+      .from("workflow_docs")
+      .upsert({ session_id: session.id }, { onConflict: "session_id" });
+    const { data: doc } = await supabase
+      .from("workflow_docs")
+      .select("*")
+      .eq("session_id", session.id)
+      .maybeSingle();
+    return (
+      <SoloWorkflowRoom
+        me={user.id}
+        session={session}
+        initialDoc={doc || { session_id: session.id }}
+      />
+    );
   }
 
   // Solo (AI partner): single-user, only the host belongs here.

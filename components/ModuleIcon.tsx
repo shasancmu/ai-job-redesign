@@ -37,6 +37,16 @@ export default function ModuleIcon({
           <path d="M6.8 11 10.2 7M13.8 7l3.4 4M17.2 13l-3.4 4M10.2 17 6.8 13" />
         </svg>
       );
+    case "workflow-solo": // flow with a spark
+      return (
+        <svg {...common}>
+          <circle cx="5" cy="6" r="2" />
+          <circle cx="5" cy="18" r="2" />
+          <circle cx="15" cy="12" r="2" />
+          <path d="M7 6.6 13.2 11M7 17.4 13.2 13" />
+          <path d="M19 5v3M20.5 6.5h-3" />
+        </svg>
+      );
     case "network": // connected nodes
       return (
         <svg {...common}>

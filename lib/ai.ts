@@ -88,6 +88,31 @@ export async function interviewReply(
   return complete(messages, { temperature: 0.7 });
 }
 
+const WORKFLOW_INTERVIEWER_SYSTEM = `You are interviewing someone to understand one specific work WORKFLOW they want to redesign — how it actually runs today, start to finish. Use good interviewing craft:
+- Ask exactly ONE open, non-leading question at a time. Keep it short.
+- Map the real steps: who does what, in what order, what the inputs and outputs are, and where information or approvals hand off between people.
+- Probe where a human exercises judgment, where the process stalls or breaks, how long things take, and what "it went well" vs "it failed" looks like.
+- Pull concrete detail: "Walk me through the last time you ran this."
+- Do not redesign or give advice yet — just understand it.
+After about 5 exchanges, reflect the shape of the workflow you heard, ask if you missed a step, then close.`;
+
+export async function workflowInterviewReply(
+  history: ChatMsg[],
+  wf: { name?: string; description?: string }
+): Promise<string> {
+  const ctx =
+    wf.name || wf.description
+      ? `The workflow: ${wf.name || "(unnamed)"} — ${wf.description || ""}`
+      : "They haven't described the workflow yet; open by asking what it is and why it's worth redesigning.";
+  const conversation: ChatMsg[] = history.length
+    ? history
+    : [{ role: "user", content: "Please begin — ask your first question about the workflow." }];
+  return complete(
+    [{ role: "system", content: `${WORKFLOW_INTERVIEWER_SYSTEM}\n\n${ctx}` }, ...conversation],
+    { temperature: 0.7 }
+  );
+}
+
 // Helps an interviewer dig past tasks to the VALUE the other person creates.
 export async function deeperInterviewAI(ctx: {
   jobTitle?: string;
