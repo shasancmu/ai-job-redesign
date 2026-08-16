@@ -76,9 +76,14 @@ export async function interviewReply(
     job.title || job.description
       ? `The person's job: ${job.title || "(untitled)"} — ${job.description || ""}`
       : "The person hasn't described their job yet; open by asking what they do.";
+  // Always include at least one non-system message (some providers, e.g.
+  // Anthropic, reject a system-only request). On the first turn we prime it.
+  const conversation: ChatMsg[] = history.length
+    ? history
+    : [{ role: "user", content: "Please begin the interview with your first question." }];
   const messages: ChatMsg[] = [
     { role: "system", content: `${INTERVIEWER_SYSTEM}\n\n${context}` },
-    ...history,
+    ...conversation,
   ];
   return complete(messages, { temperature: 0.7 });
 }
