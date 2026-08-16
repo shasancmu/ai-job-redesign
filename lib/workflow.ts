@@ -1,7 +1,7 @@
 // ============================================================================
-// The second exercise: "Reimagine Your Organization / Workflow."
-// Condensed from Prof. Hasan's deck into a ~30-min shared-canvas exercise for a
-// pair or small team. Both partners edit ONE shared doc together.
+// "Reimagine a Workflow" — a visual AI+Human workflow redesign.
+// Name it → AI drafts the flow → edit/split/recolor the nodes → weigh the three
+// OCC trade-offs → end with a redesigned AI+Human workflow.
 // ============================================================================
 
 export type WFStep = {
@@ -18,28 +18,20 @@ export const WORKFLOW_STEPS: WFStep[] = [
     index: 0,
     title: "Name the workflow",
     subtitle:
-      "Pick one workflow worth redesigning. Name it in a line — and say what breaks if you don't.",
-    minutes: 2,
+      "Pick one workflow worth redesigning. In a line, what is it — and what breaks if you don't fix it?",
+    minutes: 4,
   },
   {
     key: "map",
     index: 1,
-    title: "Map it, step by step",
+    title: "Draw it out",
     subtitle:
-      "From start to finish, how does it actually work today? One step per line. Mark where a human exercises judgment.",
-    minutes: 6,
-  },
-  {
-    key: "outcome",
-    index: 2,
-    title: "Success & failure",
-    subtitle:
-      "What does this produce when it goes right, and who benefits? Then: what failure would no one notice for six months?",
-    minutes: 5,
+      "Let AI sketch the workflow from your description — then make it right. Add, remove, or split steps until it matches reality.",
+    minutes: 8,
   },
   {
     key: "tradeoffs",
-    index: 3,
+    index: 2,
     title: "The three trade-offs",
     subtitle:
       "AI pulls toward more, toward generality, toward chaos. Decide where each one has to hold the line.",
@@ -47,30 +39,37 @@ export const WORKFLOW_STEPS: WFStep[] = [
   },
   {
     key: "assign",
-    index: 4,
+    index: 3,
     title: "Who does what?",
     subtitle:
-      "Go back to your steps. Sort every one: AI, Human, or Both. Disagreements are the most interesting part.",
+      "Colour every step — green for humans, gold for AI, purple for both. Disagreements are the most interesting part.",
     minutes: 6,
   },
   {
     key: "redesign",
-    index: 5,
-    title: "Redesign it",
+    index: 4,
+    title: "Your AI + Human workflow",
     subtitle:
-      "Complete the sentence: if we actually redesigned this, we would stop ___ and start ___.",
-    minutes: 4,
+      "Here's the redesigned workflow. Finish the thought: we'd stop ___ and start ___.",
+    minutes: 5,
   },
 ];
 
 export const WORKFLOW_TOTAL = WORKFLOW_STEPS.reduce((s, x) => s + x.minutes, 0);
 
+// Node roles — green human, gold AI (the logo), purple for both.
 export const STEP_ROLES = [
-  { key: "", label: "—", color: "#94a3b8" },
-  { key: "ai", label: "AI", color: "#2563eb" },
-  { key: "human", label: "Human", color: "#ea580c" },
-  { key: "both", label: "Both", color: "#7c3aed" },
+  { key: "human", label: "Human", color: "#3F7A52" },
+  { key: "ai", label: "AI", color: "#CE8F2C" },
+  { key: "both", label: "Both", color: "#7C5CBF" },
 ] as const;
+
+export const ROLE_META: Record<string, { label: string; color: string }> = {
+  "": { label: "Unassigned", color: "#94a3b8" },
+  human: { label: "Human", color: "#3F7A52" },
+  ai: { label: "AI", color: "#CE8F2C" },
+  both: { label: "Both", color: "#7C5CBF" },
+};
 
 export function stepTitle(exercise: string, phase: number): string {
   if (exercise === "workflow") {

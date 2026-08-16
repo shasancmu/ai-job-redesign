@@ -7,6 +7,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { WORKFLOW_STEPS, STEP_ROLES } from "@/lib/workflow";
 import Timer from "@/components/Timer";
+import WorkflowFlow from "@/components/WorkflowFlow";
 
 export default function WorkflowDemo() {
   const [phase, setPhase] = useState(0);
@@ -96,51 +97,27 @@ export default function WorkflowDemo() {
         )}
 
         {(step.key === "map" || step.key === "assign") && (
-          <Card label={step.key === "map" ? "The workflow today" : "Sort each step"}>
-            <div className="space-y-2">
-              {steps.map((s, i) => (
-                <div key={s.id} className="flex items-center gap-2 rounded-xl border border-slate-200 p-2.5">
-                  <span className="w-5 text-right text-sm font-semibold text-slate-400">{i + 1}</span>
-                  <span className="flex-1 text-sm">{s.text}</span>
-                  {step.key === "assign" &&
-                    STEP_ROLES.filter((r) => r.key).map((r) => (
-                      <button
-                        key={r.key}
-                        onClick={() => setRole(s.id, r.key)}
-                        className={
-                          "rounded-lg px-2.5 py-1 text-xs font-semibold " +
-                          (s.role === r.key ? "text-white" : "text-slate-500 hover:bg-slate-100")
-                        }
-                        style={s.role === r.key ? { backgroundColor: r.color } : {}}
-                      >
-                        {r.label}
-                      </button>
-                    ))}
-                </div>
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+              {STEP_ROLES.map((r) => (
+                <span key={r.key} className="flex items-center gap-1.5">
+                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: r.color }} />
+                  {r.label}
+                </span>
               ))}
             </div>
-          </Card>
-        )}
-
-        {step.key === "outcome" && (
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card label="Success">
-              <textarea className="field min-h-[140px]" value={doc.success} onChange={(e) => set({ success: e.target.value })} />
-            </Card>
-            <Card label="Failure no one notices for 6 months">
-              <textarea className="field min-h-[140px]" value={doc.failure} onChange={(e) => set({ failure: e.target.value })} />
-            </Card>
+            <WorkflowFlow steps={steps} onChange={(next) => set({ steps: next })} />
           </div>
         )}
 
         {step.key === "tradeoffs" && (
           <>
             {[
-              ["More vs. Better", "more", "better"],
-              ["Accuracy vs. Generality", "accuracy", "generality"],
-              ["Chaos vs. Architect", "chaos", "architect"],
-            ].map(([title, a, b]) => (
-              <Card key={a} label={title}>
+              ["Outcomes", "More vs. Better", "more", "better"],
+              ["Capabilities", "Accuracy vs. Generality", "accuracy", "generality"],
+              ["Control", "Structure vs. Autonomy", "chaos", "architect"],
+            ].map(([occ, title, a, b]) => (
+              <Card key={a} label={`${occ} · ${title}`}>
                 <div className="grid gap-3 md:grid-cols-2">
                   <textarea className="field" value={doc[a]} onChange={(e) => set({ [a]: e.target.value })} />
                   <textarea className="field" value={doc[b]} onChange={(e) => set({ [b]: e.target.value })} />
@@ -152,28 +129,15 @@ export default function WorkflowDemo() {
 
         {step.key === "redesign" && (
           <>
+            <div className="card p-5">
+              <div className="text-lg font-bold">{doc.name}</div>
+              <div className="mt-3">
+                <WorkflowFlow steps={steps} editable={false} />
+              </div>
+            </div>
             <Card label="If we redesigned this, we would stop ___ and start ___">
               <textarea className="field min-h-[100px]" value={doc.stop_start} onChange={(e) => set({ stop_start: e.target.value })} />
             </Card>
-            <div className="card bg-slate-50 p-5">
-              <div className="text-lg font-semibold">{doc.name}</div>
-              <div className="mt-3 space-y-1">
-                {steps.map((s, i) => {
-                  const role = STEP_ROLES.find((r) => r.key === s.role);
-                  return (
-                    <div key={s.id} className="flex items-center gap-2 text-sm">
-                      <span className="w-5 text-right text-slate-400">{i + 1}</span>
-                      <span className="flex-1">{s.text}</span>
-                      {role?.key && (
-                        <span className="rounded-full px-2 py-0.5 text-xs font-semibold text-white" style={{ backgroundColor: role.color }}>
-                          {role.label}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
           </>
         )}
       </div>

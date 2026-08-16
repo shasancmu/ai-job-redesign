@@ -89,6 +89,36 @@ Probe: …`,
   return complete(messages, { temperature: 0.7 });
 }
 
+// Drafts a workflow as an ordered list of steps with a first-pass human/AI split.
+export async function workflowStepsAI(
+  name: string,
+  description: string
+): Promise<{ text: string; role: string }[]> {
+  const messages: ChatMsg[] = [
+    {
+      role: "system",
+      content: `You map a work process into a clean, ordered sequence of concrete steps. Return STRICT JSON only:
+{"steps":[{"text":"...","role":"human|ai|both"}]}
+Rules: 6–10 steps, each a short action phrase (max ~12 words), in the order they happen. For "role", give a sensible first-pass of who should own each step in an AI-augmented redesign — "ai" for find/organize/analyze/draft/summarize work, "human" for judgment/relationships/accountability/taste, "both" for tightly coupled steps. No prose outside the JSON.`,
+    },
+    {
+      role: "user",
+      content: `Workflow: ${name || "(unnamed)"}\nDescription: ${description || ""}`,
+    },
+  ];
+  const raw = await complete(messages, { json: true, temperature: 0.5 });
+  try {
+    const parsed = JSON.parse(raw);
+    const steps = Array.isArray(parsed.steps) ? parsed.steps : [];
+    return steps.slice(0, 12).map((s: any) => ({
+      text: String(s.text || "").slice(0, 160),
+      role: ["human", "ai", "both"].includes(s.role) ? s.role : "human",
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function networkInsightAI(metrics: any): Promise<string> {
   const messages: ChatMsg[] = [
     {

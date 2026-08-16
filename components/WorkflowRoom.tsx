@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { WORKFLOW_STEPS, STEP_ROLES } from "@/lib/workflow";
 import Timer from "@/components/Timer";
 import PairWaiting from "@/components/PairWaiting";
+import WorkflowFlow from "@/components/WorkflowFlow";
 
 type Doc = any;
 
@@ -129,6 +130,29 @@ export default function WorkflowRoom({
   const setStepRole = (id: string, role: string) =>
     setSteps(steps.map((s) => (s.id === id ? { ...s, role } : s)));
   const removeStep = (id: string) => setSteps(steps.filter((s) => s.id !== id));
+
+  // AI drafts the flow from the name + why.
+  const [generating, setGenerating] = useState(false);
+  const [genErr, setGenErr] = useState<string | null>(null);
+  async function generate() {
+    setGenerating(true);
+    setGenErr(null);
+    try {
+      const r = await fetch("/api/workflow/steps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: doc.name, description: doc.why }),
+      }).then((x) => x.json());
+      if (r.steps && r.steps.length) {
+        setSteps(r.steps.map((s: any) => ({ id: newId(), text: s.text, role: s.role || "human" })));
+      } else {
+        setGenErr(r.reason === "ai-off" ? "AI isn't set up for this session." : "Couldn't draft it — add steps by hand.");
+      }
+    } catch {
+      setGenErr("Couldn't draft it — add steps by hand.");
+    }
+    setGenerating(false);
+  }
 
   // ---- Broadcast nudge -----------------------------------------------------
   const [nudge, setNudge] = useState<string | null>(null);
@@ -262,69 +286,38 @@ export default function WorkflowRoom({
             </div>
             <div className="card p-5">
               <label className="lbl">
-                Why is it worth redesigning? What breaks if you don&apos;t?
+                Describe it — how does it work today, and what breaks if you don&apos;t redesign it?
               </label>
               <textarea
-                className="field"
-                placeholder="What would your director notice if this kept drifting?"
+                className="field min-h-[120px]"
+                placeholder="Walk through what happens, start to finish. The more you say, the better AI can draw it next."
                 {...bind("why")}
               />
             </div>
           </div>
         )}
 
-        {step.key === "map" && (
-          <div className="card p-5">
-            <label className="lbl">The workflow today — one step per line</label>
-            <div className="space-y-2">
-              {steps.map((s, i) => (
-                <div key={s.id} className="flex items-center gap-2">
-                  <span className="w-6 text-right text-sm font-semibold text-slate-400">
-                    {i + 1}
-                  </span>
-                  <input
-                    className="field flex-1"
-                    value={s.text}
-                    onFocus={() => (activeField.current = "steps")}
-                    onBlur={() => {
-                      if (activeField.current === "steps") activeField.current = null;
-                    }}
-                    onChange={(e) => editStep(s.id, e.target.value)}
-                  />
-                  <button
-                    onClick={() => removeStep(s.id)}
-                    className="text-slate-300 hover:text-red-500"
-                    title="Remove"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
+        {(step.key === "map" || step.key === "assign") && (
+          <div className="space-y-4">
+            <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
+              <Legend />
+              <button onClick={generate} disabled={generating} className="btn-primary text-sm">
+                {generating ? "Drawing…" : steps.length ? "↻ Redraw with AI" : "✨ Draw with AI"}
+              </button>
             </div>
-            <AddStep onAdd={addStep} />
-          </div>
-        )}
-
-        {step.key === "outcome" && (
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="card p-5">
-              <label className="lbl text-green-700">
-                Success — what it produces when it goes right
-              </label>
-              <textarea className="field min-h-[160px]" placeholder="Who benefits, and how would you know?" {...bind("success")} />
-            </div>
-            <div className="card p-5">
-              <label className="lbl text-red-700">
-                Failure no one would notice for six months
-              </label>
-              <textarea className="field min-h-[160px]" placeholder="The quiet failure mode." {...bind("failure")} />
-            </div>
+            {genErr && <p className="text-sm text-clay">{genErr}</p>}
+            <WorkflowFlow
+              steps={steps}
+              onChange={setSteps}
+              onActive={(a) => (activeField.current = a ? "steps" : null)}
+            />
           </div>
         )}
 
         {step.key === "tradeoffs" && (
-          <div className="space-y-4">
+          <div className="space-y-5">
             <TradeoffRow
+              occ="Outcomes"
               title="More vs. Better"
               hint="AI pulls toward more. Is that where you want to land?"
               leftLabel="More (faster, cheaper, more volume)"
@@ -333,6 +326,7 @@ export default function WorkflowRoom({
               right={bind("better")}
             />
             <TradeoffRow
+              occ="Capabilities"
               title="Accuracy vs. Generality"
               hint="AI pulls toward generality. What must stay precise?"
               leftLabel="Must stay exactly right"
@@ -341,98 +335,38 @@ export default function WorkflowRoom({
               right={bind("generality")}
             />
             <TradeoffRow
-              title="Chaos vs. Architect"
-              hint="AI pulls toward autonomy. Without structure, that's chaos."
+              occ="Control"
+              title="Structure vs. Autonomy"
+              hint="AI pulls toward autonomy — without structure, that's chaos."
               leftLabel="What chaos looks like here"
-              rightLabel="The structure that makes autonomy safe"
+              rightLabel="The structure that makes autonomy safe (Architect)"
               left={bind("chaos")}
               right={bind("architect")}
             />
           </div>
         )}
 
-        {step.key === "assign" && (
-          <div className="card p-5">
-            <div className="mb-3 text-sm text-slate-500">
-              Sort each step: who should own it in the redesign?
-            </div>
-            {steps.length === 0 ? (
-              <div className="text-slate-400">
-                No steps yet — go back to “Map it” and list the workflow first.
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {steps.map((s, i) => (
-                  <div
-                    key={s.id}
-                    className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 p-3"
-                  >
-                    <span className="w-6 text-right text-sm font-semibold text-slate-400">
-                      {i + 1}
-                    </span>
-                    <span className="flex-1 text-sm">{s.text || <em className="text-slate-300">empty</em>}</span>
-                    <div className="flex gap-1">
-                      {STEP_ROLES.filter((r) => r.key).map((r) => (
-                        <button
-                          key={r.key}
-                          onClick={() => setStepRole(s.id, r.key)}
-                          className={
-                            "rounded-lg px-2.5 py-1 text-xs font-semibold transition " +
-                            (s.role === r.key ? "text-white" : "text-slate-500 hover:bg-slate-100")
-                          }
-                          style={s.role === r.key ? { backgroundColor: r.color } : {}}
-                        >
-                          {r.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
         {step.key === "redesign" && (
           <div className="space-y-4">
             <div className="card p-5">
-              <label className="lbl">
-                Complete the sentence
-              </label>
-              <p className="mb-2 text-sm text-slate-500">
-                If we actually redesigned this workflow, we would stop ___ and
-                start ___.
-              </p>
+              <div className="text-xs font-semibold uppercase tracking-wide text-sage">
+                Your AI + Human workflow
+              </div>
+              <div className="mt-1 text-lg font-bold text-ink">{doc.name || "—"}</div>
+              <div className="mt-2">
+                <Legend />
+              </div>
+              <div className="mt-4">
+                <WorkflowFlow steps={steps} editable={false} />
+              </div>
+            </div>
+            <div className="card p-5">
+              <label className="lbl">If we actually redesigned this, we&apos;d stop ___ and start ___.</label>
               <textarea
                 className="field min-h-[110px]"
                 placeholder="We would stop… and start…"
                 {...bind("stop_start")}
               />
-            </div>
-            <div className="card bg-slate-50 p-5">
-              <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                Your redesigned workflow
-              </div>
-              <div className="mt-1 text-lg font-semibold">{doc.name || "—"}</div>
-              <div className="mt-3 space-y-1">
-                {steps.map((s, i) => {
-                  const role = STEP_ROLES.find((r) => r.key === s.role);
-                  return (
-                    <div key={s.id} className="flex items-center gap-2 text-sm">
-                      <span className="w-5 text-right text-slate-400">{i + 1}</span>
-                      <span className="flex-1">{s.text}</span>
-                      {role && role.key && (
-                        <span
-                          className="rounded-full px-2 py-0.5 text-xs font-semibold text-white"
-                          style={{ backgroundColor: role.color }}
-                        >
-                          {role.label}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
             </div>
           </div>
         )}
@@ -469,32 +403,21 @@ export default function WorkflowRoom({
   );
 }
 
-function AddStep({ onAdd }: { onAdd: (t: string) => void }) {
-  const [text, setText] = useState("");
+function Legend() {
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onAdd(text);
-        setText("");
-      }}
-      className="mt-3 flex items-center gap-2"
-    >
-      <span className="w-6" />
-      <input
-        className="field flex-1"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Add a step and press Enter…"
-      />
-      <button className="btn-ghost" disabled={!text.trim()}>
-        Add
-      </button>
-    </form>
+    <div className="flex flex-wrap items-center gap-3 text-xs text-slate2">
+      {STEP_ROLES.map((r) => (
+        <span key={r.key} className="flex items-center gap-1.5">
+          <span className="h-3 w-3 rounded-full" style={{ backgroundColor: r.color }} />
+          {r.label}
+        </span>
+      ))}
+    </div>
   );
 }
 
 function TradeoffRow({
+  occ,
   title,
   hint,
   leftLabel,
@@ -502,6 +425,7 @@ function TradeoffRow({
   left,
   right,
 }: {
+  occ: string;
   title: string;
   hint: string;
   leftLabel: string;
@@ -511,7 +435,8 @@ function TradeoffRow({
 }) {
   return (
     <div className="card p-5">
-      <div className="mb-1 font-semibold">{title}</div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-sage">{occ}</div>
+      <div className="mt-0.5 font-bold text-ink">{title}</div>
       <div className="mb-3 text-sm text-slate-500">{hint}</div>
       <div className="grid gap-3 md:grid-cols-2">
         <div>
