@@ -1,93 +1,61 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { PHASES } from "@/lib/exercise";
 import PartnerJobCard from "@/components/PartnerJobCard";
 
 export default function InterviewPanel(props: any) {
-  const { myWorkspace, partnerWorkspace, partnerProfile, updateMine, session, myRole } = props;
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 500);
-    return () => clearInterval(id);
-  }, []);
-
+  const { myWorkspace, partnerWorkspace, partnerProfile, myProfile, updateMine, session, myRole } = props;
   if (!myWorkspace) return <div className="text-slate2">Loading…</div>;
 
   const partnerName = partnerProfile?.display_name || "your partner";
-  const minutes = PHASES.find((p) => p.key === "interview")?.minutes || 8;
-  const started = session.phase_started_at ? new Date(session.phase_started_at).getTime() : now;
-  const elapsed = Math.max(0, Math.floor((now - started) / 1000));
-  const half = (minutes * 60) / 2;
-  const round = elapsed < half ? 1 : 2;
-  const roundEnd = round === 1 ? half : minutes * 60;
-  const remaining = Math.max(0, roundEnd - elapsed);
-  const mm = Math.floor(remaining / 60);
-  const ss = remaining % 60;
+  const phase = PHASES[session.phase] ?? PHASES[1];
+  const iAmInterviewer = myRole === phase.interviewer;
 
-  // Round 1: A interviews B. Round 2: B interviews A.
-  const interviewerRole = round === 1 ? "A" : "B";
-  const iAmInterviewer = myRole === interviewerRole;
-  const justSwitched = round === 2 && elapsed - half < 8;
-
-  return (
-    <div className="space-y-4">
-      {/* Role + turn banner */}
-      {justSwitched ? (
-        <div className="animate-pulse rounded-2xl bg-ink p-5 text-center text-white">
-          <div className="text-lg font-bold">🔄 Switch!</div>
-          <div className="mt-1 text-white/80">
-            Now {iAmInterviewer ? "you interview" : `${partnerName} interviews you`}.
-          </div>
-        </div>
-      ) : (
-        <div
-          className={
-            "rounded-2xl p-5 " + (iAmInterviewer ? "bg-sage-soft" : "bg-mist")
-          }
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate2">
-              Round {round} of 2 · you&apos;re Partner {myRole}
-            </span>
-            <span
-              className={
-                "font-mono text-2xl font-bold tabular-nums " +
-                (remaining <= 20 ? "text-clay" : "text-ink")
-              }
-            >
-              {mm}:{ss.toString().padStart(2, "0")}
-            </span>
-          </div>
-          <div className="mt-2 text-lg font-bold text-ink">
-            {iAmInterviewer
-              ? `🎤 You're interviewing ${partnerName}`
-              : `🗣️ ${partnerName} is interviewing you — just talk`}
-          </div>
-          <p className="mt-1 text-sm text-slate2">
-            {iAmInterviewer
-              ? "Dig into the value they create — for the customer, the organization, their manager. Not the tasks — the value."
-              : "Talk about your work as it really is. Let them dig."}
+  // ---- You are being interviewed: just share ----
+  if (!iAmInterviewer) {
+    return (
+      <div className="mx-auto max-w-lg space-y-4 py-6 text-center">
+        <div className="rounded-2xl bg-mist p-8">
+          <div className="text-4xl">🗣️</div>
+          <h2 className="mt-3 text-xl font-bold text-ink">
+            {partnerName} is interviewing you
+          </h2>
+          <p className="mt-2 text-slate2">
+            Nothing to type. Just talk about your work — and the value you create for the
+            customer, the organization, your manager. Let them dig.
           </p>
         </div>
-      )}
+        <div className="text-sm text-slate2">
+          When the timer ends, you&apos;ll switch and interview {partnerName}.
+        </div>
+      </div>
+    );
+  }
+
+  // ---- You are the interviewer: take notes ----
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl bg-sage-soft p-5">
+        <div className="text-lg font-bold text-ink">🎤 You&apos;re interviewing {partnerName}</div>
+        <p className="mt-1 text-sm text-slate2">
+          Dig into the value they create — for the customer, the organization, their manager.
+          Not the tasks — the value. When the timer ends, you&apos;ll switch.
+        </p>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-[1fr_1.4fr]">
         <div className="space-y-4">
           <PartnerJobCard {...props} />
-          {iAmInterviewer && (
-            <DeeperQuestions
-              jobTitle={partnerWorkspace?.owner_job_title}
-              jobDescription={partnerWorkspace?.owner_job_description}
-              notes={myWorkspace.interview_notes}
-            />
-          )}
+          <DeeperQuestions
+            jobTitle={partnerWorkspace?.owner_job_title}
+            jobDescription={partnerWorkspace?.owner_job_description}
+            notes={myWorkspace.interview_notes}
+          />
         </div>
 
         <div className="card p-5">
-          <label className="lbl">
-            Your notes on {partnerName}&apos;s value
-          </label>
+          <label className="lbl">Your notes on {partnerName}&apos;s value</label>
           <textarea
             className="field min-h-[300px]"
             placeholder="What value do they create, and for whom? What only they can do? What drains them? What surprised you?"

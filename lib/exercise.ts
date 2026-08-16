@@ -10,9 +10,10 @@ export type Phase = {
   subtitle: string;
   minutes: number;
   // "solo"  = both partners work independently at the same time
-  // "talk"  = partners talk on Zoom; A interviews B, then B interviews A
+  // "talk"  = one partner interviews, the other just shares (one direction)
   // "reveal"= the payoff: you see what your partner designed for you
   mode: "solo" | "talk" | "reveal";
+  interviewer?: "A" | "B"; // for talk phases: which role is asking the questions
 };
 
 export const PHASES: Phase[] = [
@@ -26,17 +27,27 @@ export const PHASES: Phase[] = [
     mode: "solo",
   },
   {
-    key: "interview",
+    key: "interview1",
     index: 1,
-    title: "Interview your partner",
+    title: "Interview · turn 1",
     subtitle:
-      "Take turns — 4 minutes each way. Your job: understand the value they create, for the customer, the org, their manager. Not the tasks — the value.",
-    minutes: 8,
+      "One partner interviews; the other simply shares. Dig into the value they create — for the customer, the org, their manager. Not the tasks — the value.",
+    minutes: 4,
     mode: "talk",
+    interviewer: "A",
+  },
+  {
+    key: "interview2",
+    index: 2,
+    title: "Interview · turn 2",
+    subtitle: "Switch. Now the other partner interviews, and the first one shares.",
+    minutes: 4,
+    mode: "talk",
+    interviewer: "B",
   },
   {
     key: "realjob",
-    index: 2,
+    index: 3,
     title: "Their real value",
     subtitle:
       "Name the value your partner creates and where it really comes from — the part only they can do.",
@@ -45,7 +56,7 @@ export const PHASES: Phase[] = [
   },
   {
     key: "redesign",
-    index: 3,
+    index: 4,
     title: "Redesign with the 2×4 model",
     subtitle:
       "Design the role so they spend more time creating that value — and AI absorbs the rest. Sort the work: what should AI do, what must stay human?",
@@ -54,7 +65,7 @@ export const PHASES: Phase[] = [
   },
   {
     key: "share",
-    index: 4,
+    index: 5,
     title: "Share & get feedback",
     subtitle:
       "The reveal: read the redesign your partner made of YOUR job, and react. Your reactions become their feedback.",
@@ -63,7 +74,7 @@ export const PHASES: Phase[] = [
   },
   {
     key: "final",
-    index: 5,
+    index: 6,
     title: "The reimagined job",
     subtitle:
       "Read your partner's feedback on your design, then write the final reimagined job in one paragraph.",

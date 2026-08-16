@@ -350,7 +350,9 @@ export default function Room({
       {/* Phase panel */}
       <div className="pb-24">
         {phase.key === "setup" && <SetupPanel {...panelProps} />}
-        {phase.key === "interview" && <InterviewPanel {...panelProps} />}
+        {(phase.key === "interview1" || phase.key === "interview2") && (
+          <InterviewPanel {...panelProps} />
+        )}
         {phase.key === "realjob" && <RealJobPanel {...panelProps} />}
         {phase.key === "redesign" && <RedesignPanel {...panelProps} />}
         {phase.key === "share" && <SharePanel {...panelProps} />}

@@ -98,6 +98,7 @@ export default function DemoPage() {
     updateMine,
     updatePartnerFeedback,
     updateProfile,
+    myRole: "A",
   };
 
   function go(next: number) {
@@ -167,7 +168,7 @@ export default function DemoPage() {
 
       <div className="pb-24">
         {p.key === "setup" && <SetupPanel {...props} />}
-        {p.key === "interview" && <InterviewPanel {...props} />}
+        {(p.key === "interview1" || p.key === "interview2") && <InterviewPanel {...props} />}
         {p.key === "realjob" && <RealJobPanel {...props} />}
         {p.key === "redesign" && <RedesignPanel {...props} />}
         {p.key === "share" && <SharePanel {...props} />}
