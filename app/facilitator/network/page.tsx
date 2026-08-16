@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin, UNTAGGED } from "@/lib/admin";
 import NetworkGraph from "@/components/NetworkGraph";
+import NetworkDescribe from "@/components/NetworkDescribe";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,10 @@ export default async function FacilitatorNetwork({
 
       <div className="card p-6">
         <NetworkGraph cohort={cohort} big />
+      </div>
+
+      <div className="mt-5">
+        <NetworkDescribe cohort={cohort} />
       </div>
     </main>
   );

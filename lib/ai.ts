@@ -65,6 +65,28 @@ export async function interviewReply(
   return complete(messages, { temperature: 0.7 });
 }
 
+export async function networkInsightAI(metrics: any): Promise<string> {
+  const messages: ChatMsg[] = [
+    {
+      role: "system",
+      content: `You give one person a short, warm, specific read on their place in a group's social network, using ONLY the metrics provided. 2–3 sentences, then one concrete suggestion. Talk about counts and roles (people seek you for advice; you're a bridge between groups; your ties are mostly one-way vs. mutual), never invent names or numbers. Interpret: high "peopleWhoSeekYou" = a go-to resource; high bridgeRank (rank 1 is highest) = a connector/broker; low mutual = reciprocate more. Encourage without flattery.`,
+    },
+    { role: "user", content: JSON.stringify(metrics) },
+  ];
+  return complete(messages, { temperature: 0.6 });
+}
+
+export async function networkDescribeAI(metrics: any): Promise<string> {
+  const messages: ChatMsg[] = [
+    {
+      role: "system",
+      content: `You are a network analyst narrating a class's social network to the room. Use ONLY the data given. 4–6 sentences. Compare the advice vs. friendship networks (density, reciprocity), point out the hubs (mostSought) and the brokers (topBridges) by the names provided, and draw one organizational insight (e.g., advice flows to a few experts; friendship is more reciprocal; a broker connects otherwise-separate clusters). Do not invent names or numbers.`,
+    },
+    { role: "user", content: JSON.stringify(metrics) },
+  ];
+  return complete(messages, { temperature: 0.6 });
+}
+
 const AI_LABELS = "search, structure, think, translate";
 const HUMAN_LABELS = "lead, own, judge, integrate";
 

@@ -74,6 +74,73 @@ export function betweenness(edges: Edge[], ids: string[]): Map<string, number> {
   return CB;
 }
 
+const round2 = (x: number) => Math.round(x * 100) / 100;
+
+function rankOf(scores: Map<string, number>, id: string): number | null {
+  const arr = Array.from(scores.entries()).sort((a, b) => b[1] - a[1]);
+  const i = arr.findIndex(([k]) => k === id);
+  return i < 0 ? null : i + 1;
+}
+
+// Metrics about ONE person (no other names) — for a personal AI insight.
+export function personMetrics(responses: Response[], selfId: string, validIds: Set<string>) {
+  const a = buildEdges(responses, "advice", validIds);
+  const f = buildEdges(responses, "friends", validIds);
+  const nodeIds = Array.from(
+    new Set([...a.flatMap((e) => [e.s, e.t]), ...f.flatMap((e) => [e.s, e.t])])
+  );
+  const aIn = inDegree(a, nodeIds);
+  const fIn = inDegree(f, nodeIds);
+  const aBetw = betweenness(a, nodeIds);
+  const fBetw = betweenness(f, nodeIds);
+  const my = responses.find((r) => r.self_id === selfId);
+  const clean = (arr: string[]) =>
+    (arr || []).filter((x) => validIds.has(x) && x !== selfId).length;
+  return {
+    peopleInNetwork: nodeIds.length,
+    advice: {
+      peopleYouSeek: clean(my?.advice || []),
+      peopleWhoSeekYou: aIn.get(selfId) || 0,
+      mutual: a.filter((e) => e.s === selfId && e.strong).length,
+      bridgeRank: rankOf(aBetw, selfId),
+    },
+    friends: {
+      peopleYouNamed: clean(my?.friends || []),
+      peopleWhoNamedYou: fIn.get(selfId) || 0,
+      mutual: f.filter((e) => e.s === selfId && e.strong).length,
+      bridgeRank: rankOf(fBetw, selfId),
+    },
+  };
+}
+
+// Whole-network metrics — for an overall AI description (facilitator-facing).
+export function overallMetrics(responses: Response[], roster: RosterEntry[]) {
+  const validIds = new Set(roster.map((r) => r.id));
+  const nameOf = (id: string) => roster.find((r) => r.id === id)?.name || "—";
+  const a = buildEdges(responses, "advice", validIds);
+  const f = buildEdges(responses, "friends", validIds);
+  const nodeIds = Array.from(
+    new Set([...a.flatMap((e) => [e.s, e.t]), ...f.flatMap((e) => [e.s, e.t])])
+  );
+  const n = nodeIds.length;
+  const density = (edges: Edge[]) => (n > 1 ? round2(edges.length / (n * (n - 1))) : 0);
+  const recip = (edges: Edge[]) =>
+    edges.length ? round2(edges.filter((e) => e.strong).length / edges.length) : 0;
+  const summarize = (edges: Edge[]) => ({
+    ties: edges.length,
+    density: density(edges),
+    reciprocity: recip(edges),
+    mostSought: topN(inDegree(edges, nodeIds), nameOf, 3),
+    topBridges: topN(betweenness(edges, nodeIds), nameOf, 3),
+  });
+  return {
+    respondents: responses.length,
+    peopleInNetwork: n,
+    advice: summarize(a),
+    friends: summarize(f),
+  };
+}
+
 export function topN(
   scores: Map<string, number>,
   nameOf: (id: string) => string,

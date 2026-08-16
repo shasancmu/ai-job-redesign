@@ -57,6 +57,31 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
     }
   }
 
+  async function removeMe() {
+    if (!confirm("Remove your name and answers, and start over?")) return;
+    await fetch("/api/network/leave", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cohort }),
+    });
+    setSelfId(null);
+    setAdvice(new Set());
+    setFriends(new Set());
+    await loadRoster();
+    setStep("name");
+  }
+
+  // Personal AI insight, fetched on the done screen.
+  const [insight, setInsight] = useState<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (step !== "done") return;
+    setInsight(undefined);
+    fetch(`/api/network/insight?cohort=${encodeURIComponent(cohort)}`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => setInsight(d.text || null))
+      .catch(() => setInsight(null));
+  }, [step, cohort]);
+
   async function submit() {
     setBusy(true);
     await fetch("/api/network/submit", {
@@ -96,6 +121,11 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
             onPick={(id) => identify({ pickId: id })}
             onAdd={(name) => identify({ name })}
           />
+          {selfId && (
+            <button onClick={removeMe} className="mt-3 text-sm text-clay hover:underline">
+              That&apos;s not me — remove & start over
+            </button>
+          )}
           <StickyNext
             disabled={!selfId}
             label="Next"
@@ -137,15 +167,35 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
       )}
 
       {step === "done" && (
-        <div className="card p-8 text-center">
-          <div className="text-3xl">🕸️</div>
-          <h1 className="mt-2 text-2xl font-bold text-ink">Thanks{selfName ? `, ${selfName}` : ""}!</h1>
-          <p className="mt-2 text-slate2">
-            Your answers are in. Watch the screen — the network is drawing itself.
-          </p>
-          <button onClick={() => setStep("advice")} className="btn-ghost mt-5">
-            Edit my answers
-          </button>
+        <div>
+          <div className="card p-8 text-center">
+            <div className="text-3xl">🕸️</div>
+            <h1 className="mt-2 text-2xl font-bold text-ink">Thanks{selfName ? `, ${selfName}` : ""}!</h1>
+            <p className="mt-2 text-slate2">
+              Your answers are in. Watch the screen — the network is drawing itself.
+            </p>
+          </div>
+
+          {insight === undefined && (
+            <div className="mt-4 text-center text-sm text-slate2">Reading your network…</div>
+          )}
+          {typeof insight === "string" && (
+            <div className="card mt-4 p-6">
+              <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-sage">
+                Your network, in a nutshell
+              </div>
+              <p className="whitespace-pre-wrap leading-relaxed text-ink">{insight}</p>
+            </div>
+          )}
+
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <button onClick={() => setStep("advice")} className="btn-ghost">
+              Edit my answers
+            </button>
+            <button onClick={removeMe} className="text-sm text-clay hover:underline">
+              That&apos;s not me — remove me
+            </button>
+          </div>
         </div>
       )}
     </main>
