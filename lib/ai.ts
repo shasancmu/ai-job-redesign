@@ -40,15 +40,17 @@ async function complete(
   return data.choices?.[0]?.message?.content ?? "";
 }
 
-const INTERVIEWER_SYSTEM = `You are a warm, sharp interviewer helping a professional reimagine their job for the age of AI. You are their thinking partner, not a chatbot.
+const INTERVIEWER_SYSTEM = `You are conducting a qualitative interview, one-on-one, to deeply understand a person's work and the value they create. You follow established interviewing craft:
 
-Rules:
-- Ask exactly ONE question at a time. Keep it to 1-3 sentences.
-- Start by understanding what they actually do day to day.
-- Then dig into: what drains them, what only they can do, where their judgment matters, what they'd love to spend more time on.
-- Reflect back what you hear in a phrase before asking the next question.
-- Do not give advice or redesign their job yet. Just interview.
-- After about 5 exchanges, ask if there's anything else, then stop.`;
+- Ask exactly ONE open, non-leading question at a time. Keep it short (1-2 sentences). Never stack questions or ask double-barreled ones.
+- Open broad ("Walk me through a typical week"), then FOLLOW THEIR LEAD — probe whatever they emphasize or seem to feel something about, rather than running a fixed script.
+- Before most questions, reflect back what you heard in a few words, so they feel understood ("So the part that really eats your week is X…").
+- Pull for concrete stories, not abstractions: "Tell me about the last time…", "Walk me through how that actually went."
+- Ladder toward meaning: when they name a task, ask what makes it matter and to whom — the customer, the organization, their manager — until you reach the value beneath the task.
+- Gently probe tensions and surprises: what energizes vs. drains them, where their judgment is the thing that saves it, what they wish they had more time for.
+- Stay warm and genuinely curious. Never lead, never judge, never give advice or start redesigning — just interview.
+
+After roughly 6 exchanges, briefly reflect the throughline you heard, ask if there's anything important you missed, then thank them and close.`;
 
 export async function interviewReply(
   history: ChatMsg[],
@@ -74,8 +76,8 @@ export async function deeperInterviewAI(ctx: {
   const messages: ChatMsg[] = [
     {
       role: "system",
-      content: `You are coaching someone mid-interview to go deeper. The goal is to uncover the real VALUE the other person creates — for the end customer, the organization, and their manager — and what only this person can do (judgment, taste, relationships, trust), NOT their tasks or work product.
-Given the notes so far, respond with exactly THREE short, sharp follow-up questions to ask next, each grounded in what they've already learned (not generic). Then one line beginning "Probe:" naming a likely hidden source of value worth chasing. Keep it tight. Format:
+      content: `You are coaching a live interviewer to go deeper, using good interviewing craft. The goal is to uncover the real VALUE the other person creates — for the customer, the organization, their manager — and what only this person can do (judgment, taste, relationships, trust), not their tasks or work product.
+Given the notes so far, respond with exactly THREE short follow-up questions to ask next. Each must be: open and non-leading, grounded in something specific they already said (not generic), and designed to either ladder toward meaning ("why does that matter, and to whom?") or pull a concrete story ("tell me about the last time…"). Then one line beginning "Probe:" naming a likely hidden source of value worth chasing. Keep it tight. Format:
 1. …
 2. …
 3. …
@@ -145,36 +147,71 @@ const AI_LABELS = "search, structure, think, translate";
 const HUMAN_LABELS = "lead, own, judge, integrate";
 
 export async function proposeRedesign(
-  history: ChatMsg[],
+  context: string,
   job: { title?: string; description?: string }
-): Promise<{ grid: Record<string, string[]>; new_job_description: string }> {
-  const transcript = history
-    .map((m) => `${m.role === "user" ? "Them" : "Interviewer"}: ${m.content}`)
-    .join("\n");
+): Promise<{ grid: Record<string, string[]>; new_job_description: string; rationale: string }> {
   const messages: ChatMsg[] = [
     {
       role: "system",
-      content: `You redesign jobs using a 2x4 model. AI cells: ${AI_LABELS}. Human cells: ${HUMAN_LABELS}.
-Given an interview, return STRICT JSON only, no prose, shaped exactly:
-{"grid":{"search":[],"structure":[],"think":[],"translate":[],"lead":[],"own":[],"judge":[],"integrate":[]},"new_job_description":""}
-Put 1-3 short verb phrases in each relevant cell (leave cells empty if they don't apply). new_job_description is 2-3 sentences describing the reimagined role: what the human owns, what AI handles, why it's better. Second person ("You...").`,
+      content: `You redesign a person's job for an AI-augmented future using a 2×4 model. AI cells: ${AI_LABELS}. Human cells: ${HUMAN_LABELS}.
+
+REASON before you answer (privately, do not output your reasoning):
+1. From the interview AND your own knowledge of what this kind of role actually involves, list the person's real tasks and responsibilities — including ones they didn't mention but the role clearly requires.
+2. For EACH task decide who should own it: AI when the work is finding, organizing, analyzing, or drafting/translating; HUMAN when it needs judgment, taste, accountability, relationships, or setting direction; BOTH when they're tightly coupled. Base this on how AI actually performs at that specific kind of task, not on wishful thinking.
+3. Concentrate the human's freed-up time on the highest-value, only-they-can-do work.
+
+Then return STRICT JSON only (no prose outside it):
+{"grid":{"search":[],"structure":[],"think":[],"translate":[],"lead":[],"own":[],"judge":[],"integrate":[]},"new_job_description":"","rationale":""}
+- Each cell holds 1–3 SPELLED-OUT contributions — short, concrete sentences a person would recognize (e.g. "Run a weekly scan of competitor moves and summarize what changed"), NOT single words. Leave a cell empty if nothing fits.
+- new_job_description: 2–3 sentences on the reimagined role, second person ("You…").
+- rationale: 2–3 sentences explaining the LOGIC of the split — what you moved to AI and why, and what you deliberately kept human.`,
     },
     {
       role: "user",
-      content: `Job: ${job.title || "(untitled)"} — ${job.description || ""}\n\nInterview:\n${transcript}`,
+      content: `Job: ${job.title || "(untitled)"} — ${job.description || ""}\n\nWhat we learned:\n${context || "(little captured — use your knowledge of the role)"}`,
     },
   ];
-  const raw = await complete(messages, { json: true, temperature: 0.4 });
+  const raw = await complete(messages, { json: true, temperature: 0.5 });
   try {
     const parsed = JSON.parse(raw);
     const keys = ["search", "structure", "think", "translate", "lead", "own", "judge", "integrate"];
     const grid: Record<string, string[]> = {};
-    for (const k of keys) grid[k] = Array.isArray(parsed.grid?.[k]) ? parsed.grid[k].slice(0, 5).map(String) : [];
-    return { grid, new_job_description: String(parsed.new_job_description || "") };
+    for (const k of keys)
+      grid[k] = Array.isArray(parsed.grid?.[k]) ? parsed.grid[k].slice(0, 4).map(String) : [];
+    return {
+      grid,
+      new_job_description: String(parsed.new_job_description || ""),
+      rationale: String(parsed.rationale || ""),
+    };
   } catch {
     return {
       grid: { search: [], structure: [], think: [], translate: [], lead: [], own: [], judge: [], integrate: [] },
       new_job_description: raw.slice(0, 800),
+      rationale: "",
     };
   }
+}
+
+// "How do we actually do this?" — turns the AI-assigned tasks into a concrete,
+// do-it-this-week execution plan.
+export async function executionPlanAI(
+  job: { title?: string; description?: string },
+  aiTasks: string[]
+): Promise<string> {
+  const messages: ChatMsg[] = [
+    {
+      role: "system",
+      content: `You turn "AI should do this" into practice. For each AI task given, write a short, concrete recipe the person could start THIS WEEK. For each, cover:
+- **How**: the concrete mechanism — a recurring prompt to an AI assistant, a specific kind of tool or integration, or a small automation.
+- **Starter prompt**: 1–2 sentences they could paste to get going.
+- **Cadence**: daily / weekly / per-project.
+- **Human check**: what the person must review before trusting the output (the judgment that keeps it safe).
+Be specific and realistic — no vague "leverage AI." Output short markdown, one block per task with the task as a bold heading.`,
+    },
+    {
+      role: "user",
+      content: `Role: ${job.title || "(untitled)"} — ${job.description || ""}\n\nAI tasks:\n${aiTasks.map((t) => `- ${t}`).join("\n") || "(none)"}`,
+    },
+  ];
+  return complete(messages, { temperature: 0.5 });
 }

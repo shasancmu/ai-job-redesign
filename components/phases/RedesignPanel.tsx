@@ -6,10 +6,45 @@ import GridEditor from "@/components/GridEditor";
 import PartnerJobCard from "@/components/PartnerJobCard";
 
 export default function RedesignPanel(props: any) {
-  const { myWorkspace, updateMine, partnerProfile } = props;
+  const { myWorkspace, partnerWorkspace, updateMine, partnerProfile } = props;
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [rationale, setRationale] = useState<string | null>(null);
   if (!myWorkspace) return <div className="text-slate2">Loading…</div>;
   const partnerName = partnerProfile?.display_name || "your partner";
   const grid = { ...emptyGrid(), ...(myWorkspace.grid || {}) };
+
+  const partnerJob = {
+    jobTitle: partnerWorkspace?.owner_job_title,
+    jobDescription: partnerWorkspace?.owner_job_description,
+  };
+
+  async function suggest() {
+    setErr(null);
+    setBusy(true);
+    try {
+      const res = await fetch("/api/interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "propose",
+          notes: myWorkspace.interview_notes,
+          ...partnerJob,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        setErr(d.error || "Couldn't suggest a split.");
+        return;
+      }
+      updateMine({ grid: d.grid || {}, new_job_description: d.new_job_description || "" });
+      setRationale(d.rationale || null);
+    } catch {
+      setErr("Couldn't suggest a split.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -17,6 +52,23 @@ export default function RedesignPanel(props: any) {
         <PartnerJobCard {...props} />
         <NotesReference ws={myWorkspace} partnerName={partnerName} />
       </div>
+
+      <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
+        <div className="text-sm text-slate2">
+          Stuck on the split? Let AI reason from your notes — what it can genuinely take, and what only{" "}
+          {partnerName} can do. Then edit it.
+        </div>
+        <button onClick={suggest} disabled={busy} className="btn-primary text-sm">
+          {busy ? "Thinking…" : "✨ AI: suggest a split"}
+        </button>
+      </div>
+      {err && <p className="text-sm text-clay">{err}</p>}
+      {rationale && (
+        <div className="card p-4">
+          <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-sage">Why this split</div>
+          <p className="text-sm leading-relaxed text-slate2">{rationale}</p>
+        </div>
+      )}
 
       <GridEditor grid={grid} onChange={(g) => updateMine({ grid: g })} />
 
@@ -33,6 +85,52 @@ export default function RedesignPanel(props: any) {
           onChange={(e) => updateMine({ new_job_description: e.target.value })}
         />
       </div>
+
+      <ExecutionPlan grid={grid} job={partnerJob} />
+    </div>
+  );
+}
+
+// "How do we actually do this?" — recipes for the AI-assigned tasks.
+function ExecutionPlan({ grid, job }: { grid: Record<string, string[]>; job: any }) {
+  const [text, setText] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const aiTasks = ["search", "structure", "think", "translate"].flatMap((k) => grid[k] || []);
+
+  async function run() {
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch("/api/execution", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...job, aiTasks }),
+      });
+      const d = await res.json();
+      if (d.text) setText(d.text);
+      else if (d.reason === "no-tasks") setErr("Give AI some tasks first, then generate the plan.");
+      else if (d.reason === "ai-off") setErr("AI isn't set up for this session.");
+      else setErr("Couldn't build the plan.");
+    } catch {
+      setErr("Couldn't build the plan.");
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div className="card p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div className="text-sm font-bold text-ink">Make it real</div>
+          <p className="text-sm text-slate2">Turn the AI tasks into a plan they could start this week.</p>
+        </div>
+        <button onClick={run} disabled={busy || aiTasks.length === 0} className="btn-ghost text-sm">
+          {busy ? "Building…" : "✨ How to execute"}
+        </button>
+      </div>
+      {err && <p className="mt-2 text-sm text-clay">{err}</p>}
+      {text && <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate2">{text}</div>}
     </div>
   );
 }

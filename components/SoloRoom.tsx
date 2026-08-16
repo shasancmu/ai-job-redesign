@@ -276,6 +276,7 @@ function Interview({ ws, update }: { ws: any; update: (p: any) => void }) {
 function Redesign({ ws, update }: { ws: any; update: (p: any) => void }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [rationale, setRationale] = useState<string | null>(null);
 
   async function draft() {
     setErr(null);
@@ -297,6 +298,7 @@ function Redesign({ ws, update }: { ws: any; update: (p: any) => void }) {
         return;
       }
       update({ grid: data.grid || {}, new_job_description: data.new_job_description || "" });
+      setRationale(data.rationale || null);
     } catch {
       setErr("Couldn't draft a redesign.");
     } finally {
@@ -308,13 +310,19 @@ function Redesign({ ws, update }: { ws: any; update: (p: any) => void }) {
     <div className="space-y-4">
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
         <div className="text-sm text-slate-500">
-          Let your AI partner draft a first pass from your interview — then make it yours.
+          Let AI reason through the split — what it can genuinely take, and what only you can do — then make it yours.
         </div>
         <button onClick={draft} disabled={busy} className="btn-primary">
-          {busy ? "Drafting…" : "✨ Draft with AI"}
+          {busy ? "Thinking…" : "✨ Draft with AI"}
         </button>
       </div>
       {err && <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
+      {rationale && (
+        <div className="card p-4">
+          <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-sage">Why this split</div>
+          <p className="text-sm leading-relaxed text-slate2">{rationale}</p>
+        </div>
+      )}
 
       <GridEditor grid={ws.grid || {}} onChange={(grid) => update({ grid })} />
 
@@ -327,6 +335,61 @@ function Redesign({ ws, update }: { ws: any; update: (p: any) => void }) {
           onChange={(e) => update({ new_job_description: e.target.value })}
         />
       </div>
+
+      <ExecutionPlan ws={ws} />
+    </div>
+  );
+}
+
+// "How do we actually do this?" — concrete recipes for the AI-assigned tasks.
+function ExecutionPlan({ ws }: { ws: any }) {
+  const [text, setText] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const aiTasks = ["search", "structure", "think", "translate"].flatMap(
+    (k) => (ws.grid?.[k] || []) as string[]
+  );
+
+  async function run() {
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch("/api/execution", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jobTitle: ws.owner_job_title,
+          jobDescription: ws.owner_job_description,
+          aiTasks,
+        }),
+      });
+      const d = await res.json();
+      if (d.text) setText(d.text);
+      else if (d.reason === "no-tasks") setErr("Assign some work to AI first, then generate the plan.");
+      else if (d.reason === "ai-off") setErr("AI isn't set up for this session.");
+      else setErr("Couldn't build the plan.");
+    } catch {
+      setErr("Couldn't build the plan.");
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div className="card p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div className="text-sm font-bold text-ink">Make it real</div>
+          <p className="text-sm text-slate2">Turn the AI tasks into a plan you could start this week.</p>
+        </div>
+        <button onClick={run} disabled={busy || aiTasks.length === 0} className="btn-ghost text-sm">
+          {busy ? "Building…" : "✨ How to execute"}
+        </button>
+      </div>
+      {err && <p className="mt-2 text-sm text-clay">{err}</p>}
+      {text && (
+        <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate2">{text}</div>
+      )}
     </div>
   );
 }

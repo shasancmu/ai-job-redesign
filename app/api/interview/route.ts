@@ -35,7 +35,11 @@ export async function POST(request: Request) {
 
   try {
     if (mode === "propose") {
-      const result = await proposeRedesign(history, job);
+      // Context can come from the interview transcript (solo) or captured notes (paired).
+      const context = body.notes
+        ? String(body.notes).slice(0, 4000)
+        : history.map((m) => `${m.role === "user" ? "Them" : "Interviewer"}: ${m.content}`).join("\n");
+      const result = await proposeRedesign(context, job);
       return Response.json(result);
     }
     const reply = await interviewReply(history, job);
