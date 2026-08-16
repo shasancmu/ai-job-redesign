@@ -1,10 +1,9 @@
 import Stripe from "stripe";
 
-// Payments are OFF until BOTH a secret key and a price ID are configured.
-// This keeps the app fully usable before you set up Stripe.
-export const PAYMENTS_ENABLED = !!(
-  process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID
-);
+// Payments are DISABLED for now (pending a redesign). Everything is free.
+// To bring payments back later, restore:
+//   !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID)
+export const PAYMENTS_ENABLED = false;
 
 let _stripe: Stripe | null = null;
 

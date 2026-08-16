@@ -106,14 +106,12 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Pricing strip */}
+      {/* Get started */}
       <section className="mx-auto mt-16 max-w-6xl px-6">
         <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-line bg-mist p-8 sm:flex-row sm:items-center">
           <div>
-            <h2 className="text-xl font-bold text-ink">Simple, one-time pricing</h2>
-            <p className="mt-1 text-slate2">
-              $5 a module, or $29 to unlock them all. No subscription, ever.
-            </p>
+            <h2 className="text-xl font-bold text-ink">Ready to reimagine the work?</h2>
+            <p className="mt-1 text-slate2">Create an account and run a module in minutes.</p>
           </div>
           <Link href="/login?mode=signup" className="btn-primary">
             Create an account
