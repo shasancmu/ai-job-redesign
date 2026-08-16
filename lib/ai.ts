@@ -15,6 +15,10 @@ const MODEL = process.env.AI_MODEL || "llama-3.3-70b-versatile";
 
 export type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
 
+// Anthropic's OpenAI-compatible endpoint requires max_tokens and doesn't take
+// response_format — so we set the first and only send the second elsewhere.
+const IS_ANTHROPIC = BASE_URL.includes("anthropic.com");
+
 async function complete(
   messages: ChatMsg[],
   opts: { json?: boolean; temperature?: number } = {}
@@ -28,8 +32,9 @@ async function complete(
     body: JSON.stringify({
       model: MODEL,
       messages,
+      max_tokens: 2048,
       temperature: opts.temperature ?? 0.7,
-      ...(opts.json ? { response_format: { type: "json_object" } } : {}),
+      ...(opts.json && !IS_ANTHROPIC ? { response_format: { type: "json_object" } } : {}),
     }),
   });
   if (!res.ok) {
@@ -38,6 +43,17 @@ async function complete(
   }
   const data = await res.json();
   return data.choices?.[0]?.message?.content ?? "";
+}
+
+// Parse JSON from a model reply, tolerating markdown fences / surrounding prose.
+function extractJson(raw: string): any {
+  let s = String(raw).trim();
+  const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence) s = fence[1].trim();
+  const first = s.indexOf("{");
+  const last = s.lastIndexOf("}");
+  if (first >= 0 && last > first) s = s.slice(first, last + 1);
+  return JSON.parse(s);
 }
 
 const INTERVIEWER_SYSTEM = `You are conducting a qualitative interview, one-on-one, to deeply understand a person's work and the value they create. You follow established interviewing craft:
@@ -110,7 +126,7 @@ Rules: 6–10 steps, each a short action phrase (max ~12 words), in the order th
   ];
   const raw = await complete(messages, { json: true, temperature: 0.5 });
   try {
-    const parsed = JSON.parse(raw);
+    const parsed = extractJson(raw);
     const steps = Array.isArray(parsed.steps) ? parsed.steps : [];
     return steps.slice(0, 12).map((s: any) => ({
       text: String(s.text || "").slice(0, 160),
@@ -173,7 +189,7 @@ Then return STRICT JSON only (no prose outside it):
   ];
   const raw = await complete(messages, { json: true, temperature: 0.5 });
   try {
-    const parsed = JSON.parse(raw);
+    const parsed = extractJson(raw);
     const keys = ["search", "structure", "think", "translate", "lead", "own", "judge", "integrate"];
     const grid: Record<string, string[]> = {};
     for (const k of keys)
