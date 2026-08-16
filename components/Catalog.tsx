@@ -41,12 +41,13 @@ export default function Catalog({
     setBusy(slug);
     for (let attempt = 0; attempt < 5; attempt++) {
       const code = makeCode();
+      const soloish = exercise === "solo" || exercise === "benchmark";
       const { data, error } = await supabase
         .from("sessions")
         .insert({
           code,
           host_id: userId,
-          status: exercise === "solo" ? "active" : "waiting",
+          status: soloish ? "active" : "waiting",
           cohort: cohort.trim() || null,
           exercise,
         })
@@ -55,7 +56,7 @@ export default function Catalog({
       if (!error && data) {
         if (exercise === "workflow") {
           await supabase.from("workflow_docs").upsert({ session_id: data.id }, { onConflict: "session_id" });
-        } else {
+        } else if (exercise !== "benchmark") {
           await supabase
             .from("workspaces")
             .upsert({ session_id: data.id, author_id: userId }, { onConflict: "session_id,author_id" });

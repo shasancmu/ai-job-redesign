@@ -37,6 +37,14 @@ export default function ModuleIcon({
           <path d="M6.8 11 10.2 7M13.8 7l3.4 4M17.2 13l-3.4 4M10.2 17 6.8 13" />
         </svg>
       );
+    case "benchmark": // a gauge / timer
+      return (
+        <svg {...common}>
+          <path d="M5 19a9 9 0 1 1 14 0" />
+          <path d="M12 12l4-3" />
+          <circle cx="12" cy="12" r="1" />
+        </svg>
+      );
     case "solo-ai": // a spark
       return (
         <svg {...common}>

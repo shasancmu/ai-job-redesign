@@ -186,6 +186,38 @@ create policy "workflow update" on public.workflow_docs
   with check (public.is_session_participant(session_id));
 
 -- ============================================================================
+-- Benchmark results: one row per person per timed-benchmark attempt. The
+-- facilitator histogram aggregates these by cohort (score distribution).
+-- ============================================================================
+create table if not exists public.benchmark_results (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid references public.sessions (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  cohort text,
+  answers jsonb not null default '{}'::jsonb,
+  score int not null default 0,
+  total int not null default 0,
+  created_at timestamptz not null default now()
+);
+create index if not exists benchmark_cohort_idx on public.benchmark_results (cohort);
+create index if not exists benchmark_user_idx on public.benchmark_results (user_id);
+
+alter table public.benchmark_results enable row level security;
+
+drop policy if exists "benchmark read own" on public.benchmark_results;
+create policy "benchmark read own" on public.benchmark_results
+  for select using (user_id = auth.uid());
+
+drop policy if exists "benchmark insert own" on public.benchmark_results;
+create policy "benchmark insert own" on public.benchmark_results
+  for insert with check (user_id = auth.uid());
+
+drop policy if exists "benchmark update own" on public.benchmark_results;
+create policy "benchmark update own" on public.benchmark_results
+  for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+-- The cohort histogram (counts only) is aggregated server-side via the service role.
+
+-- ============================================================================
 -- Entitlements: who has paid. Written ONLY by the Stripe webhook (service
 -- role, which bypasses RLS). Users can read their own row but cannot write it,
 -- so nobody can grant themselves access from the browser.

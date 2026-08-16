@@ -6,6 +6,7 @@ import { moduleByExercise } from "@/lib/modules";
 import Room from "@/components/Room";
 import WorkflowRoom from "@/components/WorkflowRoom";
 import SoloRoom from "@/components/SoloRoom";
+import BenchmarkRoom from "@/components/BenchmarkRoom";
 
 export default async function RoomPage({
   params,
@@ -39,6 +40,12 @@ export default async function RoomPage({
 
   const amHost = session.host_id === user.id;
   const amGuest = session.guest_id === user.id;
+
+  // Benchmark: single-user timed test, only the host belongs here.
+  if (session.exercise === "benchmark") {
+    if (!amHost) redirect("/dashboard");
+    return <BenchmarkRoom me={user.id} session={session} />;
+  }
 
   // Solo (AI partner): single-user, only the host belongs here.
   if (session.exercise === "solo") {

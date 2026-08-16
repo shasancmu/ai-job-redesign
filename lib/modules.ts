@@ -6,7 +6,7 @@
 
 export type ModuleDef = {
   slug: string; // stable id used in entitlements + URLs, e.g. "reimagine-job"
-  exercise: "job" | "workflow" | "solo"; // which room engine renders it
+  exercise: "job" | "workflow" | "solo" | "benchmark"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -46,6 +46,20 @@ export const MODULES: ModuleDef[] = [
     emoji: "🔧",
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_WORKFLOW",
+  },
+  {
+    slug: "benchmark",
+    exercise: "benchmark",
+    name: "The Benchmark",
+    tagline: "Test yourself against the machine — then see the room.",
+    description:
+      "A timed set of reasoning questions. Take it, get your score, and watch a live histogram of how the whole room did — next to how AI does the same test.",
+    mode: "Timed",
+    minutes: 10,
+    ai: false,
+    emoji: "⏱️",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_BENCHMARK",
   },
   {
     slug: "solo-ai",
