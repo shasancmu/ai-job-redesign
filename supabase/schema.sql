@@ -10,8 +10,12 @@ create table if not exists public.profiles (
   display_name text,
   job_title text,
   job_description text,
+  role text not null default 'end_user', -- end_user | manager | instructor
   created_at timestamptz not null default now()
 );
+
+-- Add role to any pre-existing profiles table.
+alter table public.profiles add column if not exists role text not null default 'end_user';
 
 -- --- sessions: one row per paired room ------------------------------------
 create table if not exists public.sessions (
@@ -187,13 +191,34 @@ create policy "workflow update" on public.workflow_docs
 -- so nobody can grant themselves access from the browser.
 -- ============================================================================
 create table if not exists public.entitlements (
-  user_id uuid primary key references auth.users (id) on delete cascade,
+  user_id uuid references auth.users (id) on delete cascade,
+  module text not null default 'all', -- 'all' (bundle) or a module slug
   paid boolean not null default true,
   stripe_session_id text,
   amount_total integer,
   currency text,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  primary key (user_id, module)
 );
+
+-- Migrate a pre-existing single-key entitlements table to per-module rows.
+-- Any existing paid user becomes an 'all' (all-access) holder.
+alter table public.entitlements add column if not exists module text not null default 'all';
+do $$
+begin
+  if exists (
+    select 1 from information_schema.table_constraints
+    where table_schema = 'public' and table_name = 'entitlements'
+      and constraint_type = 'PRIMARY KEY' and constraint_name = 'entitlements_pkey'
+  ) and not exists (
+    select 1 from information_schema.key_column_usage
+    where table_schema = 'public' and table_name = 'entitlements'
+      and constraint_name = 'entitlements_pkey' and column_name = 'module'
+  ) then
+    alter table public.entitlements drop constraint entitlements_pkey;
+    alter table public.entitlements add constraint entitlements_pkey primary key (user_id, module);
+  end if;
+end $$;
 
 alter table public.entitlements enable row level security;
 

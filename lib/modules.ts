@@ -1,0 +1,93 @@
+// ============================================================================
+// Module registry — the heart of the platform. Add a module over time by
+// adding an entry here (+ its render engine + an optional Stripe price env).
+// `exercise` maps a module to its runtime engine (Room / WorkflowRoom / SoloRoom).
+// ============================================================================
+
+export type ModuleDef = {
+  slug: string; // stable id used in entitlements + URLs, e.g. "reimagine-job"
+  exercise: "job" | "workflow" | "solo"; // which room engine renders it
+  name: string;
+  tagline: string;
+  description: string;
+  mode: string; // human-readable: "Paired", "Shared canvas", "Solo + AI"
+  minutes: number;
+  ai: boolean;
+  emoji: string;
+  priceCents: number; // display price (Stripe is source of truth for charging)
+  priceEnv: string; // env var holding this module's Stripe price id
+};
+
+export const MODULES: ModuleDef[] = [
+  {
+    slug: "reimagine-job",
+    exercise: "job",
+    name: "Reimagine Your Job",
+    tagline: "Redesign a partner's role around what humans do best.",
+    description:
+      "You and a partner interview each other, then redesign each other's jobs using the 2×4 AI × Human model.",
+    mode: "Paired",
+    minutes: 30,
+    ai: false,
+    emoji: "🧭",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_JOB",
+  },
+  {
+    slug: "reimagine-workflow",
+    exercise: "workflow",
+    name: "Reimagine a Workflow",
+    tagline: "Rebuild a broken workflow with AI and humans in the right seats.",
+    description:
+      "On one shared canvas, map a workflow, weigh the three trade-offs, and redraw it with AI in it.",
+    mode: "Shared canvas",
+    minutes: 30,
+    ai: false,
+    emoji: "🔧",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_WORKFLOW",
+  },
+  {
+    slug: "solo-ai",
+    exercise: "solo",
+    name: "Solo with an AI Partner",
+    tagline: "An AI interviews you, then drafts your reimagined job.",
+    description:
+      "No partner needed. An AI conducts a deep interview, then drafts a 2×4 redesign you make your own.",
+    mode: "Solo + AI",
+    minutes: 18,
+    ai: true,
+    emoji: "✨",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_SOLO",
+  },
+];
+
+// The all-access bundle uses the existing single price env for backward compat.
+export const ALL_ACCESS = {
+  slug: "all",
+  name: "All modules",
+  priceCents: 2900,
+  priceEnv: "STRIPE_PRICE_ID",
+};
+
+export function moduleBySlug(slug: string): ModuleDef | undefined {
+  return MODULES.find((m) => m.slug === slug);
+}
+export function moduleByExercise(exercise: string): ModuleDef | undefined {
+  return MODULES.find((m) => m.exercise === exercise);
+}
+
+export function formatPrice(cents: number): string {
+  return cents % 100 === 0 ? `$${cents / 100}` : `$${(cents / 100).toFixed(2)}`;
+}
+
+// Stripe price id for a target: a module slug, or "all" for the bundle.
+// Per-module prices are optional; if unset, that module is only sold via the
+// all-access bundle.
+export function priceIdFor(target: string): string | undefined {
+  if (target === "all") return process.env.STRIPE_PRICE_ID || undefined;
+  const m = moduleBySlug(target);
+  if (!m) return undefined;
+  return process.env[m.priceEnv] || undefined;
+}

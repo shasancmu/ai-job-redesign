@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { hasAccess } from "@/lib/entitlement";
+import { hasModuleAccess } from "@/lib/entitlement";
+import { isAdmin } from "@/lib/admin";
+import { moduleByExercise } from "@/lib/modules";
 import Room from "@/components/Room";
 import WorkflowRoom from "@/components/WorkflowRoom";
 import SoloRoom from "@/components/SoloRoom";
@@ -17,9 +19,6 @@ export default async function RoomPage({
   } = await supabase.auth.getUser();
   if (!user) redirect(`/login`);
 
-  // Hard gate: unpaid users go to the paywall (dormant if Stripe isn't set up).
-  if (!(await hasAccess(supabase, user.id))) redirect("/paywall");
-
   let { data: session } = await supabase
     .from("sessions")
     .select("*")
@@ -27,6 +26,16 @@ export default async function RoomPage({
     .maybeSingle();
 
   if (!session) redirect("/dashboard");
+
+  // Module gate: you need access to THIS session's module (dormant if Stripe
+  // isn't set up). Instructors always pass.
+  const mod = moduleByExercise(session.exercise || "job");
+  if (
+    mod &&
+    !(await hasModuleAccess(supabase, user.id, mod.slug, isAdmin(user.email)))
+  ) {
+    redirect(`/paywall?module=${mod.slug}`);
+  }
 
   const amHost = session.host_id === user.id;
   const amGuest = session.guest_id === user.id;

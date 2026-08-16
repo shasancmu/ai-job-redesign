@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { PHASES, TOTAL_MINUTES } from "@/lib/exercise";
+import { MODULES } from "@/lib/modules";
+import { BRAND } from "@/lib/brand";
+import Footer from "@/components/Footer";
 
 export default async function Home() {
   const supabase = createClient();
@@ -11,22 +13,21 @@ export default async function Home() {
   if (user) redirect("/dashboard");
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
+    <main className="mx-auto max-w-4xl px-6 py-16">
       <div className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
-        In the age of AI
+        {BRAND.name}
       </div>
       <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-        Reimagine your job.
+        {BRAND.tagline}
       </h1>
       <p className="mt-4 max-w-xl text-lg text-slate-600">
-        A {TOTAL_MINUTES}-minute exercise for two. You and a partner interview
-        each other, then redesign each other&apos;s jobs around what humans do
-        best — and what AI can take off your plate.
+        Hands-on modules that redesign work for the age of AI — run them in a
+        workshop, across your team, or on your own.
       </p>
 
       <div className="mt-8 flex flex-wrap gap-3">
         <Link href="/login" className="btn-primary">
-          Sign in to start
+          Sign in
         </Link>
         <Link href="/login?mode=signup" className="btn-ghost">
           Create an account
@@ -36,30 +37,27 @@ export default async function Home() {
         </Link>
       </div>
 
-      <div className="mt-12 card p-6">
-        <div className="mb-4 text-sm font-semibold text-slate-500">
-          How the {TOTAL_MINUTES} minutes flow
-        </div>
-        <ol className="space-y-3">
-          {PHASES.map((p) => (
-            <li key={p.key} className="flex items-baseline gap-3">
-              <span className="w-10 shrink-0 text-right text-sm font-semibold text-ai">
-                {p.minutes}m
-              </span>
-              <div>
-                <span className="font-medium">{p.title}</span>{" "}
-                <span className="text-slate-500">— {p.subtitle}</span>
-              </div>
-            </li>
-          ))}
-        </ol>
+      <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {MODULES.map((m) => (
+          <div key={m.slug} className="card p-5">
+            <div className="text-3xl">{m.emoji}</div>
+            <h3 className="mt-2 text-lg font-semibold">{m.name}</h3>
+            <p className="mt-1 text-sm text-slate-500">{m.tagline}</p>
+            <div className="mt-3 flex items-center gap-2 text-xs text-slate-400">
+              <span className="rounded-full bg-slate-100 px-2 py-0.5">{m.mode}</span>
+              <span>{m.minutes} min</span>
+              {m.ai && <span className="rounded-full bg-ai/10 px-2 py-0.5 text-ai">AI</span>}
+            </div>
+          </div>
+        ))}
       </div>
 
-      <p className="mt-8 text-sm text-slate-400">
-        Built for Zoom breakout rooms. One person opens a room and shares the
-        code; the other joins. Based on the &quot;Reimagine Your Job&quot;
-        exercise by Prof. Sharique Hasan, Duke Fuqua.
+      <p className="mt-10 text-sm text-slate-400">
+        Sign in to run a module. One-time pricing per module, or unlock them all —
+        no subscription.
       </p>
+
+      <Footer />
     </main>
   );
 }

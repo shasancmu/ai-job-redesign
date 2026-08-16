@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 
-export default function PayButton({ label }: { label: string }) {
+export default function PayButton({
+  label,
+  module = "all",
+}: {
+  label: string;
+  module?: string;
+}) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -10,7 +16,11 @@ export default function PayButton({ label }: { label: string }) {
     setErr(null);
     setBusy(true);
     try {
-      const res = await fetch("/api/checkout", { method: "POST" });
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ module }),
+      });
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;

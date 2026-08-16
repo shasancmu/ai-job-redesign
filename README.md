@@ -127,6 +127,34 @@ participants can only ever see their own sessions.
 
 ---
 
+## "Solo with AI" mode (optional)
+
+A third exercise where an **AI plays the partner** — it interviews the person
+about their job, then drafts a 2×4 redesign they can edit. Great for an odd
+number of participants, solo practice, or a self-serve version. It appears as a
+choice when you open a room, and stays hidden until you add an AI key.
+
+Works with any OpenAI-compatible chat API. Default is **Groq (free tier)**:
+
+1. Make a free key at [console.groq.com/keys](https://console.groq.com/keys).
+2. In Vercel → Settings → Environment Variables, add `AI_API_KEY` = your Groq
+   key. (The defaults `AI_BASE_URL` and `AI_MODEL` already point at Groq's
+   Llama 3.3 70B — no need to set them.)
+3. Redeploy.
+
+To use a different provider, set all three vars (see [`.env.local.example`](.env.local.example)):
+OpenAI, Google Gemini's OpenAI-compatible endpoint, or Anthropic Claude Haiku
+(cheapest high-quality option — a small credit covers a whole cohort).
+
+**Heads-up for big cohorts:** free tiers cap requests-per-minute (~30 for Groq).
+Fine for testing and small groups; for 40 people starting at once, a cheap paid
+key (Haiku or paid Flash) avoids throttling.
+
+**Privacy:** this sends participants' job descriptions to the model provider.
+Groq doesn't train on your data; Gemini's *free* tier may. Choose accordingly.
+
+---
+
 ## Charging a one-time fee (optional)
 
 The app has a built-in **hard paywall**: sign up → pay once → get in. It stays

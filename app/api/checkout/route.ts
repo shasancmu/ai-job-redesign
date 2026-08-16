@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { getStripe, PAYMENTS_ENABLED } from "@/lib/stripe";
+import { priceIdFor } from "@/lib/modules";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,6 +19,25 @@ export async function POST(request: Request) {
     return Response.json({ error: "Not signed in." }, { status: 401 });
   }
 
+  let body: any = {};
+  try {
+    body = await request.json();
+  } catch {
+    /* no body — default to all-access */
+  }
+
+  // What are they buying? A module slug, or "all" (the bundle).
+  let target = String(body.module || "all");
+  let priceId = priceIdFor(target);
+  // If a module has no individual price configured, sell the bundle instead.
+  if (!priceId && target !== "all") {
+    target = "all";
+    priceId = priceIdFor("all");
+  }
+  if (!priceId) {
+    return Response.json({ error: "No price configured." }, { status: 400 });
+  }
+
   const origin =
     headers().get("origin") ||
     process.env.NEXT_PUBLIC_SITE_URL ||
@@ -27,13 +47,13 @@ export async function POST(request: Request) {
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
+      line_items: [{ price: priceId, quantity: 1 }],
       client_reference_id: user.id,
       customer_email: user.email || undefined,
-      metadata: { user_id: user.id },
+      metadata: { user_id: user.id, module: target },
       allow_promotion_codes: true, // lets you comp students with a 100%-off code
       success_url: `${origin}/paywall?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/paywall?canceled=1`,
+      cancel_url: `${origin}/paywall?module=${encodeURIComponent(target)}&canceled=1`,
     });
     return Response.json({ url: session.url });
   } catch (e: any) {
