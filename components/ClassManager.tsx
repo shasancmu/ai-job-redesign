@@ -55,6 +55,17 @@ export default function ClassManager() {
     setOrder([]);
   }
 
+  async function del(k: Klass) {
+    if (
+      !confirm(
+        `Delete "${k.name}"? Students can no longer join at /${k.code}. Their collected responses stay in the results — download them first if you need them.`
+      )
+    )
+      return;
+    await fetch(`/api/classes?code=${encodeURIComponent(k.code)}`, { method: "DELETE" });
+    load();
+  }
+
   async function save() {
     setErr(null);
     const c = normalizeCode(code);
@@ -200,6 +211,9 @@ export default function ClassManager() {
                       className="btn-ghost text-sm"
                     >
                       Copy link
+                    </button>
+                    <button onClick={() => del(c)} className="text-sm text-clay hover:underline">
+                      Delete
                     </button>
                     <Link href={`/facilitator?cohort=${encodeURIComponent(c.code)}`} className="btn-primary text-sm">
                       View results →

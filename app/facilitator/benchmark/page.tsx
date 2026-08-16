@@ -37,6 +37,9 @@ export default async function FacilitatorBenchmark({
             <Link href="/facilitator/benchmark/edit" className="btn-ghost text-sm">
               Edit questions
             </Link>
+            <a href={`/api/benchmark/export?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">
+              ↓ CSV
+            </a>
             <ResetBenchmarkButton cohort={cohort} />
           </div>
         </div>

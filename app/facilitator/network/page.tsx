@@ -30,9 +30,14 @@ export default async function FacilitatorNetwork({
         </Link>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-3xl font-bold text-ink">The Network — live</h1>
-          <Link href={`/facilitator/network/edit?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">
-            Edit roster
-          </Link>
+          <div className="flex items-center gap-2">
+            <a href={`/api/network/export?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">
+              ↓ CSV
+            </a>
+            <Link href={`/facilitator/network/edit?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">
+              Edit roster
+            </Link>
+          </div>
         </div>
         <p className="text-slate2">The graph redraws as people respond. Names stay hidden on the plot. Project this.</p>
       </div>

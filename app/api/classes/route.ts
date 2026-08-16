@@ -88,3 +88,31 @@ export async function POST(request: Request) {
 
   return Response.json({ ok: true, code });
 }
+
+// DELETE: remove a class (and its memberships via cascade). Collected responses
+// stay tagged by the code and remain in the results view.
+export async function DELETE(request: Request) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return new Response("Unauthorized", { status: 401 });
+  if (!isAdmin(user.email)) return new Response("Forbidden", { status: 403 });
+
+  const code = normalizeCode(new URL(request.url).searchParams.get("code") || "");
+  if (!code) return Response.json({ error: "code required" }, { status: 400 });
+
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return Response.json({ error: "service role not set" }, { status: 500 });
+  }
+  const { error } = await admin
+    .from("classes")
+    .delete()
+    .eq("code", code)
+    .eq("owner_id", user.id);
+  if (error) return Response.json({ error: error.message }, { status: 500 });
+  return Response.json({ ok: true });
+}
