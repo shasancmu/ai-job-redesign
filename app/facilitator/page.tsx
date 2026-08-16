@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin, UNTAGGED } from "@/lib/admin";
+import { MODULES } from "@/lib/modules";
 import { AI_CELLS, HUMAN_CELLS, FEEDBACK_FIELDS, Cell } from "@/lib/exercise";
 
 export const dynamic = "force-dynamic";
@@ -184,6 +185,51 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
   const docFor = (sessionId: string) =>
     docs.find((d) => d.session_id === sessionId);
 
+  // ---- Class overview (only when this cohort is a class) ----
+  let classOverview: any = null;
+  if (!untagged) {
+    const { data: klass } = await admin
+      .from("classes")
+      .select("id, name, modules")
+      .eq("code", cohort)
+      .maybeSingle();
+    if (klass) {
+      const [{ count: joined }, { data: bench }, { data: net }] = await Promise.all([
+        admin.from("class_members").select("user_id", { count: "exact", head: true }).eq("class_id", klass.id),
+        admin.from("benchmark_results").select("user_id").eq("cohort", cohort),
+        admin.from("network_responses").select("user_id").eq("cohort", cohort),
+      ]);
+      const benchUsers = new Set((bench || []).map((r: any) => r.user_id)).size;
+      const netUsers = new Set((net || []).map((r: any) => r.user_id)).size;
+      const bySession = (exercise: string) => {
+        const ss = (sessions || []).filter((s: any) => s.exercise === exercise);
+        const users = new Set<string>();
+        ss.forEach((s: any) => {
+          if (s.host_id) users.add(s.host_id);
+          if (s.guest_id) users.add(s.guest_id);
+        });
+        return users.size;
+      };
+      const statFor = (slug: string): number => {
+        if (slug === "benchmark") return benchUsers;
+        if (slug === "network") return netUsers;
+        if (slug === "reimagine-job") return bySession("job");
+        if (slug === "reimagine-workflow") return bySession("workflow");
+        if (slug === "solo-ai") return bySession("solo");
+        return 0;
+      };
+      classOverview = {
+        name: klass.name,
+        joined: joined ?? 0,
+        rows: ((klass.modules as string[]) || []).map((slug) => ({
+          slug,
+          name: MODULES.find((m) => m.slug === slug)?.name || slug,
+          count: statFor(slug),
+        })),
+      };
+    }
+  }
+
   return (
     <Shell>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -236,6 +282,8 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
           )}
         </div>
       </div>
+
+      {classOverview && <ClassOverview data={classOverview} />}
 
       {(sessions || []).length === 0 ? (
         <p className="text-slate-500">No sessions in this cohort.</p>
@@ -360,6 +408,40 @@ function ParticipantColumn({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function ClassOverview({ data }: { data: any }) {
+  const joined = data.joined || 0;
+  return (
+    <div className="card mb-6 p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div className="text-lg font-bold text-ink">{data.name}</div>
+        <div className="text-sm text-slate-500">
+          <span className="text-2xl font-bold text-ink">{joined}</span> joined
+        </div>
+      </div>
+      <div className="mt-4 space-y-2.5">
+        {data.rows.map((r: any) => {
+          const pct = joined ? Math.min(100, Math.round((r.count / joined) * 100)) : 0;
+          return (
+            <div key={r.slug} className="flex items-center gap-3">
+              <div className="w-40 shrink-0 truncate text-sm text-slate-600">{r.name}</div>
+              <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                <div className="h-full rounded-full bg-sage" style={{ width: `${pct}%` }} />
+              </div>
+              <div className="w-24 shrink-0 text-right text-sm text-slate-600">
+                <span className="font-semibold text-ink">{r.count}</span>
+                {joined ? <span className="text-slate-400"> / {joined}</span> : ""}
+              </div>
+            </div>
+          );
+        })}
+        {data.rows.length === 0 && (
+          <div className="text-sm text-slate-400">No modules in this class yet.</div>
+        )}
+      </div>
     </div>
   );
 }
