@@ -574,13 +574,25 @@ function GridBlock({
   const accent = role === "ai" ? "text-ai" : "text-human";
   return (
     <div className="mt-2 text-sm">
-      <span className={"font-semibold " + accent}>{label}: </span>
+      <div className={"font-semibold " + accent}>{label}</div>
       {pairs.length === 0 ? (
         <span className="text-slate-300">—</span>
       ) : (
-        <span className="text-slate-600">
-          {pairs.map((p) => `${p.label} (${p.items.join(", ")})`).join("; ")}
-        </span>
+        <div className="mt-0.5 space-y-1">
+          {pairs.map((p) => (
+            <div key={p.label}>
+              <span className="font-medium text-slate-600">{p.label}</span>
+              <ul className="mt-0.5 space-y-0.5">
+                {p.items.map((it, i) => (
+                  <li key={i} className="flex gap-1.5 text-slate-500">
+                    <span className="text-slate-300">•</span>
+                    <span>{it}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

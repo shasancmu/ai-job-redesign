@@ -12,11 +12,13 @@ function csvCell(v: any): string {
 }
 
 function gridText(grid: any, cells: typeof AI_CELLS): string {
+  // One line per cell; each contribution as its own bullet (cells keep newlines
+  // when quoted, so this reads cleanly in Excel/Sheets).
   return cells
     .map((c) => ({ label: c.label, items: (grid?.[c.key] || []) as string[] }))
     .filter((x) => x.items.length > 0)
-    .map((x) => `${x.label} (${x.items.join(", ")})`)
-    .join("; ");
+    .map((x) => `${x.label}:\n${x.items.map((it) => `• ${it}`).join("\n")}`)
+    .join("\n\n");
 }
 
 export async function GET(request: Request) {

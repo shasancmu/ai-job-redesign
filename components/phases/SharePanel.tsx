@@ -101,8 +101,15 @@ function GridSide({
           if (items.length === 0) return null;
           return (
             <div key={c.key} className="text-sm">
-              <span className="font-semibold text-slate-700">{c.label}: </span>
-              <span className="text-slate-500">{items.join(", ")}</span>
+              <div className="font-semibold text-slate-700">{c.label}</div>
+              <ul className="mt-0.5 space-y-0.5">
+                {items.map((it, i) => (
+                  <li key={i} className="flex gap-1.5 text-slate-500">
+                    <span className="text-slate-300">•</span>
+                    <span>{it}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           );
         })}
