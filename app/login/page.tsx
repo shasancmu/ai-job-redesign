@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { titleCaseName } from "@/lib/name";
 import Logo from "@/components/Logo";
 
 function LoginInner() {
@@ -28,11 +29,12 @@ function LoginInner() {
     const supabase = createClient();
 
     if (mode === "signup") {
+      const cleanName = titleCaseName(name);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { display_name: name },
+          data: { display_name: cleanName },
           emailRedirectTo: `${location.origin}/auth/callback`,
         },
       });
@@ -45,7 +47,7 @@ function LoginInner() {
       if (data.session) {
         await supabase.from("profiles").upsert({
           id: data.session.user.id,
-          display_name: name || email.split("@")[0],
+          display_name: cleanName || email.split("@")[0],
         });
         router.push(next);
         router.refresh();

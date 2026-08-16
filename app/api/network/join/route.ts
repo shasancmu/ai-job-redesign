@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { titleCaseName } from "@/lib/name";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "bad request" }, { status: 400 });
   }
   const cohort = String(body.cohort || "__untagged__");
-  const name = body.name ? String(body.name).trim() : "";
+  const name = body.name ? titleCaseName(body.name) : "";
   const pickId = body.pickId ? String(body.pickId) : "";
   if (!name && !pickId) return Response.json({ error: "name or pickId required" }, { status: 400 });
 

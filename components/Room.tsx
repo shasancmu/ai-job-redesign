@@ -210,22 +210,18 @@ export default function Room({
   );
 
   // ---- Phase control (either partner can drive; both follow via realtime) --
-  async function goToPhase(index: number) {
+  // fresh=true starts the step's timer now; fresh=false lands on a step whose
+  // timer already reads done (used for reviewing a step you've been through).
+  async function goToPhase(index: number, fresh = true) {
     const clamped = Math.max(0, Math.min(PHASES.length - 1, index));
     const status = clamped >= PHASES.length - 1 ? "done" : "active";
-    setSession((s: Session) => ({
-      ...s,
-      phase: clamped,
-      phase_started_at: new Date().toISOString(),
-      status,
-    }));
+    const startedAt = fresh
+      ? new Date().toISOString()
+      : new Date(Date.now() - (PHASES[clamped].minutes * 60 + 1) * 1000).toISOString();
+    setSession((s: Session) => ({ ...s, phase: clamped, phase_started_at: startedAt, status }));
     await supabase
       .from("sessions")
-      .update({
-        phase: clamped,
-        phase_started_at: new Date().toISOString(),
-        status,
-      })
+      .update({ phase: clamped, phase_started_at: startedAt, status })
       .eq("id", session.id);
   }
 
@@ -237,6 +233,16 @@ export default function Room({
       .update({ phase_started_at: now })
       .eq("id", session.id);
   }
+
+  // Is the current step's timer finished? Gates forward progress.
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 500);
+    return () => clearInterval(id);
+  }, []);
+  const startedMs = session.phase_started_at ? new Date(session.phase_started_at).getTime() : nowTick;
+  const remaining = Math.max(0, phase.minutes * 60 - Math.floor((nowTick - startedMs) / 1000));
+  const timerDone = remaining === 0;
 
   const partnerHere = !!partnerId;
   const waiting = !partnerHere;
@@ -303,21 +309,26 @@ export default function Room({
 
       {/* Phase progress */}
       <div className="mb-6 flex items-center gap-1.5">
-        {PHASES.map((p) => (
-          <button
-            key={p.key}
-            onClick={() => goToPhase(p.index)}
-            title={p.title}
-            className={
-              "h-1.5 flex-1 rounded-full transition " +
-              (p.index < session.phase
-                ? "bg-ink"
-                : p.index === session.phase
-                  ? "bg-ai"
-                  : "bg-slate-200 hover:bg-slate-300")
-            }
-          />
-        ))}
+        {PHASES.map((p) => {
+          const past = p.index < session.phase;
+          const current = p.index === session.phase;
+          return (
+            <button
+              key={p.key}
+              onClick={() => past && goToPhase(p.index, false)}
+              disabled={!past}
+              title={past ? `Review: ${p.title}` : p.title}
+              className={
+                "h-1.5 flex-1 rounded-full transition " +
+                (past
+                  ? "bg-ink hover:opacity-70"
+                  : current
+                    ? "bg-ai"
+                    : "bg-slate-200")
+              }
+            />
+          );
+        })}
       </div>
 
       {/* Phase header */}
@@ -350,17 +361,23 @@ export default function Room({
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <button
-            onClick={() => goToPhase(session.phase - 1)}
+            onClick={() => goToPhase(session.phase - 1, false)}
             disabled={session.phase === 0}
             className="btn-ghost"
           >
             Back
           </button>
           <div className="hidden text-sm text-slate-400 sm:block">
-            Either of you can move the room forward — you&apos;ll stay in sync.
+            {timerDone
+              ? "Time's up — either of you can move the room on."
+              : "Next unlocks when the timer ends."}
           </div>
           {session.phase < PHASES.length - 1 ? (
-            <button onClick={() => goToPhase(session.phase + 1)} className="btn-primary">
+            <button
+              onClick={() => goToPhase(session.phase + 1, true)}
+              disabled={!timerDone}
+              className="btn-primary"
+            >
               Next step →
             </button>
           ) : (

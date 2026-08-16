@@ -145,16 +145,25 @@ export default function WorkflowRoom({
   }, [session.broadcast_at, session.broadcast_msg]);
 
   // ---- Phase control -------------------------------------------------------
-  async function goToPhase(index: number) {
+  async function goToPhase(index: number, fresh = true) {
     const clamped = Math.max(0, Math.min(WORKFLOW_STEPS.length - 1, index));
     const status = clamped >= WORKFLOW_STEPS.length - 1 ? "done" : "active";
-    const now = new Date().toISOString();
-    setSession((s: any) => ({ ...s, phase: clamped, phase_started_at: now, status }));
+    const startedAt = fresh
+      ? new Date().toISOString()
+      : new Date(Date.now() - (WORKFLOW_STEPS[clamped].minutes * 60 + 1) * 1000).toISOString();
+    setSession((s: any) => ({ ...s, phase: clamped, phase_started_at: startedAt, status }));
     await supabase
       .from("sessions")
-      .update({ phase: clamped, phase_started_at: now, status })
+      .update({ phase: clamped, phase_started_at: startedAt, status })
       .eq("id", session.id);
   }
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 500);
+    return () => clearInterval(id);
+  }, []);
+  const startedMs = session.phase_started_at ? new Date(session.phase_started_at).getTime() : nowTick;
+  const timerDone = Math.max(0, step.minutes * 60 - Math.floor((nowTick - startedMs) / 1000)) === 0;
   async function resetTimer() {
     const now = new Date().toISOString();
     setSession((s: any) => ({ ...s, phase_started_at: now }));
@@ -210,21 +219,22 @@ export default function WorkflowRoom({
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">
-        {WORKFLOW_STEPS.map((p) => (
-          <button
-            key={p.key}
-            onClick={() => goToPhase(p.index)}
-            title={p.title}
-            className={
-              "h-1.5 flex-1 rounded-full transition " +
-              (p.index < session.phase
-                ? "bg-ink"
-                : p.index === session.phase
-                  ? "bg-ai"
-                  : "bg-slate-200 hover:bg-slate-300")
-            }
-          />
-        ))}
+        {WORKFLOW_STEPS.map((p) => {
+          const past = p.index < session.phase;
+          const current = p.index === session.phase;
+          return (
+            <button
+              key={p.key}
+              onClick={() => past && goToPhase(p.index, false)}
+              disabled={!past}
+              title={past ? `Review: ${p.title}` : p.title}
+              className={
+                "h-1.5 flex-1 rounded-full transition " +
+                (past ? "bg-ink hover:opacity-70" : current ? "bg-ai" : "bg-slate-200")
+              }
+            />
+          );
+        })}
       </div>
 
       <div className="mb-5">
@@ -431,17 +441,21 @@ export default function WorkflowRoom({
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <button
-            onClick={() => goToPhase(session.phase - 1)}
+            onClick={() => goToPhase(session.phase - 1, false)}
             disabled={session.phase === 0}
             className="btn-ghost"
           >
             Back
           </button>
           <div className="hidden text-sm text-slate-400 sm:block">
-            You&apos;re both editing the same canvas — it syncs live.
+            {timerDone ? "Time's up — move the room on." : "Next unlocks when the timer ends."}
           </div>
           {session.phase < WORKFLOW_STEPS.length - 1 ? (
-            <button onClick={() => goToPhase(session.phase + 1)} className="btn-primary">
+            <button
+              onClick={() => goToPhase(session.phase + 1, true)}
+              disabled={!timerDone}
+              className="btn-primary"
+            >
               Next step →
             </button>
           ) : (

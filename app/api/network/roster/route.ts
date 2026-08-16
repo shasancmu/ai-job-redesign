@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
+import { titleCaseName } from "@/lib/name";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
   const cohort = String(body.cohort || "__untagged__");
   const names: string[] = Array.isArray(body.names) ? body.names : [];
   const roster = names
-    .map((n) => String(n).trim())
+    .map((n) => titleCaseName(n))
     .filter(Boolean)
     .map((name, i) => ({ id: `r${i + 1}`, name }));
 

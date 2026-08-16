@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { titleCaseName } from "@/lib/name";
 import Logo from "@/components/Logo";
 
 function JoinInner() {
@@ -30,7 +31,7 @@ function JoinInner() {
     }
     await supabase
       .from("profiles")
-      .upsert({ id: data.user.id, display_name: name.trim() || "Guest" });
+      .upsert({ id: data.user.id, display_name: titleCaseName(name) || "Guest" });
 
     const dest = cohort
       ? `/dashboard?cohort=${encodeURIComponent(cohort)}`
