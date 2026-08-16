@@ -256,6 +256,7 @@ export default function Room({
     updateMine,
     updatePartnerFeedback,
     updateProfile,
+    myRole: session.host_id === me ? "A" : "B",
   };
 
   return (

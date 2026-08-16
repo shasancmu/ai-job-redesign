@@ -30,16 +30,16 @@ export const PHASES: Phase[] = [
     index: 1,
     title: "Interview your partner",
     subtitle:
-      "Take turns on Zoom (4 min each). Understand your partner's job: what bogs them down? What do they wish they spent more time on?",
+      "Take turns — 4 minutes each way. Your job: understand the value they create, for the customer, the org, their manager. Not the tasks — the value.",
     minutes: 8,
     mode: "talk",
   },
   {
     key: "realjob",
     index: 2,
-    title: "Their real job",
+    title: "Their real value",
     subtitle:
-      "Capture what your partner is really trying to achieve — and one thing you see that maybe they don't.",
+      "Name the value your partner creates and where it really comes from — the part only they can do.",
     minutes: 4,
     mode: "solo",
   },
@@ -48,7 +48,7 @@ export const PHASES: Phase[] = [
     index: 3,
     title: "Redesign with the 2×4 model",
     subtitle:
-      "Sort your partner's work. What should AI do? What must stay human? Then write their new job description.",
+      "Design the role so they spend more time creating that value — and AI absorbs the rest. Sort the work: what should AI do, what must stay human?",
     minutes: 8,
     mode: "solo",
   },

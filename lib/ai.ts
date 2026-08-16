@@ -65,6 +65,30 @@ export async function interviewReply(
   return complete(messages, { temperature: 0.7 });
 }
 
+// Helps an interviewer dig past tasks to the VALUE the other person creates.
+export async function deeperInterviewAI(ctx: {
+  jobTitle?: string;
+  jobDescription?: string;
+  notes?: string;
+}): Promise<string> {
+  const messages: ChatMsg[] = [
+    {
+      role: "system",
+      content: `You are coaching someone mid-interview to go deeper. The goal is to uncover the real VALUE the other person creates — for the end customer, the organization, and their manager — and what only this person can do (judgment, taste, relationships, trust), NOT their tasks or work product.
+Given the notes so far, respond with exactly THREE short, sharp follow-up questions to ask next, each grounded in what they've already learned (not generic). Then one line beginning "Probe:" naming a likely hidden source of value worth chasing. Keep it tight. Format:
+1. …
+2. …
+3. …
+Probe: …`,
+    },
+    {
+      role: "user",
+      content: `Their job: ${ctx.jobTitle || "(untitled)"} — ${ctx.jobDescription || ""}\nNotes so far:\n${ctx.notes || "(nothing captured yet)"}`,
+    },
+  ];
+  return complete(messages, { temperature: 0.7 });
+}
+
 export async function networkInsightAI(metrics: any): Promise<string> {
   const messages: ChatMsg[] = [
     {
