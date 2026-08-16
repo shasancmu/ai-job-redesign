@@ -4,36 +4,105 @@
 
 :root {
   color-scheme: light;
+  --paper: #fbfaf4;
+  --ink: #23241d;
+  --line: #ece6d6;
+  --sage: #4a6a4e;
+  --amber: #ce8f2c;
+  --clay: #b4623f;
+  --sky: #5b7fa6;
 }
 
 html,
 body {
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--paper);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
+/* A soft, image-free sunlit atmosphere behind everything. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 46% at 90% -6%, rgba(206, 143, 44, 0.16), transparent 70%),
+    radial-gradient(46% 42% at -6% 104%, rgba(74, 106, 78, 0.12), transparent 72%);
+}
+
+/* Display serif for headings — warm, authentic. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+}
+
+/* ---- components ---------------------------------------------------------- */
 .card {
-  @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+  @apply rounded-2xl border bg-white/85 shadow-soft backdrop-blur-sm;
+  border-color: var(--line);
 }
 
 .btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium transition disabled:cursor-not-allowed disabled:opacity-50;
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50;
 }
 .btn-primary {
-  @apply btn bg-ink text-white hover:bg-slate-700;
+  @apply btn text-white;
+  background: var(--ink);
+}
+.btn-primary:hover {
+  background: #34362c;
+}
+.btn-brand {
+  @apply btn text-white;
+  background: var(--sage);
+}
+.btn-brand:hover {
+  background: #3d5a41;
 }
 .btn-ghost {
-  @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50;
+  @apply btn bg-white/70 text-ink;
+  border: 1px solid var(--line);
+}
+.btn-ghost:hover {
+  background: var(--sage-soft, #eaf0e5);
+  border-color: #d8ceb8;
 }
 
 .field {
-  @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 outline-none focus:border-ink focus:ring-2 focus:ring-ink/10;
+  @apply w-full rounded-xl bg-white/80 px-3.5 py-2.5 text-ink outline-none transition;
+  border: 1px solid var(--line);
+}
+.field:focus {
+  border-color: var(--sage);
+  box-shadow: 0 0 0 3px rgba(74, 106, 78, 0.12);
 }
 label.lbl {
-  @apply mb-1.5 block text-sm font-medium text-slate-600;
+  @apply mb-1.5 block text-sm font-medium;
+  color: #6b6a5c;
 }
-
 textarea.field {
   @apply min-h-[92px] resize-y leading-relaxed;
+}
+
+/* A subtle geometric eyebrow rule used above section labels. */
+.eyebrow {
+  @apply inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em];
+  color: var(--sage);
+}
+.eyebrow::before {
+  content: "";
+  width: 1.4rem;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--amber), var(--sage));
 }

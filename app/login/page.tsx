@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import Logo from "@/components/Logo";
 
 function LoginInner() {
   const router = useRouter();
@@ -70,8 +71,8 @@ function LoginInner() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
-      <Link href="/" className="mb-8 text-sm text-slate-400 hover:text-slate-600">
-        ← Reimagine Your Job
+      <Link href="/" className="mb-8">
+        <Logo />
       </Link>
       <h1 className="text-2xl font-bold">
         {mode === "signup" ? "Create your account" : "Sign in"}

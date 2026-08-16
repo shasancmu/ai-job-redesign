@@ -7,7 +7,7 @@ import { isAdmin } from "@/lib/admin";
 import { MODULES, moduleByExercise } from "@/lib/modules";
 import Catalog from "@/components/Catalog";
 import Footer from "@/components/Footer";
-import { BRAND } from "@/lib/brand";
+import Logo from "@/components/Logo";
 
 export default async function Dashboard({
   searchParams,
@@ -48,10 +48,10 @@ export default async function Dashboard({
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
-      <header className="mb-8 flex items-center justify-between">
+      <header className="mb-8 flex items-center justify-between gap-3">
         <div>
-          <div className="text-sm font-semibold tracking-tight text-ink">{BRAND.name}</div>
-          <h1 className="text-2xl font-bold">Hi, {profile?.display_name || "there"}</h1>
+          <Logo />
+          <h1 className="mt-3 text-2xl">Hi, {profile?.display_name || "there"}</h1>
         </div>
         <div className="flex items-center gap-2">
           {instructor && (
@@ -66,9 +66,7 @@ export default async function Dashboard({
       </header>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
-          Modules
-        </h2>
+        <h2 className="eyebrow mb-3">Modules</h2>
         <Catalog
           userId={user.id}
           unlocked={unlocked}
@@ -77,9 +75,7 @@ export default async function Dashboard({
       </section>
 
       <section className="mt-10">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
-          Your sessions
-        </h2>
+        <h2 className="eyebrow mb-3">Your sessions</h2>
         {!sessions || sessions.length === 0 ? (
           <p className="text-slate-500">Nothing yet — open a module above to begin.</p>
         ) : (

@@ -6,6 +6,12 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { MODULES, formatPrice } from "@/lib/modules";
 
+const ACCENT: Record<string, { chip: string; bar: string }> = {
+  "reimagine-job": { chip: "bg-sage-soft text-sage", bar: "#4A6A4E" },
+  "reimagine-workflow": { chip: "bg-sky-soft text-sky", bar: "#5B7FA6" },
+  "solo-ai": { chip: "bg-amber-soft text-amber", bar: "#CE8F2C" },
+};
+
 function makeCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let out = "";
@@ -142,15 +148,19 @@ export default function Catalog({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {MODULES.map((m) => {
           const open = !!unlocked[m.slug];
+          const a = ACCENT[m.slug] || { chip: "bg-sage-soft text-sage", bar: "#4A6A4E" };
           return (
-            <div key={m.slug} className="card flex flex-col p-5">
-              <div className="text-3xl">{m.emoji}</div>
-              <h3 className="mt-2 text-lg font-semibold">{m.name}</h3>
-              <p className="mt-1 flex-1 text-sm text-slate-500">{m.tagline}</p>
-              <div className="mt-3 flex items-center gap-2 text-xs text-slate-400">
-                <span className="rounded-full bg-slate-100 px-2 py-0.5">{m.mode}</span>
-                <span>{m.minutes} min</span>
-                {m.ai && <span className="rounded-full bg-ai/10 px-2 py-0.5 text-ai">AI</span>}
+            <div key={m.slug} className="card relative flex flex-col overflow-hidden p-5">
+              <span className="absolute inset-x-0 top-0 h-1" style={{ background: a.bar }} />
+              <div className={"flex h-11 w-11 items-center justify-center rounded-xl text-2xl " + a.chip}>
+                {m.emoji}
+              </div>
+              <h3 className="mt-3 text-xl">{m.name}</h3>
+              <p className="mt-1 flex-1 text-sm leading-relaxed text-ink/60">{m.tagline}</p>
+              <div className="mt-3 flex items-center gap-2 text-xs">
+                <span className="rounded-full border border-line px-2 py-0.5 text-ink/60">{m.mode}</span>
+                <span className="text-ink/45">{m.minutes} min</span>
+                {m.ai && <span className="rounded-full bg-amber-soft px-2 py-0.5 font-medium text-amber">AI</span>}
               </div>
               {open ? (
                 <button
@@ -161,7 +171,7 @@ export default function Catalog({
                   {busy === m.slug ? "Opening…" : m.exercise === "solo" ? "Start" : "Open a room"}
                 </button>
               ) : (
-                <Link href={`/paywall?module=${m.slug}`} className="btn-ghost mt-4">
+                <Link href={`/paywall?module=${m.slug}`} className="btn-brand mt-4">
                   Unlock — {formatPrice(m.priceCents)}
                 </Link>
               )}

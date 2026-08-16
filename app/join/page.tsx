@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import Logo from "@/components/Logo";
 
 function JoinInner() {
   const router = useRouter();
@@ -40,8 +41,8 @@ function JoinInner() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
-      <Link href="/" className="mb-8 text-sm text-slate-400 hover:text-slate-600">
-        ← Reimagine Your Job
+      <Link href="/" className="mb-8">
+        <Logo />
       </Link>
       <h1 className="text-2xl font-bold">Join the workshop</h1>
       <p className="mt-1 text-slate-500">
