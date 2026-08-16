@@ -71,9 +71,14 @@ async function Overview({ admin }: { admin: any }) {
           <div className="text-sm text-slate-400">Facilitator</div>
           <h1 className="text-2xl font-bold">Cohorts</h1>
         </div>
-        <Link href="/dashboard" className="btn-ghost text-sm">
-          ← My dashboard
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/facilitator/classes" className="btn-primary text-sm">
+            Classes
+          </Link>
+          <Link href="/dashboard" className="btn-ghost text-sm">
+            ← My dashboard
+          </Link>
+        </div>
       </div>
 
       {rows.length === 0 ? (

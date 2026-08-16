@@ -18,6 +18,7 @@ function LoginInner() {
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const next = params.get("next") || "/dashboard";
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,7 +47,7 @@ function LoginInner() {
           id: data.session.user.id,
           display_name: name || email.split("@")[0],
         });
-        router.push("/dashboard");
+        router.push(next);
         router.refresh();
         return;
       }
@@ -65,7 +66,7 @@ function LoginInner() {
       setBusy(false);
       return;
     }
-    router.push("/dashboard");
+    router.push(next);
     router.refresh();
   }
 

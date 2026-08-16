@@ -24,14 +24,22 @@ export default function Catalog({
   userId,
   unlocked,
   initialCohort = "",
+  moduleSlugs,
+  fixedCohort,
 }: {
   userId: string;
   unlocked: Record<string, boolean>;
   initialCohort?: string;
+  moduleSlugs?: string[]; // limit + order the modules shown
+  fixedCohort?: string; // when set, the cohort is locked to this (a class)
 }) {
   const router = useRouter();
   const supabase = createClient();
-  const [cohort, setCohort] = useState(initialCohort);
+  const [cohortState, setCohortState] = useState(initialCohort);
+  const cohort = fixedCohort ?? cohortState;
+  const shown = moduleSlugs
+    ? (moduleSlugs.map((s) => MODULES.find((m) => m.slug === s)).filter(Boolean) as typeof MODULES)
+    : MODULES;
   const [joinCode, setJoinCode] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -117,15 +125,17 @@ export default function Catalog({
     <div>
       {/* Cohort tag (optional) */}
       <div className="mb-5 flex flex-wrap items-end gap-3">
-        <div className="flex-1 min-w-[220px]">
-          <label className="lbl">Cohort / event code (optional)</label>
-          <input
-            className="field font-mono uppercase"
-            value={cohort}
-            onChange={(e) => setCohort(e.target.value.toUpperCase())}
-            placeholder="EXECED-XYZ-DATE"
-          />
-        </div>
+        {!fixedCohort && (
+          <div className="flex-1 min-w-[220px]">
+            <label className="lbl">Cohort / event code (optional)</label>
+            <input
+              className="field font-mono uppercase"
+              value={cohort}
+              onChange={(e) => setCohortState(e.target.value.toUpperCase())}
+              placeholder="EXECED-XYZ-DATE"
+            />
+          </div>
+        )}
         <form onSubmit={joinRoom} className="flex items-end gap-2">
           <div>
             <label className="lbl">Join a partner&apos;s room</label>
@@ -149,7 +159,7 @@ export default function Catalog({
 
       {/* Module cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {MODULES.map((m) => {
+        {shown.map((m) => {
           const open = !!unlocked[m.slug];
           const chip = ACCENT[m.slug] || "bg-sage-soft text-sage";
           return (

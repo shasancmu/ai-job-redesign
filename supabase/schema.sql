@@ -186,6 +186,42 @@ create policy "workflow update" on public.workflow_docs
   with check (public.is_session_participant(session_id));
 
 -- ============================================================================
+-- Classes: an instructor-created container with a join code, a name, and a
+-- curated list of modules. A class's `code` IS the cohort used everywhere else,
+-- so all the cohort-scoped aggregation "just works" for a class.
+-- ============================================================================
+create table if not exists public.classes (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  name text not null,
+  owner_id uuid not null references auth.users (id) on delete cascade,
+  modules jsonb not null default '[]'::jsonb, -- ordered list of module slugs
+  created_at timestamptz not null default now()
+);
+alter table public.classes enable row level security;
+
+drop policy if exists "classes read" on public.classes;
+create policy "classes read" on public.classes
+  for select using (auth.role() = 'authenticated'); -- so people can look up a class to join
+-- Writes go through admin (service-role) routes only.
+
+create table if not exists public.class_members (
+  class_id uuid not null references public.classes (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  joined_at timestamptz not null default now(),
+  primary key (class_id, user_id)
+);
+alter table public.class_members enable row level security;
+
+drop policy if exists "class_members read own" on public.class_members;
+create policy "class_members read own" on public.class_members
+  for select using (user_id = auth.uid());
+drop policy if exists "class_members join self" on public.class_members;
+create policy "class_members join self" on public.class_members
+  for insert with check (user_id = auth.uid());
+-- The facilitator reads the full roster via the service role.
+
+-- ============================================================================
 -- Network survey: roster (per cohort) + each person's nominations.
 -- Roster is service-role-only (read/written via routes). Responses are owned
 -- by each user; the live graph is aggregated server-side and anonymized.

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasModuleAccess } from "@/lib/entitlement";
+import { hasClassAccess } from "@/lib/classes";
 import { isAdmin } from "@/lib/admin";
 import { moduleByExercise } from "@/lib/modules";
 import Room from "@/components/Room";
@@ -34,7 +35,8 @@ export default async function RoomPage({
   const mod = moduleByExercise(session.exercise || "job");
   if (
     mod &&
-    !(await hasModuleAccess(supabase, user.id, mod.slug, isAdmin(user.email)))
+    !(await hasModuleAccess(supabase, user.id, mod.slug, isAdmin(user.email))) &&
+    !(await hasClassAccess(supabase, user.id, session.cohort, mod.slug))
   ) {
     redirect(`/paywall?module=${mod.slug}`);
   }
