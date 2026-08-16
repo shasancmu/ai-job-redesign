@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { WORKFLOW_STEPS, STEP_ROLES } from "@/lib/workflow";
 import Timer from "@/components/Timer";
+import PairWaiting from "@/components/PairWaiting";
 
 type Doc = any;
 
@@ -173,25 +174,7 @@ export default function WorkflowRoom({
   const partnerHere = !!partnerId;
 
   if (!partnerHere && session.host_id === me) {
-    return (
-      <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center px-6 text-center">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          Your room is open · Workflow exercise
-        </div>
-        <div className="my-4 rounded-2xl border-2 border-dashed border-slate-300 px-10 py-6">
-          <div className="font-mono text-5xl font-bold tracking-[0.3em]">
-            {session.code}
-          </div>
-        </div>
-        <p className="max-w-sm text-slate-500">
-          Share this code with your partner. You&apos;ll build one shared workflow
-          canvas together.
-        </p>
-        <Link href="/dashboard" className="mt-8 text-sm text-slate-400 hover:text-slate-600">
-          ← Back to dashboard
-        </Link>
-      </main>
-    );
+    return <PairWaiting code={session.code} />;
   }
 
   return (

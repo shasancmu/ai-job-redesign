@@ -11,6 +11,7 @@ import RedesignPanel from "@/components/phases/RedesignPanel";
 import SharePanel from "@/components/phases/SharePanel";
 import FinalPanel from "@/components/phases/FinalPanel";
 import Timer from "@/components/Timer";
+import PairWaiting from "@/components/PairWaiting";
 
 export type Session = any;
 export type Workspace = any;
@@ -242,9 +243,7 @@ export default function Room({
 
   // ---- Waiting room --------------------------------------------------------
   if (waiting && session.host_id === me) {
-    return (
-      <WaitingRoom code={session.code} isHost />
-    );
+    return <PairWaiting code={session.code} />;
   }
 
   const panelProps = {
@@ -374,28 +373,3 @@ export default function Room({
   );
 }
 
-function WaitingRoom({ code, isHost }: { code: string; isHost: boolean }) {
-  return (
-    <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center px-6 text-center">
-      <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-        Your room is open
-      </div>
-      <div className="my-4 rounded-2xl border-2 border-dashed border-slate-300 px-10 py-6">
-        <div className="font-mono text-5xl font-bold tracking-[0.3em]">
-          {code}
-        </div>
-      </div>
-      <p className="max-w-sm text-slate-500">
-        Share this code with your partner in the Zoom breakout room. As soon as
-        they join, you&apos;ll both start together.
-      </p>
-      <div className="mt-6 flex items-center gap-2 text-slate-400">
-        <span className="h-2 w-2 animate-pulse rounded-full bg-ai" />
-        Waiting for your partner…
-      </div>
-      <Link href="/dashboard" className="mt-8 text-sm text-slate-400 hover:text-slate-600">
-        ← Back to dashboard
-      </Link>
-    </main>
-  );
-}

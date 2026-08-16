@@ -11,6 +11,8 @@ const ACCENT: Record<string, string> = {
   "reimagine-job": "bg-sage-soft text-sage",
   "reimagine-workflow": "bg-sky-soft text-sky",
   "solo-ai": "bg-amber-soft text-amber",
+  benchmark: "bg-clay-soft text-clay",
+  network: "bg-sky-soft text-sky",
 };
 
 function makeCode() {
@@ -19,6 +21,8 @@ function makeCode() {
   for (let i = 0; i < 5; i++) out += chars[Math.floor(Math.random() * chars.length)];
   return out;
 }
+
+const PAIRED = new Set(["job", "workflow"]);
 
 export default function Catalog({
   userId,
@@ -30,46 +34,30 @@ export default function Catalog({
   userId: string;
   unlocked: Record<string, boolean>;
   initialCohort?: string;
-  moduleSlugs?: string[]; // limit + order the modules shown
-  fixedCohort?: string; // when set, the cohort is locked to this (a class)
+  moduleSlugs?: string[];
+  fixedCohort?: string;
 }) {
   const router = useRouter();
   const supabase = createClient();
-  const [cohortState, setCohortState] = useState(initialCohort);
-  const cohort = fixedCohort ?? cohortState;
+  const cohort = fixedCohort ?? initialCohort;
+  const [busy, setBusy] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
   const shown = moduleSlugs
     ? (moduleSlugs.map((s) => MODULES.find((m) => m.slug === s)).filter(Boolean) as typeof MODULES)
     : MODULES;
-  const [joinCode, setJoinCode] = useState("");
-  const [busy, setBusy] = useState<string | null>(null);
-  const [err, setErr] = useState<string | null>(null);
 
-  async function openModule(slug: string, exercise: string) {
+  // Single-user modules (solo, benchmark, network) start immediately.
+  async function startSolo(slug: string, exercise: string) {
     setErr(null);
     setBusy(slug);
     for (let attempt = 0; attempt < 5; attempt++) {
       const code = makeCode();
-      const soloish =
-        exercise === "solo" || exercise === "benchmark" || exercise === "network";
       const { data, error } = await supabase
         .from("sessions")
-        .insert({
-          code,
-          host_id: userId,
-          status: soloish ? "active" : "waiting",
-          cohort: cohort.trim() || null,
-          exercise,
-        })
+        .insert({ code, host_id: userId, status: "active", cohort: cohort || null, exercise })
         .select()
         .single();
       if (!error && data) {
-        if (exercise === "workflow") {
-          await supabase.from("workflow_docs").upsert({ session_id: data.id }, { onConflict: "session_id" });
-        } else if (exercise !== "benchmark" && exercise !== "network") {
-          await supabase
-            .from("workspaces")
-            .upsert({ session_id: data.id, author_id: userId }, { onConflict: "session_id,author_id" });
-        }
         router.push(`/room/${code}`);
         return;
       }
@@ -79,89 +67,19 @@ export default function Catalog({
         return;
       }
     }
-    setErr("Couldn't create a room — try again.");
+    setErr("Couldn't start — try again.");
     setBusy(null);
-  }
-
-  async function joinRoom(e: React.FormEvent) {
-    e.preventDefault();
-    setErr(null);
-    setBusy("join");
-    const code = joinCode.trim().toUpperCase();
-    const { data: session, error } = await supabase
-      .from("sessions")
-      .select("*")
-      .eq("code", code)
-      .maybeSingle();
-    if (error || !session) {
-      setErr("No room with that code.");
-      setBusy(null);
-      return;
-    }
-    if (session.guest_id && session.guest_id !== userId && session.host_id !== userId) {
-      setErr("That room is already full.");
-      setBusy(null);
-      return;
-    }
-    if (session.host_id !== userId && !session.guest_id) {
-      const { error: upErr } = await supabase
-        .from("sessions")
-        .update({ guest_id: userId, status: "active" })
-        .eq("id", session.id)
-        .is("guest_id", null);
-      if (upErr) {
-        setErr("Couldn't join — someone may have just taken the spot.");
-        setBusy(null);
-        return;
-      }
-      await supabase
-        .from("workspaces")
-        .upsert({ session_id: session.id, author_id: userId }, { onConflict: "session_id,author_id" });
-    }
-    router.push(`/room/${code}`);
   }
 
   return (
     <div>
-      {/* Cohort tag (optional) */}
-      <div className="mb-5 flex flex-wrap items-end gap-3">
-        {!fixedCohort && (
-          <div className="flex-1 min-w-[220px]">
-            <label className="lbl">Cohort / event code (optional)</label>
-            <input
-              className="field font-mono uppercase"
-              value={cohort}
-              onChange={(e) => setCohortState(e.target.value.toUpperCase())}
-              placeholder="EXECED-XYZ-DATE"
-            />
-          </div>
-        )}
-        <form onSubmit={joinRoom} className="flex items-end gap-2">
-          <div>
-            <label className="lbl">Join a partner&apos;s room</label>
-            <input
-              className="field w-40 text-center font-mono uppercase tracking-[0.3em]"
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-              placeholder="ABCDE"
-              maxLength={5}
-            />
-          </div>
-          <button className="btn-ghost" disabled={busy !== null || joinCode.trim().length < 4}>
-            {busy === "join" ? "Joining…" : "Join"}
-          </button>
-        </form>
-      </div>
+      {err && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
 
-      {err && (
-        <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>
-      )}
-
-      {/* Module cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map((m) => {
           const open = !!unlocked[m.slug];
           const chip = ACCENT[m.slug] || "bg-sage-soft text-sage";
+          const paired = PAIRED.has(m.exercise);
           return (
             <div key={m.slug} className="card flex flex-col p-6 transition hover:shadow-lift">
               <div className={"flex h-11 w-11 items-center justify-center rounded-xl " + chip}>
@@ -173,28 +91,27 @@ export default function Catalog({
                 <span className="rounded-full border border-line px-2 py-0.5 text-ink/60">{m.mode}</span>
                 <span>{m.minutes} min</span>
                 {m.ai && <span className="rounded-full bg-amber-soft px-2 py-0.5 font-medium text-amber">AI</span>}
-                {m.instructorTool && (
-                  <span className="rounded-full bg-sky-soft px-2 py-0.5 font-medium text-sky">Instructor tool · free</span>
-                )}
               </div>
-              {open ? (
-                <button
-                  onClick={() => openModule(m.slug, m.exercise)}
-                  disabled={busy !== null}
-                  className="btn-primary mt-5"
-                >
-                  {busy === m.slug
-                    ? "Opening…"
-                    : m.exercise === "solo" ||
-                        m.exercise === "benchmark" ||
-                        m.exercise === "network"
-                      ? "Start"
-                      : "Open a room"}
-                </button>
-              ) : (
+
+              {!open ? (
                 <Link href={`/paywall?module=${m.slug}`} className="btn-dark mt-5">
                   Unlock — {formatPrice(m.priceCents)}
                 </Link>
+              ) : paired ? (
+                <Link
+                  href={`/pair/${m.slug}${cohort ? `?cohort=${encodeURIComponent(cohort)}` : ""}`}
+                  className="btn-primary mt-5"
+                >
+                  Pair up →
+                </Link>
+              ) : (
+                <button
+                  onClick={() => startSolo(m.slug, m.exercise)}
+                  disabled={busy !== null}
+                  className="btn-primary mt-5"
+                >
+                  {busy === m.slug ? "Starting…" : "Start"}
+                </button>
               )}
             </div>
           );
