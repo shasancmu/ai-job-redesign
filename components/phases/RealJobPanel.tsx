@@ -12,10 +12,19 @@ export default function RealJobPanel(props: any) {
       <div className="space-y-4">
         <PartnerJobCard {...props} />
         <div className="card p-4 text-sm text-slate2">
-          Work solo now. You&apos;re forming a point of view about the{" "}
-          <span className="font-semibold text-ink">value</span> {partnerName} creates —
-          not the tasks, the value.
+          Work solo now — distill your notes into a point of view about the{" "}
+          <span className="font-semibold text-ink">value</span> {partnerName} creates.
         </div>
+        {myWorkspace.interview_notes && (
+          <div className="card p-4">
+            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-sage">
+              Your notes
+            </div>
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate2">
+              {myWorkspace.interview_notes}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">

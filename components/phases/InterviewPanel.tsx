@@ -11,6 +11,13 @@ export default function InterviewPanel(props: any) {
   const partnerName = partnerProfile?.display_name || "your partner";
   const phase = PHASES[session.phase] ?? PHASES[1];
   const iAmInterviewer = myRole === phase.interviewer;
+  const value = phase.focus === "value";
+  const askPrompt = value
+    ? "Dig into the value they create — for the customer, the organization, their manager. How would you know it's working?"
+    : "Understand what they actually do, what matters in it, and what drains them.";
+  const notesPlaceholder = value
+    ? "What value do they create, and for whom? How would you know? What only they can do?"
+    : "What do they do day to day? What matters most? What eats their time?";
 
   // ---- You are being interviewed: just share ----
   if (!iAmInterviewer) {
@@ -22,8 +29,9 @@ export default function InterviewPanel(props: any) {
             {partnerName} is interviewing you
           </h2>
           <p className="mt-2 text-slate2">
-            Nothing to type. Just talk about your work — and the value you create for the
-            customer, the organization, your manager. Let them dig.
+            {value
+              ? "Nothing to type. Talk about the value you create — for the customer, the organization, your manager. Let them dig."
+              : "Nothing to type. Just talk about your work — what you do and what matters in it. Let them dig."}
           </p>
         </div>
         <div className="text-sm text-slate2">
@@ -37,10 +45,11 @@ export default function InterviewPanel(props: any) {
   return (
     <div className="space-y-4">
       <div className="rounded-2xl bg-sage-soft p-5">
-        <div className="text-lg font-bold text-ink">🎤 You&apos;re interviewing {partnerName}</div>
+        <div className="text-lg font-bold text-ink">
+          🎤 {value ? `Dig deeper with ${partnerName}` : `You're interviewing ${partnerName}`}
+        </div>
         <p className="mt-1 text-sm text-slate2">
-          Dig into the value they create — for the customer, the organization, their manager.
-          Not the tasks — the value. When the timer ends, you&apos;ll switch.
+          {askPrompt} When the timer ends, you&apos;ll switch.
         </p>
       </div>
 
@@ -58,7 +67,7 @@ export default function InterviewPanel(props: any) {
           <label className="lbl">Your notes on {partnerName}&apos;s value</label>
           <textarea
             className="field min-h-[300px]"
-            placeholder="What value do they create, and for whom? What only they can do? What drains them? What surprised you?"
+            placeholder={notesPlaceholder}
             value={myWorkspace.interview_notes || ""}
             onChange={(e) => updateMine({ interview_notes: e.target.value })}
           />

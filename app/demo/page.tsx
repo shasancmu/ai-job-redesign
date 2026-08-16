@@ -10,6 +10,7 @@ import { PHASES, emptyGrid } from "@/lib/exercise";
 import SetupPanel from "@/components/phases/SetupPanel";
 import InterviewPanel from "@/components/phases/InterviewPanel";
 import RealJobPanel from "@/components/phases/RealJobPanel";
+import BreakPanel from "@/components/phases/BreakPanel";
 import RedesignPanel from "@/components/phases/RedesignPanel";
 import SharePanel from "@/components/phases/SharePanel";
 import FinalPanel from "@/components/phases/FinalPanel";
@@ -168,8 +169,11 @@ export default function DemoPage() {
 
       <div className="pb-24">
         {p.key === "setup" && <SetupPanel {...props} />}
-        {(p.key === "interview1" || p.key === "interview2") && <InterviewPanel {...props} />}
-        {p.key === "realjob" && <RealJobPanel {...props} />}
+        {["interview1", "interview2", "deeper1", "deeper2"].includes(p.key) && (
+          <InterviewPanel {...props} />
+        )}
+        {p.key === "summary" && <RealJobPanel {...props} />}
+        {p.key === "break" && <BreakPanel {...props} />}
         {p.key === "redesign" && <RedesignPanel {...props} />}
         {p.key === "share" && <SharePanel {...props} />}
         {p.key === "final" && <FinalPanel {...props} />}

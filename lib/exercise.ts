@@ -12,8 +12,10 @@ export type Phase = {
   // "solo"  = both partners work independently at the same time
   // "talk"  = one partner interviews, the other just shares (one direction)
   // "reveal"= the payoff: you see what your partner designed for you
-  mode: "solo" | "talk" | "reveal";
+  // "break" = an instructor-led pause (not timer-gated)
+  mode: "solo" | "talk" | "reveal" | "break";
   interviewer?: "A" | "B"; // for talk phases: which role is asking the questions
+  focus?: "job" | "value"; // for talk phases: understand the job, or dig into value
 };
 
 export const PHASES: Phase[] = [
@@ -22,8 +24,8 @@ export const PHASES: Phase[] = [
     index: 0,
     title: "Your job today",
     subtitle:
-      "Name your job and describe it in one line. Your partner will redesign THIS.",
-    minutes: 2,
+      "Write your own job in a line or two. This is what your partner will redesign — so make it real.",
+    minutes: 3,
     mode: "solo",
   },
   {
@@ -31,54 +33,85 @@ export const PHASES: Phase[] = [
     index: 1,
     title: "Interview · turn 1",
     subtitle:
-      "One partner interviews; the other simply shares. Dig into the value they create — for the customer, the org, their manager. Not the tasks — the value.",
+      "One partner interviews about their job; the other just shares. Take notes — what do they do, and what actually matters in it?",
     minutes: 4,
     mode: "talk",
     interviewer: "A",
+    focus: "job",
   },
   {
     key: "interview2",
     index: 2,
     title: "Interview · turn 2",
-    subtitle: "Switch. Now the other partner interviews, and the first one shares.",
+    subtitle: "Switch. Now the other partner interviews about their job.",
     minutes: 4,
     mode: "talk",
     interviewer: "B",
+    focus: "job",
   },
   {
-    key: "realjob",
+    key: "deeper1",
     index: 3,
-    title: "Their real value",
+    title: "Dig deeper · turn 1",
     subtitle:
-      "Name the value your partner creates and where it really comes from — the part only they can do.",
+      "Same pairs, go deeper. What value do they create, and for whom — the customer, the org, their manager? How would you know it's working?",
+    minutes: 3,
+    mode: "talk",
+    interviewer: "A",
+    focus: "value",
+  },
+  {
+    key: "deeper2",
+    index: 4,
+    title: "Dig deeper · turn 2",
+    subtitle: "Switch. Dig into the value your other partner creates.",
+    minutes: 3,
+    mode: "talk",
+    interviewer: "B",
+    focus: "value",
+  },
+  {
+    key: "summary",
+    index: 5,
+    title: "What you learned",
+    subtitle:
+      "Distill it. From your notes, capture the value your partner creates, their real job, and one thing they might not see.",
     minutes: 4,
     mode: "solo",
   },
   {
+    key: "break",
+    index: 6,
+    title: "The 2×4 model",
+    subtitle: "Pause here — your instructor will teach the AI × Human model before you redesign.",
+    minutes: 0,
+    mode: "break",
+  },
+  {
     key: "redesign",
-    index: 4,
+    index: 7,
     title: "Redesign with the 2×4 model",
     subtitle:
-      "Design the role so they spend more time creating that value — and AI absorbs the rest. Sort the work: what should AI do, what must stay human?",
+      "Using your notes, design your partner's role: what should they delegate to AI, and what should they lean into?",
     minutes: 8,
     mode: "solo",
   },
   {
     key: "share",
-    index: 5,
+    index: 8,
     title: "Share & get feedback",
     subtitle:
-      "The reveal: read the redesign your partner made of YOUR job, and react. Your reactions become their feedback.",
+      "Show your partner the redesign you made for them, and capture their feedback. Then react to the one they made for you.",
     minutes: 6,
     mode: "reveal",
   },
   {
     key: "final",
-    index: 6,
-    title: "The reimagined job",
+    index: 9,
+    title: "Their reimagined job",
     subtitle:
-      "Read your partner's feedback on your design, then write the final reimagined job in one paragraph.",
-    minutes: 2,
+      "Redo it with the feedback. This is the artifact your partner keeps — the reimagined version of their job.",
+    minutes: 4,
     mode: "solo",
   },
 ];

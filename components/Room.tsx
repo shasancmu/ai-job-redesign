@@ -7,6 +7,7 @@ import { PHASES } from "@/lib/exercise";
 import SetupPanel from "@/components/phases/SetupPanel";
 import InterviewPanel from "@/components/phases/InterviewPanel";
 import RealJobPanel from "@/components/phases/RealJobPanel";
+import BreakPanel from "@/components/phases/BreakPanel";
 import RedesignPanel from "@/components/phases/RedesignPanel";
 import SharePanel from "@/components/phases/SharePanel";
 import FinalPanel from "@/components/phases/FinalPanel";
@@ -242,7 +243,8 @@ export default function Room({
   }, []);
   const startedMs = session.phase_started_at ? new Date(session.phase_started_at).getTime() : nowTick;
   const remaining = Math.max(0, phase.minutes * 60 - Math.floor((nowTick - startedMs) / 1000));
-  const timerDone = remaining === 0;
+  // Instructor-led breaks aren't timer-gated; every other step is.
+  const timerDone = phase.mode === "break" ? true : remaining === 0;
 
   const partnerHere = !!partnerId;
   const waiting = !partnerHere;
@@ -350,10 +352,11 @@ export default function Room({
       {/* Phase panel */}
       <div className="pb-24">
         {phase.key === "setup" && <SetupPanel {...panelProps} />}
-        {(phase.key === "interview1" || phase.key === "interview2") && (
+        {["interview1", "interview2", "deeper1", "deeper2"].includes(phase.key) && (
           <InterviewPanel {...panelProps} />
         )}
-        {phase.key === "realjob" && <RealJobPanel {...panelProps} />}
+        {phase.key === "summary" && <RealJobPanel {...panelProps} />}
+        {phase.key === "break" && <BreakPanel {...panelProps} />}
         {phase.key === "redesign" && <RedesignPanel {...panelProps} />}
         {phase.key === "share" && <SharePanel {...panelProps} />}
         {phase.key === "final" && <FinalPanel {...panelProps} />}
