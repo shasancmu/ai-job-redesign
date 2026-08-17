@@ -36,7 +36,7 @@ export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
       <div className="card p-5">
         <div className="mb-1 text-sm font-bold text-ink">Where you can go next</div>
         <p className="mb-3 text-xs text-slate-400">
-          Positioned by how transferable your skills are (right = closer) and the preparation each needs (up = higher). Tap a role.
+          Positioned by how transferable your skills are (right = closer) and the upside (up = higher pay, or prep level). Tap a role.
         </p>
         <CareerMap roadmap={roadmap} sel={sel} onSelect={setSel} />
         <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-500">
@@ -63,7 +63,19 @@ export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
           </div>
           <div className="text-right text-xs text-slate-400">
             <div>Skill match {Math.round(target.sim * 100)}%</div>
-            {target.zone != null && <div>Job Zone {target.zone}</div>}
+            {target.wage != null ? (
+              <div>
+                ${Math.round(target.wage / 1000)}k median
+                {roadmap.current?.wage != null && (
+                  <span className={target.wage >= roadmap.current.wage ? "text-sage" : "text-clay"}>
+                    {" "}({target.wage >= roadmap.current.wage ? "+" : ""}
+                    {Math.round((target.wage - roadmap.current.wage) / 1000)}k)
+                  </span>
+                )}
+              </div>
+            ) : (
+              target.zone != null && <div>Job Zone {target.zone}</div>
+            )}
           </div>
         </div>
         {target.why && <p className="mt-2 text-sm leading-relaxed text-slate2">{target.why}</p>}
@@ -135,29 +147,49 @@ export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
 
 // ---- Career map (scatter: transferability × preparation) -------------------
 function CareerMap({ roadmap, sel, onSelect }: { roadmap: any; sel: string; onSelect: (c: string) => void }) {
-  const W = 640, H = 340, padL = 40, padR = 20, padT = 20, padB = 40;
+  const W = 640, H = 340, padL = 46, padR = 20, padT = 20, padB = 40;
   const pts: any[] = roadmap.map || [];
+  const curWage = roadmap.current?.wage ?? null;
+  const curZone = roadmap.current?.zone ?? 3;
+
   const sims = pts.map((p) => p.sim);
   const simMin = Math.min(...sims, 0.6) - 0.02;
   const simMax = Math.max(...sims, 1) + 0.02;
   const x = (sim: number) => padL + ((sim - simMin) / (simMax - simMin)) * (W - padL - padR);
-  const y = (zone: number | null) => {
-    const z = zone ?? 3;
-    return H - padB - ((z - 1) / 4) * (H - padT - padB); // zone 1..5 bottom→top
-  };
-  const curZone = roadmap.current?.zone ?? 3;
+
+  // Upside axis: real median pay when we have it, else Job Zone.
+  const useWage = curWage != null && pts.some((p) => p.wage != null);
+  const wages = [curWage, ...pts.map((p) => p.wage)].filter((w) => w != null) as number[];
+  const wMin = Math.min(...wages), wMax = Math.max(...wages);
+  const plot = (H - padT - padB);
+  const yWage = (w: number | null) => H - padB - (((w ?? wMin) - wMin) / ((wMax - wMin) || 1)) * plot;
+  const yZone = (z: number | null) => H - padB - (((z ?? 3) - 1) / 4) * plot;
+  const y = (p: { wage: number | null; zone: number | null }) => (useWage ? yWage(p.wage) : yZone(p.zone));
+  const k = (w: number) => "$" + Math.round(w / 1000) + "k";
+
+  const wLines = useWage
+    ? [0, 0.25, 0.5, 0.75, 1].map((f) => wMin + f * (wMax - wMin))
+    : [];
 
   return (
     <div className="overflow-x-auto">
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 480 }} role="img" aria-label="Career map">
-        {/* zone gridlines */}
-        {[1, 2, 3, 4, 5].map((z) => (
-          <g key={z}>
-            <line x1={padL} x2={W - padR} y1={y(z)} y2={y(z)} stroke="#eee" />
-            <text x={6} y={y(z) + 3} fontSize="9" fill="#94a3b8">Z{z}</text>
-          </g>
-        ))}
-        <text x={(W) / 2} y={H - 6} fontSize="10" fill="#94a3b8" textAnchor="middle">Skill transferability →</text>
+        {/* upside gridlines */}
+        {useWage
+          ? wLines.map((w, i) => (
+              <g key={i}>
+                <line x1={padL} x2={W - padR} y1={yWage(w)} y2={yWage(w)} stroke="#eee" />
+                <text x={6} y={yWage(w) + 3} fontSize="9" fill="#94a3b8">{k(w)}</text>
+              </g>
+            ))
+          : [1, 2, 3, 4, 5].map((z) => (
+              <g key={z}>
+                <line x1={padL} x2={W - padR} y1={yZone(z)} y2={yZone(z)} stroke="#eee" />
+                <text x={6} y={yZone(z) + 3} fontSize="9" fill="#94a3b8">Z{z}</text>
+              </g>
+            ))}
+        <text x={W / 2} y={H - 6} fontSize="10" fill="#94a3b8" textAnchor="middle">Skill transferability →</text>
+        <text x={12} y={14} fontSize="9" fill="#94a3b8">{useWage ? "Median pay ↑" : "Prep level ↑"}</text>
 
         {/* candidates */}
         {pts.map((p) => {
@@ -167,13 +199,13 @@ function CareerMap({ roadmap, sel, onSelect }: { roadmap: any; sel: string; onSe
           return (
             <g key={p.code} onClick={() => p.selected && onSelect(p.code)} style={{ cursor: p.selected ? "pointer" : "default" }}>
               <circle
-                cx={x(p.sim)} cy={y(p.zone)} r={r}
+                cx={x(p.sim)} cy={y(p)} r={r}
                 fill={t ? t.c : "#cbd5e1"}
                 opacity={p.selected ? 1 : 0.5}
                 stroke={isSel ? "#1c1c1a" : "white"} strokeWidth={isSel ? 2 : 1}
               />
               {p.selected && (
-                <text x={x(p.sim)} y={y(p.zone) - r - 4} fontSize="10" fill="#1c1c1a" textAnchor="middle" fontWeight={isSel ? 700 : 500}>
+                <text x={x(p.sim)} y={y(p) - r - 4} fontSize="10" fill="#1c1c1a" textAnchor="middle" fontWeight={isSel ? 700 : 500}>
                   {p.title.length > 26 ? p.title.slice(0, 24) + "…" : p.title}
                 </text>
               )}
@@ -183,9 +215,9 @@ function CareerMap({ roadmap, sel, onSelect }: { roadmap: any; sel: string; onSe
 
         {/* "You" anchor at far right */}
         <g>
-          <circle cx={x(simMax)} cy={y(curZone)} r={7} fill="white" stroke="#1c1c1a" strokeWidth={2.5} />
-          <circle cx={x(simMax)} cy={y(curZone)} r={2.5} fill="#1c1c1a" />
-          <text x={x(simMax)} y={y(curZone) + 20} fontSize="10" fill="#1c1c1a" textAnchor="end" fontWeight={700}>You</text>
+          <circle cx={x(simMax)} cy={y({ wage: curWage, zone: curZone })} r={7} fill="white" stroke="#1c1c1a" strokeWidth={2.5} />
+          <circle cx={x(simMax)} cy={y({ wage: curWage, zone: curZone })} r={2.5} fill="#1c1c1a" />
+          <text x={x(simMax)} y={y({ wage: curWage, zone: curZone }) + 20} fontSize="10" fill="#1c1c1a" textAnchor="end" fontWeight={700}>You</text>
         </g>
       </svg>
     </div>

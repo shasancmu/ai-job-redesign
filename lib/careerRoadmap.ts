@@ -34,7 +34,7 @@ for (const c of CODES) {
 }
 const idf = (t: string) => Math.log((CODES.length + 1) / ((DF[t] || 0) + 1));
 
-export type OccMatch = { code: string; title: string; zone: number | null; score: number };
+export type OccMatch = { code: string; title: string; zone: number | null; wage: number | null; score: number };
 
 export function matchOccupation(role: string, text = "", topN = 8): OccMatch[] {
   const q = new Map<string, number>();
@@ -44,19 +44,19 @@ export function matchOccupation(role: string, text = "", topN = 8): OccMatch[] {
     const tt = new Set(tokens(OCC_SKILLS[code].title));
     let score = 0;
     for (const t of tt) if (q.has(t)) score += idf(t) * (q.get(t) as number);
-    return { code, title: OCC_SKILLS[code].title, zone: OCC_SKILLS[code].zone, score };
+    return { code, title: OCC_SKILLS[code].title, zone: OCC_SKILLS[code].zone, wage: OCC_SKILLS[code].wage, score };
   });
   return scored.sort((a, b) => b.score - a.score).slice(0, topN);
 }
 
 // ---- neighbors (candidate next steps) --------------------------------------
-export type Candidate = { code: string; title: string; zone: number | null; sim: number; rel: boolean };
+export type Candidate = { code: string; title: string; zone: number | null; wage: number | null; sim: number; rel: boolean };
 
 export function candidates(code: string, limit = 12): Candidate[] {
   return (NEIGHBORS[code] || [])
     .filter((n) => OCC_SKILLS[n.code])
     .slice(0, limit)
-    .map((n) => ({ code: n.code, title: OCC_SKILLS[n.code].title, zone: OCC_SKILLS[n.code].zone, sim: n.sim, rel: n.rel }));
+    .map((n) => ({ code: n.code, title: OCC_SKILLS[n.code].title, zone: OCC_SKILLS[n.code].zone, wage: OCC_SKILLS[n.code].wage, sim: n.sim, rel: n.rel }));
 }
 
 // ---- person skill vector + gaps + radar ------------------------------------

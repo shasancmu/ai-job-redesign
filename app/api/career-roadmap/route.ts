@@ -89,6 +89,7 @@ export async function POST(request: Request) {
       code: c.code,
       title: c.title,
       zone: c.zone,
+      wage: c.wage,
       sim: c.sim,
       tier: ["lateral", "step_up", "stretch"].includes(t.tier) ? t.tier : tierOf(current.zone, c.zone, c.sim),
       why: String(t.why || ""),
@@ -103,7 +104,7 @@ export async function POST(request: Request) {
     if (seen.has(c.code)) continue;
     seen.add(c.code);
     targets.push({
-      code: c.code, title: c.title, zone: c.zone, sim: c.sim,
+      code: c.code, title: c.title, zone: c.zone, wage: c.wage, sim: c.sim,
       tier: tierOf(current.zone, c.zone, c.sim),
       why: "Strong skill overlap with your current role.",
       skillsToBuild: [],
@@ -113,13 +114,13 @@ export async function POST(request: Request) {
   }
 
   const map = cands.map((c) => ({
-    code: c.code, title: c.title, zone: c.zone, sim: c.sim,
+    code: c.code, title: c.title, zone: c.zone, wage: c.wage, sim: c.sim,
     selected: seen.has(c.code),
     tier: targets.find((t) => t.code === c.code)?.tier || null,
   }));
 
   const roadmap = {
-    current: { code: current.code, title: current.title, zone: current.zone },
+    current: { code: current.code, title: current.title, zone: current.zone, wage: current.wage },
     strengths: Array.isArray(result?.strengths) ? result.strengths.slice(0, 6) : [],
     targets,
     map,
