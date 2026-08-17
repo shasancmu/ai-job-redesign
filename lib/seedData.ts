@@ -200,6 +200,42 @@ function rid() {
   return `s${Math.floor(Math.random() * 1e9).toString(36)}${Math.floor(Math.random() * 1e9).toString(36)}`;
 }
 
+// ----- Negotiation ("Close the Offer") -----------------------------------
+const NEG_SEEDS = [
+  {
+    // Strong: found the logroll + compatible wins → 100% joint, beats walk-away.
+    terms: { salary: 3, bonus: 2, equity: 0, remote: 3, start: 0, title: 2 },
+    chat: [
+      { role: "assistant", content: "Welcome aboard-to-be! We'd love to bring you in as a Senior Analyst at $130k, 0.5% equity, two remote days, starting in a month. How does that land?" },
+      { role: "user", content: "Thanks — I'm excited. I have another offer, so I need this to work. Salary matters, and honestly full-remote is the big one for me. I care less about equity. Could we trade there?" },
+      { role: "assistant", content: "Equity's tight for us, so if you'll take 0.10% I can get more flexible elsewhere. But full remote is a stretch." },
+      { role: "user", content: "Deal on 0.10% equity if you can do fully remote and a Manager title — and I can start in two weeks, which I know helps you. Let's land salary at $150k with a $20k signing bonus." },
+      { role: "assistant", content: "Fast start and Manager we can do, and 0.10% works. I'll meet you at $150k but hold the bonus to $20k. Shake on it?" },
+      { role: "user", content: "Done. Pleasure negotiating with you." },
+    ],
+    feedback:
+      "Excellent — you created essentially all the value on the table (100% of the joint pie) and cleared your walk-away comfortably. You spotted the two trades that matter: you conceded equity, which the company guards fiercely, in exchange for full remote, which you valued most, and you didn't waste time fighting over start date or title, where you both wanted the same thing. To push further next time, open with a stronger salary anchor — you split the fixed pie evenly, and a firmer first number might have claimed more of it.",
+  },
+  {
+    // Weak: fought the compatible issues, missed the logroll, under walk-away.
+    terms: { salary: 1, bonus: 1, equity: 2, remote: 1, start: 3, title: 0 },
+    chat: [
+      { role: "assistant", content: "We'd love to have you — $130k, 0.5% equity, two remote days, Senior Analyst, starting in a month. Thoughts?" },
+      { role: "user", content: "I'd want to start later, maybe three months, and I'm not sure about the title." },
+      { role: "assistant", content: "We actually need someone soon, so a fast start helps us a lot — and Manager is easy for us to offer. Let's keep equity where it is though." },
+      { role: "user", content: "Let's just keep it simple — $130k, the 0.5% equity, two days remote, Analyst title, and I'll start in three months." },
+      { role: "assistant", content: "If that's what you'd like, we can do that. Welcome to the team." },
+    ],
+    feedback:
+      "You left a lot on the table — only about half of the possible joint value, and your package came in under your walk-away, so you'd have been better off taking your other offer. Two misses drove it: you pushed for a late start and settled for Analyst even though the company was happy to give you a fast start and a Manager title (you both wanted those), and you never traded equity for remote, the one move that actually creates value here. Next time, probe which issues you truly disagree on before conceding, and always check the final package against your BATNA before you shake hands.",
+  },
+];
+
+export function negSeed(i: number): any {
+  const s = NEG_SEEDS[i % NEG_SEEDS.length];
+  return { terms: s.terms, noDeal: false, chat: s.chat, feedback: s.feedback };
+}
+
 // ----- Strategy-canvas content (4A / GAS / opportunity-capability / experiment) ---
 const FOURA_SEEDS = [
   {

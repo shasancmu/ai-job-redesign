@@ -659,3 +659,23 @@ Rules: fill EVERY field, grounded in the interview and specific to this ${def.su
     return { fields: {}, synthesis: "", _raw: raw };
   }
 }
+
+// ============================================================================
+// Role-play + coaching helpers (used by the negotiation module).
+// ============================================================================
+export async function roleplayReply(system: string, history: ChatMsg[]): Promise<string> {
+  const conversation: ChatMsg[] = history.length
+    ? history
+    : [{ role: "user", content: "(The candidate has joined. Please open the negotiation.)" }];
+  return complete([{ role: "system", content: system }, ...conversation], { temperature: 0.85 });
+}
+
+export async function coachReply(system: string, user: string, temperature = 0.6): Promise<string> {
+  return complete(
+    [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+    { temperature }
+  );
+}

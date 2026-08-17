@@ -11,6 +11,7 @@ import BenchmarkRoom from "@/components/BenchmarkRoom";
 import NetworkRoom from "@/components/NetworkRoom";
 import SoloWorkflowRoom from "@/components/SoloWorkflowRoom";
 import CanvasRoom from "@/components/CanvasRoom";
+import NegotiationRoom from "@/components/NegotiationRoom";
 import { canvasByExercise } from "@/lib/canvases";
 
 export default async function RoomPage({
@@ -60,6 +61,27 @@ export default async function RoomPage({
     if (!amHost) redirect("/dashboard");
     if (!session.cohort) redirect("/dashboard");
     return <NetworkRoom me={user.id} session={session} />;
+  }
+
+  // Negotiation role-play: single-user, only the host belongs here.
+  if (session.exercise === "negotiation") {
+    if (!amHost) redirect("/dashboard");
+    await supabase
+      .from("workspaces")
+      .upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
+    return (
+      <NegotiationRoom
+        me={user.id}
+        session={session}
+        initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
+      />
+    );
   }
 
   // Strategy-canvas modules (GAS / opportunity-capability / experiment):

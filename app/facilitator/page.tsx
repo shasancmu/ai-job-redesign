@@ -7,6 +7,7 @@ import { isAdmin, UNTAGGED } from "@/lib/admin";
 import { MODULES, moduleByExercise } from "@/lib/modules";
 import { ROLE_META } from "@/lib/workflow";
 import { canvasByExercise, scoreColor } from "@/lib/canvases";
+import { analyze as negAnalyze, COUNTERPART_NAME } from "@/lib/negotiation";
 import { AI_CELLS, HUMAN_CELLS, FEEDBACK_FIELDS, Cell } from "@/lib/exercise";
 import SeedDemo from "@/components/SeedDemo";
 import CanvasView from "@/components/CanvasView";
@@ -225,6 +226,7 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
         if (slug === "execution-4a") return bySession("four-a");
         if (slug === "balanced-scorecard") return bySession("scorecard");
         if (slug === "good-business") return bySession("venture");
+        if (slug === "close-the-offer") return bySession("negotiation");
         if (slug === "ai-canvas") return bySession("gas");
         if (slug === "opportunity-capability") return bySession("ocfit");
         if (slug === "test-the-bet") return bySession("experiment");
@@ -343,7 +345,9 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
                 </span>
               </div>
 
-              {canvasByExercise(s.exercise || "") ? (
+              {s.exercise === "negotiation" ? (
+                <NegotiationFacilitatorView ws={wsFor(s.id, s.host_id)} authorName={nameOf(s.host_id)} />
+              ) : canvasByExercise(s.exercise || "") ? (
                 <CanvasFacilitatorView exercise={s.exercise} ws={wsFor(s.id, s.host_id)} code={s.code} authorName={nameOf(s.host_id)} />
               ) : s.exercise === "workflow" || s.exercise === "workflow-solo" ? (
                 <WorkflowView doc={docFor(s.id)} code={s.code} />
@@ -571,6 +575,42 @@ function FourAHeatmap({ rows }: { rows: { name: string; ratings: Record<string, 
         </div>
       </div>
       <p className="mt-3 text-xs text-slate-400">Red = execution is breaking on that dimension; green = strong. The weakest column is where the room needs the most help.</p>
+    </div>
+  );
+}
+
+function NegotiationFacilitatorView({ ws, authorName }: { ws: any; authorName: string }) {
+  const state = ws?.canvas || {};
+  const hasDeal = state.terms && Object.keys(state.terms).length > 0;
+  if (!hasDeal && !state.noDeal) {
+    return <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">{authorName} — not finished yet.</div>;
+  }
+  const a = negAnalyze(state.terms || {}, !!state.noDeal);
+  return (
+    <div className="grid gap-5 md:grid-cols-2">
+      <div className="rounded-xl border border-slate-200 p-4">
+        <div className="flex flex-wrap gap-4 text-sm">
+          <span>Your score: <b className="text-ink">{a.you}</b></span>
+          <span>{COUNTERPART_NAME}: <b className="text-ink">{a.them}</b></span>
+          <span>Joint: <b className="text-ink">{a.efficiency}%</b> ({a.joint}/{a.maxJoint})</span>
+        </div>
+        {a.noDeal ? (
+          <div className="mt-2 text-sm text-clay">No deal — both walked.</div>
+        ) : (
+          <div className="mt-3 space-y-1">
+            {a.issues.map((it) => (
+              <div key={it.key} className="flex items-center justify-between text-sm">
+                <span className="text-slate-600">{it.label}</span>
+                <span className="text-slate-700">{it.chosen} {it.atOptimal ? <span className="text-sage">✓</span> : ""}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="rounded-xl border border-slate-200 p-4">
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Coach&apos;s debrief</div>
+        <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">{state.feedback || "— not generated —"}</p>
+      </div>
     </div>
   );
 }

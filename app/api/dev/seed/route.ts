@@ -12,6 +12,7 @@ import {
   soloChat,
   canvasSeed,
   fourASeed,
+  negSeed,
 } from "@/lib/seedData";
 
 export const runtime = "nodejs";
@@ -26,6 +27,7 @@ const MODULES = [
   "execution-4a",
   "balanced-scorecard",
   "good-business",
+  "close-the-offer",
   "ai-canvas",
   "opportunity-capability",
   "test-the-bet",
@@ -216,6 +218,13 @@ export async function POST(request: Request) {
   addCanvas(users[4], "experiment");
   addCanvas(users[7], "scorecard");
   addCanvas(users[9], "venture");
+
+  // Negotiation ("Close the Offer") — one strong, one weak, for the facilitator view.
+  [3, 5].forEach((ui, i) => {
+    const id = crypto.randomUUID();
+    sessionRows.push({ id, code: makeCode(), cohort: code, exercise: "negotiation", host_id: users[ui].id, status: "done", phase: 3, phase_started_at: new Date().toISOString() });
+    workspaceRows.push({ session_id: id, author_id: users[ui].id, canvas: negSeed(i) });
+  });
 
   // 4A diagnostic — several people so the cohort heatmap has rows.
   [1, 3, 5, 6, 8].forEach((ui, i) => {

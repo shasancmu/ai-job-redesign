@@ -34,7 +34,8 @@ export type ModuleDef = {
     | "experiment"
     | "four-a"
     | "scorecard"
-    | "venture"; // which room engine renders it
+    | "venture"
+    | "negotiation"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -158,6 +159,21 @@ export const MODULES: ModuleDef[] = [
     emoji: "🧭",
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_FOURA",
+  },
+  {
+    slug: "close-the-offer",
+    exercise: "negotiation",
+    name: "Close the Offer",
+    tagline: "Negotiate a job offer against an AI counterpart — then get scored.",
+    description:
+      "A live, multi-issue negotiation: you're the candidate, AI plays the hiring manager. Six issues, hidden priorities on both sides. Haggle across salary, equity, remote, and more — then see your score, the joint value you created, and a coach's debrief on what you claimed and what you left on the table.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 30,
+    ai: true,
+    emoji: "🤝",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_NEGOTIATION",
   },
   {
     slug: "good-business",
