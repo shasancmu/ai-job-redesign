@@ -601,11 +601,7 @@
     "print": "Imprimir / Guardar PDF",
     "nothingYet": "Nada aquí aún",
     "nothingBody": "Vuelve atrás y toca Construir mi hoja de ruta para generarla.",
-    "startingPoint": "Tu punto de partida",
     "whereNext": "Dónde puedes ir después",
-    "mapCaption": "Posicionado por la transferibilidad de tus habilidades (derecha = más cercano) y el potencial (arriba = mayor salario o nivel de preparación). Toca un puesto.",
-    "tierLateral": "Cambio lateral",
-    "tierStepUp": "Ascenso",
     "tierStretch": "Movimiento ambicioso",
     "skillMatch": "Coincidencia de habilidades {pct}%",
     "jobZone": "Zona de Empleo {n}",
@@ -624,6 +620,10 @@
     "axisPay": "Salario mediano ↑",
     "axisPrep": "Nivel de preparación ↑",
     "axisTransfer": "Transferibilidad de habilidades →",
-    "strengthsHeading": "Tus fortalezas duraderas"
+    "strengthsHeading": "Tus fortalezas duraderas",
+    "startingPoint": "Tu perfil",
+    "mapCaption": "Posicionado según qué tan bien coinciden las habilidades de cada rol con las tuyas (derecha = más cercano a ti) y el salario mediano del rol (arriba = más alto). Toca un rol.",
+    "tierClose": "Coincidencia cercana",
+    "tierAdjacent": "Movimiento adyacente"
   }
 }

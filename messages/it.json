@@ -601,11 +601,7 @@
     "print": "Stampa / Salva PDF",
     "nothingYet": "Niente qui per ora",
     "nothingBody": "Torna indietro e tocca Costruisci il mio percorso per generarlo.",
-    "startingPoint": "Il tuo punto di partenza",
     "whereNext": "Dove puoi andare dopo",
-    "mapCaption": "Posizionato in base a quanto sono trasferibili le tue competenze (destra = più vicino) e il potenziale (su = stipendio più alto, o livello di preparazione). Tocca un ruolo.",
-    "tierLateral": "Cambio laterale",
-    "tierStepUp": "Avanzamento",
     "tierStretch": "Mossa ambiziosa",
     "skillMatch": "Corrispondenza competenze {pct}%",
     "jobZone": "Zona Lavoro {n}",
@@ -624,6 +620,10 @@
     "axisPay": "Retribuzione mediana ↑",
     "axisPrep": "Livello di preparazione ↑",
     "axisTransfer": "Trasferibilità delle competenze →",
-    "strengthsHeading": "I tuoi punti di forza durevoli"
+    "strengthsHeading": "I tuoi punti di forza durevoli",
+    "startingPoint": "Il tuo profilo",
+    "mapCaption": "Posizionato in base a quanto bene le competenze di ogni ruolo corrispondono alle tue (destra = più vicino a te) e lo stipendio mediano del ruolo (su = più alto). Tocca un ruolo.",
+    "tierClose": "Corrispondenza stretta",
+    "tierAdjacent": "Passaggio adiacente"
   }
 }

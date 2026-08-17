@@ -601,11 +601,7 @@
     "print": "打印 / 保存为 PDF",
     "nothingYet": "暂无内容",
     "nothingBody": "返回并点击「生成我的路线图」来生成它。",
-    "startingPoint": "你的起点",
     "whereNext": "你可以去往的地方",
-    "mapCaption": "按技能转移度（右侧 = 更接近）和上升空间（上方 = 薪资更高或准备级别更高）定位。点击一个职位。",
-    "tierLateral": "横向转换",
-    "tierStepUp": "晋升一级",
     "tierStretch": "挑战性转变",
     "skillMatch": "技能匹配度 {pct}%",
     "jobZone": "工作等级 {n}",
@@ -624,6 +620,10 @@
     "axisPay": "中位数薪酬 ↑",
     "axisPrep": "准备程度 ↑",
     "axisTransfer": "技能可转移性 →",
-    "strengthsHeading": "您的核心优势"
+    "strengthsHeading": "您的核心优势",
+    "startingPoint": "您的个人资料",
+    "mapCaption": "根据每个职位的技能与您的匹配程度（右侧 = 更接近您）和该职位的中位数薪资（上方 = 更高）进行定位。点击一个职位。",
+    "tierClose": "紧密匹配",
+    "tierAdjacent": "相邻职位"
   }
 }

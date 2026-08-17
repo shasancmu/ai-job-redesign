@@ -4,12 +4,12 @@ import { useState } from "react";
 import { useT } from "@/components/I18nProvider";
 
 const TIER = {
-  lateral: { c: "#3B7FB5", key: "roadmap.tierLateral", soft: "#E6F0F8" },
-  step_up: { c: "#3F7A52", key: "roadmap.tierStepUp", soft: "#E7F1EA" },
+  close: { c: "#3B7FB5", key: "roadmap.tierClose", soft: "#E6F0F8" },
+  adjacent: { c: "#3F7A52", key: "roadmap.tierAdjacent", soft: "#E7F1EA" },
   stretch: { c: "#CE8F2C", key: "roadmap.tierStretch", soft: "#FaF1DF" },
 } as const;
 type Tier = keyof typeof TIER;
-const tierOf = (t: string): Tier => (t in TIER ? (t as Tier) : "lateral");
+const tierOf = (t: string): Tier => (t in TIER ? (t as Tier) : "adjacent");
 
 export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
   const t = useT();
@@ -24,7 +24,7 @@ export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
       {/* Header */}
       <div>
         <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("roadmap.startingPoint")}</div>
-        <h2 className="mt-0.5 text-xl font-bold text-ink">{roadmap.current?.title}</h2>
+        <h2 className="mt-0.5 text-xl font-bold text-ink">{t("roadmap.you")}</h2>
         {roadmap.strengths?.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">
             {roadmap.strengths.map((s: string, i: number) => (
@@ -64,15 +64,7 @@ export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
           <div className="text-right text-xs text-slate-400">
             <div>{t("roadmap.skillMatch", { pct: Math.round(target.sim * 100) })}</div>
             {target.wage != null ? (
-              <div>
-                ${Math.round(target.wage / 1000)}k {t("roadmap.medianWord")}
-                {roadmap.current?.wage != null && (
-                  <span className={target.wage >= roadmap.current.wage ? "text-sage" : "text-clay"}>
-                    {" "}({target.wage >= roadmap.current.wage ? "+" : ""}
-                    {Math.round((target.wage - roadmap.current.wage) / 1000)}k)
-                  </span>
-                )}
-              </div>
+              <div>${Math.round(target.wage / 1000)}k {t("roadmap.medianWord")}</div>
             ) : (
               target.zone != null && <div>{t("roadmap.jobZone", { n: target.zone })}</div>
             )}
@@ -150,17 +142,16 @@ function CareerMap({ roadmap, sel, onSelect }: { roadmap: any; sel: string; onSe
   const t = useT();
   const W = 640, H = 340, padL = 46, padR = 20, padT = 20, padB = 40;
   const pts: any[] = roadmap.map || [];
-  const curWage = roadmap.current?.wage ?? null;
-  const curZone = roadmap.current?.zone ?? 3;
 
   const sims = pts.map((p) => p.sim);
   const simMin = Math.min(...sims, 0.6) - 0.02;
-  const simMax = Math.max(...sims, 1) + 0.02;
+  const simMax = Math.max(...sims, 0.95) + 0.03; // headroom on the right for the "You" line
   const x = (sim: number) => padL + ((sim - simMin) / (simMax - simMin)) * (W - padL - padR);
 
-  // Upside axis: real median pay when we have it, else Job Zone.
-  const useWage = curWage != null && pts.some((p) => p.wage != null);
-  const wages = [curWage, ...pts.map((p) => p.wage)].filter((w) => w != null) as number[];
+  // Upside axis: real median pay for the target roles (we never guess the
+  // person's own pay), else Job Zone if wages are missing.
+  const useWage = pts.some((p) => p.wage != null);
+  const wages = pts.map((p) => p.wage).filter((w) => w != null) as number[];
   const wMin = Math.min(...wages), wMax = Math.max(...wages);
   const plot = (H - padT - padB);
   const yWage = (w: number | null) => H - padB - (((w ?? wMin) - wMin) / ((wMax - wMin) || 1)) * plot;
@@ -214,11 +205,10 @@ function CareerMap({ roadmap, sel, onSelect }: { roadmap: any; sel: string; onSe
           );
         })}
 
-        {/* "You" anchor at far right */}
+        {/* "You" reference: a line at max transferability — no salary is assumed */}
         <g>
-          <circle cx={x(simMax)} cy={y({ wage: curWage, zone: curZone })} r={7} fill="white" stroke="#1c1c1a" strokeWidth={2.5} />
-          <circle cx={x(simMax)} cy={y({ wage: curWage, zone: curZone })} r={2.5} fill="#1c1c1a" />
-          <text x={x(simMax)} y={y({ wage: curWage, zone: curZone }) + 20} fontSize="10" fill="#1c1c1a" textAnchor="end" fontWeight={700}>You</text>
+          <line x1={x(simMax)} x2={x(simMax)} y1={padT} y2={H - padB} stroke="#1c1c1a" strokeWidth={1.5} strokeDasharray="4 3" opacity={0.55} />
+          <text x={x(simMax) - 4} y={padT + 10} fontSize="10" fill="#1c1c1a" textAnchor="end" fontWeight={700}>{t("roadmap.you")}</text>
         </g>
       </svg>
     </div>

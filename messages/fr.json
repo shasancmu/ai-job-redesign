@@ -601,11 +601,7 @@
     "print": "Imprimer / Enregistrer en PDF",
     "nothingYet": "Rien pour le moment",
     "nothingBody": "Retournez en arrière et appuyez sur Construire ma feuille de route pour la générer.",
-    "startingPoint": "Votre point de départ",
     "whereNext": "Où vous pouvez aller ensuite",
-    "mapCaption": "Positionnée selon la transférabilité de vos compétences (droite = plus proche) et le potentiel (haut = salaire plus élevé ou niveau de préparation). Appuyez sur un rôle.",
-    "tierLateral": "Pivot latéral",
-    "tierStepUp": "Progression",
     "tierStretch": "Mouvement ambitieux",
     "skillMatch": "Correspondance de compétences {pct}%",
     "jobZone": "Zone d'emploi {n}",
@@ -624,6 +620,10 @@
     "axisPay": "Salaire médian ↑",
     "axisPrep": "Niveau de préparation ↑",
     "axisTransfer": "Transférabilité des compétences →",
-    "strengthsHeading": "Vos points forts durables"
+    "strengthsHeading": "Vos points forts durables",
+    "startingPoint": "Votre profil",
+    "mapCaption": "Positionnées selon la correspondance des compétences de chaque rôle avec les vôtres (droite = plus proche de vous) et le salaire médian du rôle (haut = plus élevé). Appuyez sur un rôle.",
+    "tierClose": "Correspondance étroite",
+    "tierAdjacent": "Évolution adjacente"
   }
 }

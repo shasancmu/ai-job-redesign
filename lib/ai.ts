@@ -787,46 +787,73 @@ export async function careerRoadmapInterview(
   );
 }
 
-export async function careerRoadmapAI(input: {
+// Pass 1 — read the résumé: estimate the person's skill levels, name durable
+// strengths, and (the robust part) name the O*NET occupations that best capture
+// what they do today. The AI is far better at this domain judgment than
+// keyword-matching a messy résumé, and these anchors seed the candidate search.
+export async function careerRoadmapProfileAI(input: {
   text: string;
-  role: string;
   level: string;
   transcript: ChatMsg[];
-  current: { code: string; title: string; zone: number | null };
-  currentTopSkills: { name: string; im: number; lv: number }[];
   skillNames: string[];
+}): Promise<any> {
+  const convo = input.transcript
+    .map((m) => `${m.role === "user" ? "Person" : "Coach"}: ${m.content}`)
+    .join("\n")
+    .slice(0, 4000);
+  const sys = `You map a résumé to the O*NET occupation taxonomy and estimate skills. Output STRICT JSON only, no prose, no code fences.`;
+  const user = `RÉSUMÉ:
+"""${input.text.slice(0, 6000)}"""
+${input.level ? `\nLevel they gave: ${input.level}` : ""}
+INTERVIEW (may be empty):
+${convo || "(none)"}
+
+Return JSON:
+{
+  "anchors": [2–3 STANDARD O*NET occupation titles that best capture what this person does TODAY (their current capability), most representative first. Use real occupation names, e.g. "Sociologists", "Operations Research Analysts", "Data Scientists" — not job titles like "Professor" or "VP"],
+  "personSkills": { every one of the 35 skills below as a key, value 0–7 = the level this person demonstrably operates at (0 = none, 7 = expert). Be discerning and spread the values },
+  "strengths": [3–5 short durable strengths that stay valuable across roles]
+}
+The 35 skills to score in personSkills: ${input.skillNames.join(", ")}.`;
+  const raw = await complete(
+    [{ role: "system", content: sys }, { role: "user", content: user }],
+    { json: true, temperature: 0.4, maxTokens: 1800 }
+  );
+  return extractJson(raw);
+}
+
+// Pass 2 — pick the strongest next-step targets from the skill-adjacent
+// candidate occupations (neighbors of the AI-named anchors) and write the plan.
+export async function careerRoadmapAI(input: {
+  text: string;
+  level: string;
+  transcript: ChatMsg[];
   candidates: { code: string; title: string; zone: number | null; sim: number }[];
 }): Promise<any> {
   const convo = input.transcript
     .map((m) => `${m.role === "user" ? "Person" : "Coach"}: ${m.content}`)
     .join("\n")
     .slice(0, 4000);
-  const sys = `You are an expert career strategist grounded in labor economics — the O*NET skill taxonomy, task-based human capital, and the occupational-mobility literature (skill distance predicts real transitions). You plan a person's NEXT career step from their résumé and a short interview. Be concrete and honest. Output STRICT JSON only, no prose, no code fences.`;
-  const user = `CURRENT OCCUPATION (matched): ${input.current.title} (O*NET ${input.current.code}, Job Zone ${input.current.zone ?? "?"}).
-Its most important skills (O*NET level 0–7): ${input.currentTopSkills.map((s) => `${s.name} ${s.lv}`).join(", ")}.
+  const sys = `You are an expert career strategist grounded in labor economics — the O*NET skill taxonomy, task-based human capital, and occupational mobility (skill distance predicts real transitions). You plan a person's next moves from their résumé + interview and a set of skill-adjacent candidate occupations. Describe the PERSON, not a job title. Be concrete and honest; never invent occupations outside the candidate list. Output STRICT JSON only, no prose, no code fences.`;
+  const user = `CANDIDATE OCCUPATIONS — skill-adjacent to this person (skill-match 0–1). Pick your targets ONLY from this list, by code:
+${input.candidates.map((c) => `- ${c.code} — ${c.title} (skill-match ${c.sim}${c.zone != null ? `, Job Zone ${c.zone}` : ""})`).join("\n")}
 
-CANDIDATE NEXT-STEP OCCUPATIONS (chosen by skill-similarity to them; pick your targets ONLY from this list, by code):
-${input.candidates.map((c) => `- ${c.code} — ${c.title} (Job Zone ${c.zone ?? "?"}, skill-match ${c.sim})`).join("\n")}
-
-ROLE THEY GAVE: ${input.role || "(none)"} ${input.level ? `· level ${input.level}` : ""}
 RÉSUMÉ:
 """${input.text.slice(0, 6000)}"""
-
+${input.level ? `\nLevel they gave: ${input.level}` : ""}
 INTERVIEW (may be empty):
 ${convo || "(none)"}
 
 Return JSON with EXACTLY these keys:
 {
-  "personSkills": { every one of the 35 skills below as a key, value 0–7 = the level this person demonstrably operates at, inferred from the résumé/interview },
-  "strengths": [3–5 short durable strengths that stay valuable],
-  "targets": [3–4 items, each { "code": one of the candidate codes above, "tier": "lateral" | "step_up" | "stretch", "why": "1–2 sentences on why it fits their skills AND their stated goals/constraints", "skillsToBuild": [2–4 of { "skill": "<name>", "how": "one concrete move — a course, certification, project, or stretch assignment" }] }],
-  "roadmap": { "near": ["2–3 actions for 0–3 months"], "mid": ["2–3 for 3–12 months"], "move": ["2–3 for 12–24 months, actually making the move"] },
+  "targets": [6–8 items — a diverse spread from close fits to genuine stretch options — each { "code": one of the candidate codes above, "why": "1–2 sentences on why it fits their skills AND any stated goals/constraints", "skillsToBuild": [2–4 of { "skill": "<name>", "how": "one concrete move — a course, certification, project, or stretch assignment" }] }],
+  "roadmap": { "near": ["2–3 actions for 0–3 months"], "mid": ["2–3 for 3–12 months"], "move": ["2–3 for 12–24 months, actually making a move"] },
   "note": "one honest line — the biggest lever or the biggest risk"
 }
-The 35 skills to score in personSkills (0 = none, 7 = expert): ${input.skillNames.join(", ")}.`;
+Only include targets that genuinely fit this person's background and trajectory — skip candidates from an unrelated field. Do not repeat an occupation. Prefer breadth: some very-close matches and some ambitious ones.`;
   const raw = await complete(
     [{ role: "system", content: sys }, { role: "user", content: user }],
-    { json: true, temperature: 0.5, maxTokens: 3500 }
+    { json: true, temperature: 0.55, maxTokens: 3800 }
   );
   return extractJson(raw);
 }

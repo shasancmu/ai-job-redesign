@@ -601,11 +601,7 @@
     "print": "Imprimir / Salvar PDF",
     "nothingYet": "Nada aqui ainda",
     "nothingBody": "Volte e toque em Montar meu roteiro para gerá-lo.",
-    "startingPoint": "Seu ponto de partida",
     "whereNext": "Para onde você pode ir",
-    "mapCaption": "Posicionado por quão transferíveis são suas habilidades (direita = mais próximo) e o potencial (acima = salário mais alto ou nível de preparação). Toque em uma função.",
-    "tierLateral": "Mudança lateral",
-    "tierStepUp": "Subir um degrau",
     "tierStretch": "Movimento ambicioso",
     "skillMatch": "Compatibilidade de habilidades {pct}%",
     "jobZone": "Zona de Trabalho {n}",
@@ -624,6 +620,10 @@
     "axisPay": "Salário mediano ↑",
     "axisPrep": "Nível de preparação ↑",
     "axisTransfer": "Transferibilidade de habilidades →",
-    "strengthsHeading": "Seus pontos fortes duráveis"
+    "strengthsHeading": "Seus pontos fortes duráveis",
+    "startingPoint": "Seu perfil",
+    "mapCaption": "Posicionado pela compatibilidade das habilidades de cada função com as suas (direita = mais próximo de você) e pelo salário mediano da função (acima = maior). Toque em uma função.",
+    "tierClose": "Correspondência próxima",
+    "tierAdjacent": "Movimento adjacente"
   }
 }

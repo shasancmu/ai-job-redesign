@@ -601,11 +601,7 @@
     "print": "Drucken / Als PDF speichern",
     "nothingYet": "Hier ist noch nichts",
     "nothingBody": "Gehen Sie zurück und tippen Sie auf »Meine Roadmap erstellen«, um sie zu generieren.",
-    "startingPoint": "Ihr Ausgangspunkt",
     "whereNext": "Wo es für Sie weitergehen kann",
-    "mapCaption": "Positioniert nach der Übertragbarkeit Ihrer Fähigkeiten (rechts = näher) und dem Aufwärtspotenzial (oben = höheres Gehalt oder Vorbereitungsstufe). Tippen Sie auf eine Rolle.",
-    "tierLateral": "Seitlicher Wechsel",
-    "tierStepUp": "Aufstieg",
     "tierStretch": "Ambitionierter Schritt",
     "skillMatch": "Fähigkeitsübereinstimmung {pct}%",
     "jobZone": "Job Zone {n}",
@@ -624,6 +620,10 @@
     "axisPay": "Medianeinkommen ↑",
     "axisPrep": "Vorbereitungsstufe ↑",
     "axisTransfer": "Fähigkeitsübertragbarkeit →",
-    "strengthsHeading": "Ihre dauerhaften Stärken"
+    "strengthsHeading": "Ihre dauerhaften Stärken",
+    "startingPoint": "Ihr Profil",
+    "mapCaption": "Positioniert nach der Übereinstimmung der Fähigkeiten jeder Rolle mit Ihren Fähigkeiten (rechts = näher bei Ihnen) und dem Medianeinkommen der Rolle (oben = höher). Tippen Sie auf eine Rolle.",
+    "tierClose": "Gute Übereinstimmung",
+    "tierAdjacent": "Benachbarte Position"
   }
 }
