@@ -9,6 +9,7 @@ import { ROLE_META } from "@/lib/workflow";
 import { canvasByExercise, scoreColor } from "@/lib/canvases";
 import { analyze as negAnalyze, scenarioByExercise as negScenario, maxJointOf } from "@/lib/negotiation";
 import { NegotiationScatter, NegotiationStrip } from "@/components/NegotiationPlot";
+import ExposureCohort from "@/components/ExposureCohort";
 import { AI_CELLS, HUMAN_CELLS, FEEDBACK_FIELDS, Cell } from "@/lib/exercise";
 import SeedDemo from "@/components/SeedDemo";
 import CanvasView from "@/components/CanvasView";
@@ -308,6 +309,18 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
           .filter((s: any) => s.exercise === "four-a")
           .map((s: any) => ({ name: nameOf(s.host_id), ratings: (wsFor(s.id, s.host_id)?.canvas?.ratings as any) || {} }))
           .filter((r: any) => Object.keys(r.ratings).length > 0)}
+      />
+
+      <ExposureCohort
+        cohort={cohort}
+        rows={(sessions || [])
+          .filter((s: any) => s.exercise === "career-xray" || s.exercise === "jd-xray")
+          .map((s: any) => {
+            const x = wsFor(s.id, s.host_id)?.canvas?.xray;
+            if (!x || !(x.tasks?.length > 0)) return null;
+            return { name: nameOf(s.host_id), role: x.occupation || "", topDown: x.topDownExposure || 0, bottomUp: x.bottomUpExposure || 0, exercise: s.exercise, tasks: x.tasks || [] };
+          })
+          .filter(Boolean) as any[]}
       />
 
       {["negotiation", "haggle"].map((ex) => {
