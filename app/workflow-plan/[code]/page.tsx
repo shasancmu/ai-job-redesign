@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { isAdmin } from "@/lib/admin";
 import WorkflowPlanView from "@/components/WorkflowPlanView";
 
 export const dynamic = "force-dynamic";
@@ -13,15 +15,27 @@ export default async function WorkflowPlanPage({ params }: { params: { code: str
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: session } = await supabase
+  // Facilitators can view any participant's plan; readers go through the admin
+  // client so RLS doesn't hide a session they're not a member of.
+  const admin = isAdmin(user.email);
+  let db: any = supabase;
+  if (admin) {
+    try {
+      db = createAdminClient();
+    } catch {
+      /* no service role — fall back to the user client */
+    }
+  }
+
+  const { data: session } = await db
     .from("sessions")
     .select("id, host_id, guest_id")
     .eq("code", code)
     .maybeSingle();
   if (!session) redirect("/dashboard");
-  if (session.host_id !== user.id && session.guest_id !== user.id) redirect("/dashboard");
+  if (!admin && session.host_id !== user.id && session.guest_id !== user.id) redirect("/dashboard");
 
-  const { data: doc } = await supabase
+  const { data: doc } = await db
     .from("workflow_docs")
     .select("*")
     .eq("session_id", session.id)

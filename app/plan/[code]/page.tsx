@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { isAdmin } from "@/lib/admin";
 import PlanView from "@/components/PlanView";
 
 export const dynamic = "force-dynamic";
@@ -13,18 +15,32 @@ export default async function PlanPage({ params }: { params: { code: string } })
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: session } = await supabase
+  // Facilitators can view any participant's plan (via the admin client so RLS
+  // doesn't hide a session they aren't a member of).
+  const admin = isAdmin(user.email);
+  let db: any = supabase;
+  if (admin) {
+    try {
+      db = createAdminClient();
+    } catch {
+      /* no service role — fall back to the user client */
+    }
+  }
+
+  const { data: session } = await db
     .from("sessions")
-    .select("id")
+    .select("id, host_id")
     .eq("code", code)
     .maybeSingle();
   if (!session) redirect("/dashboard");
 
-  const { data: ws } = await supabase
+  // Your own plan when you're a participant; the host's plan when you're an admin.
+  const authorId = admin ? session.host_id : user.id;
+  const { data: ws } = await db
     .from("workspaces")
     .select("plan")
     .eq("session_id", session.id)
-    .eq("author_id", user.id)
+    .eq("author_id", authorId)
     .maybeSingle();
 
   const plan = ws?.plan as any;
