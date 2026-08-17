@@ -51,11 +51,13 @@ export default async function Paywall({
     redirect("/dashboard");
   }
 
-  // Already have all-access → nothing to buy.
   const ents = await activeEntitlements(supabase, user.id);
-  if (ents.has("all")) redirect("/dashboard");
-
   const mod = searchParams.module ? moduleBySlug(searchParams.module) : null;
+  // Own all-access with nothing specific to unlock → nothing to do here.
+  if (ents.has("all") && !mod) redirect("/dashboard");
+  // Own all-access but sent here for a specific module → the run cap was hit;
+  // offer a re-purchase (which resets the run window).
+  const capped = ents.has("all") && !!mod;
   const isFreeTierModule = mod ? FREE_TIER_MODULES.has(mod.slug) : false;
   const alumnus = await cohortAlumnus(supabase, user.id);
 
@@ -67,11 +69,13 @@ export default async function Paywall({
       <div className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">Keep going</div>
       <h1 className="text-2xl font-bold">{mod ? mod.name : "Unlock full access"}</h1>
       <p className="mt-2 text-slate-500">
-        {isFreeTierModule
-          ? `You've used your free runs of ${mod!.name}. Get full access to keep going — and to run every other module.`
-          : mod
-            ? `${mod.name} is part of full access — every module, ${PAID_RUNS} runs each.`
-            : `Every one of the ${MODULES.length} modules, ${PAID_RUNS} runs each.`}
+        {capped
+          ? `You've used your ${PAID_RUNS} runs of ${mod!.name}. Buy again to reset — ${PAID_RUNS} runs of every module.`
+          : isFreeTierModule
+            ? `You've used your free runs of ${mod!.name}. Get full access to keep going — and to run every other module.`
+            : mod
+              ? `${mod.name} is part of full access — every module, ${PAID_RUNS} runs each.`
+              : `Every one of the ${MODULES.length} modules, ${PAID_RUNS} runs each.`}
       </p>
 
       {searchParams.canceled && (

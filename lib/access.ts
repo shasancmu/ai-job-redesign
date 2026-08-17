@@ -72,20 +72,21 @@ export async function moduleRunAccess(
     return unlimited("cohort");
   }
 
-  // Free-tier modules: N runs each, counted lifetime — available to everyone
-  // (paid users get the generous free-tier allowance here too).
-  if (FREE_TIER_MODULES.has(opts.slug)) {
-    const runs = await runsUsed(supabase, opts.userId, opts.exercise);
-    return { ok: runs < FREE_TIER_RUNS, via: runs < FREE_TIER_RUNS ? "free-tier" : "blocked", runs, cap: FREE_TIER_RUNS };
-  }
-
-  // Everything else is paid: PAID_RUNS per module, counted since the entitlement
-  // period began (so the annual plan refreshes on renewal).
+  // Paid all-access takes precedence: PAID_RUNS per module, counted since the
+  // purchase (re-buying resets the window). The run count INCLUDES the current
+  // session, so allow while runs ≤ cap.
   const ents = await activeEnts(supabase, opts.userId);
   const paid = ents.find((e) => e.module === "all") || ents.find((e) => e.module === opts.slug);
   if (paid) {
     const runs = await runsUsed(supabase, opts.userId, opts.exercise, paid.current_period_start);
-    return { ok: runs < PAID_RUNS, via: runs < PAID_RUNS ? "entitled" : "blocked", runs, cap: PAID_RUNS };
+    return { ok: runs <= PAID_RUNS, via: runs <= PAID_RUNS ? "entitled" : "blocked", runs, cap: PAID_RUNS };
+  }
+
+  // Otherwise, free-tier modules get FREE_TIER_RUNS each (lifetime); everything
+  // else needs a purchase.
+  if (FREE_TIER_MODULES.has(opts.slug)) {
+    const runs = await runsUsed(supabase, opts.userId, opts.exercise);
+    return { ok: runs <= FREE_TIER_RUNS, via: runs <= FREE_TIER_RUNS ? "free-tier" : "blocked", runs, cap: FREE_TIER_RUNS };
   }
   return { ok: false, via: "blocked", runs: 0, cap: 0 };
 }
