@@ -13,6 +13,7 @@ import SoloWorkflowRoom from "@/components/SoloWorkflowRoom";
 import CanvasRoom from "@/components/CanvasRoom";
 import NegotiationRoom from "@/components/NegotiationRoom";
 import { canvasByExercise } from "@/lib/canvases";
+import { scenarioByExercise } from "@/lib/negotiation";
 
 export default async function RoomPage({
   params,
@@ -63,8 +64,8 @@ export default async function RoomPage({
     return <NetworkRoom me={user.id} session={session} />;
   }
 
-  // Negotiation role-play: single-user, only the host belongs here.
-  if (session.exercise === "negotiation") {
+  // Negotiation role-play (any scenario): single-user, only the host belongs here.
+  if (scenarioByExercise(session.exercise || "")) {
     if (!amHost) redirect("/dashboard");
     await supabase
       .from("workspaces")

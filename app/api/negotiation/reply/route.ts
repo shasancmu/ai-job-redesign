@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, roleplayReply } from "@/lib/ai";
-import { counterpartSystem } from "@/lib/negotiation";
+import { counterpartSystem, scenarioByExercise } from "@/lib/negotiation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,9 +20,11 @@ export async function POST(request: Request) {
     return Response.json({ error: "bad request" }, { status: 400 });
   }
   const messages = Array.isArray(body.messages) ? body.messages.slice(-40) : [];
+  const scn = scenarioByExercise(String(body.exercise || "negotiation"));
+  if (!scn) return Response.json({ error: "unknown scenario" }, { status: 400 });
 
   try {
-    const reply = await roleplayReply(counterpartSystem(), messages);
+    const reply = await roleplayReply(counterpartSystem(scn), messages);
     return Response.json({ reply });
   } catch (e: any) {
     return Response.json({ error: e?.message || "The counterpart is unavailable." }, { status: 502 });

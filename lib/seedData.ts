@@ -1,5 +1,6 @@
 // Synthetic content for the demo cohort seeder. Realistic-enough data so every
 // facilitator view and visualization has something to show.
+import { scenarioByExercise, type MultiScenario, type PriceScenario } from "./negotiation";
 
 export const DEMO_NAMES = [
   "Ava Chen",
@@ -234,6 +235,52 @@ const NEG_SEEDS = [
 export function negSeed(i: number): any {
   const s = NEG_SEEDS[i % NEG_SEEDS.length];
   return { terms: s.terms, noDeal: false, chat: s.chat, feedback: s.feedback };
+}
+
+const HAGGLE_SEEDS = [
+  {
+    price: 13000,
+    chat: [
+      { role: "assistant", content: "She's a great van — low miles, new tires, never let me down. I've got it at $17,500 and I've had real interest." },
+      { role: "user", content: "Appreciate that, but comparable vans are going for around $14–15k, and I've seen a couple with lower miles. I could do $12,800 today, cash." },
+      { role: "assistant", content: "$12,800 is a bit light for what she is. I could come to $14,500." },
+      { role: "user", content: "Let's split the difference toward a real number — $13,000, cash, I take it off your hands this week." },
+      { role: "assistant", content: "You drive a hard bargain… okay, $13,000 and she's yours." },
+    ],
+    feedback:
+      "Strong claiming. You anchored low but credibly with comps, stayed patient, and closed at $13,000 — capturing about 86% of the bargaining zone and saving $3,000 against your walk-away. You used a cash-and-quick close as leverage, which is exactly right in a distributive deal. One refinement: your first anchor ($12,800) was close to your final price, so you had little room to concede and 'give' the seller a win — a slightly lower opener can leave room to trade small moves while still landing where you did.",
+  },
+  {
+    price: 15500,
+    chat: [
+      { role: "assistant", content: "$17,500 and honestly she's worth every penny — barely broken in." },
+      { role: "user", content: "That's a bit high for me. Could you do $16,000?" },
+      { role: "assistant", content: "I can't go that low, she's too clean. $16,500 is as far as I'd stretch." },
+      { role: "user", content: "Okay, let's meet at $15,500?" },
+      { role: "assistant", content: "You know what, for a quick sale — done, $15,500." },
+    ],
+    feedback:
+      "You left most of the money on the table — you landed at $15,500, saving only $500 against your walk-away and claiming about 14% of the gap. Two things hurt you: your first offer ($16,000) was already near your ceiling, so you anchored yourself high, and you moved toward the seller quickly without making them justify their price. Next time, open well below your target with a reason (comps, condition, cash), then concede slowly in small increments — let the seller do the work of closing the gap.",
+  },
+];
+
+export function haggleSeed(i: number): any {
+  const s = HAGGLE_SEEDS[i % HAGGLE_SEEDS.length];
+  return { terms: { price: s.price }, noDeal: false, chat: s.chat, feedback: s.feedback };
+}
+
+// Varied (random) outcomes to give the cohort plots a realistic spread.
+export function randomOfferOutcome(): any {
+  const scn = scenarioByExercise("negotiation") as MultiScenario;
+  const terms: Record<string, number> = {};
+  for (const iss of scn.issues) terms[iss.key] = Math.floor(Math.random() * iss.options.length);
+  return { terms, noDeal: false, chat: [], feedback: "" };
+}
+export function randomHaggleOutcome(): any {
+  const scn = scenarioByExercise("haggle") as PriceScenario;
+  const span = scn.yourReservation - scn.theirReservation;
+  const price = Math.round((scn.theirReservation + Math.random() * (span + 600)) / 100) * 100;
+  return { terms: { price }, noDeal: false, chat: [], feedback: "" };
 }
 
 // ----- Strategy-canvas content (4A / GAS / opportunity-capability / experiment) ---

@@ -7,7 +7,8 @@ import { isAdmin, UNTAGGED } from "@/lib/admin";
 import { MODULES, moduleByExercise } from "@/lib/modules";
 import { ROLE_META } from "@/lib/workflow";
 import { canvasByExercise, scoreColor } from "@/lib/canvases";
-import { analyze as negAnalyze, COUNTERPART_NAME } from "@/lib/negotiation";
+import { analyze as negAnalyze, scenarioByExercise as negScenario, maxJointOf } from "@/lib/negotiation";
+import { NegotiationScatter, NegotiationStrip } from "@/components/NegotiationPlot";
 import { AI_CELLS, HUMAN_CELLS, FEEDBACK_FIELDS, Cell } from "@/lib/exercise";
 import SeedDemo from "@/components/SeedDemo";
 import CanvasView from "@/components/CanvasView";
@@ -227,6 +228,7 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
         if (slug === "balanced-scorecard") return bySession("scorecard");
         if (slug === "good-business") return bySession("venture");
         if (slug === "close-the-offer") return bySession("negotiation");
+        if (slug === "name-your-price") return bySession("haggle");
         if (slug === "ai-canvas") return bySession("gas");
         if (slug === "opportunity-capability") return bySession("ocfit");
         if (slug === "test-the-bet") return bySession("experiment");
@@ -306,6 +308,34 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
           .filter((r: any) => Object.keys(r.ratings).length > 0)}
       />
 
+      {["negotiation", "haggle"].map((ex) => {
+        const scn = negScenario(ex);
+        if (!scn) return null;
+        const rows = (sessions || [])
+          .filter((s: any) => s.exercise === ex)
+          .map((s: any) => {
+            const st = wsFor(s.id, s.host_id)?.canvas || {};
+            const done = (st.terms && Object.keys(st.terms).length > 0) || st.noDeal;
+            if (!done) return null;
+            const a = negAnalyze(scn, st.terms || {}, !!st.noDeal);
+            return { name: nameOf(s.host_id), you: a.you, them: a.them, noDeal: a.noDeal, price: a.agreedPrice || 0 };
+          })
+          .filter(Boolean) as any[];
+        if (!rows.length) return null;
+        return (
+          <div key={ex} className="card mb-6 p-5">
+            <div className="text-lg font-bold text-ink">{scn.name} — the room</div>
+            <div className="mt-3">
+              {scn.kind === "multi-issue" ? (
+                <NegotiationScatter rows={rows} maxJoint={maxJointOf(scn)} counterpartName={scn.counterpartName} />
+              ) : (
+                <NegotiationStrip rows={rows} lo={scn.theirReservation} hi={scn.yourReservation} />
+              )}
+            </div>
+          </div>
+        );
+      })}
+
       {(sessions || []).length === 0 ? (
         <p className="text-slate-500">No sessions in this cohort.</p>
       ) : (
@@ -345,8 +375,8 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
                 </span>
               </div>
 
-              {s.exercise === "negotiation" ? (
-                <NegotiationFacilitatorView ws={wsFor(s.id, s.host_id)} authorName={nameOf(s.host_id)} />
+              {negScenario(s.exercise || "") ? (
+                <NegotiationFacilitatorView exercise={s.exercise} ws={wsFor(s.id, s.host_id)} authorName={nameOf(s.host_id)} />
               ) : canvasByExercise(s.exercise || "") ? (
                 <CanvasFacilitatorView exercise={s.exercise} ws={wsFor(s.id, s.host_id)} code={s.code} authorName={nameOf(s.host_id)} />
               ) : s.exercise === "workflow" || s.exercise === "workflow-solo" ? (
@@ -579,31 +609,40 @@ function FourAHeatmap({ rows }: { rows: { name: string; ratings: Record<string, 
   );
 }
 
-function NegotiationFacilitatorView({ ws, authorName }: { ws: any; authorName: string }) {
+function NegotiationFacilitatorView({ exercise, ws, authorName }: { exercise: string; ws: any; authorName: string }) {
+  const scn = negScenario(exercise);
   const state = ws?.canvas || {};
   const hasDeal = state.terms && Object.keys(state.terms).length > 0;
-  if (!hasDeal && !state.noDeal) {
+  if (!scn || (!hasDeal && !state.noDeal)) {
     return <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">{authorName} — not finished yet.</div>;
   }
-  const a = negAnalyze(state.terms || {}, !!state.noDeal);
+  const a = negAnalyze(scn, state.terms || {}, !!state.noDeal);
   return (
     <div className="grid gap-5 md:grid-cols-2">
       <div className="rounded-xl border border-slate-200 p-4">
-        <div className="flex flex-wrap gap-4 text-sm">
-          <span>Your score: <b className="text-ink">{a.you}</b></span>
-          <span>{COUNTERPART_NAME}: <b className="text-ink">{a.them}</b></span>
-          <span>Joint: <b className="text-ink">{a.efficiency}%</b> ({a.joint}/{a.maxJoint})</span>
-        </div>
         {a.noDeal ? (
-          <div className="mt-2 text-sm text-clay">No deal — both walked.</div>
+          <div className="text-sm text-clay">No deal — walked away.</div>
+        ) : scn.kind === "multi-issue" ? (
+          <>
+            <div className="flex flex-wrap gap-4 text-sm">
+              <span>You: <b className="text-ink">{a.you}</b></span>
+              <span>{scn.counterpartName}: <b className="text-ink">{a.them}</b></span>
+              <span>Joint: <b className="text-ink">{a.efficiency}%</b></span>
+            </div>
+            <div className="mt-3 space-y-1">
+              {a.issues!.map((it) => (
+                <div key={it.key} className="flex items-center justify-between text-sm">
+                  <span className="text-slate-600">{it.label}</span>
+                  <span className="text-slate-700">{it.chosen} {it.atOptimal ? <span className="text-sage">✓</span> : ""}</span>
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
-          <div className="mt-3 space-y-1">
-            {a.issues.map((it) => (
-              <div key={it.key} className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">{it.label}</span>
-                <span className="text-slate-700">{it.chosen} {it.atOptimal ? <span className="text-sage">✓</span> : ""}</span>
-              </div>
-            ))}
+          <div className="flex flex-wrap gap-4 text-sm">
+            <span>Price: <b className="text-ink">${(a.agreedPrice || 0).toLocaleString()}</b></span>
+            <span>You saved: <b className="text-ink">${a.you.toLocaleString()}</b></span>
+            <span>Gap claimed: <b className="text-ink">{a.maxJoint ? Math.round((a.you / a.maxJoint) * 100) : 0}%</b></span>
           </div>
         )}
       </div>

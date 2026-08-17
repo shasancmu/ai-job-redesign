@@ -13,6 +13,9 @@ import {
   canvasSeed,
   fourASeed,
   negSeed,
+  haggleSeed,
+  randomOfferOutcome,
+  randomHaggleOutcome,
 } from "@/lib/seedData";
 
 export const runtime = "nodejs";
@@ -28,6 +31,7 @@ const MODULES = [
   "balanced-scorecard",
   "good-business",
   "close-the-offer",
+  "name-your-price",
   "ai-canvas",
   "opportunity-capability",
   "test-the-bet",
@@ -219,12 +223,20 @@ export async function POST(request: Request) {
   addCanvas(users[7], "scorecard");
   addCanvas(users[9], "venture");
 
-  // Negotiation ("Close the Offer") — one strong, one weak, for the facilitator view.
-  [3, 5].forEach((ui, i) => {
+  // Negotiations — crafted strong/weak examples + a spread for the cohort plots.
+  const addNeg = (u: any, exercise: string, canvas: any) => {
     const id = crypto.randomUUID();
-    sessionRows.push({ id, code: makeCode(), cohort: code, exercise: "negotiation", host_id: users[ui].id, status: "done", phase: 3, phase_started_at: new Date().toISOString() });
-    workspaceRows.push({ session_id: id, author_id: users[ui].id, canvas: negSeed(i) });
-  });
+    sessionRows.push({ id, code: makeCode(), cohort: code, exercise, host_id: u.id, status: "done", phase: 3, phase_started_at: new Date().toISOString() });
+    workspaceRows.push({ session_id: id, author_id: u.id, canvas });
+  };
+  // "Close the Offer" (multi-issue): 2 crafted + 4 varied → scatter.
+  addNeg(users[3], "negotiation", negSeed(0));
+  addNeg(users[5], "negotiation", negSeed(1));
+  [0, 2, 6, 8].forEach((ui) => addNeg(users[ui], "negotiation", randomOfferOutcome()));
+  // "Name Your Price" (haggle): 2 crafted + 3 varied → ZOPA strip.
+  addNeg(users[4], "haggle", haggleSeed(0));
+  addNeg(users[10], "haggle", haggleSeed(1));
+  [1, 7, 11].forEach((ui) => addNeg(users[ui], "haggle", randomHaggleOutcome()));
 
   // 4A diagnostic — several people so the cohort heatmap has rows.
   [1, 3, 5, 6, 8].forEach((ui, i) => {

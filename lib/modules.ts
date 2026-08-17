@@ -35,7 +35,8 @@ export type ModuleDef = {
     | "four-a"
     | "scorecard"
     | "venture"
-    | "negotiation"; // which room engine renders it
+    | "negotiation"
+    | "haggle"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -174,6 +175,21 @@ export const MODULES: ModuleDef[] = [
     emoji: "🤝",
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_NEGOTIATION",
+  },
+  {
+    slug: "name-your-price",
+    exercise: "haggle",
+    name: "Name Your Price",
+    tagline: "A pure price haggle — anchor, find the ZOPA, and claim the gap.",
+    description:
+      "A single-issue distributive negotiation: you're buying a used van from an AI seller with a hidden floor. No trades to find — just anchoring, patience, and your walk-away. Then see how much of the bargaining zone you claimed, on a ZOPA bar, with a coach's debrief.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "💵",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_HAGGLE",
   },
   {
     slug: "good-business",
