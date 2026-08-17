@@ -6,6 +6,7 @@ import { isAdmin, UNTAGGED } from "@/lib/admin";
 import { MODULES, moduleByExercise } from "@/lib/modules";
 import { ROLE_META } from "@/lib/workflow";
 import { AI_CELLS, HUMAN_CELLS, FEEDBACK_FIELDS, Cell } from "@/lib/exercise";
+import SeedDemo from "@/components/SeedDemo";
 
 export const dynamic = "force-dynamic";
 
@@ -74,6 +75,7 @@ async function Overview({ admin }: { admin: any }) {
           <h1 className="text-2xl font-bold">Cohorts</h1>
         </div>
         <div className="flex items-center gap-2">
+          <SeedDemo />
           <Link href="/facilitator/classes" className="btn-primary text-sm">
             Create cohort
           </Link>
