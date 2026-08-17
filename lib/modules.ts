@@ -32,7 +32,8 @@ export type ModuleDef = {
     | "gas"
     | "ocfit"
     | "experiment"
-    | "four-a"; // which room engine renders it
+    | "four-a"
+    | "scorecard"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -156,6 +157,21 @@ export const MODULES: ModuleDef[] = [
     emoji: "🧭",
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_FOURA",
+  },
+  {
+    slug: "balanced-scorecard",
+    exercise: "scorecard",
+    name: "Balanced Scorecard",
+    tagline: "Turn a strategy into OKRs + initiatives across four linked perspectives.",
+    description:
+      "An AI partner interviews you about a strategy, then builds the Balanced Scorecard (Kaplan & Norton): an Objective, measurable Key Results, and Initiatives for each of Financial, Customer, Internal Process, and Learning & Growth — linked as a cause-and-effect chain.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "📊",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_SCORECARD",
   },
   {
     slug: "ai-canvas",

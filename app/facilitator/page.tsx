@@ -223,6 +223,7 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
         if (slug === "reimagine-workflow") return bySession("workflow");
         if (slug === "solo-ai") return bySession("solo");
         if (slug === "execution-4a") return bySession("four-a");
+        if (slug === "balanced-scorecard") return bySession("scorecard");
         if (slug === "ai-canvas") return bySession("gas");
         if (slug === "opportunity-capability") return bySession("ocfit");
         if (slug === "test-the-bet") return bySession("experiment");

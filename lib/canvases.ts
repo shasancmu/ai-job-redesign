@@ -197,7 +197,47 @@ After about 6 exchanges, reflect the shape back, ask what you missed, then close
   hasVerdict: { label: "The one move that unlocks execution" },
 };
 
-export const CANVASES: CanvasDef[] = [FOURA, GAS, OCFIT, EXPERIMENT];
+// ---------------------------------------------------------------------------
+// 5) Balanced Scorecard (Kaplan & Norton) — OKRs + initiatives across the four
+//    linked perspectives: Financial, Customer, Internal Process, Learning.
+// ---------------------------------------------------------------------------
+const SCORECARD: CanvasDef = {
+  slug: "balanced-scorecard",
+  exercise: "scorecard",
+  name: "Balanced Scorecard",
+  subjectLabel: "strategy",
+  setupTitle: "The strategy or goal you're turning into a scorecard",
+  setupHint: "One strategy you're responsible for delivering. Your AI partner will interview you, then build the scorecard across four linked perspectives.",
+  setupPlaceholder: "e.g. Become the #1 self-serve product for small businesses within 18 months",
+  interviewSystem: `You are a strategy advisor helping translate ONE strategy or goal into a Balanced Scorecard (Kaplan & Norton) — essentially OKRs plus the initiatives to hit them, across four linked perspectives: Financial, Customer, Internal Process, and Learning & Growth. These form a cause-and-effect chain: investing in LEARNING & GROWTH improves internal PROCESSES, which improves the CUSTOMER experience, which drives FINANCIAL results.
+Your job in this interview is to understand the strategy well enough to build that scorecard. Across the four perspectives, draw out: the Objective (what success looks like there), how they would MEASURE it (concrete key results with a target and timeframe), and the Initiatives (what they'd actually do). Gently push vague aims ("grow revenue") toward measurable results ("lift net revenue retention to 120% by Q4"), and probe how the perspectives connect — which internal capability actually drives the customer and financial outcomes. Do not fill the scorecard yet — just understand the strategy, the metrics that matter, and the levers they have.`,
+  draftSystem: `You translate a strategy into a Balanced Scorecard (Kaplan & Norton) = OKRs + initiatives across four LINKED perspectives (Financial, Customer, Internal Process, Learning & Growth) that form a cause-and-effect chain (Learning → Process → Customer → Financial). For EACH perspective write: one clear Objective; 2–3 Key Results that are measurable, each with a concrete target and timeframe; and 1–2 Initiatives (the work that moves them). Make the perspectives LINK — the learning and process initiatives should plausibly drive the customer and financial results. Be specific to THIS strategy — no generic "increase revenue".`,
+  fields: [
+    { key: "fin_obj", label: "Objective", hint: "The financial result — revenue, margin, cost", kind: "long", group: "Financial", accent: "sage" },
+    { key: "fin_kr", label: "Key results (with targets)", kind: "list", group: "Financial", accent: "gold" },
+    { key: "fin_init", label: "Initiatives", kind: "list", group: "Financial", accent: "plum" },
+    { key: "cust_obj", label: "Objective", hint: "The value customers feel — why they choose and stay", kind: "long", group: "Customer", accent: "sage" },
+    { key: "cust_kr", label: "Key results (with targets)", kind: "list", group: "Customer", accent: "gold" },
+    { key: "cust_init", label: "Initiatives", kind: "list", group: "Customer", accent: "plum" },
+    { key: "proc_obj", label: "Objective", hint: "The few processes you must excel at", kind: "long", group: "Internal process", accent: "sage" },
+    { key: "proc_kr", label: "Key results (with targets)", kind: "list", group: "Internal process", accent: "gold" },
+    { key: "proc_init", label: "Initiatives", kind: "list", group: "Internal process", accent: "plum" },
+    { key: "learn_obj", label: "Objective", hint: "The people, skills, and tools that power it", kind: "long", group: "Learning & growth", accent: "sage" },
+    { key: "learn_kr", label: "Key results (with targets)", kind: "list", group: "Learning & growth", accent: "gold" },
+    { key: "learn_init", label: "Initiatives", kind: "list", group: "Learning & growth", accent: "plum" },
+  ],
+  hasVerdict: { label: "The through-line — from learning to financial results" },
+  about:
+    "The Balanced Scorecard (Kaplan & Norton) turns a strategy into measurable objectives across four linked perspectives — Financial, Customer, Internal Process, and Learning & Growth. It's OKRs plus the initiatives to hit them: each perspective gets an Objective, Key Results (with targets), and Initiatives. The four form a cause-and-effect chain — investing in learning improves process, which improves the customer experience, which drives financial results.",
+  groupNotes: {
+    Financial: "The results owners and investors see — revenue, margin, cost. The end of the chain.",
+    Customer: "The value customers feel — what makes them choose and stay. This drives the financials.",
+    "Internal process": "The few processes you must excel at to deliver that customer value.",
+    "Learning & growth": "The people, skills, and tools that power the processes. The start of the chain.",
+  },
+};
+
+export const CANVASES: CanvasDef[] = [FOURA, SCORECARD, GAS, OCFIT, EXPERIMENT];
 
 export function canvasByExercise(exercise: string): CanvasDef | undefined {
   return CANVASES.find((c) => c.exercise === exercise);
