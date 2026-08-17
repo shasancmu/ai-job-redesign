@@ -9,7 +9,8 @@ import Catalog from "@/components/Catalog";
 import SessionsPanel from "@/components/SessionsPanel";
 import LanguagePicker from "@/components/LanguagePicker";
 import { getServerLocale } from "@/lib/i18n-server";
-import { makeT } from "@/lib/i18n";
+import { makeBi } from "@/lib/i18n";
+import Bi from "@/components/Bi";
 import Footer from "@/components/Footer";
 import Logo from "@/components/Logo";
 
@@ -79,31 +80,31 @@ export default async function Dashboard({
           : runs.some((s: any) => s.status === "done");
   }
 
-  const t = makeT(await getServerLocale());
+  const bi = makeBi(await getServerLocale());
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between gap-3">
         <div>
           <Logo />
-          <h1 className="mt-3 text-2xl">{t("dash.greeting", { name: profile?.display_name || "there" })}</h1>
+          <h1 className="mt-3 text-2xl"><Bi {...bi("dash.greeting", { name: profile?.display_name || "there" })} /></h1>
         </div>
         <div className="flex items-center gap-2">
           <LanguagePicker me={user.id} initial={(profile as any)?.language} />
           {instructor && (
             <a href="/facilitator" className="btn-ghost text-sm">
-              {t("nav.facilitator")}
+              <Bi {...bi("nav.facilitator")} inline />
             </a>
           )}
           <form action="/auth/signout" method="post">
-            <button className="btn-ghost text-sm">{t("nav.signOut")}</button>
+            <button className="btn-ghost text-sm"><Bi {...bi("nav.signOut")} inline /></button>
           </form>
         </div>
       </header>
 
       <section>
-        <h2 className="eyebrow">{t("dash.exercises")}</h2>
-        <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">{t("dash.framing")}</p>
+        <h2 className="eyebrow"><Bi {...bi("dash.exercises")} inline /></h2>
+        <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2"><Bi {...bi("dash.framing")} /></p>
         <Catalog
           userId={user.id}
           unlocked={unlocked}
@@ -114,7 +115,7 @@ export default async function Dashboard({
       </section>
 
       <section className="mt-10">
-        <h2 className="eyebrow mb-3">{t("dash.yourSessions")}</h2>
+        <h2 className="eyebrow mb-3"><Bi {...bi("dash.yourSessions")} inline /></h2>
         <SessionsPanel sessions={sessions || []} me={user.id} />
       </section>
 

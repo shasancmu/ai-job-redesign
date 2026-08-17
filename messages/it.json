@@ -8,7 +8,7 @@
   "dash": {
     "greeting": "Ciao {name}",
     "exercises": "Esercizi",
-    "framing": "Un strumento, molti modi per iniziare: riprogetta il tuo lavoro o un flusso di lavoro, analizza un curriculum o un ruolo, affina una decisione, o negozia — da solo, con un partner, o dal vivo con una coorte.",
+    "framing": "Uno strumento, molti modi: riprogetta il tuo lavoro o un flusso di lavoro, analizza un CV o un ruolo, affina una decisione, o negozia — da solo, con un partner, o dal vivo con una coorte.",
     "yourSessions": "Le tue sessioni"
   },
   "cat": {
@@ -35,5 +35,20 @@
   },
   "lang": {
     "label": "Lingua per i contenuti generati dall'IA"
+  },
+  "room": {
+    "exit": "Esci",
+    "back": "Indietro",
+    "next": "Passo successivo",
+    "finish": "Termina",
+    "send": "Invia",
+    "sending": "Invio in corso…",
+    "step": "Passo {n} di {total}",
+    "with": "con {name}",
+    "yourPartner": "il tuo partner",
+    "timerUp": "Tempo scaduto — uno di voi può far avanzare la stanza.",
+    "timerWait": "Il prossimo si sblocca quando il timer termina.",
+    "waitingPartner": "In attesa che il tuo partner si unisca alla stanza {code}…",
+    "reviewStep": "Revisione: {title}"
   }
 }

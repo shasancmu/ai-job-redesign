@@ -8,7 +8,7 @@
   "dash": {
     "greeting": "Hallo {name}",
     "exercises": "Übungen",
-    "framing": "Ein Instrument, viele Wege: Gestalten Sie Ihren Job oder einen Workflow neu, analysieren Sie einen Lebenslauf oder eine Rolle, schärfen Sie eine Entscheidung oder verhandeln Sie — allein, mit einem Partner oder live mit einer Gruppe.",
+    "framing": "Ein Instrument, viele Wege: Gestalten Sie Ihren Job oder einen Workflow neu, analysieren Sie einen Lebenslauf oder eine Rolle, schärfen Sie eine Entscheidung oder verhandeln Sie – allein, mit einem Partner oder live mit einer Gruppe.",
     "yourSessions": "Ihre Sitzungen"
   },
   "cat": {
@@ -20,7 +20,7 @@
   "catalog": {
     "start": "Starten",
     "starting": "Wird gestartet…",
-    "pairUp": "Paarweise arbeiten →",
+    "pairUp": "Partnern Sie sich →",
     "doItAgain": "Nochmal machen",
     "viewLast": "Letztes Ergebnis anzeigen →",
     "cohortOnly": "Läuft live in einer Gruppe. Öffnen Sie den Cohort-Link Ihres Moderators, um teilzunehmen.",
@@ -30,10 +30,25 @@
   "sessions": {
     "show": "▸ Ihre Sitzungen anzeigen ({n})",
     "hide": "▾ Ihre Sitzungen ausblenden ({n})",
-    "empty": "Noch nichts — starten Sie oben eine Übung, um zu beginnen.",
+    "empty": "Noch nichts – starten Sie oben eine Übung, um zu beginnen.",
     "deleteTitle": "Diesen Raum löschen"
   },
   "lang": {
     "label": "Sprache für KI-generierte Inhalte"
+  },
+  "room": {
+    "exit": "Beenden",
+    "back": "Zurück",
+    "next": "Nächster Schritt",
+    "finish": "Fertig",
+    "send": "Senden",
+    "sending": "Wird gesendet…",
+    "step": "Schritt {n} von {total}",
+    "with": "mit {name}",
+    "yourPartner": "Ihrem Partner",
+    "timerUp": "Zeit abgelaufen – einer von Ihnen kann den Raum weiterführen.",
+    "timerWait": "Wird freigeschaltet, wenn der Timer endet.",
+    "waitingPartner": "Warten auf Ihren Partner zum Beitreten zu Raum {code}…",
+    "reviewStep": "Überprüfung: {title}"
   }
 }

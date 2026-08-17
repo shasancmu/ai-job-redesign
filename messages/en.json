@@ -35,5 +35,20 @@
   },
   "lang": {
     "label": "Language for AI-generated content"
+  },
+  "room": {
+    "exit": "Exit",
+    "back": "Back",
+    "next": "Next step",
+    "finish": "Finish",
+    "send": "Send",
+    "sending": "Sending…",
+    "step": "Step {n} of {total}",
+    "with": "with {name}",
+    "yourPartner": "your partner",
+    "timerUp": "Time's up — either of you can move the room on.",
+    "timerWait": "Next unlocks when the timer ends.",
+    "waitingPartner": "Waiting for your partner to join room {code}…",
+    "reviewStep": "Review: {title}"
   }
 }

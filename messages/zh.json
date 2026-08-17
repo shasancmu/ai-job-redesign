@@ -8,18 +8,18 @@
   "dash": {
     "greeting": "你好 {name}",
     "exercises": "练习",
-    "framing": "一个工具，多种用法：重新设计你的工作或工作流程、分析简历或职位、优化决策，或进行谈判——可以独立完成、与搭档合作，或在班级中实时进行。",
+    "framing": "一个工具，多种用法：重新设计你的工作或工作流程、分析简历或职位、做出更好的决策，或进行谈判——独立完成、与伙伴合作，或在班级中实时进行。",
     "yourSessions": "你的会话"
   },
   "cat": {
     "redesign": "工作与AI",
-    "strategy": "优化决策",
+    "strategy": "做出更好的决策",
     "negotiate": "谈判",
     "live": "在课堂中实时运行"
   },
   "catalog": {
     "start": "开始",
-    "starting": "开始中…",
+    "starting": "正在开始…",
     "pairUp": "配对 →",
     "doItAgain": "再做一次",
     "viewLast": "查看上次结果 →",
@@ -30,10 +30,25 @@
   "sessions": {
     "show": "▸ 显示你的会话 ({n})",
     "hide": "▾ 隐藏你的会话 ({n})",
-    "empty": "暂无内容——开始上面的练习即可开始。",
+    "empty": "还没有内容——开始上面的练习即可开始。",
     "deleteTitle": "删除此房间"
   },
   "lang": {
     "label": "AI生成内容的语言"
+  },
+  "room": {
+    "exit": "退出",
+    "back": "返回",
+    "next": "下一步",
+    "finish": "完成",
+    "send": "发送",
+    "sending": "正在发送…",
+    "step": "第 {n} 步，共 {total} 步",
+    "with": "与 {name}",
+    "yourPartner": "你的伙伴",
+    "timerUp": "时间到——你们中的任何一方都可以继续。",
+    "timerWait": "计时器结束时解锁下一步。",
+    "waitingPartner": "等待你的伙伴加入房间 {code}…",
+    "reviewStep": "回顾：{title}"
   }
 }

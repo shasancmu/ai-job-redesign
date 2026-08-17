@@ -8,7 +8,7 @@
   "dash": {
     "greeting": "Bonjour {name}",
     "exercises": "Exercices",
-    "framing": "Un outil, plusieurs approches : repensez votre travail ou un processus, analysez un CV ou un rôle, affinez une décision, ou négociez — seul, en binôme, ou en direct avec votre groupe.",
+    "framing": "Un outil, plusieurs approches : repensez votre travail ou un processus, analysez un CV ou un rôle, affinez une décision, ou négociez — seul, en binôme, ou en direct avec votre cohorte.",
     "yourSessions": "Vos sessions"
   },
   "cat": {
@@ -23,7 +23,7 @@
     "pairUp": "Former un binôme →",
     "doItAgain": "Recommencer",
     "viewLast": "Voir le dernier résultat →",
-    "cohortOnly": "S'exécute en direct dans un groupe. Ouvrez le lien de cohort de votre animateur pour participer.",
+    "cohortOnly": "S'exécute en direct dans une cohorte. Ouvrez le lien de cohorte de votre animateur pour participer.",
     "done": "✓ Terminé",
     "unlock": "Déverrouiller"
   },
@@ -31,9 +31,24 @@
     "show": "▸ Afficher vos sessions ({n})",
     "hide": "▾ Masquer vos sessions ({n})",
     "empty": "Rien pour le moment — commencez un exercice ci-dessus pour débuter.",
-    "deleteTitle": "Supprimer cette session"
+    "deleteTitle": "Supprimer cette salle"
   },
   "lang": {
     "label": "Langue pour le contenu généré par IA"
+  },
+  "room": {
+    "exit": "Quitter",
+    "back": "Retour",
+    "next": "Étape suivante",
+    "finish": "Terminer",
+    "send": "Envoyer",
+    "sending": "Envoi…",
+    "step": "Étape {n} sur {total}",
+    "with": "avec {name}",
+    "yourPartner": "votre partenaire",
+    "timerUp": "Temps écoulé — l'un de vous peut faire avancer la salle.",
+    "timerWait": "La suite se déverrouille à la fin du chronomètre.",
+    "waitingPartner": "En attente de votre partenaire pour rejoindre la salle {code}…",
+    "reviewStep": "Révision : {title}"
   }
 }

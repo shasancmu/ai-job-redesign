@@ -8,14 +8,14 @@
   "dash": {
     "greeting": "Olá {name}",
     "exercises": "Exercícios",
-    "framing": "Uma ferramenta, muitas formas de usar: redesenhe seu trabalho ou um fluxo, analise um currículo ou função, tome uma decisão melhor ou negocie — sozinho, com um parceiro ou ao vivo com sua turma.",
+    "framing": "Um instrumento, muitas formas de usar: redesenhe seu trabalho ou um fluxo, analise um currículo ou função, refine uma decisão ou negocie — sozinho, com um parceiro ou ao vivo com uma turma.",
     "yourSessions": "Suas sessões"
   },
   "cat": {
     "redesign": "Trabalho & IA",
-    "strategy": "Tome uma decisão melhor",
+    "strategy": "Refine uma decisão",
     "negotiate": "Negocie",
-    "live": "Execute ao vivo em sala"
+    "live": "Execute ao vivo em aula"
   },
   "catalog": {
     "start": "Iniciar",
@@ -35,5 +35,20 @@
   },
   "lang": {
     "label": "Idioma para conteúdo gerado por IA"
+  },
+  "room": {
+    "exit": "Sair",
+    "back": "Voltar",
+    "next": "Próxima etapa",
+    "finish": "Concluir",
+    "send": "Enviar",
+    "sending": "Enviando…",
+    "step": "Etapa {n} de {total}",
+    "with": "com {name}",
+    "yourPartner": "seu parceiro",
+    "timerUp": "Tempo esgotado — qualquer um de vocês pode avançar a sala.",
+    "timerWait": "Próximo desbloqueado quando o cronômetro terminar.",
+    "waitingPartner": "Aguardando seu parceiro entrar na sala {code}…",
+    "reviewStep": "Revisão: {title}"
   }
 }

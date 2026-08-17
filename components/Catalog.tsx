@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { MODULES, PARTNER_META, CATEGORIES, moduleCategory, formatPrice } from "@/lib/modules";
 import ModuleIcon from "@/components/ModuleIcon";
-import { useT } from "@/components/I18nProvider";
+import { useBi } from "@/components/I18nProvider";
+import Bi from "@/components/Bi";
 
 const ACCENT: Record<string, string> = {
   "reimagine-job": "bg-sage-soft text-sage",
@@ -53,7 +54,7 @@ export default function Catalog({
 }) {
   const router = useRouter();
   const supabase = createClient();
-  const t = useT();
+  const bi = useBi();
   const cohort = fixedCohort ?? initialCohort;
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -111,17 +112,19 @@ export default function Catalog({
                 </span>
                 <span>{m.minutes} min</span>
                 {completed[m.slug] && (
-                  <span className="rounded-full bg-sage-soft px-2 py-0.5 font-medium text-sage">{t("catalog.done")}</span>
+                  <span className="rounded-full bg-sage-soft px-2 py-0.5 font-medium text-sage">
+                    <Bi {...bi("catalog.done")} inline />
+                  </span>
                 )}
               </div>
 
               {!open ? (
                 <Link href={`/paywall?module=${m.slug}`} className="btn-dark mt-5">
-                  {t("catalog.unlock")} — {formatPrice(m.priceCents)}
+                  <Bi {...bi("catalog.unlock")} inline /> — {formatPrice(m.priceCents)}
                 </Link>
               ) : m.partner === "group" && !cohort ? (
                 <div className="mt-5 rounded-lg bg-mist px-3 py-2.5 text-xs leading-relaxed text-slate2">
-                  {t("catalog.cohortOnly")}
+                  <Bi {...bi("catalog.cohortOnly")} />
                 </div>
               ) : (
                 <div className="mt-5 space-y-2">
@@ -130,7 +133,7 @@ export default function Catalog({
                       href={`/pair/${m.slug}${cohort ? `?cohort=${encodeURIComponent(cohort)}` : ""}`}
                       className="btn-primary w-full"
                     >
-                      {completed[m.slug] ? t("catalog.doItAgain") : t("catalog.pairUp")}
+                      <Bi {...bi(completed[m.slug] ? "catalog.doItAgain" : "catalog.pairUp")} />
                     </Link>
                   ) : (
                     <button
@@ -138,7 +141,7 @@ export default function Catalog({
                       disabled={busy === m.slug}
                       className="btn-primary w-full"
                     >
-                      {busy === m.slug ? t("catalog.starting") : completed[m.slug] ? t("catalog.doItAgain") : t("catalog.start")}
+                      <Bi {...bi(busy === m.slug ? "catalog.starting" : completed[m.slug] ? "catalog.doItAgain" : "catalog.start")} />
                     </button>
                   )}
                   {completed[m.slug] && lastCode[m.slug] && (
@@ -146,7 +149,7 @@ export default function Catalog({
                       href={resultHref(m.exercise, lastCode[m.slug])}
                       className="block text-center text-sm text-slate2 hover:text-ink"
                     >
-                      {t("catalog.viewLast")}
+                      <Bi {...bi("catalog.viewLast")} inline />
                     </Link>
                   )}
                 </div>
@@ -175,7 +178,7 @@ export default function Catalog({
               <div key={cat.key}>
                 <div className="mb-3 flex items-baseline gap-2">
                   <span className="h-2 w-2 rounded-full" style={{ background: cat.dot }} />
-                  <h3 className="text-sm font-bold text-ink">{t("cat." + cat.key)}</h3>
+                  <h3 className="text-sm font-bold text-ink"><Bi {...bi("cat." + cat.key)} inline /></h3>
                 </div>
                 <div className={grid}>{mods.map(renderCard)}</div>
               </div>

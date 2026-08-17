@@ -8,12 +8,12 @@
   "dash": {
     "greeting": "Hola {name}",
     "exercises": "Ejercicios",
-    "framing": "Una herramienta, muchas formas de usarla: rediseña tu trabajo o un flujo, analiza un CV o rol, afina una decisión, o negocia — solo, con un compañero, o en vivo con tu cohorte.",
+    "framing": "Un instrumento, muchas formas de usarlo: rediseña tu trabajo o un flujo de trabajo, analiza un currículum o rol, aclara una decisión o negocia — solo, con un compañero, o en vivo con tu cohorte.",
     "yourSessions": "Tus sesiones"
   },
   "cat": {
     "redesign": "Trabajo e IA",
-    "strategy": "Afina una decisión",
+    "strategy": "Aclara una decisión",
     "negotiate": "Negocia",
     "live": "Ejecuta en vivo en clase"
   },
@@ -35,5 +35,20 @@
   },
   "lang": {
     "label": "Idioma para contenido generado por IA"
+  },
+  "room": {
+    "exit": "Salir",
+    "back": "Atrás",
+    "next": "Siguiente paso",
+    "finish": "Finalizar",
+    "send": "Enviar",
+    "sending": "Enviando…",
+    "step": "Paso {n} de {total}",
+    "with": "con {name}",
+    "yourPartner": "tu compañero",
+    "timerUp": "Se acabó el tiempo — cualquiera de ustedes puede avanzar la sala.",
+    "timerWait": "Se desbloquea cuando termine el temporizador.",
+    "waitingPartner": "Esperando a que tu compañero se una a la sala {code}…",
+    "reviewStep": "Revisión: {title}"
   }
 }

@@ -1,15 +1,26 @@
 "use client";
 
 import { createContext, useContext, useMemo } from "react";
-import { makeT, type T } from "@/lib/i18n";
+import { makeT, makeBi, type T, type BiFn } from "@/lib/i18n";
 
-const Ctx = createContext<T>((k) => k);
+const TCtx = createContext<T>((k) => k);
+const BiCtx = createContext<BiFn>((k) => ({ en: k, tr: null }));
 
 export function I18nProvider({ locale, children }: { locale: string; children: React.ReactNode }) {
   const t = useMemo(() => makeT(locale), [locale]);
-  return <Ctx.Provider value={t}>{children}</Ctx.Provider>;
+  const bi = useMemo(() => makeBi(locale), [locale]);
+  return (
+    <TCtx.Provider value={t}>
+      <BiCtx.Provider value={bi}>{children}</BiCtx.Provider>
+    </TCtx.Provider>
+  );
 }
 
 export function useT(): T {
-  return useContext(Ctx);
+  return useContext(TCtx);
+}
+
+// Bilingual resolver: returns { en, tr } for rendering with <Bi>.
+export function useBi(): BiFn {
+  return useContext(BiCtx);
 }
