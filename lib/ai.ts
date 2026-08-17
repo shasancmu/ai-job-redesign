@@ -21,7 +21,7 @@ const IS_ANTHROPIC = BASE_URL.includes("anthropic.com");
 
 async function complete(
   messages: ChatMsg[],
-  opts: { json?: boolean; temperature?: number } = {}
+  opts: { json?: boolean; temperature?: number; maxTokens?: number } = {}
 ): Promise<string> {
   const res = await fetch(`${BASE_URL}/chat/completions`, {
     method: "POST",
@@ -32,7 +32,8 @@ async function complete(
     body: JSON.stringify({
       model: MODEL,
       messages,
-      max_tokens: 2048,
+      // Big enough that structured plans don't get truncated into invalid JSON.
+      max_tokens: opts.maxTokens ?? 4096,
       temperature: opts.temperature ?? 0.7,
       ...(opts.json && !IS_ANTHROPIC ? { response_format: { type: "json_object" } } : {}),
     }),
