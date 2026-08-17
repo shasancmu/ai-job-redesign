@@ -4,6 +4,7 @@
 // and appends a directive to the system prompt. No AI function signatures change.
 // ============================================================================
 import { AsyncLocalStorage } from "node:async_hooks";
+import { I18N_ENABLED } from "@/lib/flags";
 
 const store = new AsyncLocalStorage<string>();
 
@@ -23,7 +24,7 @@ export function currentLanguage(): string | undefined {
 
 // Look up the authenticated user's preferred language (defaults to English).
 export async function getUserLanguage(supabase: any, userId?: string): Promise<string | undefined> {
-  if (!userId) return undefined;
+  if (!I18N_ENABLED || !userId) return undefined;
   try {
     const { data } = await supabase.from("profiles").select("language").eq("id", userId).maybeSingle();
     const lang = data?.language;

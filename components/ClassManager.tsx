@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MODULES } from "@/lib/modules";
 import { normalizeCode } from "@/lib/classes";
 import { LANGUAGES } from "@/components/LanguagePicker";
+import { I18N_ENABLED } from "@/lib/flags";
 
 type Klass = { id: string; code: string; name: string; modules: string[]; members: number; language?: string; kind?: string; allowed_emails?: string[] };
 
@@ -161,15 +162,17 @@ export default function ClassManager() {
           </div>
         )}
 
-        <div className="mt-4 max-w-xs">
-          <label className="lbl">Language (AI content runs in this)</label>
-          <select className="field" value={language} onChange={(e) => setLanguage(e.target.value)}>
-            {LANGUAGES.map((l) => (
-              <option key={l} value={l}>{l}</option>
-            ))}
-          </select>
-          <p className="mt-1 text-xs text-slate2">Everyone who joins this cohort has their exercises run in this language.</p>
-        </div>
+        {I18N_ENABLED && (
+          <div className="mt-4 max-w-xs">
+            <label className="lbl">Language (AI content runs in this)</label>
+            <select className="field" value={language} onChange={(e) => setLanguage(e.target.value)}>
+              {LANGUAGES.map((l) => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-slate2">Everyone who joins this cohort has their exercises run in this language.</p>
+          </div>
+        )}
 
         {/* Ordered module list */}
         <div className="mt-5">

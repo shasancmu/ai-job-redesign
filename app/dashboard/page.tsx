@@ -8,6 +8,7 @@ import { MODULES } from "@/lib/modules";
 import Catalog from "@/components/Catalog";
 import SessionsPanel from "@/components/SessionsPanel";
 import LanguagePicker from "@/components/LanguagePicker";
+import { I18N_ENABLED } from "@/lib/flags";
 import EnrichOnce from "@/components/EnrichOnce";
 import YourWork, { type WorkItem } from "@/components/YourWork";
 import { computeStreak, artifactHref, nextStep } from "@/lib/momentum";
@@ -146,7 +147,7 @@ export default async function Dashboard({
           <h1 className="mt-3 text-2xl">{t("dash.greeting", { name: profile?.display_name || "there" })}</h1>
         </div>
         <div className="flex items-center gap-2">
-          <LanguagePicker me={user.id} initial={(profile as any)?.language} />
+          {I18N_ENABLED && <LanguagePicker me={user.id} initial={(profile as any)?.language} />}
           <a href="/profile" className="btn-ghost text-sm">
             {t("nav.profile")}
           </a>
