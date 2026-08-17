@@ -13,6 +13,7 @@ export const LANGUAGES = [
   "French",
   "German",
   "Portuguese",
+  "Portuguese (Brazil)",
   "Italian",
   "Dutch",
   "Chinese (Simplified)",

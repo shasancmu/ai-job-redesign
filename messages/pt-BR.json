@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "signIn": "Entrar",
+    "getStarted": "Começar",
+    "signOut": "Sair",
+    "facilitator": "Facilitador"
+  },
+  "dash": {
+    "greeting": "Olá {name}",
+    "exercises": "Exercícios",
+    "framing": "Uma ferramenta, muitas formas de usar: redesenhe seu trabalho ou um fluxo, analise um currículo ou função, tome uma decisão melhor ou negocie — sozinho, com um parceiro ou ao vivo com sua turma.",
+    "yourSessions": "Suas sessões"
+  },
+  "cat": {
+    "redesign": "Trabalho & IA",
+    "strategy": "Tome uma decisão melhor",
+    "negotiate": "Negocie",
+    "live": "Execute ao vivo em sala"
+  },
+  "catalog": {
+    "start": "Iniciar",
+    "starting": "Iniciando…",
+    "pairUp": "Forme dupla →",
+    "doItAgain": "Fazer novamente",
+    "viewLast": "Ver último resultado →",
+    "cohortOnly": "Executa ao vivo em uma turma. Abra o link da turma do seu facilitador para participar.",
+    "done": "✓ Concluído",
+    "unlock": "Desbloquear"
+  },
+  "sessions": {
+    "show": "▸ Mostrar suas sessões ({n})",
+    "hide": "▾ Ocultar suas sessões ({n})",
+    "empty": "Nada ainda — inicie um exercício acima para começar.",
+    "deleteTitle": "Deletar esta sala"
+  },
+  "lang": {
+    "label": "Idioma para conteúdo gerado por IA"
+  }
+}
