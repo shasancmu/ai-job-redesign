@@ -6,8 +6,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // ---- Tier configuration (env-overridable so you can tune without a deploy) ---
 // Free tier: only these modules, this many runs each (mistakes/retries allowed).
 export const FREE_TIER_RUNS = num(process.env.FREE_TIER_RUNS, 4);
-// Paid ($29/yr or $19 cohort alumni): every module, this many runs per period.
-export const PAID_RUNS = num(process.env.PAID_RUNS, 2);
+// Paid ($29 or $19 cohort alumni): every module, this many runs per purchase.
+export const PAID_RUNS = num(process.env.PAID_RUNS, 3);
 // The modules offered on the free tier. Comma-separated slugs in FREE_TIER_MODULES,
 // else this default hero set. Everything not listed is paid-only.
 export const FREE_TIER_MODULES = new Set(
