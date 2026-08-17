@@ -96,7 +96,7 @@ export default function WorkflowDemo() {
           </>
         )}
 
-        {(step.key === "map" || step.key === "assign") && (
+        {(step.key === "map" || step.key === "analyze") && (
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
               {STEP_ROLES.map((r) => (

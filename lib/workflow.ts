@@ -24,25 +24,25 @@ export const WORKFLOW_STEPS: WFStep[] = [
   {
     key: "map",
     index: 1,
-    title: "Draw it out",
+    title: "Draw it as it is today",
     subtitle:
-      "Let AI sketch the workflow from your description — then make it right. Add, remove, or split steps until it matches reality.",
+      "The honest current state — every step a human does now. AI sketches it from your description; make it match reality.",
+    minutes: 6,
+  },
+  {
+    key: "analyze",
+    index: 2,
+    title: "How AI makes it better",
+    subtitle:
+      "AI finds where it genuinely helps — the outcome, how, and how to prep fast — then proposes the split. Recolor together; disagreements are the most interesting part.",
     minutes: 8,
   },
   {
     key: "tradeoffs",
-    index: 2,
+    index: 3,
     title: "The three trade-offs",
     subtitle:
-      "AI pulls toward more, toward generality, toward chaos. Decide where each one has to hold the line.",
-    minutes: 7,
-  },
-  {
-    key: "assign",
-    index: 3,
-    title: "Who does what?",
-    subtitle:
-      "Colour every step — green for humans, gold for AI, purple for both. Disagreements are the most interesting part.",
+      "AI pulls toward more, toward generality, toward chaos. Decide where each has to hold the line — AI can help you think it through.",
     minutes: 6,
   },
   {
@@ -51,7 +51,7 @@ export const WORKFLOW_STEPS: WFStep[] = [
     title: "Your AI + Human workflow",
     subtitle:
       "Here's the redesigned workflow. Finish the thought: we'd stop ___ and start ___.",
-    minutes: 5,
+    minutes: 6,
   },
 ];
 

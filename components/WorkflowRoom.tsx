@@ -154,6 +154,71 @@ export default function WorkflowRoom({
     setGenerating(false);
   }
 
+  // ---- Analyze: where AI genuinely helps + a redesigned split --------------
+  const analysis: any = doc.analysis || {};
+  const redesignFlow: any[] = analysis.flow?.length ? analysis.flow : steps;
+  const setFlow = (next: any[]) => update({ analysis: { ...analysis, flow: next } });
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analyzeErr, setAnalyzeErr] = useState<string | null>(null);
+  async function analyze() {
+    setAnalyzing(true);
+    setAnalyzeErr(null);
+    try {
+      const r = await fetch("/api/workflow/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: doc.name, description: doc.why, steps }),
+      }).then((x) => x.json());
+      if (r.analysis) {
+        const withIds = (r.analysis.flow || []).map((s: any) => ({
+          id: newId(),
+          text: s.text,
+          role: s.role || "human",
+        }));
+        update({
+          analysis: {
+            summary: r.analysis.summary || "",
+            opportunities: r.analysis.opportunities || [],
+            flow: withIds,
+          },
+        });
+      } else {
+        setAnalyzeErr(r.reason === "ai-off" ? "AI isn't set up for this session." : "Couldn't analyze — try again.");
+      }
+    } catch {
+      setAnalyzeErr("Couldn't analyze — try again.");
+    }
+    setAnalyzing(false);
+  }
+
+  // ---- AI help for the three trade-offs ------------------------------------
+  const [tradeoffBusy, setTradeoffBusy] = useState(false);
+  const [tradeoffErr, setTradeoffErr] = useState<string | null>(null);
+  async function suggestTradeoffs() {
+    setTradeoffBusy(true);
+    setTradeoffErr(null);
+    try {
+      const r = await fetch("/api/workflow/tradeoffs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: doc.name, description: doc.why || "", summary: analysis.summary || "" }),
+      }).then((x) => x.json());
+      if (r.fields) {
+        const patch: Record<string, string> = {};
+        for (const k of ["more", "better", "accuracy", "generality", "chaos", "architect"]) {
+          if (!doc[k] && r.fields[k]) patch[k] = r.fields[k];
+        }
+        if (Object.keys(patch).length) update(patch);
+        else setTradeoffErr("Your answers are already filled in — edit them freely.");
+      } else {
+        setTradeoffErr(r.reason === "ai-off" ? "AI isn't set up for this session." : "Couldn't get suggestions — try again.");
+      }
+    } catch {
+      setTradeoffErr("Couldn't get suggestions — try again.");
+    }
+    setTradeoffBusy(false);
+  }
+
   // ---- Broadcast nudge -----------------------------------------------------
   const [nudge, setNudge] = useState<string | null>(null);
   const lastBroadcast = useRef<string | null>(initialSession.broadcast_at || null);
@@ -297,12 +362,14 @@ export default function WorkflowRoom({
           </div>
         )}
 
-        {(step.key === "map" || step.key === "assign") && (
+        {step.key === "map" && (
           <div className="space-y-4">
             <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
-              <Legend />
+              <div className="text-sm text-slate-500">
+                The workflow exactly as it runs <span className="font-semibold text-ink">today</span> — every step a human does now. You&apos;ll add AI next.
+              </div>
               <button onClick={generate} disabled={generating} className="btn-primary text-sm">
-                {generating ? "Drawing…" : steps.length ? "↻ Redraw with AI" : "✨ Draw with AI"}
+                {generating ? "Drawing…" : steps.length ? "↻ Redraw" : "✨ Draw the current workflow"}
               </button>
             </div>
             {genErr && <p className="text-sm text-clay">{genErr}</p>}
@@ -314,8 +381,70 @@ export default function WorkflowRoom({
           </div>
         )}
 
+        {step.key === "analyze" && (
+          <div className="space-y-4">
+            <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
+              <div className="text-sm text-slate-500">
+                AI reads your real workflow and finds where it genuinely helps — the outcome you want, how AI gets there, and how to prep fast.
+              </div>
+              <button onClick={analyze} disabled={analyzing || !steps.length} className="btn-primary text-sm">
+                {analyzing ? "Analyzing…" : analysis.opportunities?.length ? "↻ Re-analyze" : "✨ Analyze with AI"}
+              </button>
+            </div>
+            {!steps.length && <p className="text-sm text-clay">Draw the current workflow first (previous step).</p>}
+            {analyzeErr && <p className="text-sm text-clay">{analyzeErr}</p>}
+
+            {analysis.summary && (
+              <div className="card p-5">
+                <div className="text-xs font-semibold uppercase tracking-wide text-sage">Where AI helps</div>
+                <p className="mt-1 leading-relaxed text-slate-700">{analysis.summary}</p>
+              </div>
+            )}
+
+            {analysis.opportunities?.length > 0 && (
+              <div className="grid gap-3 md:grid-cols-2">
+                {analysis.opportunities.map((o: any, i: number) => (
+                  <div key={i} className="card overflow-hidden p-0">
+                    <div className="h-1.5" style={{ background: "#CE8F2C" }} />
+                    <div className="p-5">
+                      <div className="text-base font-bold text-ink">{o.title}</div>
+                      <OppField label="The outcome">{o.outcome}</OppField>
+                      <OppField label="How AI does it">{o.how}</OppField>
+                      <OppField label="Prep fast">{o.prep}</OppField>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {analysis.flow?.length > 0 && (
+              <div className="card p-5">
+                <div className="text-xs font-semibold uppercase tracking-wide text-sage">Redesigned flow — AI + human</div>
+                <p className="mt-1 text-sm text-slate-500">Green stays human; gold is AI. Recolor together — disagreements are the most interesting part.</p>
+                <div className="mt-3"><Legend /></div>
+                <div className="mt-4">
+                  <WorkflowFlow
+                    steps={analysis.flow}
+                    onChange={setFlow}
+                    onActive={(a) => (activeField.current = a ? "analysis" : null)}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {step.key === "tradeoffs" && (
           <div className="space-y-5">
+            <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
+              <div className="text-sm text-slate-500">
+                Not sure how to fill these in? Let AI draft a first pass for this workflow — then make it yours.
+              </div>
+              <button onClick={suggestTradeoffs} disabled={tradeoffBusy} className="btn-primary text-sm">
+                {tradeoffBusy ? "Thinking…" : "✨ Help me think this through"}
+              </button>
+            </div>
+            {tradeoffErr && <p className="text-sm text-clay">{tradeoffErr}</p>}
             <TradeoffRow
               occ="Outcomes"
               title="More vs. Better"
@@ -353,13 +482,26 @@ export default function WorkflowRoom({
                 Your AI + Human workflow
               </div>
               <div className="mt-1 text-lg font-bold text-ink">{doc.name || "—"}</div>
+              {analysis.summary && <p className="mt-1 text-sm text-slate-500">{analysis.summary}</p>}
               <div className="mt-2">
                 <Legend />
               </div>
               <div className="mt-4">
-                <WorkflowFlow steps={steps} editable={false} />
+                <WorkflowFlow steps={redesignFlow} editable={false} />
               </div>
             </div>
+            {analysis.opportunities?.length > 0 && (
+              <div className="card p-5">
+                <div className="text-xs font-semibold uppercase tracking-wide text-amber">What to start this week</div>
+                <ul className="mt-2 space-y-2">
+                  {analysis.opportunities.map((o: any, i: number) => (
+                    <li key={i} className="text-sm text-slate-700">
+                      <span className="font-semibold text-ink">{o.title}:</span> {o.outcome}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="card p-5">
               <label className="lbl">If we actually redesigned this, we&apos;d stop ___ and start ___.</label>
               <textarea
@@ -412,6 +554,18 @@ function Legend() {
           {r.label}
         </span>
       ))}
+    </div>
+  );
+}
+
+function OppField({ label, children }: { label: string; children: any }) {
+  if (!children) return null;
+  return (
+    <div className="mt-3">
+      <div className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "#CE8F2C" }}>
+        {label}
+      </div>
+      <p className="mt-0.5 text-sm leading-relaxed text-slate-600">{children}</p>
     </div>
   );
 }
