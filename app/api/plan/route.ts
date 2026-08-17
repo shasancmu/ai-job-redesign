@@ -40,11 +40,18 @@ export async function POST(request: Request) {
       aiTasks
     );
     if (sessionId) {
-      await supabase
+      const { error } = await supabase
         .from("workspaces")
         .update({ plan })
         .eq("session_id", sessionId)
         .eq("author_id", user.id);
+      if (error) {
+        // Almost always: the `plan` column is missing — re-run supabase/schema.sql.
+        return Response.json(
+          { error: `Couldn't save the plan (${error.message}). Re-run supabase/schema.sql.` },
+          { status: 500 }
+        );
+      }
     }
     return Response.json({ ok: true, plan });
   } catch (e: any) {

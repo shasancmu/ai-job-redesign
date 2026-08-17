@@ -28,7 +28,9 @@ export default async function PlanPage({ params }: { params: { code: string } })
     .maybeSingle();
 
   const plan = ws?.plan as any;
-  const hasPlan = plan && (plan.headline || (plan.human?.length || 0) + (plan.ai?.length || 0) > 0);
+  const hasPlan =
+    plan &&
+    (plan.headline || plan.summary || (plan.human?.length || 0) + (plan.ai?.length || 0) > 0);
 
   if (!hasPlan) {
     return (
