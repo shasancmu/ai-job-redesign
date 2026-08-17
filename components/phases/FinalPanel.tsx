@@ -1,14 +1,16 @@
 "use client";
 
 import { FEEDBACK_FIELDS } from "@/lib/exercise";
+import { useT } from "@/components/I18nProvider";
 
 export default function FinalPanel(props: any) {
+  const t = useT();
   const { myWorkspace, partnerWorkspace, partnerProfile, updateMine } = props;
-  if (!myWorkspace) return <div className="text-slate-400">Loading…</div>;
+  if (!myWorkspace) return <div className="text-slate-400">{t("panel.finalLoading")}</div>;
 
   const myFeedback = myWorkspace.feedback || {};
   const hasFeedback = FEEDBACK_FIELDS.some((f) => (myFeedback[f.key] || "").trim());
-  const partnerName = partnerProfile?.display_name || "your partner";
+  const partnerName = partnerProfile?.display_name || t("panel.finalPartnerFallback");
 
   return (
     <div className="grid gap-5 lg:grid-cols-[1.3fr_1fr]">
@@ -16,7 +18,7 @@ export default function FinalPanel(props: any) {
         {myWorkspace.new_job_description && (
           <div className="card bg-slate-50 p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Your draft
+              {t("panel.finalYourDraft")}
             </div>
             <p className="mt-1 whitespace-pre-wrap text-slate-600">
               {myWorkspace.new_job_description}
@@ -27,7 +29,7 @@ export default function FinalPanel(props: any) {
         {hasFeedback && (
           <div className="card p-4">
             <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-              {partnerName}&apos;s feedback
+              {t("panel.finalFeedbackHeader", { name: partnerName })}
             </div>
             <div className="space-y-2">
               {FEEDBACK_FIELDS.map((f) =>
@@ -49,15 +51,14 @@ export default function FinalPanel(props: any) {
 
         <div className="card p-5">
           <label className="lbl">
-            The reimagined job for {partnerName} — final version
+            {t("panel.finalReimaginedLabel", { name: partnerName })}
           </label>
           <p className="mb-2 text-sm text-slate-500">
-            Fold in the feedback. One tight paragraph: what they own, what AI
-            does, why it&apos;s better.
+            {t("panel.finalFoldHelp")}
           </p>
           <textarea
             className="field min-h-[150px]"
-            placeholder={`In ${partnerName}'s reimagined role, they…`}
+            placeholder={t("panel.finalReimaginedPh", { name: partnerName })}
             value={myWorkspace.final_description || ""}
             onChange={(e) => updateMine({ final_description: e.target.value })}
           />
@@ -66,7 +67,7 @@ export default function FinalPanel(props: any) {
 
       <div className="card border-2 border-orange-200 bg-orange-50/50 p-5">
         <div className="text-xs font-semibold uppercase tracking-wide text-human">
-          The job {partnerName} reimagined for you
+          {t("panel.finalJobForYou", { name: partnerName })}
         </div>
         {partnerWorkspace?.final_description || partnerWorkspace?.new_job_description ? (
           <p className="mt-2 whitespace-pre-wrap leading-relaxed text-slate-700">
@@ -74,12 +75,11 @@ export default function FinalPanel(props: any) {
           </p>
         ) : (
           <p className="mt-2 text-slate-400">
-            {partnerName} is still finishing yours…
+            {t("panel.finalStillFinishing", { name: partnerName })}
           </p>
         )}
         <div className="mt-4 text-sm text-slate-400">
-          Both versions are saved to your accounts. You can reopen this room
-          anytime from your dashboard.
+          {t("panel.finalSaved")}
         </div>
       </div>
     </div>

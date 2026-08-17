@@ -8,8 +8,17 @@ import Timer from "@/components/Timer";
 import CanvasView from "@/components/CanvasView";
 import FrontierPlot, { complexityLevel } from "@/components/FrontierPlot";
 import UnitEconomics from "@/components/UnitEconomics";
+import { useT } from "@/components/I18nProvider";
+import type { T } from "@/lib/i18n";
 
 type Msg = { role: "user" | "assistant"; content: string };
+
+// Translate with a fallback to the passed-in English: if the key is missing,
+// show the original rather than a raw key.
+function tf(t: T, key: string, fallback: string) {
+  const v = t(key);
+  return v === key ? fallback : v;
+}
 
 export default function CanvasRoom({
   me,
@@ -23,6 +32,7 @@ export default function CanvasRoom({
   initialWorkspace: any;
 }) {
   const supabase = createClient();
+  const t = useT();
   const [phase, setPhase] = useState<number>(session.phase || 0);
   const [startedAt, setStartedAt] = useState(session.phase_started_at || new Date().toISOString());
   const [ws, setWs] = useState<any>({ canvas: {}, ...initialWorkspace });
@@ -62,7 +72,7 @@ export default function CanvasRoom({
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Exit</Link>
+          <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{def.name}</span>
         </div>
         <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())} />
@@ -80,7 +90,7 @@ export default function CanvasRoom({
 
       <div className="mb-5">
         <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          Step {phase + 1} of {CANVAS_STEPS.length} · {step.minutes} min
+          {t("room.step", { n: phase + 1, total: CANVAS_STEPS.length })} · {t("catalog.min", { n: step.minutes })}
         </div>
         <h1 className="mt-1 text-2xl font-bold">{step.title}</h1>
       </div>
@@ -90,7 +100,7 @@ export default function CanvasRoom({
           <div className="space-y-4">
             {def.about && (
               <div className="rounded-2xl border border-line bg-mist p-5 text-sm leading-relaxed text-slate-600">
-                <span className="font-semibold text-ink">About this canvas. </span>
+                <span className="font-semibold text-ink">{t("canvas.aboutLabel")}</span>
                 {def.about}
               </div>
             )}
@@ -119,7 +129,7 @@ export default function CanvasRoom({
           <div className="space-y-4">
             <CanvasView def={def} canvas={canvas} embedded />
             <Link href={`/canvas/${session.code}`} className="btn-primary block text-center">
-              View the full canvas →
+              {t("canvas.viewFull")} →
             </Link>
           </div>
         )}
@@ -127,11 +137,11 @@ export default function CanvasRoom({
 
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">Back</button>
+          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">{t("room.back")}</button>
           {phase < CANVAS_STEPS.length - 1 ? (
-            <button onClick={() => go(phase + 1)} className="btn-primary">Next step →</button>
+            <button onClick={() => go(phase + 1)} className="btn-primary">{t("room.next")} →</button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">Finish</Link>
+            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>
@@ -150,6 +160,7 @@ function Interview({
   chat: Msg[];
   setChat: (m: Msg[]) => void;
 }) {
+  const t = useT();
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -168,12 +179,12 @@ function Interview({
         });
         const d = await res.json();
         if (!res.ok) {
-          setErr(d.error || "The AI is unavailable.");
+          setErr(d.error || t("canvas.aiUnavailable"));
           return null;
         }
         return d.reply as string;
       } catch {
-        setErr("The AI is unavailable.");
+        setErr(t("canvas.aiUnavailable"));
         return null;
       } finally {
         setBusy(false);
@@ -211,7 +222,7 @@ function Interview({
   return (
     <div className="card flex flex-col p-5" style={{ height: "58vh", minHeight: 400 }}>
       <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto pr-1">
-        {chat.length === 0 && busy && <div className="text-slate-400">Your AI partner is thinking of an opening question…</div>}
+        {chat.length === 0 && busy && <div className="text-slate-400">{t("canvas.openingThinking")}</div>}
         {chat.map((m, i) => (
           <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
             <div className={"max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed " + (m.role === "user" ? "bg-ink text-white" : "bg-slate-100 text-slate-800")}>
@@ -227,8 +238,8 @@ function Interview({
       </div>
       {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
       <form onSubmit={send} className="mt-3 flex items-center gap-2">
-        <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type your answer…" disabled={busy} />
-        <button className="btn-primary" disabled={busy || !input.trim()}>Send</button>
+        <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t("room.typeAnswer")} disabled={busy} />
+        <button className="btn-primary" disabled={busy || !input.trim()}>{t("room.send")}</button>
       </form>
     </div>
   );
@@ -247,6 +258,7 @@ function CanvasStep({
   canvas: any;
   setCanvas: (p: Record<string, any>) => void;
 }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const fields: Record<string, any> = canvas.fields || {};
@@ -274,10 +286,10 @@ function CanvasStep({
         if (d.canvas.calc) patch.calc = d.canvas.calc;
         setCanvas(patch);
       } else {
-        setErr(d.error || "Couldn't draft — fill it in by hand.");
+        setErr(d.error || t("canvas.cantDraft"));
       }
     } catch {
-      setErr("Couldn't draft — fill it in by hand.");
+      setErr(t("canvas.cantDraft"));
     }
     setBusy(false);
   }
@@ -287,16 +299,16 @@ function CanvasStep({
   return (
     <div className="space-y-4">
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
-        <div className="text-sm text-slate-500">Let AI draft the canvas from your interview — then make every line yours.</div>
+        <div className="text-sm text-slate-500">{t("canvas.draftIntro")}</div>
         <button onClick={draft} disabled={busy} className="btn-primary text-sm">
-          {busy ? "Drafting…" : canvas.synthesis ? "↻ Redraft" : "✨ Draft with AI"}
+          {busy ? t("canvas.drafting") : canvas.synthesis ? t("canvas.redraft") : t("room.draftWithAI")}
         </button>
       </div>
       {err && <p className="text-sm text-clay">{err}</p>}
 
       {canvas.synthesis && (
         <div className="card p-5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-sage">In short</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-sage">{t("canvas.inShort")}</div>
           <p className="mt-1 leading-relaxed text-slate-700">{canvas.synthesis}</p>
           {def.hasVerdict && canvas.verdict && (
             <p className="mt-2 font-semibold text-ink">{canvas.verdict}</p>
@@ -317,7 +329,7 @@ function CanvasStep({
 
       {def.frontier ? (
         <div className="card p-5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Where it sits on the frontier</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("canvas.frontierHeading")}</div>
           <p className="mt-1 text-sm text-slate-500">{def.groupNotes?.["The frontier"]}</p>
           <div className="mt-3 grid gap-5 sm:grid-cols-2 sm:items-center">
             <FrontierPlot x={canvas.frontier?.x} y={canvas.frontier?.y} xLabel={def.frontier.xLabel} yLabel={def.frontier.yLabel} />
@@ -331,16 +343,16 @@ function CanvasStep({
                 );
               })()}
               <FrontierSlider
-                label="Generality — how varied?"
-                lo="one context"
-                hi="many contexts"
+                label={t("canvas.frontierGeneralityLabel")}
+                lo={t("canvas.frontierGeneralityLo")}
+                hi={t("canvas.frontierGeneralityHi")}
                 value={canvas.frontier?.x ?? 50}
                 onChange={(v) => setCanvas({ frontier: { x: v, y: canvas.frontier?.y ?? 50 } })}
               />
               <FrontierSlider
-                label="Accuracy — how exact?"
-                lo="loose"
-                hi="must be exact"
+                label={t("canvas.frontierAccuracyLabel")}
+                lo={t("canvas.frontierAccuracyLo")}
+                hi={t("canvas.frontierAccuracyHi")}
                 value={canvas.frontier?.y ?? 50}
                 onChange={(v) => setCanvas({ frontier: { x: canvas.frontier?.x ?? 50, y: v } })}
               />
@@ -351,7 +363,7 @@ function CanvasStep({
 
       {def.ratings?.length ? (
         <div className="card p-5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Scorecard — 0 (broken) to 100 (strong)</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("canvas.scorecardHeading")}</div>
           <div className="mt-3 space-y-3.5">
             {def.ratings.map((r) => {
               const val = (canvas.ratings || {})[r.key] ?? 50;
@@ -378,8 +390,8 @@ function CanvasStep({
 
       {def.calculator && (
         <div className="card p-5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Unit economics — live</div>
-          <p className="mt-1 text-sm text-slate-500">Adjust the numbers; the economics update as you go. Aim for LTV:CAC ≥ 3× and a fast payback.</p>
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("canvas.unitEconHeading")}</div>
+          <p className="mt-1 text-sm text-slate-500">{t("canvas.unitEconHint")}</p>
           <div className="mt-3">
             <UnitEconomics inputs={def.calculator.inputs} value={canvas.calc || {}} onChange={(calc) => setCanvas({ calc })} />
           </div>
@@ -431,6 +443,7 @@ function FrontierSlider({
   value: number;
   onChange: (v: number) => void;
 }) {
+  const t = useT();
   return (
     <div>
       <div className="text-sm font-medium text-ink">{label}</div>
@@ -451,6 +464,7 @@ function FrontierSlider({
 }
 
 function FieldInput({ field, value, onChange }: { field: CanvasField; value: any; onChange: (v: any) => void }) {
+  const t = useT();
   const color = accentColor(field.accent);
   return (
     <div>
@@ -464,7 +478,7 @@ function FieldInput({ field, value, onChange }: { field: CanvasField; value: any
       ) : field.kind === "list" ? (
         <textarea
           className="field mt-1.5"
-          placeholder="One per line…"
+          placeholder={t("canvas.onePerLine")}
           value={Array.isArray(value) ? value.join("\n") : ""}
           onChange={(e) => onChange(e.target.value.split("\n").map((s) => s.trim()).filter(Boolean))}
         />
@@ -486,6 +500,7 @@ function PairsEditor({
   value: { a: string; b: string }[];
   onChange: (v: { a: string; b: string }[]) => void;
 }) {
+  const t = useT();
   const rows = value.length ? value : [{ a: "", b: "" }];
   const set = (i: number, patch: Partial<{ a: string; b: string }>) =>
     onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)).filter((r) => r.a || r.b));
@@ -496,7 +511,7 @@ function PairsEditor({
         <div key={i} className="flex items-center gap-2">
           <input
             className="field"
-            placeholder={field.leftLabel || "Measure"}
+            placeholder={field.leftLabel || t("canvas.pairsLeft")}
             value={r.a}
             onChange={(e) => set(i, { a: e.target.value })}
           />
@@ -504,17 +519,17 @@ function PairsEditor({
           <input
             className="field"
             style={{ maxWidth: 150 }}
-            placeholder={field.rightLabel || "Target"}
+            placeholder={field.rightLabel || t("canvas.pairsRight")}
             value={r.b}
             onChange={(e) => set(i, { b: e.target.value })}
           />
-          <button onClick={() => remove(i)} className="px-1 text-slate-400 hover:text-clay" title="Remove" type="button">
+          <button onClick={() => remove(i)} className="px-1 text-slate-400 hover:text-clay" title={t("canvas.remove")} type="button">
             ✕
           </button>
         </div>
       ))}
       <button onClick={() => onChange([...value, { a: "", b: "" }])} className="text-sm text-slate2 hover:text-ink" type="button">
-        + Add
+        + {t("canvas.add")}
       </button>
     </div>
   );

@@ -3,21 +3,23 @@
 import { useState } from "react";
 import { PHASES } from "@/lib/exercise";
 import PartnerJobCard from "@/components/PartnerJobCard";
+import { useT } from "@/components/I18nProvider";
 
 export default function InterviewPanel(props: any) {
+  const t = useT();
   const { myWorkspace, partnerWorkspace, partnerProfile, myProfile, updateMine, session, myRole } = props;
-  if (!myWorkspace) return <div className="text-slate2">Loading…</div>;
+  if (!myWorkspace) return <div className="text-slate2">{t("panel.interviewLoading")}</div>;
 
-  const partnerName = partnerProfile?.display_name || "your partner";
+  const partnerName = partnerProfile?.display_name || t("panel.interviewPartnerFallback");
   const phase = PHASES[session.phase] ?? PHASES[1];
   const iAmInterviewer = myRole === phase.interviewer;
   const value = phase.focus === "value";
   const askPrompt = value
-    ? "Dig into the value they create — for the customer, the organization, their manager. How would you know it's working?"
-    : "Understand what they actually do, what matters in it, and what drains them.";
+    ? t("panel.interviewAskValue")
+    : t("panel.interviewAskWork");
   const notesPlaceholder = value
-    ? "What value do they create, and for whom? How would you know? What only they can do?"
-    : "What do they do day to day? What matters most? What eats their time?";
+    ? t("panel.interviewNotesPhValue")
+    : t("panel.interviewNotesPhWork");
 
   // ---- You are being interviewed: just share ----
   if (!iAmInterviewer) {
@@ -26,16 +28,16 @@ export default function InterviewPanel(props: any) {
         <div className="rounded-2xl bg-mist p-8">
           <div className="text-4xl">🗣️</div>
           <h2 className="mt-3 text-xl font-bold text-ink">
-            {partnerName} is interviewing you
+            {t("panel.interviewBeingInterviewed", { name: partnerName })}
           </h2>
           <p className="mt-2 text-slate2">
             {value
-              ? "Nothing to type. Talk about the value you create — for the customer, the organization, your manager. Let them dig."
-              : "Nothing to type. Just talk about your work — what you do and what matters in it. Let them dig."}
+              ? t("panel.interviewBeingValue")
+              : t("panel.interviewBeingWork")}
           </p>
         </div>
         <div className="text-sm text-slate2">
-          When the timer ends, you&apos;ll switch and interview {partnerName}.
+          {t("panel.interviewSwitchNote", { name: partnerName })}
         </div>
       </div>
     );
@@ -46,10 +48,10 @@ export default function InterviewPanel(props: any) {
     <div className="space-y-4">
       <div className="rounded-2xl bg-sage-soft p-5">
         <div className="text-lg font-bold text-ink">
-          🎤 {value ? `Dig deeper with ${partnerName}` : `You're interviewing ${partnerName}`}
+          🎤 {value ? t("panel.interviewDigDeeper", { name: partnerName }) : t("panel.interviewInterviewing", { name: partnerName })}
         </div>
         <p className="mt-1 text-sm text-slate2">
-          {askPrompt} When the timer ends, you&apos;ll switch.
+          {askPrompt} {t("panel.interviewSwitchShort")}
         </p>
       </div>
 
@@ -64,7 +66,7 @@ export default function InterviewPanel(props: any) {
         </div>
 
         <div className="card p-5">
-          <label className="lbl">Your notes on {partnerName}&apos;s value</label>
+          <label className="lbl">{t("panel.interviewNotesLabel", { name: partnerName })}</label>
           <textarea
             className="field min-h-[300px]"
             placeholder={notesPlaceholder}
@@ -86,6 +88,7 @@ function DeeperQuestions({
   jobDescription?: string;
   notes?: string;
 }) {
+  const t = useT();
   const [text, setText] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -101,9 +104,9 @@ function DeeperQuestions({
       });
       const d = await res.json();
       if (d.text) setText(d.text);
-      else setErr(d.reason === "ai-off" ? "AI isn't set up for this session." : "Couldn't get questions.");
+      else setErr(d.reason === "ai-off" ? t("panel.interviewAiOff") : t("panel.interviewCantGet"));
     } catch {
-      setErr("Couldn't get questions.");
+      setErr(t("panel.interviewCantGet"));
     }
     setBusy(false);
   }
@@ -111,9 +114,9 @@ function DeeperQuestions({
   return (
     <div className="card p-4">
       <div className="flex items-center justify-between gap-2">
-        <div className="text-sm font-semibold text-ink">Stuck? Go deeper</div>
+        <div className="text-sm font-semibold text-ink">{t("panel.interviewStuck")}</div>
         <button onClick={go} disabled={busy} className="btn-ghost text-sm">
-          {busy ? "Thinking…" : text ? "More" : "✨ Ask AI"}
+          {busy ? t("room.thinking") : text ? t("panel.interviewMore") : t("panel.interviewAskAI")}
         </button>
       </div>
       {err && <p className="mt-2 text-sm text-clay">{err}</p>}

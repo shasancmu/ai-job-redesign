@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useT } from "@/components/I18nProvider";
 
 export default function SetupPanel(props: any) {
+  const t = useT();
   const { myWorkspace, myProfile, partnerWorkspace, partnerProfile, updateMine, updateProfile } = props;
   const seeded = useRef(false);
 
@@ -25,24 +27,24 @@ export default function SetupPanel(props: any) {
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <div className="card p-6">
-        <div className="mb-1 text-sm font-semibold text-human">Your job today</div>
+        <div className="mb-1 text-sm font-semibold text-human">{t("panel.setupYourJob")}</div>
         <p className="mb-4 text-sm text-slate-500">
-          Your partner will redesign this — so give them something real to work with.
+          {t("panel.setupYourJobHelp")}
         </p>
-        <label className="lbl">Job title</label>
+        <label className="lbl">{t("panel.setupJobTitle")}</label>
         <input
           className="field"
-          placeholder="e.g. Senior Marketing Manager"
+          placeholder={t("panel.setupJobTitlePh")}
           value={myWorkspace.owner_job_title || ""}
           onChange={(e) => {
             updateMine({ owner_job_title: e.target.value });
             updateProfile({ job_title: e.target.value });
           }}
         />
-        <label className="lbl mt-4">In one or two lines, what do you actually do?</label>
+        <label className="lbl mt-4">{t("panel.setupWhatYouDo")}</label>
         <textarea
           className="field"
-          placeholder="What you're responsible for, and where your time goes."
+          placeholder={t("panel.setupWhatYouDoPh")}
           value={myWorkspace.owner_job_description || ""}
           onChange={(e) => {
             updateMine({ owner_job_description: e.target.value });
@@ -54,11 +56,11 @@ export default function SetupPanel(props: any) {
       <div className="card bg-slate-50 p-6">
         <div className="mb-1 text-sm font-semibold text-ai">
           {partnerProfile?.display_name
-            ? `${partnerProfile.display_name}'s job`
-            : "Your partner's job"}
+            ? t("panel.setupPartnerJobNamed", { name: partnerProfile.display_name })
+            : t("panel.setupPartnerJob")}
         </div>
         <p className="mb-4 text-sm text-slate-500">
-          This is what you&apos;ll redesign. It fills in as they type.
+          {t("panel.setupPartnerJobHelp")}
         </p>
         {partnerTitle ? (
           <>
@@ -70,7 +72,7 @@ export default function SetupPanel(props: any) {
         ) : (
           <div className="flex items-center gap-2 text-slate-400">
             <span className="h-2 w-2 animate-pulse rounded-full bg-ai" />
-            Waiting for your partner to describe their job…
+            {t("panel.setupWaiting")}
           </div>
         )}
       </div>
@@ -79,5 +81,6 @@ export default function SetupPanel(props: any) {
 }
 
 function Loading() {
-  return <div className="text-slate-400">Loading…</div>;
+  const t = useT();
+  return <div className="text-slate-400">{t("panel.setupLoading")}</div>;
 }

@@ -7,8 +7,17 @@ import { SOLO_WORKFLOW_STEPS, STEP_ROLES } from "@/lib/workflow";
 import Timer from "@/components/Timer";
 import WorkflowFlow from "@/components/WorkflowFlow";
 import TradeoffPlan from "@/components/TradeoffPlan";
+import { useT } from "@/components/I18nProvider";
+import type { T } from "@/lib/i18n";
 
 type Msg = { role: "user" | "assistant"; content: string };
+
+// Translate with a fallback to the passed-in English (for step titles that live
+// in lib/workflow.ts): if the key is missing, show the original rather than a key.
+function tf(t: T, key: string, fallback: string) {
+  const v = t(key);
+  return v === key ? fallback : v;
+}
 
 function newId() {
   try {
@@ -28,6 +37,7 @@ export default function SoloWorkflowRoom({
   initialDoc: any;
 }) {
   const supabase = createClient();
+  const t = useT();
   const [phase, setPhase] = useState<number>(session.phase || 0);
   const [startedAt, setStartedAt] = useState(session.phase_started_at || new Date().toISOString());
   const [doc, setDoc] = useState<any>({ steps: [], ...initialDoc });
@@ -78,10 +88,10 @@ export default function SoloWorkflowRoom({
         if (r.plan) patch.analysis = { ...analysis, tradeoffs: r.plan };
         if (Object.keys(patch).length) update(patch);
       } else {
-        setTradeoffErr(r.reason === "ai-off" ? "AI isn't set up for this session." : "Couldn't get suggestions — try again.");
+        setTradeoffErr(r.reason === "ai-off" ? t("sworkflow.aiOff") : t("sworkflow.cantSuggest"));
       }
     } catch {
-      setTradeoffErr("Couldn't get suggestions — try again.");
+      setTradeoffErr(t("sworkflow.cantSuggest"));
     }
     setTradeoffBusy(false);
   }
@@ -108,9 +118,9 @@ export default function SoloWorkflowRoom({
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
-            ← Exit
+            ← {t("room.exit")}
           </Link>
-          <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">Workflow · AI partner</span>
+          <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{t("sworkflow.tag")}</span>
         </div>
         <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())} />
       </div>
@@ -130,22 +140,22 @@ export default function SoloWorkflowRoom({
 
       <div className="mb-5">
         <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          Step {phase + 1} of {SOLO_WORKFLOW_STEPS.length} · {step.minutes} min
+          {t("room.step", { n: phase + 1, total: SOLO_WORKFLOW_STEPS.length })} · {t("catalog.min", { n: step.minutes })}
         </div>
-        <h1 className="mt-1 text-2xl font-bold">{step.title}</h1>
-        <p className="mt-1 max-w-3xl text-slate-500">{step.subtitle}</p>
+        <h1 className="mt-1 text-2xl font-bold">{tf(t, "steps.sworkflow." + step.key + ".title", step.title)}</h1>
+        <p className="mt-1 max-w-3xl text-slate-500">{tf(t, "steps.sworkflow." + step.key + ".subtitle", step.subtitle)}</p>
       </div>
 
       <div className="pb-24">
         {step.key === "name" && (
           <div className="space-y-4">
             <div className="card p-5">
-              <label className="lbl">In one line, what is the workflow?</label>
-              <input className="field" placeholder="e.g. Monthly board reporting" {...bind("name")} />
+              <label className="lbl">{t("sworkflow.nameLabel")}</label>
+              <input className="field" placeholder={t("sworkflow.namePh")} {...bind("name")} />
             </div>
             <div className="card p-5">
-              <label className="lbl">Describe it — how does it work today, and what breaks if you don&apos;t redesign it?</label>
-              <textarea className="field min-h-[120px]" placeholder="Walk through what happens, start to finish." {...bind("why")} />
+              <label className="lbl">{t("sworkflow.describeLabel")}</label>
+              <textarea className="field min-h-[120px]" placeholder={t("sworkflow.describePh")} {...bind("why")} />
             </div>
           </div>
         )}
@@ -166,16 +176,16 @@ export default function SoloWorkflowRoom({
           <div className="space-y-5">
             <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="text-sm text-slate-500">
-                Decide where each has to hold the line — then let AI build the plan for how you actually get to better, accuracy, and safe autonomy.
+                {t("sworkflow.tradeoffsIntro")}
               </div>
               <button onClick={suggestTradeoffs} disabled={tradeoffBusy} className="btn-primary text-sm">
-                {tradeoffBusy ? "Thinking…" : analysis.tradeoffs ? "↻ Rebuild the plan" : "✨ Think it through & plan"}
+                {tradeoffBusy ? t("room.thinking") : analysis.tradeoffs ? <>↻ {t("sworkflow.rebuildPlan")}</> : t("sworkflow.thinkItThrough")}
               </button>
             </div>
             {tradeoffErr && <p className="text-sm text-clay">{tradeoffErr}</p>}
-            <TradeoffRow occ="Outcomes" title="More vs. Better" hint="AI pulls toward more. Is that where you want to land?" leftLabel="More (faster, cheaper, more volume)" rightLabel="Better (slower, deeper, stronger)" left={bind("more")} right={bind("better")} />
-            <TradeoffRow occ="Capabilities" title="Accuracy vs. Generality" hint="AI pulls toward generality. What must stay precise?" leftLabel="Must stay exactly right" rightLabel="Roughly right is fine" left={bind("accuracy")} right={bind("generality")} />
-            <TradeoffRow occ="Control" title="Structure vs. Autonomy" hint="AI pulls toward autonomy — without structure, that's chaos." leftLabel="What chaos looks like here" rightLabel="The structure that makes autonomy safe (Architect)" left={bind("chaos")} right={bind("architect")} />
+            <TradeoffRow occ={t("sworkflow.row1Occ")} title={t("sworkflow.row1Title")} hint={t("sworkflow.row1Hint")} leftLabel={t("sworkflow.row1Left")} rightLabel={t("sworkflow.row1Right")} left={bind("more")} right={bind("better")} />
+            <TradeoffRow occ={t("sworkflow.row2Occ")} title={t("sworkflow.row2Title")} hint={t("sworkflow.row2Hint")} leftLabel={t("sworkflow.row2Left")} rightLabel={t("sworkflow.row2Right")} left={bind("accuracy")} right={bind("generality")} />
+            <TradeoffRow occ={t("sworkflow.row3Occ")} title={t("sworkflow.row3Title")} hint={t("sworkflow.row3Hint")} leftLabel={t("sworkflow.row3Left")} rightLabel={t("sworkflow.row3Right")} left={bind("chaos")} right={bind("architect")} />
             <TradeoffPlan plan={analysis.tradeoffs} />
           </div>
         )}
@@ -183,7 +193,7 @@ export default function SoloWorkflowRoom({
         {step.key === "redesign" && (
           <div className="space-y-4">
             <div className="card p-5">
-              <div className="text-xs font-semibold uppercase tracking-wide text-sage">Your AI + Human workflow</div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-sage">{t("sworkflow.aiHumanWorkflow")}</div>
               <div className="mt-1 text-lg font-bold text-ink">{doc.name || "—"}</div>
               {analysis.summary && <p className="mt-1 text-sm text-slate-500">{analysis.summary}</p>}
               <div className="mt-2"><Legend /></div>
@@ -191,7 +201,7 @@ export default function SoloWorkflowRoom({
             </div>
             {analysis.opportunities?.length > 0 && (
               <div className="card p-5">
-                <div className="text-xs font-semibold uppercase tracking-wide text-amber">What to start this week</div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-amber">{t("sworkflow.startThisWeek")}</div>
                 <ul className="mt-2 space-y-2">
                   {analysis.opportunities.map((o: any, i: number) => (
                     <li key={i} className="text-sm text-slate-700">
@@ -202,11 +212,11 @@ export default function SoloWorkflowRoom({
               </div>
             )}
             <div className="card p-5">
-              <label className="lbl">If we actually redesigned this, we&apos;d stop ___ and start ___.</label>
-              <textarea className="field min-h-[110px]" placeholder="We would stop… and start…" {...bind("stop_start")} />
+              <label className="lbl">{t("sworkflow.stopStartLabel")}</label>
+              <textarea className="field min-h-[110px]" placeholder={t("sworkflow.stopStartPh")} {...bind("stop_start")} />
             </div>
             <Link href={`/workflow-plan/${session.code}`} className="btn-primary block text-center">
-              View the full plan →
+              {t("sworkflow.viewFullPlan")} →
             </Link>
           </div>
         )}
@@ -215,15 +225,15 @@ export default function SoloWorkflowRoom({
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">
-            Back
+            {t("room.back")}
           </button>
           {phase < SOLO_WORKFLOW_STEPS.length - 1 ? (
             <button onClick={() => go(phase + 1)} className="btn-primary">
-              Next step →
+              {t("room.next")} →
             </button>
           ) : (
             <Link href="/dashboard" className="btn-primary">
-              Finish
+              {t("room.finish")}
             </Link>
           )}
         </div>
@@ -233,12 +243,13 @@ export default function SoloWorkflowRoom({
 }
 
 function Legend() {
+  const t = useT();
   return (
     <div className="flex flex-wrap items-center gap-3 text-xs text-slate2">
       {STEP_ROLES.map((r) => (
         <span key={r.key} className="flex items-center gap-1.5">
           <span className="h-3 w-3 rounded-full" style={{ backgroundColor: r.color }} />
-          {r.label}
+          {tf(t, "sworkflow.role." + r.key, r.label)}
         </span>
       ))}
     </div>
@@ -256,6 +267,7 @@ function WorkflowInterview({
   chat: Msg[];
   setChat: (m: Msg[]) => void;
 }) {
+  const t = useT();
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -274,12 +286,12 @@ function WorkflowInterview({
         });
         const d = await res.json();
         if (!res.ok) {
-          setErr(d.error || "The AI is unavailable.");
+          setErr(d.error || t("sworkflow.aiUnavailable"));
           return null;
         }
         return d.reply as string;
       } catch {
-        setErr("The AI is unavailable.");
+        setErr(t("sworkflow.aiUnavailable"));
         return null;
       } finally {
         setBusy(false);
@@ -318,7 +330,7 @@ function WorkflowInterview({
     <div className="card flex flex-col p-5" style={{ height: "58vh", minHeight: 400 }}>
       <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto pr-1">
         {chat.length === 0 && busy && (
-          <div className="text-slate-400">The AI is thinking of an opening question…</div>
+          <div className="text-slate-400">{t("sworkflow.openingQ")}</div>
         )}
         {chat.map((m, i) => (
           <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
@@ -340,8 +352,8 @@ function WorkflowInterview({
       </div>
       {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
       <form onSubmit={send} className="mt-3 flex items-center gap-2">
-        <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type your answer…" disabled={busy} />
-        <button className="btn-primary" disabled={busy || !input.trim()}>Send</button>
+        <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t("room.typeAnswer")} disabled={busy} />
+        <button className="btn-primary" disabled={busy || !input.trim()}>{t("room.send")}</button>
       </form>
     </div>
   );
@@ -358,6 +370,7 @@ function MapStep({
   steps: any[];
   setSteps: (s: any[]) => void;
 }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -375,10 +388,10 @@ function MapStep({
       if (r.steps && r.steps.length) {
         setSteps(r.steps.map((s: any) => ({ id: newId(), text: s.text, role: s.role || "human" })));
       } else {
-        setErr(r.reason === "ai-off" ? "AI isn't set up for this session." : "Couldn't draft it — add steps by hand.");
+        setErr(r.reason === "ai-off" ? t("sworkflow.aiOff") : t("sworkflow.cantDraftSteps"));
       }
     } catch {
-      setErr("Couldn't draft it — add steps by hand.");
+      setErr(t("sworkflow.cantDraftSteps"));
     }
     setBusy(false);
   }
@@ -387,10 +400,10 @@ function MapStep({
     <div className="space-y-4">
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
         <div className="text-sm text-slate-500">
-          The workflow exactly as it runs <span className="font-semibold text-ink">today</span> — every step a human does now. You&apos;ll add AI in the next step.
+          {t("sworkflow.mapIntro1")} <span className="font-semibold text-ink">{t("sworkflow.mapToday")}</span> {t("sworkflow.mapIntro2")}
         </div>
         <button onClick={draw} disabled={busy} className="btn-primary text-sm">
-          {busy ? "Drawing…" : steps.length ? "↻ Redraw" : "✨ Draw the current workflow"}
+          {busy ? t("sworkflow.drawing") : steps.length ? <>↻ {t("sworkflow.redraw")}</> : t("sworkflow.drawCurrent")}
         </button>
       </div>
       {err && <p className="text-sm text-clay">{err}</p>}
@@ -400,6 +413,7 @@ function MapStep({
 }
 
 function Field({ label, color, children }: { label: string; color: string; children: any }) {
+  const t = useT();
   if (!children) return null;
   return (
     <div className="mt-3">
@@ -424,6 +438,7 @@ function AnalyzeStep({
   analysis: any;
   update: (p: any) => void;
 }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const opps: any[] = analysis.opportunities || [];
@@ -454,10 +469,10 @@ function AnalyzeStep({
           },
         });
       } else {
-        setErr(r.reason === "ai-off" ? "AI isn't set up for this session." : "Couldn't analyze — try again.");
+        setErr(r.reason === "ai-off" ? t("sworkflow.aiOff") : t("sworkflow.cantAnalyze"));
       }
     } catch {
-      setErr("Couldn't analyze — try again.");
+      setErr(t("sworkflow.cantAnalyze"));
     }
     setBusy(false);
   }
@@ -468,21 +483,21 @@ function AnalyzeStep({
     <div className="space-y-4">
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
         <div className="text-sm text-slate-500">
-          AI reads your real workflow and finds where it genuinely helps — the outcome you want, how AI gets there, and how to prep fast.
+          {t("sworkflow.analyzeIntro")}
         </div>
         <button onClick={analyze} disabled={busy || !steps.length} className="btn-primary text-sm">
-          {busy ? "Analyzing…" : opps.length ? "↻ Re-analyze" : "✨ Analyze with AI"}
+          {busy ? t("sworkflow.analyzing") : opps.length ? <>↻ {t("sworkflow.reAnalyze")}</> : t("sworkflow.analyzeWithAI")}
         </button>
       </div>
 
       {!steps.length && (
-        <p className="text-sm text-clay">Draw the current workflow first (the previous step), then analyze it.</p>
+        <p className="text-sm text-clay">{t("sworkflow.drawFirst")}</p>
       )}
       {err && <p className="text-sm text-clay">{err}</p>}
 
       {analysis.summary && (
         <div className="card p-5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-sage">Where AI helps</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-sage">{t("sworkflow.whereAiHelps")}</div>
           <p className="mt-1 leading-relaxed text-slate-700">{analysis.summary}</p>
         </div>
       )}
@@ -494,9 +509,9 @@ function AnalyzeStep({
               <div className="h-1.5" style={{ background: "#CE8F2C" }} />
               <div className="p-5">
                 <div className="text-base font-bold text-ink">{o.title}</div>
-                <Field label="The outcome" color="#CE8F2C">{o.outcome}</Field>
-                <Field label="How AI does it" color="#CE8F2C">{o.how}</Field>
-                <Field label="Prep fast" color="#CE8F2C">{o.prep}</Field>
+                <Field label={t("sworkflow.theOutcome")} color="#CE8F2C">{o.outcome}</Field>
+                <Field label={t("sworkflow.howAiDoes")} color="#CE8F2C">{o.how}</Field>
+                <Field label={t("sworkflow.prepFast")} color="#CE8F2C">{o.prep}</Field>
               </div>
             </div>
           ))}
@@ -505,8 +520,8 @@ function AnalyzeStep({
 
       {flow.length > 0 && (
         <div className="card p-5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-sage">Redesigned flow — AI + human</div>
-          <p className="mt-1 text-sm text-slate-500">Green stays human; gold is AI. Recolor or edit anything that isn&apos;t right.</p>
+          <div className="text-xs font-semibold uppercase tracking-wide text-sage">{t("sworkflow.redesignedFlow")}</div>
+          <p className="mt-1 text-sm text-slate-500">{t("sworkflow.recolorHint")}</p>
           <div className="mt-3"><Legend /></div>
           <div className="mt-4"><WorkflowFlow steps={flow} onChange={setFlow} /></div>
         </div>
@@ -532,6 +547,7 @@ function TradeoffRow({
   left: any;
   right: any;
 }) {
+  const t = useT();
   return (
     <div className="card p-5">
       <div className="text-xs font-semibold uppercase tracking-wide text-sage">{occ}</div>

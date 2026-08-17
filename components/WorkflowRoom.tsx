@@ -8,8 +8,17 @@ import Timer from "@/components/Timer";
 import PairWaiting from "@/components/PairWaiting";
 import WorkflowFlow from "@/components/WorkflowFlow";
 import TradeoffPlan from "@/components/TradeoffPlan";
+import { useT } from "@/components/I18nProvider";
+import type { T } from "@/lib/i18n";
 
 type Doc = any;
+
+// Translate with a fallback to the passed-in English (for step titles that live
+// in lib/workflow.ts): if the key is missing, show the original rather than a key.
+function tf(t: T, key: string, fallback: string) {
+  const v = t(key);
+  return v === key ? fallback : v;
+}
 
 function newId() {
   try {
@@ -31,6 +40,7 @@ export default function WorkflowRoom({
   initialProfiles: any[];
 }) {
   const supabase = useMemo(() => createClient(), []);
+  const t = useT();
   const [session, setSession] = useState<any>(initialSession);
   const [doc, setDoc] = useState<Doc>({
     steps: [],
@@ -147,10 +157,10 @@ export default function WorkflowRoom({
       if (r.steps && r.steps.length) {
         setSteps(r.steps.map((s: any) => ({ id: newId(), text: s.text, role: s.role || "human" })));
       } else {
-        setGenErr(r.reason === "ai-off" ? "AI isn't set up for this session." : "Couldn't draft it — add steps by hand.");
+        setGenErr(r.reason === "ai-off" ? t("workflow.aiOff") : t("workflow.cantDraft"));
       }
     } catch {
-      setGenErr("Couldn't draft it — add steps by hand.");
+      setGenErr(t("workflow.cantDraft"));
     }
     setGenerating(false);
   }
@@ -184,10 +194,10 @@ export default function WorkflowRoom({
           },
         });
       } else {
-        setAnalyzeErr(r.reason === "ai-off" ? "AI isn't set up for this session." : "Couldn't analyze — try again.");
+        setAnalyzeErr(r.reason === "ai-off" ? t("workflow.aiOff") : t("workflow.cantAnalyze"));
       }
     } catch {
-      setAnalyzeErr("Couldn't analyze — try again.");
+      setAnalyzeErr(t("workflow.cantAnalyze"));
     }
     setAnalyzing(false);
   }
@@ -212,10 +222,10 @@ export default function WorkflowRoom({
         if (r.plan) patch.analysis = { ...analysis, tradeoffs: r.plan };
         if (Object.keys(patch).length) update(patch);
       } else {
-        setTradeoffErr(r.reason === "ai-off" ? "AI isn't set up for this session." : "Couldn't get suggestions — try again.");
+        setTradeoffErr(r.reason === "ai-off" ? t("workflow.aiOff") : t("workflow.cantSuggest"));
       }
     } catch {
-      setTradeoffErr("Couldn't get suggestions — try again.");
+      setTradeoffErr(t("workflow.cantSuggest"));
     }
     setTradeoffBusy(false);
   }
@@ -293,15 +303,15 @@ export default function WorkflowRoom({
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="text-sm text-slate-400 hover:text-slate-600">
-            ← Exit
+            ← {t("room.exit")}
           </Link>
           <span className="rounded-lg bg-slate-100 px-2.5 py-1 font-mono text-sm font-semibold tracking-widest">
             {session.code}
           </span>
           <span className="hidden text-sm text-slate-500 sm:inline">
-            with{" "}
+            {t("workflow.with")}{" "}
             <span className="font-medium text-slate-700">
-              {partnerProfile?.display_name || "your partner"}
+              {partnerProfile?.display_name || t("room.yourPartner")}
             </span>
           </span>
         </div>
@@ -317,7 +327,11 @@ export default function WorkflowRoom({
               key={p.key}
               onClick={() => past && goToPhase(p.index, false)}
               disabled={!past}
-              title={past ? `Review: ${p.title}` : p.title}
+              title={
+                past
+                  ? t("room.reviewStep", { title: tf(t, "steps.workflow." + p.key + ".title", p.title) })
+                  : tf(t, "steps.workflow." + p.key + ".title", p.title)
+              }
               className={
                 "h-1.5 flex-1 rounded-full transition " +
                 (past ? "bg-ink hover:opacity-70" : current ? "bg-ai" : "bg-slate-200")
@@ -329,16 +343,16 @@ export default function WorkflowRoom({
 
       <div className="mb-5">
         <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          Step {session.phase + 1} of {WORKFLOW_STEPS.length} · {step.minutes} min ·
-          shared canvas
+          {t("room.step", { n: session.phase + 1, total: WORKFLOW_STEPS.length })} ·{" "}
+          {t("catalog.min", { n: step.minutes })} · {t("workflow.sharedCanvas")}
         </div>
-        <h1 className="mt-1 text-2xl font-bold">{step.title}</h1>
-        <p className="mt-1 max-w-3xl text-slate-500">{step.subtitle}</p>
+        <h1 className="mt-1 text-2xl font-bold">{tf(t, "steps.workflow." + step.key + ".title", step.title)}</h1>
+        <p className="mt-1 max-w-3xl text-slate-500">{tf(t, "steps.workflow." + step.key + ".subtitle", step.subtitle)}</p>
       </div>
 
       {!partnerHere && (
         <div className="mb-5 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Waiting for your partner to join{" "}
+          {t("workflow.waitingJoin")}{" "}
           <span className="font-mono font-semibold">{session.code}</span>…
         </div>
       )}
@@ -347,16 +361,16 @@ export default function WorkflowRoom({
         {step.key === "name" && (
           <div className="space-y-4">
             <div className="card p-5">
-              <label className="lbl">In one line, what is the workflow?</label>
-              <input className="field" placeholder="e.g. Monthly board reporting" {...bind("name")} />
+              <label className="lbl">{t("workflow.nameLabel")}</label>
+              <input className="field" placeholder={t("workflow.namePh")} {...bind("name")} />
             </div>
             <div className="card p-5">
               <label className="lbl">
-                Describe it — how does it work today, and what breaks if you don&apos;t redesign it?
+                {t("workflow.describeLabel")}
               </label>
               <textarea
                 className="field min-h-[120px]"
-                placeholder="Walk through what happens, start to finish. The more you say, the better AI can draw it next."
+                placeholder={t("workflow.describePh")}
                 {...bind("why")}
               />
             </div>
@@ -367,10 +381,10 @@ export default function WorkflowRoom({
           <div className="space-y-4">
             <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="text-sm text-slate-500">
-                The workflow exactly as it runs <span className="font-semibold text-ink">today</span> — every step a human does now. You&apos;ll add AI next.
+                {t("workflow.mapIntroPre")}{" "}<span className="font-semibold text-ink">{t("workflow.mapIntroToday")}</span>{" "}{t("workflow.mapIntroPost")}
               </div>
               <button onClick={generate} disabled={generating} className="btn-primary text-sm">
-                {generating ? "Drawing…" : steps.length ? "↻ Redraw" : "✨ Draw the current workflow"}
+                {generating ? t("workflow.drawing") : steps.length ? "↻ " + t("workflow.redraw") : t("workflow.drawCurrent")}
               </button>
             </div>
             {genErr && <p className="text-sm text-clay">{genErr}</p>}
@@ -386,18 +400,18 @@ export default function WorkflowRoom({
           <div className="space-y-4">
             <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="text-sm text-slate-500">
-                AI reads your real workflow and finds where it genuinely helps — the outcome you want, how AI gets there, and how to prep fast.
+                {t("workflow.analyzeIntro")}
               </div>
               <button onClick={analyze} disabled={analyzing || !steps.length} className="btn-primary text-sm">
-                {analyzing ? "Analyzing…" : analysis.opportunities?.length ? "↻ Re-analyze" : "✨ Analyze with AI"}
+                {analyzing ? t("workflow.analyzing") : analysis.opportunities?.length ? "↻ " + t("workflow.reanalyze") : t("workflow.analyzeWithAI")}
               </button>
             </div>
-            {!steps.length && <p className="text-sm text-clay">Draw the current workflow first (previous step).</p>}
+            {!steps.length && <p className="text-sm text-clay">{t("workflow.drawFirst")}</p>}
             {analyzeErr && <p className="text-sm text-clay">{analyzeErr}</p>}
 
             {analysis.summary && (
               <div className="card p-5">
-                <div className="text-xs font-semibold uppercase tracking-wide text-sage">Where AI helps</div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-sage">{t("workflow.whereAiHelps")}</div>
                 <p className="mt-1 leading-relaxed text-slate-700">{analysis.summary}</p>
               </div>
             )}
@@ -409,9 +423,9 @@ export default function WorkflowRoom({
                     <div className="h-1.5" style={{ background: "#CE8F2C" }} />
                     <div className="p-5">
                       <div className="text-base font-bold text-ink">{o.title}</div>
-                      <OppField label="The outcome">{o.outcome}</OppField>
-                      <OppField label="How AI does it">{o.how}</OppField>
-                      <OppField label="Prep fast">{o.prep}</OppField>
+                      <OppField label={t("workflow.oppOutcome")}>{o.outcome}</OppField>
+                      <OppField label={t("workflow.oppHow")}>{o.how}</OppField>
+                      <OppField label={t("workflow.oppPrep")}>{o.prep}</OppField>
                     </div>
                   </div>
                 ))}
@@ -420,8 +434,8 @@ export default function WorkflowRoom({
 
             {analysis.flow?.length > 0 && (
               <div className="card p-5">
-                <div className="text-xs font-semibold uppercase tracking-wide text-sage">Redesigned flow — AI + human</div>
-                <p className="mt-1 text-sm text-slate-500">Green stays human; gold is AI. Recolor together — disagreements are the most interesting part.</p>
+                <div className="text-xs font-semibold uppercase tracking-wide text-sage">{t("workflow.redesignedFlow")}</div>
+                <p className="mt-1 text-sm text-slate-500">{t("workflow.recolorHint")}</p>
                 <div className="mt-3"><Legend /></div>
                 <div className="mt-4">
                   <WorkflowFlow
@@ -439,37 +453,37 @@ export default function WorkflowRoom({
           <div className="space-y-5">
             <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="text-sm text-slate-500">
-                Decide where each has to hold the line — then let AI build the plan for how you actually get to better, accuracy, and safe autonomy.
+                {t("workflow.tradeoffsIntro")}
               </div>
               <button onClick={suggestTradeoffs} disabled={tradeoffBusy} className="btn-primary text-sm">
-                {tradeoffBusy ? "Thinking…" : analysis.tradeoffs ? "↻ Rebuild the plan" : "✨ Think it through & plan"}
+                {tradeoffBusy ? t("room.thinking") : analysis.tradeoffs ? "↻ " + t("workflow.rebuildPlan") : t("workflow.thinkThroughPlan")}
               </button>
             </div>
             {tradeoffErr && <p className="text-sm text-clay">{tradeoffErr}</p>}
             <TradeoffRow
-              occ="Outcomes"
-              title="More vs. Better"
-              hint="AI pulls toward more. Is that where you want to land?"
-              leftLabel="More (faster, cheaper, more volume)"
-              rightLabel="Better (slower, deeper, stronger)"
+              occ={t("workflow.occOutcomes")}
+              title={t("workflow.moreVsBetter")}
+              hint={t("workflow.moreHint")}
+              leftLabel={t("workflow.moreLabel")}
+              rightLabel={t("workflow.betterLabel")}
               left={bind("more")}
               right={bind("better")}
             />
             <TradeoffRow
-              occ="Capabilities"
-              title="Accuracy vs. Generality"
-              hint="AI pulls toward generality. What must stay precise?"
-              leftLabel="Must stay exactly right"
-              rightLabel="Roughly right is fine"
+              occ={t("workflow.occCapabilities")}
+              title={t("workflow.accuracyVsGenerality")}
+              hint={t("workflow.accuracyHint")}
+              leftLabel={t("workflow.accuracyLabel")}
+              rightLabel={t("workflow.generalityLabel")}
               left={bind("accuracy")}
               right={bind("generality")}
             />
             <TradeoffRow
-              occ="Control"
-              title="Structure vs. Autonomy"
-              hint="AI pulls toward autonomy — without structure, that's chaos."
-              leftLabel="What chaos looks like here"
-              rightLabel="The structure that makes autonomy safe (Architect)"
+              occ={t("workflow.occControl")}
+              title={t("workflow.structureVsAutonomy")}
+              hint={t("workflow.controlHint")}
+              leftLabel={t("workflow.chaosLabel")}
+              rightLabel={t("workflow.architectLabel")}
               left={bind("chaos")}
               right={bind("architect")}
             />
@@ -481,7 +495,7 @@ export default function WorkflowRoom({
           <div className="space-y-4">
             <div className="card p-5">
               <div className="text-xs font-semibold uppercase tracking-wide text-sage">
-                Your AI + Human workflow
+                {t("workflow.yourAiHumanWorkflow")}
               </div>
               <div className="mt-1 text-lg font-bold text-ink">{doc.name || "—"}</div>
               {analysis.summary && <p className="mt-1 text-sm text-slate-500">{analysis.summary}</p>}
@@ -494,7 +508,7 @@ export default function WorkflowRoom({
             </div>
             {analysis.opportunities?.length > 0 && (
               <div className="card p-5">
-                <div className="text-xs font-semibold uppercase tracking-wide text-amber">What to start this week</div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-amber">{t("workflow.startThisWeek")}</div>
                 <ul className="mt-2 space-y-2">
                   {analysis.opportunities.map((o: any, i: number) => (
                     <li key={i} className="text-sm text-slate-700">
@@ -505,15 +519,15 @@ export default function WorkflowRoom({
               </div>
             )}
             <div className="card p-5">
-              <label className="lbl">If we actually redesigned this, we&apos;d stop ___ and start ___.</label>
+              <label className="lbl">{t("workflow.stopStartLabel")}</label>
               <textarea
                 className="field min-h-[110px]"
-                placeholder="We would stop… and start…"
+                placeholder={t("workflow.stopStartPh")}
                 {...bind("stop_start")}
               />
             </div>
             <Link href={`/workflow-plan/${session.code}`} className="btn-primary block text-center">
-              View the full plan →
+              {t("workflow.viewFullPlan")} →
             </Link>
           </div>
         )}
@@ -526,10 +540,10 @@ export default function WorkflowRoom({
             disabled={session.phase === 0}
             className="btn-ghost"
           >
-            Back
+            {t("room.back")}
           </button>
           <div className="hidden text-sm text-slate-400 sm:block">
-            {timerDone ? "Time's up — move the room on." : "Next unlocks when the timer ends."}
+            {timerDone ? t("workflow.timeUp") : t("room.timerWait")}
           </div>
           {session.phase < WORKFLOW_STEPS.length - 1 ? (
             <button
@@ -537,11 +551,11 @@ export default function WorkflowRoom({
               disabled={!timerDone}
               className="btn-primary"
             >
-              Next step →
+              {t("room.next")} →
             </button>
           ) : (
             <Link href="/dashboard" className="btn-primary">
-              Finish
+              {t("room.finish")}
             </Link>
           )}
         </div>
@@ -551,6 +565,7 @@ export default function WorkflowRoom({
 }
 
 function Legend() {
+  const t = useT();
   return (
     <div className="flex flex-wrap items-center gap-3 text-xs text-slate2">
       {STEP_ROLES.map((r) => (
@@ -564,6 +579,7 @@ function Legend() {
 }
 
 function OppField({ label, children }: { label: string; children: any }) {
+  const t = useT();
   if (!children) return null;
   return (
     <div className="mt-3">
@@ -592,6 +608,7 @@ function TradeoffRow({
   left: any;
   right: any;
 }) {
+  const t = useT();
   return (
     <div className="card p-5">
       <div className="text-xs font-semibold uppercase tracking-wide text-sage">{occ}</div>

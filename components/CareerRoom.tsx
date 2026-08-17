@@ -6,9 +6,14 @@ import { createClient } from "@/lib/supabase/client";
 import { CAREER_STEPS, hasXray } from "@/lib/careerXray";
 import Timer from "@/components/Timer";
 import CareerXrayView from "@/components/CareerXrayView";
+import { useT } from "@/components/I18nProvider";
+import type { T } from "@/lib/i18n";
+
+function tf(t: T, key: string, fallback: string) { const v = t(key); return v === key ? fallback : v; }
 
 export default function CareerRoom({ me, session, mode, initialWorkspace }: { me: string; session: any; mode: "resume" | "jd"; initialWorkspace: any }) {
   const supabase = createClient();
+  const t = useT();
   const [phase, setPhase] = useState<number>(session.phase || 0);
   const [startedAt, setStartedAt] = useState(session.phase_started_at || new Date().toISOString());
   const [ws, setWs] = useState<any>({ canvas: {}, ...initialWorkspace });
@@ -41,14 +46,14 @@ export default function CareerRoom({ me, session, mode, initialWorkspace }: { me
   }
 
   const isJD = mode === "jd";
-  const label = isJD ? "Job description" : "Resume";
+  const label = isJD ? t("career.jdLabel") : t("career.resumeLabel");
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Exit</Link>
-          <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{isJD ? "Role X-ray" : "Career X-ray"}</span>
+          <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
+          <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{isJD ? t("career.roleTag") : t("career.careerTag")}</span>
         </div>
         <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())} />
       </div>
@@ -60,8 +65,8 @@ export default function CareerRoom({ me, session, mode, initialWorkspace }: { me
       </div>
 
       <div className="mb-5">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Step {phase + 1} of {CAREER_STEPS.length} · {step.minutes} min</div>
-        <h1 className="mt-1 text-2xl font-bold">{step.title}</h1>
+        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("room.step", { n: phase + 1, total: CAREER_STEPS.length })} · {t("catalog.min", { n: step.minutes })}</div>
+        <h1 className="mt-1 text-2xl font-bold">{tf(t, "steps.career." + step.key + ".title", step.title)}</h1>
       </div>
 
       <div className="pb-24">
@@ -69,17 +74,17 @@ export default function CareerRoom({ me, session, mode, initialWorkspace }: { me
           <div className="space-y-4">
             <div className="rounded-2xl border border-line bg-mist p-4 text-sm text-slate-600">
               {isJD
-                ? "Paste a job description. AI decomposes it into tasks, scores each for AI exposure, benchmarks it against the occupation, and shows how to find the person for it."
-                : "Paste your resume (or the key parts). AI decomposes it into tasks, scores each for AI exposure, benchmarks you against your occupation, and maps where to lean in and where to go next."}
-              <div className="mt-1.5 text-xs text-slate-400">Private to you — nothing is shown to other participants.</div>
+                ? t("career.introJd")
+                : t("career.introResume")}
+              <div className="mt-1.5 text-xs text-slate-400">{t("career.privateNote")}</div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div><label className="lbl">{isJD ? "Role title" : "Your current role"}</label><input className="field" placeholder="e.g. Senior Marketing Manager" value={state.role || ""} onChange={(e) => setState({ role: e.target.value })} /></div>
-              <div><label className="lbl">Level (optional)</label><input className="field" placeholder="e.g. Manager, VP, IC5" value={state.level || ""} onChange={(e) => setState({ level: e.target.value })} /></div>
+              <div><label className="lbl">{isJD ? t("career.roleTitle") : t("career.currentRole")}</label><input className="field" placeholder={t("solo.jobTitlePh")} value={state.role || ""} onChange={(e) => setState({ role: e.target.value })} /></div>
+              <div><label className="lbl">{t("career.levelOptional")}</label><input className="field" placeholder={t("career.levelPh")} value={state.level || ""} onChange={(e) => setState({ level: e.target.value })} /></div>
             </div>
             <div className="card p-5">
               <label className="lbl">{label}</label>
-              <textarea className="field min-h-[220px]" placeholder={isJD ? "Paste the job description…" : "Paste your resume, or your key experience and responsibilities…"} value={state.text || ""} onChange={(e) => setState({ text: e.target.value })} />
+              <textarea className="field min-h-[220px]" placeholder={isJD ? t("career.pasteJd") : t("career.pasteResume")} value={state.text || ""} onChange={(e) => setState({ text: e.target.value })} />
             </div>
           </div>
         )}
@@ -89,11 +94,11 @@ export default function CareerRoom({ me, session, mode, initialWorkspace }: { me
 
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">Back</button>
+          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">{t("room.back")}</button>
           {phase < CAREER_STEPS.length - 1 ? (
-            <button onClick={() => go(phase + 1)} className="btn-primary">Run the X-ray →</button>
+            <button onClick={() => go(phase + 1)} className="btn-primary">{t("career.runXray")} →</button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">Finish</Link>
+            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>
@@ -102,6 +107,7 @@ export default function CareerRoom({ me, session, mode, initialWorkspace }: { me
 }
 
 function Xray({ mode, state, setState, code }: { mode: "resume" | "jd"; state: any; setState: (p: Record<string, any>) => void; code: string }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const xray = state.xray;
@@ -113,9 +119,9 @@ function Xray({ mode, state, setState, code }: { mode: "resume" | "jd"; state: a
       const res = await fetch("/api/career", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode, text: state.text || "", role: state.role || "", level: state.level || "" }) });
       const d = await res.json();
       if (res.ok && d.xray) setState({ xray: d.xray, mode });
-      else setErr(d.error || "Couldn't run the analysis.");
+      else setErr(d.error || t("career.cantAnalyze"));
     } catch {
-      setErr("Couldn't run the analysis.");
+      setErr(t("career.cantAnalyze"));
     }
     setBusy(false);
   }
@@ -123,14 +129,14 @@ function Xray({ mode, state, setState, code }: { mode: "resume" | "jd"; state: a
   return (
     <div className="space-y-4">
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
-        <div className="text-sm text-slate-500">{(state.text || "").length < 60 ? "Add your text on the previous step first." : "Run the research-grounded exposure analysis."}</div>
-        <button onClick={run} disabled={busy || (state.text || "").length < 60} className="btn-primary text-sm">{busy ? "Analyzing…" : hasXray(xray) ? "↻ Re-run" : "✨ Run the X-ray"}</button>
+        <div className="text-sm text-slate-500">{(state.text || "").length < 60 ? t("career.addTextFirst") : t("career.runGrounded")}</div>
+        <button onClick={run} disabled={busy || (state.text || "").length < 60} className="btn-primary text-sm">{busy ? t("career.analyzing") : hasXray(xray) ? <>↻ {t("career.reRun")}</> : <>✨ {t("career.runXray")}</>}</button>
       </div>
       {err && <p className="text-sm text-clay">{err}</p>}
       {hasXray(xray) && (
         <>
           <CareerXrayView xray={xray} mode={mode} embedded />
-          <Link href={`/career/${code}`} className="btn-primary block text-center">View the full X-ray →</Link>
+          <Link href={`/career/${code}`} className="btn-primary block text-center">{t("career.viewFull")} →</Link>
         </>
       )}
     </div>

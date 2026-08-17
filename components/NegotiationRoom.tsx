@@ -5,8 +5,17 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import Timer from "@/components/Timer";
 import { scenarioByExercise, analyze, yourMaxOf, type Scenario, type MultiScenario, type PriceScenario } from "@/lib/negotiation";
+import { useT } from "@/components/I18nProvider";
+import type { T } from "@/lib/i18n";
 
 type Msg = { role: "user" | "assistant"; content: string };
+
+// Translate with a fallback to the passed-in English: if the key is missing,
+// show the original rather than a raw key.
+function tf(t: T, key: string, fallback: string) {
+  const v = t(key);
+  return v === key ? fallback : v;
+}
 
 const TAG_META: Record<string, { label: string; color: string }> = {
   compatible: { label: "Compatible", color: "#3F7A52" },
@@ -16,12 +25,13 @@ const TAG_META: Record<string, { label: string; color: string }> = {
 
 export default function NegotiationRoom({ me, session, initialWorkspace }: { me: string; session: any; initialWorkspace: any }) {
   const supabase = createClient();
+  const t = useT();
   const scn = scenarioByExercise(session.exercise) as Scenario;
   const STEPS = [
-    { key: "brief", title: "Your brief", minutes: 5 },
-    { key: "negotiate", title: `Negotiate with ${scn.counterpartName}`, minutes: 20 },
-    { key: "deal", title: "Lock the deal", minutes: 3 },
-    { key: "debrief", title: "Debrief", minutes: 6 },
+    { key: "brief", title: tf(t, "steps.nego.brief.title", "Your brief"), minutes: 5 },
+    { key: "negotiate", title: tf(t, "steps.nego.negotiate.title", "Negotiate with {name}").split("{name}").join(scn.counterpartName), minutes: 20 },
+    { key: "deal", title: tf(t, "steps.nego.deal.title", "Lock the deal"), minutes: 3 },
+    { key: "debrief", title: tf(t, "steps.nego.debrief.title", "Debrief"), minutes: 6 },
   ];
 
   const [phase, setPhase] = useState<number>(session.phase || 0);
@@ -59,8 +69,8 @@ export default function NegotiationRoom({ me, session, initialWorkspace }: { me:
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Exit</Link>
-          <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{scn.name} · negotiation</span>
+          <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
+          <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{scn.name} · {t("nego.negotiationTag")}</span>
         </div>
         <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())} />
       </div>
@@ -72,7 +82,7 @@ export default function NegotiationRoom({ me, session, initialWorkspace }: { me:
       </div>
 
       <div className="mb-5">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Step {phase + 1} of {STEPS.length} · {step.minutes} min</div>
+        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("room.step", { n: phase + 1, total: STEPS.length })} · {t("catalog.min", { n: step.minutes })}</div>
         <h1 className="mt-1 text-2xl font-bold">{step.title}</h1>
       </div>
 
@@ -85,11 +95,11 @@ export default function NegotiationRoom({ me, session, initialWorkspace }: { me:
 
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">Back</button>
+          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">{t("room.back")}</button>
           {phase < STEPS.length - 1 ? (
-            <button onClick={() => go(phase + 1)} className="btn-primary">{step.key === "deal" ? "See my score →" : "Next →"}</button>
+            <button onClick={() => go(phase + 1)} className="btn-primary">{step.key === "deal" ? t("nego.seeScore") : t("room.next")} →</button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">Finish</Link>
+            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>
@@ -98,13 +108,14 @@ export default function NegotiationRoom({ me, session, initialWorkspace }: { me:
 }
 
 function Brief({ scn }: { scn: Scenario }) {
+  const t = useT();
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-line bg-mist p-5 text-sm leading-relaxed text-slate-700">{scn.scenario}</div>
       {scn.kind === "multi-issue" ? (
         <div className="card p-5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-sage">Your private priorities</div>
-          <p className="mt-1 text-sm text-slate-500">Higher points = better for you. You can score up to <b>{yourMaxOf(scn)}</b>; your walk-away is worth <b>{scn.yourBatna}</b> — don't accept less.</p>
+          <div className="text-xs font-semibold uppercase tracking-wide text-sage">{t("nego.privatePriorities")}</div>
+          <p className="mt-1 text-sm text-slate-500">{t("nego.priorityIntro1")} <b>{yourMaxOf(scn)}</b>{t("nego.priorityIntro2")} <b>{scn.yourBatna}</b> {t("nego.priorityIntro3")}</p>
           <div className="mt-4 space-y-4">
             {scn.issues.map((iss) => (
               <div key={iss.key}>
@@ -117,16 +128,16 @@ function Brief({ scn }: { scn: Scenario }) {
               </div>
             ))}
           </div>
-          <p className="mt-4 text-sm text-slate-500">The other side has their own priorities — some issues they care about far more than you, and some far less. The best deals trade across them.</p>
+          <p className="mt-4 text-sm text-slate-500">{t("nego.otherSidePriorities")}</p>
         </div>
       ) : (
         <div className="card p-5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-sage">Your position</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-sage">{t("nego.yourPosition")}</div>
           <ul className="mt-2 space-y-1.5 text-sm text-slate-700">
-            <li>• {scn.counterpartName} has {scn.item} listed at <b>${scn.listPrice.toLocaleString()}</b>.</li>
-            <li>• Your walk-away: you will <b>not pay more than ${scn.yourReservation.toLocaleString()}</b> (a dealer van is your backup at that price).</li>
-            <li>• Every dollar under ${scn.yourReservation.toLocaleString()} is money in your pocket. Anchor low, but stay credible.</li>
-            <li>• You don&apos;t know the seller&apos;s floor — there&apos;s a gap to claim if you find it.</li>
+            <li>• {t("nego.posListed1", { name: scn.counterpartName, item: scn.item })} <b>${scn.listPrice.toLocaleString()}</b>.</li>
+            <li>• {t("nego.posWalkA")} <b>{t("nego.posWalkB")} ${scn.yourReservation.toLocaleString()}</b> {t("nego.posWalkC")}</li>
+            <li>• {t("nego.posEveryDollar", { amount: scn.yourReservation.toLocaleString() })}</li>
+            <li>• {t("nego.posFloor")}</li>
           </ul>
         </div>
       )}
@@ -135,6 +146,7 @@ function Brief({ scn }: { scn: Scenario }) {
 }
 
 function Negotiate({ scn, chat, setChat }: { scn: Scenario; chat: Msg[]; setChat: (m: Msg[]) => void }) {
+  const t = useT();
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -147,9 +159,9 @@ function Negotiate({ scn, chat, setChat }: { scn: Scenario; chat: Msg[]; setChat
     try {
       const res = await fetch("/api/negotiation/reply", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ exercise: scn.exercise, messages: history }) });
       const d = await res.json();
-      if (!res.ok) { setErr(d.error || "The counterpart is unavailable."); return null; }
+      if (!res.ok) { setErr(d.error || t("nego.counterpartUnavailable")); return null; }
       return d.reply as string;
-    } catch { setErr("The counterpart is unavailable."); return null; } finally { setBusy(false); }
+    } catch { setErr(t("nego.counterpartUnavailable")); return null; } finally { setBusy(false); }
   }, [scn.exercise]);
 
   useEffect(() => {
@@ -173,7 +185,7 @@ function Negotiate({ scn, chat, setChat }: { scn: Scenario; chat: Msg[]; setChat
   return (
     <div className="card flex flex-col p-5" style={{ height: "60vh", minHeight: 420 }}>
       <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto pr-1">
-        {chat.length === 0 && busy && <div className="text-slate-400">{scn.counterpartName} is opening…</div>}
+        {chat.length === 0 && busy && <div className="text-slate-400">{t("nego.opening", { name: scn.counterpartName })}</div>}
         {chat.map((m, i) => (
           <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
             <div className={"max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed " + (m.role === "user" ? "bg-ink text-white" : "bg-slate-100 text-slate-800")}>{m.content}</div>
@@ -183,26 +195,27 @@ function Negotiate({ scn, chat, setChat }: { scn: Scenario; chat: Msg[]; setChat
       </div>
       {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
       <form onSubmit={send} className="mt-3 flex items-center gap-2">
-        <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={`Reply to ${scn.counterpartName}…`} disabled={busy} />
-        <button className="btn-primary" disabled={busy || !input.trim()}>Send</button>
+        <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t("nego.replyTo", { name: scn.counterpartName })} disabled={busy} />
+        <button className="btn-primary" disabled={busy || !input.trim()}>{t("room.send")}</button>
       </form>
     </div>
   );
 }
 
 function Deal({ scn, terms, noDeal, onTerms, onNoDeal }: { scn: Scenario; terms: Record<string, number>; noDeal: boolean; onTerms: (t: Record<string, number>) => void; onNoDeal: (v: boolean) => void }) {
+  const t = useT();
   return (
     <div className="space-y-4">
       <div className="card p-5">
         {scn.kind === "multi-issue" ? (
           <>
-            <div className="text-sm text-slate-500">Record the deal you reached — pick the agreed option for each issue.</div>
+            <div className="text-sm text-slate-500">{t("nego.recordDeal")}</div>
             <div className="mt-4 space-y-3">
               {scn.issues.map((iss) => (
                 <div key={iss.key} className="flex flex-wrap items-center justify-between gap-2">
                   <label className="text-sm font-medium text-ink">{iss.label}</label>
                   <select className="field" style={{ maxWidth: 220 }} value={terms[iss.key] ?? ""} disabled={noDeal} onChange={(e) => onTerms({ ...terms, [iss.key]: Number(e.target.value) })}>
-                    <option value="">Choose…</option>
+                    <option value="">{t("nego.choose")}</option>
                     {iss.options.map((o, i) => (<option key={o.label} value={i}>{o.label}</option>))}
                   </select>
                 </div>
@@ -211,24 +224,25 @@ function Deal({ scn, terms, noDeal, onTerms, onNoDeal }: { scn: Scenario; terms:
           </>
         ) : (
           <>
-            <div className="text-sm text-slate-500">What price did you agree on for {scn.item}?</div>
+            <div className="text-sm text-slate-500">{t("nego.whatPrice", { item: scn.item })}</div>
             <div className="mt-3 flex items-center gap-2">
               <span className="text-lg text-slate-500">$</span>
               <input type="number" className="field" style={{ maxWidth: 200 }} placeholder="14000" disabled={noDeal} value={terms.price ?? ""} onChange={(e) => onTerms({ price: Number(e.target.value) })} />
             </div>
-            <p className="mt-2 text-xs text-slate-400">Reminder: anything over ${scn.yourReservation.toLocaleString()} is worse than your walk-away.</p>
+            <p className="mt-2 text-xs text-slate-400">{t("nego.reminderOver", { amount: scn.yourReservation.toLocaleString() })}</p>
           </>
         )}
       </div>
       <label className="flex items-center gap-2 text-sm text-slate-600">
         <input type="checkbox" checked={noDeal} onChange={(e) => onNoDeal(e.target.checked)} />
-        {scn.kind === "multi-issue" ? "We couldn't agree — no deal (we both walk to our other options)." : "We couldn't agree — no deal (I'll take the dealer van)."}
+        {scn.kind === "multi-issue" ? t("nego.noDealMulti") : t("nego.noDealPrice")}
       </label>
     </div>
   );
 }
 
 function Debrief({ scn, state, setState }: { scn: Scenario; state: any; setState: (p: Record<string, any>) => void }) {
+  const t = useT();
   const a = analyze(scn, state.terms || {}, !!state.noDeal);
   const [busy, setBusy] = useState(false);
   const feedback = state.feedback;
@@ -248,43 +262,43 @@ function Debrief({ scn, state, setState }: { scn: Scenario; state: any; setState
   return (
     <div className="space-y-4">
       {a.noDeal ? (
-        <div className="card p-5 text-slate-700">No deal — you walked. Sometimes that's right; often a deal was there to be found. See the coach&apos;s take below.</div>
+        <div className="card p-5 text-slate-700">{t("nego.noDealWalked")}</div>
       ) : scn.kind === "multi-issue" ? (
         <>
           <div className="grid gap-3 sm:grid-cols-3">
-            <Stat label="Your score" value={`${a.you}`} sub={`of ${yourMaxOf(scn)} · walk-away ${scn.yourBatna}`} color={a.beatBATNA ? "#3F7A52" : "#B4532E"} />
-            <Stat label={`${scn.counterpartName}'s score`} value={`${a.them}`} />
-            <Stat label="Joint value created" value={`${a.efficiency}%`} sub={`${a.joint} of ${a.maxJoint} possible`} color={effColor} />
+            <Stat label={t("nego.yourScore")} value={`${a.you}`} sub={t("nego.scoreSub", { max: yourMaxOf(scn), batna: scn.yourBatna })} color={a.beatBATNA ? "#3F7A52" : "#B4532E"} />
+            <Stat label={t("nego.theirScore", { name: scn.counterpartName })} value={`${a.them}`} />
+            <Stat label={t("nego.jointValue")} value={`${a.efficiency}%`} sub={t("nego.jointSub", { joint: a.joint, max: a.maxJoint })} color={effColor} />
           </div>
           <div className="card p-5">
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Issue by issue</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("nego.issueByIssue")}</div>
             <div className="mt-3 space-y-2">
               {a.issues!.map((it) => {
-                const t = TAG_META[it.tag];
+                const tg = TAG_META[it.tag];
                 return (
                   <div key={it.key} className="flex flex-wrap items-center justify-between gap-2 border-b border-line/60 pb-2 text-sm">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-ink">{it.label}</span>
-                      <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold text-white" style={{ background: t.color }}>{t.label}</span>
+                      <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold text-white" style={{ background: tg.color }}>{tf(t, "nego.tag_" + it.tag, tg.label)}</span>
                     </div>
                     <div className="flex items-center gap-3 text-slate-600">
                       <span>{it.chosen}</span>
-                      <span className="text-xs">you <b className="text-sage">+{it.you}</b> · them +{it.them}</span>
-                      {it.atOptimal ? <span className="text-xs font-semibold text-sage">✓ joint-best</span> : <span className="text-xs text-slate-400" title={`Joint-best: ${it.optimal}`}>↑ {it.optimal}</span>}
+                      <span className="text-xs">{t("nego.you")} <b className="text-sage">+{it.you}</b> · {t("nego.them")} +{it.them}</span>
+                      {it.atOptimal ? <span className="text-xs font-semibold text-sage">✓ {t("nego.jointBest")}</span> : <span className="text-xs text-slate-400" title={t("nego.jointBestTitle", { optimal: it.optimal })}>↑ {it.optimal}</span>}
                     </div>
                   </div>
                 );
               })}
             </div>
-            <p className="mt-3 text-xs text-slate-400">Green = both sides wanted the same option (don&apos;t fight over it). Amber = trade it. Clay = zero-sum, pure claiming.</p>
+            <p className="mt-3 text-xs text-slate-400">{t("nego.legend")}</p>
           </div>
         </>
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-3">
-            <Stat label="Agreed price" value={`$${(a.agreedPrice || 0).toLocaleString()}`} color={a.beatBATNA ? "#14283A" : "#B4532E"} />
-            <Stat label="You saved" value={`$${a.you.toLocaleString()}`} sub={`vs. your $${(scn as PriceScenario).yourReservation.toLocaleString()} walk-away`} color="#3F7A52" />
-            <Stat label="Your share of the gap" value={`${a.efficiency ? Math.round((a.you / a.maxJoint) * 100) : 0}%`} sub={`the seller's floor was $${(scn as PriceScenario).theirReservation.toLocaleString()}`} color={effColor} />
+            <Stat label={t("nego.agreedPrice")} value={`$${(a.agreedPrice || 0).toLocaleString()}`} color={a.beatBATNA ? "#14283A" : "#B4532E"} />
+            <Stat label={t("nego.youSaved")} value={`$${a.you.toLocaleString()}`} sub={t("nego.savedSub", { amount: (scn as PriceScenario).yourReservation.toLocaleString() })} color="#3F7A52" />
+            <Stat label={t("nego.yourShare")} value={`${a.efficiency ? Math.round((a.you / a.maxJoint) * 100) : 0}%`} sub={t("nego.shareSub", { amount: (scn as PriceScenario).theirReservation.toLocaleString() })} color={effColor} />
           </div>
           <ZopaBar scn={scn as PriceScenario} price={a.agreedPrice || 0} />
         </>
@@ -292,8 +306,8 @@ function Debrief({ scn, state, setState }: { scn: Scenario; state: any; setState
 
       <div className="card p-5">
         <div className="flex items-center justify-between">
-          <div className="text-sm font-semibold text-ink">Coach&apos;s debrief</div>
-          {!feedback && <button onClick={coach} disabled={busy} className="btn-primary text-sm">{busy ? "Thinking…" : "✨ Get feedback"}</button>}
+          <div className="text-sm font-semibold text-ink">{t("nego.coachDebrief")}</div>
+          {!feedback && <button onClick={coach} disabled={busy} className="btn-primary text-sm">{busy ? t("room.thinking") : "✨ " + t("nego.getFeedback")}</button>}
         </div>
         {feedback && <p className="mt-2 whitespace-pre-wrap leading-relaxed text-slate-700">{feedback}</p>}
       </div>
@@ -302,25 +316,27 @@ function Debrief({ scn, state, setState }: { scn: Scenario; state: any; setState
 }
 
 function ZopaBar({ scn, price }: { scn: PriceScenario; price: number }) {
+  const t = useT();
   const lo = scn.theirReservation, hi = scn.yourReservation;
   const pct = Math.max(0, Math.min(100, ((price - lo) / (hi - lo)) * 100));
   return (
     <div className="card p-5">
-      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">The zone of possible agreement</div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("nego.zopaTitle")}</div>
       <div className="relative mt-6 h-2 rounded-full" style={{ background: "linear-gradient(90deg,#3F7A52,#CE8F2C,#B4532E)" }}>
         <div className="absolute -top-6 -translate-x-1/2 text-xs font-semibold text-ink" style={{ left: `${pct}%` }}>${price.toLocaleString()}</div>
         <div className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-ink" style={{ left: `${pct}%` }} />
       </div>
       <div className="mt-2 flex justify-between text-xs text-slate-500">
-        <span>${lo.toLocaleString()} (seller&apos;s floor)</span>
-        <span>${hi.toLocaleString()} (your ceiling)</span>
+        <span>${lo.toLocaleString()} {t("nego.sellersFloor")}</span>
+        <span>${hi.toLocaleString()} {t("nego.yourCeiling")}</span>
       </div>
-      <p className="mt-2 text-xs text-slate-400">Left = you claimed more of the gap; right = the seller did.</p>
+      <p className="mt-2 text-xs text-slate-400">{t("nego.zopaHint")}</p>
     </div>
   );
 }
 
 function Stat({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
+  const t = useT();
   return (
     <div className="rounded-xl bg-mist p-4">
       <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</div>

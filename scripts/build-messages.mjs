@@ -84,6 +84,7 @@ Rules:
 - Keep placeholders like {name}, {n}, {code}, {total}, {title} EXACTLY, in place.
 - Keep leading UI symbols/arrows (▸ ▾ ✓ → ✨ ·) in place; mirror arrows naturally if the language is right-to-left.
 - Use natural, native ${language} that a professional expects in software UI — not literal word-for-word.
+- Do NOT put unescaped double-quote (") characters inside a value — it breaks the JSON. If you need quotation marks, use guillemets («») or single quotes.
 - Return ONLY the JSON object, same keys, translated values, no prose, no code fences.`;
   const res = await fetch(`${BASE}/chat/completions`, {
     method: "POST",
@@ -130,11 +131,26 @@ async function buildLocale(code, language, en, hashes) {
     return unflatten(out);
   }
 
-  // Batch to keep each request small and reliable.
+  // Batch to keep each request small and reliable. If a batch comes back as
+  // invalid JSON (a model can mangle quotes), retry it key-by-key; anything
+  // that still fails keeps its English (the UI falls back gracefully anyway).
   const BATCH = 40;
   for (let i = 0; i < toTranslate.length; i += BATCH) {
     const chunk = toTranslate.slice(i, i + BATCH);
-    const translated = await translateBatch(language, chunk);
+    let translated;
+    try {
+      translated = await translateBatch(language, chunk);
+    } catch {
+      translated = {};
+      for (const [k, v] of chunk) {
+        try {
+          const one = await translateBatch(language, [[k, v]]);
+          translated[k] = one[k];
+        } catch {
+          translated[k] = v; // keep English for this one
+        }
+      }
+    }
     for (const [key] of chunk) {
       out[key] = translated[key] !== undefined ? translated[key] : en[key];
     }

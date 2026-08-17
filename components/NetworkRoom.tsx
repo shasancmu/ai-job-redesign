@@ -3,12 +3,22 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { useT } from "@/components/I18nProvider";
+import type { T } from "@/lib/i18n";
 
 type Person = { id: string; name: string };
 type Step = "loading" | "name" | "advice" | "friends" | "done";
 
+// Translate with a fallback to the passed-in English: if the key is missing,
+// show the original rather than a key.
+function tf(t: T, key: string, fallback: string) {
+  const v = t(key);
+  return v === key ? fallback : v;
+}
+
 export default function NetworkRoom({ me, session }: { me: string; session: any }) {
   const supabase = createClient();
+  const t = useT();
   const cohort = session.cohort || "__untagged__";
   const [step, setStep] = useState<Step>("loading");
   const [roster, setRoster] = useState<Person[]>([]);
@@ -58,7 +68,7 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
   }
 
   async function removeMe() {
-    if (!confirm("Remove your name and answers, and start over?")) return;
+    if (!confirm(t("group.netRemoveConfirm"))) return;
     await fetch("/api/network/leave", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -104,17 +114,17 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
     <main className="mx-auto max-w-lg px-5 py-8">
       <div className="mb-5 flex items-center justify-between">
         <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
-          ← Exit
+          ← {t("room.exit")}
         </Link>
-        <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">The Network</span>
+        <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{t("group.netTag")}</span>
       </div>
 
-      {step === "loading" && <div className="text-slate2">Loading…</div>}
+      {step === "loading" && <div className="text-slate2">{t("group.netLoading")}</div>}
 
       {step === "name" && (
         <div>
-          <h1 className="text-2xl font-bold text-ink">Who are you?</h1>
-          <p className="mt-1 text-slate2">Find your name, or add it if you&apos;re not listed.</p>
+          <h1 className="text-2xl font-bold text-ink">{t("group.netWhoAreYou")}</h1>
+          <p className="mt-1 text-slate2">{t("group.netFindName")}</p>
           <SelfPicker
             roster={roster}
             selfId={selfId}
@@ -123,12 +133,12 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
           />
           {selfId && (
             <button onClick={removeMe} className="mt-3 text-sm text-clay hover:underline">
-              That&apos;s not me — remove & start over
+              {t("group.netNotMeRestart")}
             </button>
           )}
           <StickyNext
             disabled={!selfId}
-            label="Next"
+            label={t("group.next")}
             onClick={async () => {
               await loadRoster();
               setStep("advice");
@@ -139,8 +149,8 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
 
       {step === "advice" && (
         <NominateStep
-          title="Advice"
-          question="Who have you gone to for career or program advice? Pick as many as you like."
+          title={t("group.netAdviceTitle")}
+          question={t("group.netAdviceQ")}
           roster={roster}
           excludeId={selfId}
           selected={advice}
@@ -153,8 +163,8 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
 
       {step === "friends" && (
         <NominateStep
-          title="Friends"
-          question="Who do you consider a personal friend? Pick as many as you like."
+          title={t("group.netFriendsTitle")}
+          question={t("group.netFriendsQ")}
           roster={roster}
           excludeId={selfId}
           selected={friends}
@@ -162,7 +172,7 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
           onRefresh={loadRoster}
           onBack={() => setStep("advice")}
           onNext={submit}
-          nextLabel={busy ? "Submitting…" : "Submit"}
+          nextLabel={busy ? t("group.netSubmitting") : t("group.netSubmit")}
         />
       )}
 
@@ -170,19 +180,19 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
         <div>
           <div className="card p-8 text-center">
             <div className="text-3xl">🕸️</div>
-            <h1 className="mt-2 text-2xl font-bold text-ink">Thanks{selfName ? `, ${selfName}` : ""}!</h1>
+            <h1 className="mt-2 text-2xl font-bold text-ink">{t("group.netThanks")}{selfName ? `, ${selfName}` : ""}!</h1>
             <p className="mt-2 text-slate2">
-              Your answers are in. Watch the screen — the network is drawing itself.
+              {t("group.netAnswersIn")}
             </p>
           </div>
 
           {insight === undefined && (
-            <div className="mt-4 text-center text-sm text-slate2">Reading your network…</div>
+            <div className="mt-4 text-center text-sm text-slate2">{t("group.netReading")}</div>
           )}
           {typeof insight === "string" && (
             <div className="card mt-4 p-6">
               <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-sage">
-                Your network, in a nutshell
+                {t("group.netNutshell")}
               </div>
               <p className="whitespace-pre-wrap leading-relaxed text-ink">{insight}</p>
             </div>
@@ -190,10 +200,10 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
 
           <div className="mt-5 flex flex-wrap justify-center gap-3">
             <button onClick={() => setStep("advice")} className="btn-ghost">
-              Edit my answers
+              {t("group.netEditAnswers")}
             </button>
             <button onClick={removeMe} className="text-sm text-clay hover:underline">
-              That&apos;s not me — remove me
+              {t("group.netNotMeRemove")}
             </button>
           </div>
         </div>
@@ -213,6 +223,7 @@ function SelfPicker({
   onPick: (id: string) => void;
   onAdd: (name: string) => void;
 }) {
+  const t = useT();
   const [q, setQ] = useState("");
   const filtered = roster.filter((r) => r.name.toLowerCase().includes(q.toLowerCase()));
   const exact = roster.some((r) => r.name.trim().toLowerCase() === q.trim().toLowerCase());
@@ -220,7 +231,7 @@ function SelfPicker({
     <div className="mt-4">
       <input
         className="field"
-        placeholder="Type your name…"
+        placeholder={t("group.netTypeName")}
         value={q}
         onChange={(e) => setQ(e.target.value)}
         autoFocus
@@ -244,7 +255,7 @@ function SelfPicker({
             onClick={() => onAdd(q.trim())}
             className="w-full rounded-xl border border-dashed border-sage px-4 py-3 text-left text-sage"
           >
-            ＋ Add &ldquo;{q.trim()}&rdquo; as my name
+            ＋ {t("group.netAddName", { name: q.trim() })}
           </button>
         )}
       </div>
@@ -262,7 +273,7 @@ function NominateStep({
   onRefresh,
   onBack,
   onNext,
-  nextLabel = "Next",
+  nextLabel,
 }: {
   title: string;
   question: string;
@@ -275,6 +286,7 @@ function NominateStep({
   onNext: () => void;
   nextLabel?: string;
 }) {
+  const t = useT();
   const [q, setQ] = useState("");
   const people = useMemo(() => roster.filter((r) => r.id !== excludeId), [roster, excludeId]);
   const filtered = people.filter((r) => r.name.toLowerCase().includes(q.toLowerCase()));
@@ -293,15 +305,15 @@ function NominateStep({
       <div className="mt-3 flex items-center gap-2">
         <input
           className="field"
-          placeholder={`Search ${people.length} names…`}
+          placeholder={t("group.netSearchNames", { n: people.length })}
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
-        <button onClick={onRefresh} title="Refresh list" className="btn-ghost">
+        <button onClick={onRefresh} title={t("group.netRefresh")} className="btn-ghost">
           ↻
         </button>
       </div>
-      <div className="mt-2 text-sm text-slate2">{selected.size} selected</div>
+      <div className="mt-2 text-sm text-slate2">{t("group.netSelected", { n: selected.size })}</div>
 
       <div className="mt-2 max-h-[52vh] space-y-1.5 overflow-y-auto">
         {filtered.map((r) => {
@@ -332,10 +344,10 @@ function NominateStep({
       <div className="fixed inset-x-0 bottom-0 border-t border-line bg-paper/90 backdrop-blur">
         <div className="mx-auto flex max-w-lg items-center justify-between gap-3 px-5 py-3">
           <button onClick={onBack} className="btn-ghost">
-            Back
+            {t("room.back")}
           </button>
           <button onClick={onNext} className="btn-primary">
-            {nextLabel}
+            {nextLabel ?? t("group.next")}
           </button>
         </div>
       </div>
@@ -352,6 +364,7 @@ function StickyNext({
   label: string;
   onClick: () => void;
 }) {
+  const t = useT();
   return (
     <div className="fixed inset-x-0 bottom-0 border-t border-line bg-paper/90 backdrop-blur">
       <div className="mx-auto flex max-w-lg justify-end px-5 py-3">

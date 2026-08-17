@@ -1,27 +1,29 @@
 "use client";
 
 import { AI_CELLS, HUMAN_CELLS, FEEDBACK_FIELDS, Cell } from "@/lib/exercise";
+import { useT } from "@/components/I18nProvider";
 
 export default function SharePanel(props: any) {
+  const t = useT();
   const { partnerWorkspace, partnerProfile, updatePartnerFeedback } = props;
 
   if (!partnerWorkspace) {
     return (
       <div className="card p-8 text-center text-slate-400">
-        Waiting for your partner&apos;s redesign to arrive…
+        {t("panel.shareWaiting")}
       </div>
     );
   }
 
   const fb = partnerWorkspace.feedback || {};
-  const partnerName = partnerProfile?.display_name || "Your partner";
+  const partnerName = partnerProfile?.display_name || t("panel.sharePartnerFallback");
 
   return (
     <div className="grid gap-5 lg:grid-cols-[1.3fr_1fr]">
       {/* The reveal: what my partner designed for MY job */}
       <div className="card p-5">
         <div className="text-xs font-semibold uppercase tracking-wide text-ai">
-          {partnerName}&apos;s redesign of your job
+          {t("panel.shareRedesignHeader", { name: partnerName })}
         </div>
 
         {partnerWorkspace.new_job_description ? (
@@ -30,30 +32,29 @@ export default function SharePanel(props: any) {
           </p>
         ) : (
           <p className="mt-2 text-slate-400">
-            They&apos;re still writing your new job description…
+            {t("panel.shareStillWriting")}
           </p>
         )}
 
         {partnerWorkspace.real_job && (
           <div className="mt-4 rounded-lg bg-slate-50 p-3 text-sm">
             <span className="font-semibold text-slate-700">
-              What they think your real job is:{" "}
+              {t("panel.shareRealJobLabel")}
             </span>
             <span className="text-slate-600">{partnerWorkspace.real_job}</span>
           </div>
         )}
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <GridSide title="They gave AI" role="ai" cells={AI_CELLS} grid={partnerWorkspace.grid || {}} />
-          <GridSide title="They kept human" role="human" cells={HUMAN_CELLS} grid={partnerWorkspace.grid || {}} />
+          <GridSide title={t("panel.shareGaveAI")} role="ai" cells={AI_CELLS} grid={partnerWorkspace.grid || {}} />
+          <GridSide title={t("panel.shareKeptHuman")} role="human" cells={HUMAN_CELLS} grid={partnerWorkspace.grid || {}} />
         </div>
       </div>
 
       {/* My reaction → becomes their feedback */}
       <div className="space-y-3">
         <div className="text-sm text-slate-500">
-          Talk it through on Zoom, then capture your reactions. {partnerName}{" "}
-          sees these as feedback on their design.
+          {t("panel.shareTalkThrough", { name: partnerName })}
         </div>
         {FEEDBACK_FIELDS.map((f) => (
           <div key={f.key} className="card p-4">
@@ -89,6 +90,7 @@ function GridSide({
   cells: Cell[];
   grid: Record<string, string[]>;
 }) {
+  const t = useT();
   const accent = role === "ai" ? "text-ai" : "text-human";
   return (
     <div>
@@ -114,7 +116,7 @@ function GridSide({
           );
         })}
         {cells.every((c) => (grid[c.key] || []).length === 0) && (
-          <div className="text-sm text-slate-400">— nothing assigned yet —</div>
+          <div className="text-sm text-slate-400">{t("panel.shareNothingAssigned")}</div>
         )}
       </div>
     </div>
