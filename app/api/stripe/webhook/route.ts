@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
-import { grantFromSession } from "@/lib/grant";
+import { grantFromSession, syncSubscription } from "@/lib/grant";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,8 +22,21 @@ export async function POST(request: Request) {
     });
   }
 
-  if (event.type === "checkout.session.completed") {
-    await grantFromSession(event.data.object as Stripe.Checkout.Session);
+  switch (event.type) {
+    case "checkout.session.completed":
+      await grantFromSession(event.data.object as Stripe.Checkout.Session);
+      break;
+    // Renewal / cancellation of the $29/yr plan — refresh or lapse the period.
+    case "customer.subscription.updated":
+    case "customer.subscription.deleted":
+      await syncSubscription(event.data.object as Stripe.Subscription);
+      break;
+    case "invoice.paid": {
+      const inv = event.data.object as any; // subscription field varies by API version
+      const subId = typeof inv.subscription === "string" ? inv.subscription : inv.subscription?.id;
+      if (subId) await syncSubscription(await getStripe().subscriptions.retrieve(subId));
+      break;
+    }
   }
 
   return Response.json({ received: true });

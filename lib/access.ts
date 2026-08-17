@@ -37,6 +37,12 @@ async function activeEnts(supabase: SupabaseClient, userId: string): Promise<Ent
   return (data || []).filter((r: any) => !r.current_period_end || new Date(r.current_period_end).getTime() > now) as Ent[];
 }
 
+// The set of active entitlement targets ("all" and/or slugs) — expired
+// subscriptions excluded. For catalog display + the paywall's already-owned check.
+export async function activeEntitlements(supabase: SupabaseClient, userId: string): Promise<Set<string>> {
+  return new Set((await activeEnts(supabase, userId)).map((e) => e.module));
+}
+
 // How many times this person has run an exercise (as host or guest), optionally
 // only counting runs since a timestamp (used to reset paid runs each period).
 async function runsUsed(supabase: SupabaseClient, userId: string, exercise: string, since?: string | null): Promise<number> {

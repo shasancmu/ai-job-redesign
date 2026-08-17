@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getEntitlements } from "@/lib/entitlement";
+import { activeEntitlements, FREE_TIER_MODULES } from "@/lib/access";
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { isAdmin } from "@/lib/admin";
 import { titleCaseName } from "@/lib/name";
@@ -59,11 +59,19 @@ export default async function Dashboard({
   }
 
   const instructor = isAdmin(user.email);
-  const ents = await getEntitlements(supabase, user.id);
+  const ents = await activeEntitlements(supabase, user.id);
   const unlocked: Record<string, boolean> = {};
   for (const m of MODULES) {
+    // "Unlocked" = startable from the catalog. Free-tier modules qualify (they
+    // carry their own per-run cap, enforced at room entry); paid modules need an
+    // entitlement. Cohort-scoped access is applied on the class view separately.
     unlocked[m.slug] =
-      m.forSale === false || !PAYMENTS_ENABLED || instructor || ents.has("all") || ents.has(m.slug);
+      m.forSale === false ||
+      !PAYMENTS_ENABLED ||
+      instructor ||
+      ents.has("all") ||
+      ents.has(m.slug) ||
+      FREE_TIER_MODULES.has(m.slug);
   }
 
   const { data: sessions } = await supabase

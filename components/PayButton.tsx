@@ -4,10 +4,10 @@ import { useState } from "react";
 
 export default function PayButton({
   label,
-  module = "all",
+  plan = "all",
 }: {
   label: string;
-  module?: string;
+  plan?: "all" | "cohort";
 }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -19,7 +19,7 @@ export default function PayButton({
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ module }),
+        body: JSON.stringify({ plan }),
       });
       const data = await res.json();
       if (data.url) {
