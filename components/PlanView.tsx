@@ -5,17 +5,24 @@ import Link from "next/link";
 import Logo from "@/components/Logo";
 
 type Human = { task: string; value: string; excel: string };
-type AI = { task: string; how: string; prompt: string; cadence: string; check: string };
-type Plan = { headline: string; summary: string; superadditive: string; human: Human[]; ai: AI[] };
+type AI = { task: string; how: string; look?: string; prompt: string; cadence: string; check: string };
+type Plan = {
+  headline: string;
+  summary: string;
+  superadditive: string;
+  allocation?: string;
+  human: Human[];
+  ai: AI[];
+};
 
 const SAGE = "#3F7A52";
 const GOLD = "#CE8F2C";
 
-export default function PlanView({ plan }: { plan: Plan }) {
+export default function PlanView({ plan, embedded = false }: { plan: Plan; embedded?: boolean }) {
   return (
-    <main className="min-h-screen">
+    <main className={embedded ? "" : "min-h-screen"}>
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-line">
+      <section className={"relative overflow-hidden " + (embedded ? "rounded-2xl border border-line" : "border-b border-line")}>
         <div
           className="pointer-events-none absolute -right-24 -top-24 h-[380px] w-[380px] rounded-full opacity-60"
           style={{ background: "radial-gradient(circle at 50% 50%, rgba(206,143,44,.35), transparent 70%)" }}
@@ -24,16 +31,18 @@ export default function PlanView({ plan }: { plan: Plan }) {
           className="pointer-events-none absolute -bottom-24 -left-20 h-[320px] w-[320px] rounded-full opacity-50"
           style={{ background: "radial-gradient(circle at 50% 50%, rgba(63,122,82,.30), transparent 70%)" }}
         />
-        <div className="relative mx-auto max-w-4xl px-6 py-14">
-          <div className="flex items-center justify-between">
-            <Logo />
-            <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
-              ← Done
-            </Link>
-          </div>
-          <div className="mt-10">
+        <div className={"relative mx-auto max-w-4xl px-6 " + (embedded ? "py-10" : "py-14")}>
+          {!embedded && (
+            <div className="flex items-center justify-between">
+              <Logo />
+              <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
+                ← Done
+              </Link>
+            </div>
+          )}
+          <div className={embedded ? "" : "mt-10"}>
             <div className="eyebrow">Your reimagined role</div>
-            <h1 className="display mt-3 text-4xl text-ink sm:text-5xl">
+            <h1 className={"display mt-3 text-ink " + (embedded ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl")}>
               {plan.headline || "Reimagined role"}
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate2">{plan.summary}</p>
@@ -49,6 +58,19 @@ export default function PlanView({ plan }: { plan: Plan }) {
           </div>
         </div>
       </section>
+
+      {/* Where your week goes — time re-allocation */}
+      {plan.allocation && (
+        <section className="mx-auto max-w-4xl px-6 pt-10">
+          <div className="card overflow-hidden p-0">
+            <div className="h-1.5" style={{ background: `linear-gradient(90deg, ${SAGE}, ${GOLD})` }} />
+            <div className="p-6">
+              <div className="eyebrow">Where your week goes</div>
+              <p className="mt-2 text-base leading-relaxed text-ink">{plan.allocation}</p>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Two halves */}
       <section className="mx-auto max-w-5xl px-6 py-12">
@@ -91,6 +113,7 @@ export default function PlanView({ plan }: { plan: Plan }) {
                       )}
                     </div>
                     <Field label="How" color={GOLD}>{a.how}</Field>
+                    {a.look && <Field label="Where to look" color={GOLD}>{a.look}</Field>}
                     {a.prompt && <PromptBlock prompt={a.prompt} />}
                     <Field label="You check" color={GOLD}>{a.check}</Field>
                   </div>

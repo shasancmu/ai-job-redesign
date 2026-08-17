@@ -116,7 +116,7 @@ export default function Catalog({
                   ) : (
                     <button
                       onClick={() => startSolo(m.slug, m.exercise)}
-                      disabled={busy !== null}
+                      disabled={busy === m.slug}
                       className="btn-primary w-full"
                     >
                       {busy === m.slug ? "Starting…" : completed[m.slug] ? "Do it again" : "Start"}

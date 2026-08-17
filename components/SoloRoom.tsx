@@ -130,20 +130,21 @@ export default function SoloRoom({
             {ws.new_job_description && (
               <div className="card bg-slate-50 p-4">
                 <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                  Your draft
+                  Your reimagined job
                 </div>
                 <p className="mt-1 whitespace-pre-wrap text-slate-600">{ws.new_job_description}</p>
               </div>
             )}
-            <div className="card p-5">
-              <label className="lbl">Your reimagined job — final version</label>
-              <textarea
-                className="field min-h-[150px]"
-                placeholder="In my reimagined role, I…"
-                value={ws.final_description || ""}
-                onChange={(e) => update({ final_description: e.target.value })}
-              />
-            </div>
+            <BuildPlan
+              inline
+              sessionId={session.id}
+              code={session.code}
+              jobTitle={ws.owner_job_title}
+              jobDescription={ws.owner_job_description}
+              grid={ws.grid || {}}
+              initialPlan={ws.plan || null}
+              onPlan={(plan) => update({ plan })}
+            />
           </div>
         )}
       </div>
@@ -337,13 +338,9 @@ function Redesign({ ws, update, session }: { ws: any; update: (p: any) => void; 
         />
       </div>
 
-      <BuildPlan
-        sessionId={session.id}
-        code={session.code}
-        jobTitle={ws.owner_job_title}
-        jobDescription={ws.owner_job_description}
-        grid={ws.grid || {}}
-      />
+      <p className="text-center text-sm text-slate2">
+        Next step turns this into your plan — where your time goes, and how to actually use AI.
+      </p>
     </div>
   );
 }

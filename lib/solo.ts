@@ -32,8 +32,9 @@ export const SOLO_STEPS: SoloStep[] = [
   {
     key: "final",
     index: 3,
-    title: "The reimagined job",
-    subtitle: "Write the final version in one paragraph.",
-    minutes: 2,
+    title: "Make it real",
+    subtitle:
+      "Where your week should go, the value you lead, and the AI recipes — with where to look — to start this week.",
+    minutes: 4,
   },
 ];

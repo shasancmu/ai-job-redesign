@@ -47,14 +47,59 @@ async function complete(
 }
 
 // Parse JSON from a model reply, tolerating markdown fences / surrounding prose.
+// Different providers wrap JSON differently (Groq is clean; Claude often adds a
+// preamble or a ```json fence, and prose can contain stray { } that a naive
+// first-to-last slice would choke on), so we try several strategies in order.
 function extractJson(raw: string): any {
-  let s = String(raw).trim();
+  const s = String(raw).trim();
+  const candidates: string[] = [];
+  // 1) as-is
+  candidates.push(s);
+  // 2) inside a ```json … ``` (or plain ```) fence
   const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (fence) s = fence[1].trim();
+  if (fence) candidates.push(fence[1].trim());
+  // 3) the first *balanced* {…} object, respecting quotes/escapes
+  const balanced = firstBalancedObject(s);
+  if (balanced) candidates.push(balanced);
+  // 4) crude first-brace to last-brace fallback
   const first = s.indexOf("{");
   const last = s.lastIndexOf("}");
-  if (first >= 0 && last > first) s = s.slice(first, last + 1);
-  return JSON.parse(s);
+  if (first >= 0 && last > first) candidates.push(s.slice(first, last + 1));
+
+  for (const c of candidates) {
+    try {
+      return JSON.parse(c);
+    } catch {
+      /* try the next strategy */
+    }
+  }
+  throw new Error("no parseable JSON in model reply");
+}
+
+// Scan for the first top-level {…} object, tracking string literals so braces
+// inside quoted text don't confuse the balance count.
+function firstBalancedObject(s: string): string | null {
+  const start = s.indexOf("{");
+  if (start < 0) return null;
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  for (let i = start; i < s.length; i++) {
+    const ch = s[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === "\\") esc = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') inStr = true;
+    else if (ch === "{") depth++;
+    else if (ch === "}") {
+      depth--;
+      if (depth === 0) return s.slice(start, i + 1);
+    }
+  }
+  return null;
 }
 
 const INTERVIEWER_SYSTEM = `You are conducting a qualitative interview, one-on-one, to deeply understand a person's work and the value they create. You follow established interviewing craft:
@@ -175,33 +220,33 @@ export async function implementationPlanAI(
   humanTasks: string[],
   aiTasks: string[]
 ): Promise<any> {
-  const messages: ChatMsg[] = [
-    {
-      role: "system",
-      content: `You write a polished "reimagined role" implementation plan. The organizing idea is SUPERADDITIVE: AI absorbs volume, search, and first drafts so the person's judgment, taste, and relationships compound — the pair is worth more than either alone.
+  const system = `You write a polished "reimagined role" implementation plan. The organizing idea is SUPERADDITIVE: AI absorbs volume, search, and first drafts so the person's judgment, taste, and relationships compound — the pair is worth more than either alone.
 
-Return STRICT JSON only:
+Return STRICT JSON only — no prose before or after, no code fences:
 {
  "headline": "3-6 word name for the reimagined role",
  "summary": "3-4 sentences, second person. Lead with the VALUE this person creates and for whom (customer, org, manager); then how AI makes it possible; make the human×AI superadditive logic explicit and concrete. Detailed, not generic.",
  "superadditive": "one sharp sentence on why human + AI here beats either alone",
+ "allocation": "2-3 sentences of practical time re-allocation for THIS person's week: what to spend MORE time on (the human value worth protecting and expanding), what to hand to AI to free that time, and a rough sense of the shift (e.g. hours reclaimed or a from→to). Concrete, second person.",
  "human": [{"task":"short title","value":"the value this creates and for whom","excel":"how to be truly great at it, and what to protect"}],
- "ai": [{"task":"short title","how":"the concrete mechanism (a recurring assistant prompt, a specific tool/integration, a small automation)","prompt":"a 1-2 sentence starter prompt to paste","cadence":"daily | weekly | per-project","check":"what the human must verify before trusting it"}]
+ "ai": [{"task":"short title","how":"the concrete mechanism (a recurring assistant prompt, a specific tool/integration, a small automation)","look":"where to look to start — the KIND of tool/product to reach for, described generically (e.g. 'a deep-research assistant', 'a meeting-notes tool', 'a spreadsheet copilot', 'a general AI chat assistant'), not a brand claim","prompt":"a 1-2 sentence starter prompt to paste","cadence":"daily | weekly | per-project","check":"what the human must verify before trusting it"}]
 }
-Rules: cover EVERY human task and EVERY AI task given. For human tasks give value + how-to-excel (never an AI recipe). For AI tasks give the practical recipe. Be specific to THIS role — no vague "leverage AI". Keep each field tight.`,
-    },
-    {
-      role: "user",
-      content: `Role: ${job.title || "(untitled)"} — ${job.description || ""}\n\nHuman keeps:\n${humanTasks.map((t) => `- ${t}`).join("\n") || "(none)"}\n\nAI takes:\n${aiTasks.map((t) => `- ${t}`).join("\n") || "(none)"}`,
-    },
+Rules: cover EVERY human task and EVERY AI task given. For human tasks give value + how-to-excel (never an AI recipe). For AI tasks give the practical recipe AND where to look. Be specific to THIS role — no vague "leverage AI". Keep each field tight.`;
+
+  const user = `Role: ${job.title || "(untitled)"} — ${job.description || ""}\n\nHuman keeps:\n${humanTasks.map((t) => `- ${t}`).join("\n") || "(none)"}\n\nAI takes:\n${aiTasks.map((t) => `- ${t}`).join("\n") || "(none)"}`;
+
+  const messages: ChatMsg[] = [
+    { role: "system", content: system },
+    { role: "user", content: user },
   ];
-  const raw = await complete(messages, { json: true, temperature: 0.5 });
-  try {
+
+  const map = (raw: string) => {
     const p = extractJson(raw);
     return {
       headline: String(p.headline || "").slice(0, 80),
       summary: String(p.summary || ""),
       superadditive: String(p.superadditive || ""),
+      allocation: String(p.allocation || ""),
       human: Array.isArray(p.human)
         ? p.human.slice(0, 12).map((h: any) => ({
             task: String(h.task || ""),
@@ -213,15 +258,55 @@ Rules: cover EVERY human task and EVERY AI task given. For human tasks give valu
         ? p.ai.slice(0, 12).map((a: any) => ({
             task: String(a.task || ""),
             how: String(a.how || ""),
+            look: String(a.look || ""),
             prompt: String(a.prompt || ""),
             cadence: String(a.cadence || ""),
             check: String(a.check || ""),
           }))
         : [],
     };
+  };
+
+  const nonEmpty = (p: any) =>
+    p && (p.headline || p.summary || (p.human?.length || 0) + (p.ai?.length || 0) > 0);
+
+  // First attempt.
+  let raw = await complete(messages, { json: true, temperature: 0.5 });
+  try {
+    const p = map(raw);
+    if (nonEmpty(p)) return { ...p, _raw: raw };
   } catch {
-    return { headline: "", summary: raw.slice(0, 600), superadditive: "", human: [], ai: [] };
+    /* fall through to a stricter retry */
   }
+
+  // Retry once with an explicit "JSON only" nudge — the usual failure is a
+  // provider (e.g. Claude) prepending prose or a fence around otherwise-valid JSON.
+  const retryRaw = await complete(
+    [
+      ...messages,
+      {
+        role: "user",
+        content:
+          "Output ONLY the JSON object described above. Start your reply with { and end with }. No preamble, no explanation, no code fences.",
+      },
+    ],
+    { json: true, temperature: 0.2 }
+  );
+  try {
+    const p = map(retryRaw);
+    if (nonEmpty(p)) return { ...p, _raw: retryRaw };
+  } catch {
+    /* give up below, but keep the raw text for diagnosis */
+  }
+  return {
+    headline: "",
+    summary: "",
+    superadditive: "",
+    allocation: "",
+    human: [],
+    ai: [],
+    _raw: (retryRaw || raw || "").slice(0, 1200),
+  };
 }
 
 export async function networkInsightAI(metrics: any): Promise<string> {

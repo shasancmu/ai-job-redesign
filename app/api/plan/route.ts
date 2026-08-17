@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const plan = await implementationPlanAI(
+    const result = await implementationPlanAI(
       {
         title: String(body.jobTitle || "").slice(0, 200),
         description: String(body.jobDescription || "").slice(0, 1200),
@@ -39,6 +39,21 @@ export async function POST(request: Request) {
       humanTasks,
       aiTasks
     );
+    // `_raw` is for diagnosis only — never store it in the workspace.
+    const { _raw, ...plan } = result;
+    const empty =
+      !plan.headline && !plan.summary && (plan.human?.length || 0) + (plan.ai?.length || 0) === 0;
+    if (empty) {
+      console.error("[plan] AI returned an unusable plan. Raw:", String(_raw || "").slice(0, 800));
+      return Response.json(
+        {
+          error:
+            "The AI returned an unusable plan — please try again. If it keeps happening, the model may be down.",
+        },
+        { status: 502 }
+      );
+    }
+
     if (sessionId) {
       const { error } = await supabase
         .from("workspaces")
@@ -52,8 +67,23 @@ export async function POST(request: Request) {
           { status: 500 }
         );
       }
+      // Confirm it actually landed (a missing/mismatched workspace row updates 0 rows silently).
+      const { data: check } = await supabase
+        .from("workspaces")
+        .select("plan")
+        .eq("session_id", sessionId)
+        .eq("author_id", user.id)
+        .maybeSingle();
+      const stored = (check?.plan as any) || null;
+      const storedEmpty =
+        !stored ||
+        (!stored.headline && !stored.summary && (stored.human?.length || 0) + (stored.ai?.length || 0) === 0);
+      if (storedEmpty) {
+        // Still return the plan so the caller can render it inline; just flag the save.
+        return Response.json({ ok: true, plan, saved: false });
+      }
     }
-    return Response.json({ ok: true, plan });
+    return Response.json({ ok: true, plan, saved: true });
   } catch (e: any) {
     return Response.json({ error: e?.message || "Couldn't build the plan." }, { status: 502 });
   }
