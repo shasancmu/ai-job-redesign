@@ -7,10 +7,13 @@
 //
 //   node scripts/sync-module-strings.mjs
 //
-// After adding/editing a module, run this, then regenerate the locales:
-//   node scripts/build-messages.mjs <Language> <code>   (per locale)
-// Until you do, new modules simply show their English name/tagline everywhere
-// (the Catalog's tf() fallback), so nothing ever breaks.
+// After adding/editing a module, the whole flow is two commands:
+//   node scripts/sync-module-strings.mjs      (this — mirror English into en.json)
+//   node scripts/build-messages.mjs --all     (translate ONLY the new/changed keys)
+// The generator is incremental, so a new module costs a couple of tiny
+// translations, not a full re-translation. Until you run them, new modules
+// simply show their English name/tagline everywhere (the Catalog's tf()
+// fallback), so nothing ever breaks.
 // ============================================================================
 import { readFileSync, writeFileSync } from "node:fs";
 
