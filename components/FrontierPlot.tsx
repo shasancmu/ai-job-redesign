@@ -1,85 +1,78 @@
 "use client";
 
-// Plots where a task sits on the Generality–Accuracy frontier (Dhar's map):
-// x = how predictable / narrow the task is, y = cost per mistake. The three
-// bands are the strategic play — automate, copilot (human curates), or adjunct.
+// The Generality–Accuracy frontier (Hasan, Oettl & Samila, 2025). Each concave
+// curve is a fixed level of COMPLEXITY behind the interface: to reach higher
+// generality AND accuracy you must master a higher-complexity (outer) curve.
+// A workflow's required (G, A) shows how much hidden complexity it demands.
+const CURVE = "#94a3b8";
+const AXIS = "#475569";
 const GREEN = "#3F7A52";
 const GOLD = "#CE8F2C";
 const PLUM = "#7C5CBF";
 
-export function frontierZone(y: number): { key: string; label: string; color: string } {
-  if (y >= 70) return { key: "adjunct", label: "Adjunct — AI advises, humans decide", color: PLUM };
-  if (y >= 40) return { key: "copilot", label: "Copilot — AI drafts, you curate", color: GOLD };
-  return { key: "automate", label: "Automate — let AI run it", color: GREEN };
+export function complexityLevel(g: number, a: number): { key: string; label: string; color: string } {
+  const r = Math.sqrt((g * g + a * a) / 2) / 100; // 0 → ~1
+  if (r >= 0.66) return { key: "high", label: "Hidden complexity: high", color: PLUM };
+  if (r >= 0.4) return { key: "med", label: "Hidden complexity: moderate", color: GOLD };
+  return { key: "low", label: "Hidden complexity: low", color: GREEN };
 }
 
 export default function FrontierPlot({
   x,
   y,
-  xLabel = "Predictable / narrow →",
-  yLabel = "Cost per mistake →",
+  xLabel = "Generality →",
+  yLabel = "Accuracy →",
 }: {
   x?: number;
   y?: number;
   xLabel?: string;
   yLabel?: string;
 }) {
-  const L = 52, R = 344, T = 16, B = 250; // plot box
-  const W = R - L, H = B - T;
-  const px = (v: number) => L + (Math.max(0, Math.min(100, v)) / 100) * W;
-  const py = (v: number) => B - (Math.max(0, Math.min(100, v)) / 100) * H;
+  const ox = 58, oy = 246, W = 280, H = 222; // origin + axis lengths
+  const gx = (v: number) => ox + (Math.max(0, Math.min(100, v)) / 100) * W;
+  const ay = (v: number) => oy - (Math.max(0, Math.min(100, v)) / 100) * H;
 
-  const bands = [
-    { lo: 70, hi: 100, color: PLUM, label: "Adjunct" },
-    { lo: 40, hi: 70, color: GOLD, label: "Copilot" },
-    { lo: 0, hi: 40, color: GREEN, label: "Automate" },
-  ];
+  // Quarter-ellipse arc centered at the origin, bulging up-right (away from O).
+  const arc = (f: number) => {
+    const rx = f * W, ry = f * H;
+    return `M ${ox} ${oy - ry} A ${rx} ${ry} 0 0 1 ${ox + rx} ${oy}`;
+  };
 
   const placed = typeof x === "number" && typeof y === "number";
-  const zone = placed ? frontierZone(y!) : null;
+  const cx = placed ? complexityLevel(x!, y!) : null;
 
   return (
-    <svg viewBox="0 0 360 300" className="w-full" role="img" aria-label="Frontier plot">
-      {/* zone bands */}
-      {bands.map((b) => (
-        <g key={b.label}>
-          <rect x={L} y={py(b.hi)} width={W} height={py(b.lo) - py(b.hi)} fill={b.color} opacity={0.08} />
-          <text x={L + 8} y={py(b.hi) + 16} fontSize="10" fontWeight="700" fill={b.color} opacity={0.85} style={{ textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            {b.label}
-          </text>
-        </g>
+    <svg viewBox="0 0 360 300" className="w-full" role="img" aria-label="Generality–Accuracy frontier">
+      {/* complexity curves (inner = low complexity, outer = high) */}
+      {[0.44, 0.68, 0.92].map((f, i) => (
+        <path key={i} d={arc(f)} fill="none" stroke={CURVE} strokeWidth="1.5" opacity={0.45 + i * 0.18} />
       ))}
-
-      {/* frontier CURVE (Dhar): automation only tolerates higher error-cost once
-          the task is predictable enough — so it hugs the bottom then rises steeply. */}
-      <path
-        d={`M ${px(0)} ${py(2)} C ${px(45)} ${py(6)}, ${px(80)} ${py(45)}, ${px(100)} ${py(100)}`}
-        fill="none"
-        stroke="#94a3b8"
-        strokeWidth="1.5"
-        strokeDasharray="4 4"
-      />
-      <text x={px(100) - 4} y={py(100) + 14} textAnchor="end" fontSize="9" fill="#94a3b8" fontStyle="italic">
-        frontier
+      {/* "more complexity" cue along the diagonal */}
+      <text x={gx(72)} y={ay(72)} fontSize="9" fill={CURVE} fontStyle="italic" transform={`rotate(-38 ${gx(72)} ${ay(72)})`}>
+        more complexity →
       </text>
 
-      {/* axes */}
-      <line x1={L} y1={T} x2={L} y2={B} stroke="#cbd5e1" strokeWidth="1" />
-      <line x1={L} y1={B} x2={R} y2={B} stroke="#cbd5e1" strokeWidth="1" />
+      {/* axes with arrowheads */}
+      <line x1={ox} y1={oy} x2={ox} y2={ay(100) - 6} stroke={AXIS} strokeWidth="1.5" />
+      <line x1={ox} y1={oy} x2={gx(100) + 6} y2={oy} stroke={AXIS} strokeWidth="1.5" />
+      <polygon points={`${ox},${ay(100) - 12} ${ox - 4},${ay(100) - 4} ${ox + 4},${ay(100) - 4}`} fill={AXIS} />
+      <polygon points={`${gx(100) + 12},${oy} ${gx(100) + 4},${oy - 4} ${gx(100) + 4},${oy + 4}`} fill={AXIS} />
 
-      {/* the point */}
-      {placed && (
+      {/* the workflow point */}
+      {placed && cx && (
         <g>
-          <line x1={px(x!)} y1={B} x2={px(x!)} y2={py(y!)} stroke={zone!.color} strokeWidth="1" strokeDasharray="2 3" opacity={0.5} />
-          <circle cx={px(x!)} cy={py(y!)} r="7" fill={zone!.color} stroke="#fff" strokeWidth="2.5" />
+          <line x1={ox} y1={ay(y!)} x2={gx(x!)} y2={ay(y!)} stroke={cx.color} strokeWidth="1" strokeDasharray="2 3" opacity={0.45} />
+          <line x1={gx(x!)} y1={oy} x2={gx(x!)} y2={ay(y!)} stroke={cx.color} strokeWidth="1" strokeDasharray="2 3" opacity={0.45} />
+          <circle cx={gx(x!)} cy={ay(y!)} r="7" fill={cx.color} stroke="#fff" strokeWidth="2.5" />
+          <text x={gx(x!) + 11} y={ay(y!) + 4} fontSize="11" fill="#52514e">your workflow</text>
         </g>
       )}
 
       {/* axis labels */}
-      <text x={(L + R) / 2} y={293} textAnchor="middle" fontSize="11" fill="#64748b">{xLabel}</text>
-      <text x={16} y={(T + B) / 2} textAnchor="middle" fontSize="11" fill="#64748b" transform={`rotate(-90 16 ${(T + B) / 2})`}>{yLabel}</text>
-      <text x={L} y={B + 15} fontSize="9" fill="#94a3b8">varied</text>
-      <text x={R} y={B + 15} textAnchor="end" fontSize="9" fill="#94a3b8">predictable</text>
+      <text x={ox - 6} y={ay(100) - 2} textAnchor="end" fontSize="12" fill={AXIS} fontWeight="500">{yLabel}</text>
+      <text x={gx(100) + 6} y={oy + 20} textAnchor="end" fontSize="12" fill={AXIS} fontWeight="500">{xLabel}</text>
+      <text x={ox} y={oy + 20} fontSize="9" fill="#94a3b8">one context</text>
+      <text x={gx(100) + 6} y={oy + 33} textAnchor="end" fontSize="9" fill="#94a3b8">many contexts</text>
     </svg>
   );
 }

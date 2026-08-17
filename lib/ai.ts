@@ -574,7 +574,7 @@ export async function canvasDraftAI(
   }
   if (def.frontier) {
     extra.push(
-      `  "frontier": { "x": integer 0–100, "y": integer 0–100 }   // x = how predictable/narrow the task is (100 = highly predictable); y = cost per mistake (100 = catastrophic). Place it honestly.`
+      `  "frontier": { "x": integer 0–100, "y": integer 0–100 }   // Place the workflow on the Generality–Accuracy frontier. x = required GENERALITY (0 = one narrow context, 100 = must handle many varied contexts). y = required ACCURACY (0 = loose/errors cheap, 100 = must be exact, errors costly). Be honest — a point far up-right demands high hidden complexity.`
     );
   }
 

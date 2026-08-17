@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { CANVAS_STEPS, accentColor, type CanvasDef, type CanvasField } from "@/lib/canvases";
 import Timer from "@/components/Timer";
 import CanvasView from "@/components/CanvasView";
-import FrontierPlot, { frontierZone } from "@/components/FrontierPlot";
+import FrontierPlot, { complexityLevel } from "@/components/FrontierPlot";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -313,29 +313,29 @@ function CanvasStep({
       {def.frontier ? (
         <div className="card p-5">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Where it sits on the frontier</div>
-          <p className="mt-1 text-sm text-slate-500">Place your workflow: how predictable it is, and how costly a mistake is. The band it lands in is the play.</p>
+          <p className="mt-1 text-sm text-slate-500">{def.groupNotes?.["The frontier"]}</p>
           <div className="mt-3 grid gap-5 sm:grid-cols-2 sm:items-center">
             <FrontierPlot x={canvas.frontier?.x} y={canvas.frontier?.y} xLabel={def.frontier.xLabel} yLabel={def.frontier.yLabel} />
             <div className="space-y-4">
               {(() => {
-                const z = frontierZone(canvas.frontier?.y ?? 50);
+                const c = complexityLevel(canvas.frontier?.x ?? 50, canvas.frontier?.y ?? 50);
                 return (
-                  <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold text-white" style={{ background: z.color }}>
-                    {z.label}
+                  <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold text-white" style={{ background: c.color }}>
+                    {c.label}
                   </div>
                 );
               })()}
               <FrontierSlider
-                label={def.frontier.xLabel.replace(" →", "")}
-                lo="varied"
-                hi="predictable"
+                label="Generality — how varied?"
+                lo="one context"
+                hi="many contexts"
                 value={canvas.frontier?.x ?? 50}
                 onChange={(v) => setCanvas({ frontier: { x: v, y: canvas.frontier?.y ?? 50 } })}
               />
               <FrontierSlider
-                label={def.frontier.yLabel.replace(" →", "")}
-                lo="low"
-                hi="high"
+                label="Accuracy — how exact?"
+                lo="loose"
+                hi="must be exact"
                 value={canvas.frontier?.y ?? 50}
                 onChange={(v) => setCanvas({ frontier: { x: canvas.frontier?.x ?? 50, y: v } })}
               />
