@@ -50,8 +50,18 @@ export default function FrontierPlot({
         </g>
       ))}
 
-      {/* frontier line (Dhar): more cost demands more predictability to still automate */}
-      <line x1={px(0)} y1={py(0)} x2={px(100)} y2={py(100)} stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 4" />
+      {/* frontier CURVE (Dhar): automation only tolerates higher error-cost once
+          the task is predictable enough — so it hugs the bottom then rises steeply. */}
+      <path
+        d={`M ${px(0)} ${py(2)} C ${px(45)} ${py(6)}, ${px(80)} ${py(45)}, ${px(100)} ${py(100)}`}
+        fill="none"
+        stroke="#94a3b8"
+        strokeWidth="1.5"
+        strokeDasharray="4 4"
+      />
+      <text x={px(100) - 4} y={py(100) + 14} textAnchor="end" fontSize="9" fill="#94a3b8" fontStyle="italic">
+        frontier
+      </text>
 
       {/* axes */}
       <line x1={L} y1={T} x2={L} y2={B} stroke="#cbd5e1" strokeWidth="1" />
