@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { MODULES, PARTNER_META, formatPrice } from "@/lib/modules";
+import { MODULES, PARTNER_META, formatPrice, type Partner } from "@/lib/modules";
 import ModuleIcon from "@/components/ModuleIcon";
 
 const ACCENT: Record<string, string> = {
@@ -82,17 +82,12 @@ export default function Catalog({
     setBusy(null);
   }
 
-  return (
-    <div>
-      {err && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {shown.map((m) => {
-          const open = !!unlocked[m.slug];
-          const chip = ACCENT[m.slug] || "bg-sage-soft text-sage";
-          const paired = PAIRED.has(m.exercise);
-          const pm = PARTNER_META[m.partner];
-          return (
+  const renderCard = (m: (typeof MODULES)[number]) => {
+    const open = !!unlocked[m.slug];
+    const chip = ACCENT[m.slug] || "bg-sage-soft text-sage";
+    const paired = PAIRED.has(m.exercise);
+    const pm = PARTNER_META[m.partner];
+    return (
             <div key={m.slug} className="card flex flex-col p-6 transition hover:shadow-lift">
               <div className={"flex h-11 w-11 items-center justify-center rounded-xl " + chip}>
                 <ModuleIcon slug={m.slug} />
@@ -146,9 +141,42 @@ export default function Catalog({
                 </div>
               )}
             </div>
-          );
-        })}
-      </div>
+    );
+  };
+
+  // On the class view (moduleSlugs given) keep the curated order flat.
+  // On the main dashboard, group by who you do it with.
+  const SECTIONS: { partner: Partner; title: string; sub: string }[] = [
+    { partner: "human", title: "With a partner", sub: "Live, two people in a breakout room" },
+    { partner: "ai", title: "With AI", sub: "Solo — an AI plays your partner" },
+    { partner: "group", title: "On your own", sub: "Individual activities, run live in class" },
+  ];
+  const grouped = !moduleSlugs;
+  const grid = "grid gap-4 sm:grid-cols-2 lg:grid-cols-3";
+
+  return (
+    <div>
+      {err && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
+
+      {!grouped ? (
+        <div className={grid}>{shown.map(renderCard)}</div>
+      ) : (
+        <div className="space-y-8">
+          {SECTIONS.map(({ partner, title, sub }) => {
+            const mods = shown.filter((m) => m.partner === partner);
+            if (mods.length === 0) return null;
+            return (
+              <div key={partner}>
+                <div className="mb-3 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <h3 className="text-sm font-bold text-ink">{title}</h3>
+                  <span className="text-xs text-slate2">{sub}</span>
+                </div>
+                <div className={grid}>{mods.map(renderCard)}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
