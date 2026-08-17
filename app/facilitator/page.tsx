@@ -75,7 +75,7 @@ async function Overview({ admin }: { admin: any }) {
         </div>
         <div className="flex items-center gap-2">
           <Link href="/facilitator/classes" className="btn-primary text-sm">
-            Classes
+            Create cohort
           </Link>
           <Link href="/dashboard" className="btn-ghost text-sm">
             ← My dashboard

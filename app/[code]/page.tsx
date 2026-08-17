@@ -45,7 +45,7 @@ export default async function ClassPage({ params }: { params: { code: string } }
           <div className="eyebrow">You&apos;re joining</div>
           <h1 className="mt-2 text-3xl font-bold text-ink">{klass.name}</h1>
           <p className="mt-2 text-slate2">
-            Create an account (or sign in) to join this class. Everything you do will be part of it.
+            Create an account (or sign in) to join this cohort. Everything you do will be part of it.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href={`/login?mode=signup&next=/${code}`} className="btn-primary">

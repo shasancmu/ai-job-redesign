@@ -19,9 +19,9 @@ export default async function Classes() {
       <Link href="/facilitator" className="text-sm text-slate2 hover:text-ink">
         ← Facilitator
       </Link>
-      <h1 className="mt-1 text-2xl font-bold text-ink">Classes</h1>
+      <h1 className="mt-1 text-2xl font-bold text-ink">Cohorts</h1>
       <p className="mb-6 text-slate2">
-        Create a class, choose its modules, and share the link. Everyone who joins is grouped
+        Create a cohort, choose its modules, and share the link. Everyone who joins is grouped
         together, and their results roll up under one place.
       </p>
       <ClassManager />

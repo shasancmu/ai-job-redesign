@@ -58,7 +58,7 @@ export default function ClassManager() {
   async function del(k: Klass) {
     if (
       !confirm(
-        `Delete "${k.name}"? Students can no longer join at /${k.code}. Their collected responses stay in the results — download them first if you need them.`
+        `Delete "${k.name}"? People can no longer join at /${k.code}. Their collected responses stay in the results — download them first if you need them.`
       )
     )
       return;
@@ -70,7 +70,7 @@ export default function ClassManager() {
     setErr(null);
     const c = normalizeCode(code);
     if (!name.trim() || !c) {
-      setErr("Give the class a name and a code.");
+      setErr("Give the cohort a name and a code.");
       return;
     }
     setBusy(true);
@@ -92,10 +92,10 @@ export default function ClassManager() {
   return (
     <div className="space-y-8">
       <div className="card p-6">
-        <h2 className="text-lg font-bold text-ink">New class</h2>
+        <h2 className="text-lg font-bold text-ink">New cohort</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="lbl">Class name</label>
+            <label className="lbl">Cohort name</label>
             <input className="field" value={name} onChange={(e) => setName(e.target.value)} placeholder="Chief AI Officer — Sep 27" />
           </div>
           <div>
@@ -112,7 +112,7 @@ export default function ClassManager() {
 
         {/* Ordered module list */}
         <div className="mt-5">
-          <label className="lbl">Modules — in the order students will do them</label>
+          <label className="lbl">Modules — in the order participants will do them</label>
           {order.length === 0 ? (
             <p className="text-sm text-slate2">Add modules below; drag order with the arrows.</p>
           ) : (
@@ -176,7 +176,7 @@ export default function ClassManager() {
         {err && <p className="mt-3 text-sm text-clay">{err}</p>}
         <div className="mt-4 flex items-center gap-3">
           <button onClick={save} disabled={busy} className="btn-primary">
-            {busy ? "Saving…" : "Save class"}
+            {busy ? "Saving…" : "Save cohort"}
           </button>
           {(name || code || order.length > 0) && (
             <button onClick={reset} className="text-sm text-slate2 hover:text-ink">
@@ -187,9 +187,9 @@ export default function ClassManager() {
       </div>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate2">Your classes</h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate2">Your cohorts</h2>
         {classes.length === 0 ? (
-          <p className="text-slate2">No classes yet.</p>
+          <p className="text-slate2">No cohorts yet.</p>
         ) : (
           <ul className="space-y-3">
             {classes.map((c) => (

@@ -149,7 +149,7 @@ export default function Catalog({
   const SECTIONS: { partner: Partner; title: string; sub: string }[] = [
     { partner: "human", title: "With a partner", sub: "Live, two people in a breakout room" },
     { partner: "ai", title: "With AI", sub: "Solo — an AI plays your partner" },
-    { partner: "group", title: "On your own", sub: "Individual activities, run live in class" },
+    { partner: "group", title: "In class", sub: "Live, large-group activities" },
   ];
   const grouped = !moduleSlugs;
   const grid = "grid gap-4 sm:grid-cols-2 lg:grid-cols-3";
