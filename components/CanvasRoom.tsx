@@ -301,6 +301,33 @@ function CanvasStep({
         </div>
       )}
 
+      {def.ratings?.length ? (
+        <div className="card p-5">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Scorecard — 0 (broken) to 100 (strong)</div>
+          <div className="mt-3 space-y-3.5">
+            {def.ratings.map((r) => {
+              const val = (canvas.ratings || {})[r.key] ?? 50;
+              return (
+                <div key={r.key}>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-ink">{r.label}</span>
+                    <span className="font-semibold text-ink">{val}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={val}
+                    onChange={(e) => setCanvas({ ratings: { ...(canvas.ratings || {}), [r.key]: Number(e.target.value) } })}
+                    className="mt-1 w-full accent-sage"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
       {groups.map((g) => (
         <div key={g} className="card p-5">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{g}</div>

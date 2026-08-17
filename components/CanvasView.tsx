@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Logo from "@/components/Logo";
-import { accentColor, type CanvasDef } from "@/lib/canvases";
+import { accentColor, scoreColor, type CanvasDef } from "@/lib/canvases";
 
 const SAGE = "#3F7A52";
 const GOLD = "#CE8F2C";
@@ -64,6 +64,31 @@ export default function CanvasView({
           </div>
         </div>
       </section>
+
+      {/* Scorecard (rating dimensions, e.g. the 4 A's) */}
+      {def.ratings?.length ? (
+        <section className="mx-auto max-w-4xl px-6 pt-10">
+          <div className="eyebrow mb-3">Scorecard</div>
+          <div className="card p-6">
+            <div className="space-y-3.5">
+              {def.ratings.map((r) => {
+                const v = Number((canvas.ratings || {})[r.key] ?? 0);
+                return (
+                  <div key={r.key}>
+                    <div className="mb-1 flex items-center justify-between text-sm">
+                      <span className="font-medium text-ink">{r.label}</span>
+                      <span className="font-semibold text-ink">{v}</span>
+                    </div>
+                    <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full rounded-full" style={{ width: `${v}%`, background: scoreColor(v) }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {/* Groups */}
       <section className="mx-auto max-w-4xl px-6 py-10">

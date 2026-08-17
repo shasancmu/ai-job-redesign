@@ -31,7 +31,8 @@ export type ModuleDef = {
     | "workflow-solo"
     | "gas"
     | "ocfit"
-    | "experiment"; // which room engine renders it
+    | "experiment"
+    | "four-a"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -140,6 +141,21 @@ export const MODULES: ModuleDef[] = [
     emoji: "✨",
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_SOLO",
+  },
+  {
+    slug: "execution-4a",
+    exercise: "four-a",
+    name: "4A Execution Diagnostic",
+    tagline: "Is this initiative actually set up to execute?",
+    description:
+      "An AI partner interviews you about a real initiative, then scores it across the 4 A's — Alignment, Ability, Architecture, Agility — with a diagnosis and the single highest-leverage fix for each. In a cohort, the room's scores roll up into a live heatmap.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "🧭",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_FOURA",
   },
   {
     slug: "ai-canvas",

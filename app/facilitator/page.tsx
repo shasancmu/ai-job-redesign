@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -5,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin, UNTAGGED } from "@/lib/admin";
 import { MODULES, moduleByExercise } from "@/lib/modules";
 import { ROLE_META } from "@/lib/workflow";
-import { canvasByExercise } from "@/lib/canvases";
+import { canvasByExercise, scoreColor } from "@/lib/canvases";
 import { AI_CELLS, HUMAN_CELLS, FEEDBACK_FIELDS, Cell } from "@/lib/exercise";
 import SeedDemo from "@/components/SeedDemo";
 import CanvasView from "@/components/CanvasView";
@@ -221,6 +222,7 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
         if (slug === "reimagine-job") return bySession("job");
         if (slug === "reimagine-workflow") return bySession("workflow");
         if (slug === "solo-ai") return bySession("solo");
+        if (slug === "execution-4a") return bySession("four-a");
         if (slug === "ai-canvas") return bySession("gas");
         if (slug === "opportunity-capability") return bySession("ocfit");
         if (slug === "test-the-bet") return bySession("experiment");
@@ -292,6 +294,13 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
       </div>
 
       {classOverview && <ClassOverview data={classOverview} />}
+
+      <FourAHeatmap
+        rows={(sessions || [])
+          .filter((s: any) => s.exercise === "four-a")
+          .map((s: any) => ({ name: nameOf(s.host_id), ratings: (wsFor(s.id, s.host_id)?.canvas?.ratings as any) || {} }))
+          .filter((r: any) => Object.keys(r.ratings).length > 0)}
+      />
 
       {(sessions || []).length === 0 ? (
         <p className="text-slate-500">No sessions in this cohort.</p>
@@ -501,6 +510,65 @@ function SoloView({ authorName, ws, code }: { authorName: string; ws: any; code:
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function FourAHeatmap({ rows }: { rows: { name: string; ratings: Record<string, number> }[] }) {
+  if (!rows.length) return null;
+  const def = canvasByExercise("four-a");
+  const dims = def?.ratings || [];
+  const avg = (key: string) => {
+    const vals = rows.map((r) => r.ratings[key]).filter((v) => typeof v === "number");
+    return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
+  };
+  const Cell = ({ v }: { v?: number }) =>
+    typeof v === "number" ? (
+      <span
+        className="inline-flex h-8 w-full min-w-[52px] items-center justify-center rounded-md text-xs font-semibold text-white"
+        style={{ background: scoreColor(v) }}
+      >
+        {v}
+      </span>
+    ) : (
+      <span className="inline-flex h-8 w-full min-w-[52px] items-center justify-center rounded-md bg-slate-100 text-xs text-slate-300">
+        —
+      </span>
+    );
+
+  return (
+    <div className="card mb-6 p-5">
+      <div className="flex items-baseline justify-between">
+        <div className="text-lg font-bold text-ink">4A execution — the room</div>
+        <div className="text-sm text-slate-500">{rows.length} responses</div>
+      </div>
+      <div className="mt-4 overflow-x-auto">
+        <div className="min-w-[520px]">
+          <div className="grid items-center gap-2" style={{ gridTemplateColumns: `140px repeat(${dims.length}, 1fr)` }}>
+            <div />
+            {dims.map((d) => (
+              <div key={d.key} className="text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
+                {d.label}
+              </div>
+            ))}
+            {rows.map((r, i) => (
+              <Fragment key={i}>
+                <div className="truncate pr-2 text-sm text-slate-600">{r.name}</div>
+                {dims.map((d) => (
+                  <Cell key={d.key} v={r.ratings[d.key]} />
+                ))}
+              </Fragment>
+            ))}
+            <div className="pt-1 text-sm font-semibold text-ink">Average</div>
+            {dims.map((d) => (
+              <div key={d.key} className="pt-1">
+                <Cell v={avg(d.key)} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <p className="mt-3 text-xs text-slate-400">Red = execution is breaking on that dimension; green = strong. The weakest column is where the room needs the most help.</p>
     </div>
   );
 }

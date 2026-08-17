@@ -11,6 +11,7 @@ import {
   workflowDoc,
   soloChat,
   canvasSeed,
+  fourASeed,
 } from "@/lib/seedData";
 
 export const runtime = "nodejs";
@@ -22,6 +23,7 @@ const MODULES = [
   "reimagine-workflow",
   "solo-ai",
   "workflow-solo",
+  "execution-4a",
   "ai-canvas",
   "opportunity-capability",
   "test-the-bet",
@@ -210,6 +212,13 @@ export async function POST(request: Request) {
   addCanvas(users[0], "gas");
   addCanvas(users[2], "ocfit");
   addCanvas(users[4], "experiment");
+
+  // 4A diagnostic — several people so the cohort heatmap has rows.
+  [1, 3, 5, 6, 8].forEach((ui, i) => {
+    const id = crypto.randomUUID();
+    sessionRows.push({ id, code: makeCode(), cohort: code, exercise: "four-a", host_id: users[ui].id, status: "done", phase: 3, phase_started_at: new Date().toISOString() });
+    workspaceRows.push({ session_id: id, author_id: users[ui].id, canvas: fourASeed(i) });
+  });
 
   await admin.from("sessions").insert(sessionRows);
   await admin.from("workspaces").insert(workspaceRows);

@@ -200,8 +200,67 @@ function rid() {
   return `s${Math.floor(Math.random() * 1e9).toString(36)}${Math.floor(Math.random() * 1e9).toString(36)}`;
 }
 
-// ----- Strategy-canvas content (GAS / opportunity-capability / experiment) ---
+// ----- Strategy-canvas content (4A / GAS / opportunity-capability / experiment) ---
+const FOURA_SEEDS = [
+  {
+    subject: "Rolling out the new pricing model across the sales org",
+    ratings: { alignment: 45, ability: 70, architecture: 35, agility: 60 },
+    synthesis:
+      "Your people can sell it, but the org isn't set up to land it: reps read the goal differently, and the comp plan quietly rewards the old behavior. Ability is real; architecture is fighting you.",
+    verdict: "Fix the comp plan first — architecture is what's actually blocking execution.",
+    fields: {
+      alignment_diag: "Leadership is aligned; front-line reps still interpret 'value pricing' as 'discount when pushed'.",
+      alignment_fix: "One-page 'why this, why now' and a manager-led huddle so the goal reads the same everywhere.",
+      ability_diag: "Strong sales talent and enablement; a few holdout veterans set the tone.",
+      ability_fix: "Pair the holdouts with early adopters and make one a visible champion.",
+      architecture_diag: "The comp plan still pays on volume, so the structure rewards the old behavior.",
+      architecture_fix: "Re-weight incentives to the new model before the launch, not after.",
+      agility_diag: "Weekly win/loss reviews exist but feedback is slow to change the playbook.",
+      agility_fix: "Tighten the loop to a 48-hour playbook update from field signal.",
+    },
+  },
+  {
+    subject: "Standing up a data platform team",
+    ratings: { alignment: 60, ability: 40, architecture: 55, agility: 50 },
+    synthesis:
+      "Everyone agrees it matters, but you're short the senior talent to build it and the mandate is fuzzy. Alignment is fine; ability is the gap.",
+    verdict: "Hire or borrow one senior platform lead before scoping anything else.",
+    fields: {
+      alignment_diag: "Broad agreement it's needed; less clarity on what 'done' looks like in year one.",
+      alignment_fix: "Define one flagship use case the platform must serve first.",
+      ability_diag: "Capable engineers, but no one has built a platform at this scale.",
+      ability_fix: "Bring in a senior platform lead; upskill around them.",
+      architecture_diag: "Sits under one BU, so other teams treat it as 'not theirs'.",
+      architecture_fix: "Give it a cross-BU charter and a shared roadmap.",
+      agility_diag: "Roadmap is annual; the space moves faster than that.",
+      agility_fix: "Move to quarterly re-planning with a kill/scale gate.",
+    },
+  },
+  {
+    subject: "Merging two regional teams after the acquisition",
+    ratings: { alignment: 30, ability: 65, architecture: 50, agility: 40 },
+    synthesis:
+      "Talent is strong on both sides, but the two teams are pulling toward different goals and cultures. Alignment is the fault line.",
+    verdict: "Name one shared goal and one operating rhythm before touching org charts.",
+    fields: {
+      alignment_diag: "Two playbooks, two definitions of success, quiet turf tension.",
+      alignment_fix: "A joint offsite to set one goal and one scorecard.",
+      ability_diag: "Deep talent on both sides; the risk is losing it to uncertainty.",
+      ability_fix: "Lock in key people early with clear roles.",
+      architecture_diag: "Duplicated processes and tools slow everything down.",
+      architecture_fix: "Pick one stack and one process per function, fast.",
+      agility_diag: "Change fatigue is making people cautious.",
+      agility_fix: "Small, visible early wins to rebuild momentum.",
+    },
+  },
+];
+
+export function fourASeed(i: number): any {
+  return FOURA_SEEDS[i % FOURA_SEEDS.length];
+}
+
 export function canvasSeed(exercise: string): any {
+  if (exercise === "four-a") return fourASeed(0);
   if (exercise === "gas") {
     return {
       subject: "Triaging inbound support tickets and drafting first replies",

@@ -568,6 +568,10 @@ export async function canvasDraftAI(
   const extra: string[] = [`  "synthesis": string   // 2–3 sentences, second person, summarizing the canvas`];
   if (def.hasVerdict) extra.push(`  "verdict": string   // ${def.hasVerdict.label} — one sharp sentence`);
   if (def.hasScore) extra.push(`  "score": integer 0–100   // ${def.hasScore.label}`);
+  if (def.ratings?.length) {
+    const rl = def.ratings.map((r) => `"${r.key}": integer 0–100`).join(", ");
+    extra.push(`  "ratings": { ${rl} }   // score each dimension; spread them, be discerning`);
+  }
 
   const system = `${def.draftSystem}
 
@@ -596,9 +600,15 @@ Rules: fill EVERY field, grounded in the interview and specific to this ${def.su
     }
     const out: any = { fields, synthesis: String(p.synthesis || ""), _raw: raw };
     if (def.hasVerdict) out.verdict = String(p.verdict || "");
-    if (def.hasScore) {
-      const s = Number(p.score);
-      out.score = Number.isFinite(s) ? Math.max(0, Math.min(100, Math.round(s))) : undefined;
+    const clamp = (v: any) => (Number.isFinite(Number(v)) ? Math.max(0, Math.min(100, Math.round(Number(v)))) : undefined);
+    if (def.hasScore) out.score = clamp(p.score);
+    if (def.ratings?.length) {
+      const ratings: Record<string, number> = {};
+      for (const r of def.ratings) {
+        const v = clamp(p.ratings?.[r.key]);
+        if (v !== undefined) ratings[r.key] = v;
+      }
+      out.ratings = ratings;
     }
     return out;
   } catch {
