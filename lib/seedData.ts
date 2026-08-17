@@ -270,7 +270,9 @@ export function careerSeed(): any {
     role: "Senior Marketing Manager",
     level: "Manager",
     xray: {
-      occupation: "Marketing Managers (SOC 11-2021)",
+      occupation: "Marketing Managers",
+      occupationCode: "11-2021",
+      topDownSource: "estimate",
       headline: "Most of the production is exposed; the strategy and relationships are not.",
       summary:
         "The routine of your role — drafting, reporting, campaign ops — is highly exposed to AI. But the parts that actually move the number (positioning, cross-functional judgment, the customer relationships) are where you're a scarce complement. The move is to hand AI the volume and reinvest the time up-market.",
@@ -315,7 +317,9 @@ export function jdSeed(): any {
     role: "Data Analyst",
     level: "Mid",
     xray: {
-      occupation: "Data Analysts (SOC 15-2051)",
+      occupation: "Data Scientists",
+      occupationCode: "15-2051",
+      topDownSource: "estimate",
       headline: "The querying and reporting are highly exposed; the framing and stakeholder judgment are the hire.",
       summary:
         "Most of this role as written — pulling data, building dashboards, writing summaries — is squarely in AI's wheelhouse. Hire for the parts that aren't: framing the right question, knowing which number to trust, and translating analysis into a decision. Rewrite the role around that.",

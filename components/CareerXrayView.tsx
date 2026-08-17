@@ -34,7 +34,12 @@ export default function CareerXrayView({ xray, mode = "resume", code, embedded =
       <section className="mx-auto max-w-4xl px-6 pt-10">
         <div className="eyebrow mb-3">Exposure — the two views</div>
         <div className="card p-6">
-          <Bar label={`Top-down · ${xray.occupation || "occupation"}`} sub="model estimate for the whole occupation" value={xray.topDownExposure} color={GOLD} />
+          <Bar
+            label={`Top-down · ${xray.occupation || "occupation"}${xray.occupationCode ? ` (SOC ${xray.occupationCode})` : ""}`}
+            sub={xray.topDownSource === "published" ? "published occupation exposure (Eloundou et al.)" : "occupation estimate — rubric-based"}
+            value={xray.topDownExposure}
+            color={GOLD}
+          />
           <div className="mt-4"><Bar label="Bottom-up · your actual tasks" sub="from the tasks below" value={xray.bottomUpExposure} color={SAGE} /></div>
           <p className="mt-4 text-xs text-slate-400">
             The gap is the point: what the models predict for the occupation vs. what {isJD ? "this role" : "you"} actually does. Exposure ≠ replacement — high exposure means AI can help with the task, and your complements rise in value.

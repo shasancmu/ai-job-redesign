@@ -687,15 +687,25 @@ export async function careerXrayAI(
   mode: "resume" | "jd",
   text: string,
   role: string,
-  level: string
+  level: string,
+  opts: { occupation?: { code: string; title: string } | null; topDown?: number | null } = {}
 ): Promise<any> {
   const who = mode === "resume" ? "this person (from their resume)" : "the role in this job description";
+  const occLine = opts.occupation
+    ? `Benchmark against this REAL occupation (already matched from O*NET/SOC — use it verbatim, do not invent another): ${opts.occupation.title} (SOC ${opts.occupation.code}).`
+    : `No standard occupation was matched — name the closest standard occupation yourself.`;
+  const topDownLine =
+    typeof opts.topDown === "number"
+      ? `For "topDownExposure" use EXACTLY ${opts.topDown} (a published occupation exposure figure). Do not change it.`
+      : `Estimate "topDownExposure" for the occupation using the same rubric (label it an estimate).`;
   const system = `You are a labor economist and career strategist. Analyze ${who} using the task-based framework of the economics of AI. Be rigorous, specific, and honest — but constructive (exposure is NOT the same as replacement; complements rise in value).
+
+${occLine}
 
 Method (follow it):
 - Decompose the role into concrete TASKS (Autor's task framework) — jobs are bundles of tasks; AI hits tasks unevenly.
 - Score each task's AI exposure with the Eloundou et al. rubric: "E0" = no meaningful exposure (human owns it); "E1" = an LLM alone cuts the time by half or more; "E2" = an LLM plus tools/software does most of it. For each task also say whether AI SUBSTITUTES for it or COMPLEMENTS the human.
-- Estimate a bottom-up exposure % (from these tasks) and a top-down exposure % (a reasonable estimate for the whole OCCUPATION, à la Brynjolfsson–Rock SML / Eloundou occupation scores). Label the occupation you benchmarked against.
+- Compute a bottom-up exposure % (from these tasks). ${topDownLine}
 - Generate NEW TASKS the person/role should take on as AI absorbs the routine work (Acemoglu & Restrepo's "new tasks" — redesign creates work, it doesn't only subtract). These should be genuinely higher-value and complementary.
 - Name the DURABLE VALUE: the tasks where this person is a scarce complement (judgment, taste, relationships, accountability) — what to lean into.
 - Give concrete CAREER VECTORS (adjacent roles that reward those complements) and a practical search plan.
@@ -722,10 +732,12 @@ Rules: 8-14 tasks covering the real role; be discerning with exposure (spread E0
   try {
     const p = extractJson(raw);
     return {
-      occupation: String(p.occupation || ""),
+      occupation: opts.occupation?.title || String(p.occupation || ""),
+      occupationCode: opts.occupation?.code || "",
       headline: String(p.headline || ""),
       summary: String(p.summary || ""),
-      topDownExposure: clampPct(p.topDownExposure),
+      topDownExposure: typeof opts.topDown === "number" ? clampPct(opts.topDown) : clampPct(p.topDownExposure),
+      topDownSource: typeof opts.topDown === "number" ? "published" : "estimate",
       bottomUpExposure: clampPct(p.bottomUpExposure),
       automateShare: clampPct(p.automateShare),
       augmentShare: clampPct(p.augmentShare),

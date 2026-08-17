@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, careerXrayAI } from "@/lib/ai";
+import { matchOccupation, occupationExposure } from "@/lib/onet";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,8 +24,12 @@ export async function POST(request: Request) {
   const text = String(body.text || "").trim();
   if (text.length < 60) return Response.json({ error: "Paste a bit more text first." }, { status: 400 });
 
+  const role = String(body.role || "").slice(0, 200);
+  const occupation = matchOccupation(role, text);
+  const topDown = occupation ? occupationExposure(occupation.code) : null;
+
   try {
-    const result = await careerXrayAI(mode, text, String(body.role || "").slice(0, 200), String(body.level || "").slice(0, 60));
+    const result = await careerXrayAI(mode, text, role, String(body.level || "").slice(0, 60), { occupation, topDown });
     const { _raw, ...xray } = result;
     if (!xray.summary && (xray.tasks?.length || 0) === 0) {
       return Response.json({ error: "The analysis came back empty — try again." }, { status: 502 });
