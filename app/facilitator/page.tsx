@@ -229,6 +229,7 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
         if (slug === "good-business") return bySession("venture");
         if (slug === "close-the-offer") return bySession("negotiation");
         if (slug === "name-your-price") return bySession("haggle");
+        if (slug === "career-x-ray") return bySession("career-xray");
         if (slug === "ai-canvas") return bySession("gas");
         if (slug === "opportunity-capability") return bySession("ocfit");
         if (slug === "test-the-bet") return bySession("experiment");
@@ -375,7 +376,9 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
                 </span>
               </div>
 
-              {negScenario(s.exercise || "") ? (
+              {s.exercise === "career-xray" || s.exercise === "jd-xray" ? (
+                <CareerFacilitatorView ws={wsFor(s.id, s.host_id)} code={s.code} authorName={nameOf(s.host_id)} />
+              ) : negScenario(s.exercise || "") ? (
                 <NegotiationFacilitatorView exercise={s.exercise} ws={wsFor(s.id, s.host_id)} authorName={nameOf(s.host_id)} />
               ) : canvasByExercise(s.exercise || "") ? (
                 <CanvasFacilitatorView exercise={s.exercise} ws={wsFor(s.id, s.host_id)} code={s.code} authorName={nameOf(s.host_id)} />
@@ -605,6 +608,30 @@ function FourAHeatmap({ rows }: { rows: { name: string; ratings: Record<string, 
         </div>
       </div>
       <p className="mt-3 text-xs text-slate-400">Red = execution is breaking on that dimension; green = strong. The weakest column is where the room needs the most help.</p>
+    </div>
+  );
+}
+
+function CareerFacilitatorView({ ws, code, authorName }: { ws: any; code: string; authorName: string }) {
+  const x = ws?.canvas?.xray;
+  const done = x && (x.summary || (x.tasks?.length || 0) > 0);
+  if (!done) {
+    return <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">{authorName} — no analysis yet.</div>;
+  }
+  return (
+    <div className="rounded-xl border border-slate-200 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="text-sm text-slate-600">
+          {x.occupation && <span className="font-medium text-ink">{x.occupation}</span>} · top-down <b className="text-ink">{x.topDownExposure}%</b> vs. bottom-up <b className="text-ink">{x.bottomUpExposure}%</b> exposed
+        </div>
+        <Link href={`/career/${code}`} className="text-sm font-medium text-sage hover:underline">View X-ray →</Link>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
+        <span>{x.automateShare}% automate</span>
+        <span>{x.augmentShare}% augment</span>
+        <span>{x.humanShare}% human</span>
+        <span>{(x.newTasks?.length || 0)} new tasks</span>
+      </div>
     </div>
   );
 }

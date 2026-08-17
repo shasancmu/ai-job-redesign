@@ -12,6 +12,7 @@ import NetworkRoom from "@/components/NetworkRoom";
 import SoloWorkflowRoom from "@/components/SoloWorkflowRoom";
 import CanvasRoom from "@/components/CanvasRoom";
 import NegotiationRoom from "@/components/NegotiationRoom";
+import CareerRoom from "@/components/CareerRoom";
 import { canvasByExercise } from "@/lib/canvases";
 import { scenarioByExercise } from "@/lib/negotiation";
 
@@ -62,6 +63,28 @@ export default async function RoomPage({
     if (!amHost) redirect("/dashboard");
     if (!session.cohort) redirect("/dashboard");
     return <NetworkRoom me={user.id} session={session} />;
+  }
+
+  // Career X-ray (resume or JD exposure analysis): single-user, host only.
+  if (session.exercise === "career-xray" || session.exercise === "jd-xray") {
+    if (!amHost) redirect("/dashboard");
+    await supabase
+      .from("workspaces")
+      .upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
+    return (
+      <CareerRoom
+        me={user.id}
+        session={session}
+        mode={session.exercise === "jd-xray" ? "jd" : "resume"}
+        initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
+      />
+    );
   }
 
   // Negotiation role-play (any scenario): single-user, only the host belongs here.

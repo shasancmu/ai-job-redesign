@@ -16,6 +16,7 @@ import {
   haggleSeed,
   randomOfferOutcome,
   randomHaggleOutcome,
+  careerSeed,
 } from "@/lib/seedData";
 
 export const runtime = "nodejs";
@@ -26,6 +27,7 @@ const MODULES = [
   "reimagine-job",
   "reimagine-workflow",
   "solo-ai",
+  "career-x-ray",
   "workflow-solo",
   "execution-4a",
   "balanced-scorecard",
@@ -222,6 +224,13 @@ export async function POST(request: Request) {
   addCanvas(users[4], "experiment");
   addCanvas(users[7], "scorecard");
   addCanvas(users[9], "venture");
+
+  // Career X-ray
+  {
+    const id = crypto.randomUUID();
+    sessionRows.push({ id, code: makeCode(), cohort: code, exercise: "career-xray", host_id: users[6].id, status: "done", phase: 1, phase_started_at: new Date().toISOString() });
+    workspaceRows.push({ session_id: id, author_id: users[6].id, canvas: careerSeed() });
+  }
 
   // Negotiations — crafted strong/weak examples + a spread for the cohort plots.
   const addNeg = (u: any, exercise: string, canvas: any) => {

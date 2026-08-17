@@ -264,6 +264,51 @@ const HAGGLE_SEEDS = [
   },
 ];
 
+export function careerSeed(): any {
+  return {
+    mode: "resume",
+    role: "Senior Marketing Manager",
+    level: "Manager",
+    xray: {
+      occupation: "Marketing Managers (SOC 11-2021)",
+      headline: "Most of the production is exposed; the strategy and relationships are not.",
+      summary:
+        "The routine of your role — drafting, reporting, campaign ops — is highly exposed to AI. But the parts that actually move the number (positioning, cross-functional judgment, the customer relationships) are where you're a scarce complement. The move is to hand AI the volume and reinvest the time up-market.",
+      topDownExposure: 68,
+      bottomUpExposure: 61,
+      automateShare: 35,
+      augmentShare: 40,
+      humanShare: 25,
+      tasks: [
+        { task: "Draft campaign copy and variants", exposure: "E1", mode: "substitute", note: "LLM writes the first drafts" },
+        { task: "Build the weekly performance report", exposure: "E2", mode: "substitute", note: "pulled + summarized by tools" },
+        { task: "Summarize customer research into themes", exposure: "E1", mode: "complement", note: "AI clusters, you interpret" },
+        { task: "Set the quarterly positioning", exposure: "E0", mode: "complement", note: "judgment + taste" },
+        { task: "Align sales, product, and finance on the plan", exposure: "E0", mode: "complement", note: "relationships + trust" },
+        { task: "Localize content across markets", exposure: "E2", mode: "substitute", note: "near-automatable" },
+        { task: "Own the executive narrative", exposure: "E1", mode: "complement", note: "AI drafts, you decide" },
+        { task: "Manage the agency relationship", exposure: "E0", mode: "complement", note: "accountability" },
+      ],
+      newTasks: [
+        { task: "Design and supervise the marketing AI stack", why: "Someone must own the prompts, guardrails, and QA as AI takes the volume." },
+        { task: "Run more, faster experiments", why: "With drafting cheap, the constraint shifts to judgment about what to test." },
+        { task: "Deepen a few strategic customer relationships", why: "The scarce, compounding asset AI can't build." },
+      ],
+      durableValue: ["Positioning and taste", "Cross-functional trust", "Judgment on what to test and ship", "Accountability for the number"],
+      careerVectors: [
+        { role: "Director of Product Marketing", why: "Leans into positioning + cross-functional judgment, less on production" },
+        { role: "Head of Growth", why: "Rewards the experiment-design and analytical judgment AI amplifies" },
+        { role: "Founder / fractional CMO", why: "Package the judgment; let AI do the execution leverage" },
+      ],
+      jobSearch: {
+        keywords: ["product marketing", "positioning", "GTM strategy", "growth experimentation", "AI marketing stack"],
+        whereToLook: ["Series B–D startups scaling GTM", "PLG companies hiring their first PMM lead", "growth-stage marketplaces"],
+        signals: ["A portfolio of positioning work", "1–2 experiments with clear lift", "evidence you built an AI-augmented workflow"],
+      },
+    },
+  };
+}
+
 export function haggleSeed(i: number): any {
   const s = HAGGLE_SEEDS[i % HAGGLE_SEEDS.length];
   return { terms: { price: s.price }, noDeal: false, chat: s.chat, feedback: s.feedback };

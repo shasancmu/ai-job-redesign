@@ -679,3 +679,65 @@ export async function coachReply(system: string, user: string, temperature = 0.6
     { temperature }
   );
 }
+
+// ============================================================================
+// Career X-ray — task-based AI-exposure analysis of a resume or job description.
+// ============================================================================
+export async function careerXrayAI(
+  mode: "resume" | "jd",
+  text: string,
+  role: string,
+  level: string
+): Promise<any> {
+  const who = mode === "resume" ? "this person (from their resume)" : "the role in this job description";
+  const system = `You are a labor economist and career strategist. Analyze ${who} using the task-based framework of the economics of AI. Be rigorous, specific, and honest — but constructive (exposure is NOT the same as replacement; complements rise in value).
+
+Method (follow it):
+- Decompose the role into concrete TASKS (Autor's task framework) — jobs are bundles of tasks; AI hits tasks unevenly.
+- Score each task's AI exposure with the Eloundou et al. rubric: "E0" = no meaningful exposure (human owns it); "E1" = an LLM alone cuts the time by half or more; "E2" = an LLM plus tools/software does most of it. For each task also say whether AI SUBSTITUTES for it or COMPLEMENTS the human.
+- Estimate a bottom-up exposure % (from these tasks) and a top-down exposure % (a reasonable estimate for the whole OCCUPATION, à la Brynjolfsson–Rock SML / Eloundou occupation scores). Label the occupation you benchmarked against.
+- Generate NEW TASKS the person/role should take on as AI absorbs the routine work (Acemoglu & Restrepo's "new tasks" — redesign creates work, it doesn't only subtract). These should be genuinely higher-value and complementary.
+- Name the DURABLE VALUE: the tasks where this person is a scarce complement (judgment, taste, relationships, accountability) — what to lean into.
+- Give concrete CAREER VECTORS (adjacent roles that reward those complements) and a practical search plan.
+
+Return STRICT JSON only — no prose, no fences:
+{
+ "occupation": "the standard occupation you benchmarked against",
+ "headline": "one honest, non-alarmist sentence",
+ "summary": "3-4 sentences, second person for resume / about the role for jd",
+ "topDownExposure": integer 0-100,
+ "bottomUpExposure": integer 0-100,
+ "automateShare": integer, "augmentShare": integer, "humanShare": integer,
+ "tasks": [{"task":"short","exposure":"E0|E1|E2","mode":"substitute|complement","note":"one clause: why"}],
+ "newTasks": [{"task":"the new higher-value work","why":"why it emerges and matters"}],
+ "durableValue": ["the scarce human complements to lean into"],
+ "careerVectors": [{"role":"an adjacent move","why":"why it fits the complements"}],
+ "jobSearch": {"keywords":["resume/search keywords"], "whereToLook":["where these roles are"], "signals":["what to build/show"]}
+}
+Rules: 8-14 tasks covering the real role; be discerning with exposure (spread E0/E1/E2). automate+augment+human ≈ 100. 3-5 new tasks and durable-value items. For a job description, "jobSearch" becomes how to FIND the person (keywords to source on, where they are, signals to screen for). Specific to THIS ${mode}; no generic filler.`;
+
+  const user = `Role: ${role || "(unspecified)"}${level ? ` · Level: ${level}` : ""}\n\n${mode === "resume" ? "Resume" : "Job description"}:\n${text.slice(0, 6000)}`;
+  const raw = await complete([{ role: "system", content: system }, { role: "user", content: user }], { json: true, temperature: 0.4, maxTokens: 4096 });
+  const clampPct = (v: any) => Math.max(0, Math.min(100, Math.round(Number(v) || 0)));
+  try {
+    const p = extractJson(raw);
+    return {
+      occupation: String(p.occupation || ""),
+      headline: String(p.headline || ""),
+      summary: String(p.summary || ""),
+      topDownExposure: clampPct(p.topDownExposure),
+      bottomUpExposure: clampPct(p.bottomUpExposure),
+      automateShare: clampPct(p.automateShare),
+      augmentShare: clampPct(p.augmentShare),
+      humanShare: clampPct(p.humanShare),
+      tasks: Array.isArray(p.tasks) ? p.tasks.slice(0, 16).map((t: any) => ({ task: String(t.task || ""), exposure: ["E0", "E1", "E2"].includes(t.exposure) ? t.exposure : "E1", mode: t.mode === "substitute" ? "substitute" : "complement", note: String(t.note || "") })) : [],
+      newTasks: Array.isArray(p.newTasks) ? p.newTasks.slice(0, 6).map((t: any) => ({ task: String(t.task || ""), why: String(t.why || "") })) : [],
+      durableValue: Array.isArray(p.durableValue) ? p.durableValue.slice(0, 6).map((s: any) => String(s)) : [],
+      careerVectors: Array.isArray(p.careerVectors) ? p.careerVectors.slice(0, 5).map((v: any) => ({ role: String(v.role || ""), why: String(v.why || "") })) : [],
+      jobSearch: { keywords: (p.jobSearch?.keywords || []).slice(0, 12).map((s: any) => String(s)), whereToLook: (p.jobSearch?.whereToLook || []).slice(0, 8).map((s: any) => String(s)), signals: (p.jobSearch?.signals || []).slice(0, 8).map((s: any) => String(s)) },
+      _raw: raw,
+    };
+  } catch {
+    return { summary: "", tasks: [], _raw: raw };
+  }
+}
