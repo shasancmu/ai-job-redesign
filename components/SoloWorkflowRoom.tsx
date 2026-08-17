@@ -205,6 +205,9 @@ export default function SoloWorkflowRoom({
               <label className="lbl">If we actually redesigned this, we&apos;d stop ___ and start ___.</label>
               <textarea className="field min-h-[110px]" placeholder="We would stop… and start…" {...bind("stop_start")} />
             </div>
+            <Link href={`/workflow-plan/${session.code}`} className="btn-primary block text-center">
+              View the full plan →
+            </Link>
           </div>
         )}
       </div>

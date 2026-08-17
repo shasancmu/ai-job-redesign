@@ -512,6 +512,9 @@ export default function WorkflowRoom({
                 {...bind("stop_start")}
               />
             </div>
+            <Link href={`/workflow-plan/${session.code}`} className="btn-primary block text-center">
+              View the full plan →
+            </Link>
           </div>
         )}
       </div>
