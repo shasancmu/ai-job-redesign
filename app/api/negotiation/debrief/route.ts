@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, coachReply } from "@/lib/ai";
 import { analyze, debriefFacts, scenarioByExercise } from "@/lib/negotiation";
+import { getUserLanguage, withLanguage } from "@/lib/lang";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
   try {
     const facts = debriefFacts(scn, analyze(scn, terms, noDeal));
     const user_msg = `FACTS:\n${JSON.stringify(facts, null, 2)}\n\nTranscript excerpt:\n${transcript || "(none)"}`;
-    const feedback = await coachReply(SYSTEM, user_msg);
+    const feedback = await withLanguage(await getUserLanguage(supabase, user.id), () => coachReply(SYSTEM, user_msg));
     return Response.json({ feedback });
   } catch (e: any) {
     return Response.json({ error: e?.message || "Couldn't build the debrief." }, { status: 502 });

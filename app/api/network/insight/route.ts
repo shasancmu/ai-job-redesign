@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AI_ENABLED, networkInsightAI } from "@/lib/ai";
+import { getUserLanguage, withLanguage } from "@/lib/lang";
 import { personMetrics, Response as Resp } from "@/lib/network";
 
 export const runtime = "nodejs";
@@ -42,7 +43,7 @@ export async function GET(request: Request) {
 
   const metrics = personMetrics(responses, mine.self_id, validIds);
   try {
-    const text = await networkInsightAI(metrics);
+    const text = await withLanguage(await getUserLanguage(supabase, user.id), () => networkInsightAI(metrics));
     return Response.json({ text, metrics });
   } catch (e: any) {
     return Response.json({ text: null, reason: e?.message || "ai-error" });

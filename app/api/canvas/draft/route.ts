@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, canvasDraftAI } from "@/lib/ai";
+import { getUserLanguage, withLanguage } from "@/lib/lang";
 import { canvasByExercise } from "@/lib/canvases";
 
 export const runtime = "nodejs";
@@ -29,7 +30,9 @@ export async function POST(request: Request) {
     .join("\n");
 
   try {
-    const result = await canvasDraftAI(def, String(body.subject || "").slice(0, 400), transcript.slice(0, 6000));
+    const result = await withLanguage(await getUserLanguage(supabase, user.id), () =>
+      canvasDraftAI(def, String(body.subject || "").slice(0, 400), transcript.slice(0, 6000))
+    );
     const { _raw, ...canvas } = result;
     const filled = Object.values(canvas.fields || {}).some((v: any) => (Array.isArray(v) ? v.length : v));
     if (!filled && !canvas.synthesis) {

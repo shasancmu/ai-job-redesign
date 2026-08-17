@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, interviewReply, proposeRedesign, ChatMsg } from "@/lib/ai";
+import { getUserLanguage, withLanguage } from "@/lib/lang";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,16 +34,17 @@ export async function POST(request: Request) {
     description: String(body.jobDescription || "").slice(0, 1000),
   };
 
+  const language = await getUserLanguage(supabase, user.id);
   try {
     if (mode === "propose") {
       // Context can come from the interview transcript (solo) or captured notes (paired).
       const context = body.notes
         ? String(body.notes).slice(0, 4000)
         : history.map((m) => `${m.role === "user" ? "Them" : "Interviewer"}: ${m.content}`).join("\n");
-      const result = await proposeRedesign(context, job);
+      const result = await withLanguage(language, () => proposeRedesign(context, job));
       return Response.json(result);
     }
-    const reply = await interviewReply(history, job);
+    const reply = await withLanguage(language, () => interviewReply(history, job));
     return Response.json({ reply });
   } catch (e: any) {
     return Response.json(

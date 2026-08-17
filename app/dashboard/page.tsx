@@ -7,6 +7,7 @@ import { titleCaseName } from "@/lib/name";
 import { MODULES } from "@/lib/modules";
 import Catalog from "@/components/Catalog";
 import SessionsPanel from "@/components/SessionsPanel";
+import LanguagePicker from "@/components/LanguagePicker";
 import Footer from "@/components/Footer";
 import Logo from "@/components/Logo";
 
@@ -84,6 +85,7 @@ export default async function Dashboard({
           <h1 className="mt-3 text-2xl">Hi, {profile?.display_name || "there"}</h1>
         </div>
         <div className="flex items-center gap-2">
+          <LanguagePicker me={user.id} initial={(profile as any)?.language} />
           {instructor && (
             <a href="/facilitator" className="btn-ghost text-sm">
               Facilitator

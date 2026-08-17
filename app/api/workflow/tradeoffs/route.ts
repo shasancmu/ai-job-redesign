@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, workflowTradeoffsAI } from "@/lib/ai";
+import { getUserLanguage, withLanguage } from "@/lib/lang";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,10 +21,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { fields, plan } = await workflowTradeoffsAI(
-      String(body.name || "").slice(0, 200),
-      String(body.description || "").slice(0, 1800),
-      String(body.summary || "").slice(0, 600)
+    const { fields, plan } = await withLanguage(await getUserLanguage(supabase, user.id), () =>
+      workflowTradeoffsAI(String(body.name || "").slice(0, 200), String(body.description || "").slice(0, 1800), String(body.summary || "").slice(0, 600))
     );
     const hasFields = fields && Object.values(fields).some((v) => v);
     const hasPlan = plan && Object.values(plan).some((a: any) => a?.aim || a?.moves?.length);

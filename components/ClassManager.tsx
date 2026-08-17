@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MODULES } from "@/lib/modules";
 import { normalizeCode } from "@/lib/classes";
+import { LANGUAGES } from "@/components/LanguagePicker";
 
-type Klass = { id: string; code: string; name: string; modules: string[]; members: number };
+type Klass = { id: string; code: string; name: string; modules: string[]; members: number; language?: string };
 
 const nameOf = (slug: string) => MODULES.find((m) => m.slug === slug)?.name || slug;
 
@@ -13,6 +14,7 @@ export default function ClassManager() {
   const [classes, setClasses] = useState<Klass[]>([]);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
+  const [language, setLanguage] = useState("English");
   const [order, setOrder] = useState<string[]>([]); // ordered module slugs
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -44,6 +46,7 @@ export default function ClassManager() {
   function edit(k: Klass) {
     setName(k.name);
     setCode(k.code);
+    setLanguage(k.language || "English");
     setOrder(k.modules || []);
     setErr(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -52,6 +55,7 @@ export default function ClassManager() {
   function reset() {
     setName("");
     setCode("");
+    setLanguage("English");
     setOrder([]);
   }
 
@@ -77,7 +81,7 @@ export default function ClassManager() {
     const res = await fetch("/api/classes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, code: c, modules: order }),
+      body: JSON.stringify({ name, code: c, modules: order, language }),
     });
     const d = await res.json().catch(() => ({}));
     setBusy(false);
@@ -108,6 +112,16 @@ export default function ClassManager() {
             />
             {code && <div className="mt-1 truncate text-xs text-slate2">{origin}/{normalizeCode(code)}</div>}
           </div>
+        </div>
+
+        <div className="mt-4 max-w-xs">
+          <label className="lbl">Language (AI content runs in this)</label>
+          <select className="field" value={language} onChange={(e) => setLanguage(e.target.value)}>
+            {LANGUAGES.map((l) => (
+              <option key={l} value={l}>{l}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-slate2">Everyone who joins this cohort has their exercises run in this language.</p>
         </div>
 
         {/* Ordered module list */}

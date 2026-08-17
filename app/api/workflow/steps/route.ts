@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, workflowStepsAI } from "@/lib/ai";
+import { getUserLanguage, withLanguage } from "@/lib/lang";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,9 +21,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const steps = await workflowStepsAI(
-      String(body.name || "").slice(0, 200),
-      String(body.description || "").slice(0, 1500)
+    const steps = await withLanguage(await getUserLanguage(supabase, user.id), () =>
+      workflowStepsAI(String(body.name || "").slice(0, 200), String(body.description || "").slice(0, 1500))
     );
     return Response.json({ steps });
   } catch (e: any) {

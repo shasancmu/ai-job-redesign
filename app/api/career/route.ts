@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, careerXrayAI } from "@/lib/ai";
 import { matchOccupation, occupationExposure } from "@/lib/onet";
+import { getUserLanguage, withLanguage } from "@/lib/lang";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,7 +30,9 @@ export async function POST(request: Request) {
   const topDown = occupation ? occupationExposure(occupation.code) : null;
 
   try {
-    const result = await careerXrayAI(mode, text, role, String(body.level || "").slice(0, 60), { occupation, topDown });
+    const result = await withLanguage(await getUserLanguage(supabase, user.id), () =>
+      careerXrayAI(mode, text, role, String(body.level || "").slice(0, 60), { occupation, topDown })
+    );
     const { _raw, ...xray } = result;
     if (!xray.summary && (xray.tasks?.length || 0) === 0) {
       return Response.json({ error: "The analysis came back empty — try again." }, { status: 502 });

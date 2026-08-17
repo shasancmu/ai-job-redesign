@@ -16,6 +16,8 @@ create table if not exists public.profiles (
 
 -- Add role to any pre-existing profiles table.
 alter table public.profiles add column if not exists role text not null default 'end_user';
+-- Preferred language for AI-generated content (interviews, analyses, debriefs).
+alter table public.profiles add column if not exists language text not null default 'English';
 
 -- --- sessions: one row per paired room ------------------------------------
 create table if not exists public.sessions (
@@ -209,6 +211,8 @@ create table if not exists public.classes (
   modules jsonb not null default '[]'::jsonb, -- ordered list of module slugs
   created_at timestamptz not null default now()
 );
+-- Language the cohort runs in; propagates to each member's profile on join.
+alter table public.classes add column if not exists language text not null default 'English';
 alter table public.classes enable row level security;
 
 drop policy if exists "classes read" on public.classes;

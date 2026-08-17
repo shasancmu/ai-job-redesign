@@ -16,10 +16,23 @@ const MODEL = process.env.AI_MODEL || "llama-3.3-70b-versatile";
 export type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
 
 import type { CanvasDef } from "./canvases";
+import { currentLanguage } from "./lang";
 
 // Anthropic's OpenAI-compatible endpoint requires max_tokens and doesn't take
 // response_format — so we set the first and only send the second elsewhere.
 const IS_ANTHROPIC = BASE_URL.includes("anthropic.com");
+
+// When a request is scoped to a non-English language, append a directive to the
+// system prompt so ALL AI output localizes — without changing any function.
+function localize(messages: ChatMsg[]): ChatMsg[] {
+  const lang = currentLanguage();
+  if (!lang) return messages;
+  const directive = `\n\nIMPORTANT: Write ALL of your output in ${lang}, using natural, native ${lang}. If your output is JSON, keep the JSON keys and any enum values (like "E0"/"E1"/"E2", "substitute"/"complement", "human"/"ai"/"both") EXACTLY as specified in English — translate only the human-readable text values and prose into ${lang}.`;
+  const hasSystem = messages.some((m) => m.role === "system");
+  return hasSystem
+    ? messages.map((m) => (m.role === "system" ? { ...m, content: m.content + directive } : m))
+    : [{ role: "system", content: `Respond entirely in ${lang}, using natural, native ${lang}.` }, ...messages];
+}
 
 async function complete(
   messages: ChatMsg[],
@@ -33,7 +46,7 @@ async function complete(
     },
     body: JSON.stringify({
       model: MODEL,
-      messages,
+      messages: localize(messages),
       // Big enough that structured plans don't get truncated into invalid JSON.
       max_tokens: opts.maxTokens ?? 4096,
       temperature: opts.temperature ?? 0.7,

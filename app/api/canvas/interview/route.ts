@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, canvasInterviewReply } from "@/lib/ai";
+import { getUserLanguage, withLanguage } from "@/lib/lang";
 import { canvasByExercise } from "@/lib/canvases";
 
 export const runtime = "nodejs";
@@ -25,11 +26,8 @@ export async function POST(request: Request) {
 
   const messages = Array.isArray(body.messages) ? body.messages : [];
   try {
-    const reply = await canvasInterviewReply(
-      def.interviewSystem,
-      def.subjectLabel,
-      String(body.subject || "").slice(0, 400),
-      messages
+    const reply = await withLanguage(await getUserLanguage(supabase, user.id), () =>
+      canvasInterviewReply(def.interviewSystem, def.subjectLabel, String(body.subject || "").slice(0, 400), messages)
     );
     return Response.json({ reply });
   } catch (e: any) {

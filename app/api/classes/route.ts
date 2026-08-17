@@ -26,7 +26,7 @@ export async function GET() {
   }
   const { data } = await admin
     .from("classes")
-    .select("id, code, name, modules, created_at")
+    .select("id, code, name, modules, language, created_at")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -62,6 +62,7 @@ export async function POST(request: Request) {
   const modules = (Array.isArray(body.modules) ? body.modules : []).filter((s: string) =>
     VALID.has(s)
   );
+  const language = String(body.language || "English").slice(0, 40) || "English";
   if (!code || !name) return Response.json({ error: "code and name required" }, { status: 400 });
 
   let admin;
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
 
   const { error } = await admin
     .from("classes")
-    .upsert({ code, name, owner_id: user.id, modules }, { onConflict: "code" });
+    .upsert({ code, name, owner_id: user.id, modules, language }, { onConflict: "code" });
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
   return Response.json({ ok: true, code });

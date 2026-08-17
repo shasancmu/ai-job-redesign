@@ -22,7 +22,7 @@ export default async function ClassPage({ params }: { params: { code: string } }
     const admin = createAdminClient();
     const { data } = await admin
       .from("classes")
-      .select("id, code, name, modules")
+      .select("id, code, name, modules, language")
       .eq("code", code)
       .maybeSingle();
     klass = data;
@@ -84,6 +84,11 @@ export default async function ClassPage({ params }: { params: { code: string } }
   await supabase
     .from("class_members")
     .upsert({ class_id: klass.id, user_id: user.id }, { onConflict: "class_id,user_id" });
+
+  // Run this member's exercises in the cohort's language.
+  if (klass.language && klass.language !== "English") {
+    await supabase.from("profiles").update({ language: klass.language }).eq("id", user.id);
+  }
 
   const moduleSlugs: string[] = klass.modules || [];
   const unlocked: Record<string, boolean> = {};

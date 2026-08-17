@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, implementationPlanAI } from "@/lib/ai";
+import { getUserLanguage, withLanguage } from "@/lib/lang";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,13 +32,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await implementationPlanAI(
-      {
-        title: String(body.jobTitle || "").slice(0, 200),
-        description: String(body.jobDescription || "").slice(0, 1200),
-      },
-      humanTasks,
-      aiTasks
+    const result = await withLanguage(await getUserLanguage(supabase, user.id), () =>
+      implementationPlanAI(
+        {
+          title: String(body.jobTitle || "").slice(0, 200),
+          description: String(body.jobDescription || "").slice(0, 1200),
+        },
+        humanTasks,
+        aiTasks
+      )
     );
     // `_raw` is for diagnosis only — never store it in the workspace.
     const { _raw, ...plan } = result;

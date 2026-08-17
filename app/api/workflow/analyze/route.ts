@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, workflowAnalyzeAI } from "@/lib/ai";
+import { getUserLanguage, withLanguage } from "@/lib/lang";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,10 +25,8 @@ export async function POST(request: Request) {
     : [];
 
   try {
-    const analysis = await workflowAnalyzeAI(
-      String(body.name || "").slice(0, 200),
-      String(body.description || "").slice(0, 1800),
-      asIs
+    const analysis = await withLanguage(await getUserLanguage(supabase, user.id), () =>
+      workflowAnalyzeAI(String(body.name || "").slice(0, 200), String(body.description || "").slice(0, 1800), asIs)
     );
     if (!analysis.summary && analysis.opportunities.length === 0 && analysis.flow.length === 0) {
       return Response.json({ analysis: null, reason: "empty" }, { status: 502 });
