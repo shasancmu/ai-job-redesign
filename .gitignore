@@ -12,3 +12,4 @@ npm-debug.log*
 scratchpad/
 node-v*-darwin-arm64/
 node.tar.gz
+data/onet/
