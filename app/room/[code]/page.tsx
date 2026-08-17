@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { hasModuleAccess } from "@/lib/entitlement";
-import { hasClassAccess } from "@/lib/classes";
+import { moduleRunAccess } from "@/lib/access";
 import { isAdmin } from "@/lib/admin";
 import { moduleByExercise } from "@/lib/modules";
 import Room from "@/components/Room";
@@ -40,12 +39,15 @@ export default async function RoomPage({
   // Module gate: you need access to THIS session's module (dormant if Stripe
   // isn't set up). Instructors always pass.
   const mod = moduleByExercise(session.exercise || "job");
-  if (
-    mod &&
-    !(await hasModuleAccess(supabase, user.id, mod.slug, isAdmin(user.email))) &&
-    !(await hasClassAccess(supabase, user.id, session.cohort, mod.slug))
-  ) {
-    redirect(`/paywall?module=${mod.slug}`);
+  if (mod) {
+    const access = await moduleRunAccess(supabase, {
+      userId: user.id,
+      slug: mod.slug,
+      exercise: session.exercise || "job",
+      cohort: session.cohort,
+      isAdmin: isAdmin(user.email),
+    });
+    if (!access.ok) redirect(`/paywall?module=${mod.slug}`);
   }
 
   const amHost = session.host_id === user.id;

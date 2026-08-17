@@ -1,9 +1,14 @@
 import Stripe from "stripe";
 
-// Payments are DISABLED for now (pending a redesign). Everything is free.
-// To bring payments back later, restore:
-//   !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID)
-export const PAYMENTS_ENABLED = false;
+// Payments turn on automatically once Stripe is configured. Until STRIPE_SECRET_KEY
+// is set, every module is free and unlimited (paywall + run caps stay dormant).
+export const PAYMENTS_ENABLED = !!process.env.STRIPE_SECRET_KEY;
+
+// Price IDs for the two all-access plans (set in the Stripe dashboard):
+//   STRIPE_PRICE_ALL    — $29/year recurring (public)
+//   STRIPE_PRICE_COHORT — $19 one-time (cohort alumni)
+export const PRICE_ALL = process.env.STRIPE_PRICE_ALL || process.env.STRIPE_PRICE_ID; // back-compat
+export const PRICE_COHORT = process.env.STRIPE_PRICE_COHORT;
 
 let _stripe: Stripe | null = null;
 

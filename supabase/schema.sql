@@ -229,6 +229,11 @@ create table if not exists public.classes (
 );
 -- Language the cohort runs in; propagates to each member's profile on join.
 alter table public.classes add column if not exists language text not null default 'English';
+-- Cohort kind: 'teaching' (open join, students may buy $19 all-access) or
+-- 'enterprise' (email-gated, comped via an offline contract).
+alter table public.classes add column if not exists kind text not null default 'teaching';
+-- Enterprise invite list: only these emails may join an enterprise cohort.
+alter table public.classes add column if not exists allowed_emails jsonb not null default '[]'::jsonb;
 alter table public.classes enable row level security;
 
 drop policy if exists "classes read" on public.classes;
@@ -347,6 +352,12 @@ create table if not exists public.entitlements (
   created_at timestamptz not null default now(),
   primary key (user_id, module)
 );
+-- Subscription tracking for the $29/yr plan. Lifetime grants (one-time $19,
+-- coupon, admin) leave current_period_end null. Paid runs are counted since
+-- current_period_start, so a renewal refreshes the allowance.
+alter table public.entitlements add column if not exists current_period_start timestamptz;
+alter table public.entitlements add column if not exists current_period_end timestamptz;
+alter table public.entitlements add column if not exists stripe_subscription_id text;
 
 -- Migrate a pre-existing single-key entitlements table to per-module rows.
 -- Any existing paid user becomes an 'all' (all-access) holder.
