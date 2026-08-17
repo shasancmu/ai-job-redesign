@@ -175,6 +175,9 @@ create table if not exists public.workflow_docs (
   updated_at timestamptz not null default now()
 );
 
+-- AI analysis of the as-is workflow: { summary, opportunities:[{title,outcome,how,prep}], flow:[{id,text,role}] }
+alter table public.workflow_docs add column if not exists analysis jsonb not null default '{}'::jsonb;
+
 alter table public.workflow_docs enable row level security;
 
 drop policy if exists "workflow read" on public.workflow_docs;

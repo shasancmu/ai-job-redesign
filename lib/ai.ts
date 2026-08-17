@@ -183,7 +183,10 @@ Probe: …`,
   return complete(messages, { temperature: 0.7 });
 }
 
-// Drafts a workflow as an ordered list of steps with a first-pass human/AI split.
+// Draws the workflow AS IT IS TODAY — an honest, ordered list of the real steps
+// a person does now. We deliberately DON'T guess an AI split here; that would
+// mislabel obviously-human steps (e.g. "make a sandwich" as "both"). Every step
+// comes back as "human" (the current reality); AI opportunities come later.
 export async function workflowStepsAI(
   name: string,
   description: string
@@ -191,25 +194,122 @@ export async function workflowStepsAI(
   const messages: ChatMsg[] = [
     {
       role: "system",
-      content: `You map a work process into a clean, ordered sequence of concrete steps. Return STRICT JSON only:
-{"steps":[{"text":"...","role":"human|ai|both"}]}
-Rules: 6–10 steps, each a short action phrase (max ~12 words), in the order they happen. For "role", give a sensible first-pass of who should own each step in an AI-augmented redesign — "ai" for find/organize/analyze/draft/summarize work, "human" for judgment/relationships/accountability/taste, "both" for tightly coupled steps. No prose outside the JSON.`,
+      content: `You map a work process EXACTLY AS IT RUNS TODAY into a clean, ordered sequence of concrete steps. Return STRICT JSON only:
+{"steps":[{"text":"..."}]}
+Rules: 5–10 steps, each a short action phrase (max ~12 words), in the order they actually happen today. Describe reality, not an improved version — do NOT add AI or automation. No prose outside the JSON.`,
     },
     {
       role: "user",
       content: `Workflow: ${name || "(unnamed)"}\nDescription: ${description || ""}`,
     },
   ];
-  const raw = await complete(messages, { json: true, temperature: 0.5 });
+  const raw = await complete(messages, { json: true, temperature: 0.4 });
   try {
     const parsed = extractJson(raw);
     const steps = Array.isArray(parsed.steps) ? parsed.steps : [];
     return steps.slice(0, 12).map((s: any) => ({
       text: String(s.text || "").slice(0, 160),
-      role: ["human", "ai", "both"].includes(s.role) ? s.role : "human",
+      role: "human", // as-is: it's all human today
     }));
   } catch {
     return [];
+  }
+}
+
+// Studies the AS-IS workflow and finds where AI GENUINELY makes it better —
+// framed around the OUTCOME the person actually wants, how AI delivers it, and
+// how to prep fast. Also returns a redesigned flow with a sensible human/AI split.
+export async function workflowAnalyzeAI(
+  name: string,
+  description: string,
+  asIsSteps: string[]
+): Promise<{
+  summary: string;
+  opportunities: { title: string; outcome: string; how: string; prep: string }[];
+  flow: { text: string; role: string }[];
+}> {
+  const messages: ChatMsg[] = [
+    {
+      role: "system",
+      content: `You are a sharp workflow-redesign analyst. You are given a workflow AS IT RUNS TODAY (a list of current human steps) plus context. Find where AI genuinely makes it BETTER — anchored to the real OUTCOME the person wants, not busywork labeling.
+
+Return STRICT JSON only — no prose, no code fences:
+{
+ "summary": "1-2 sentences: where AI genuinely helps this workflow, and where the human stays essential",
+ "opportunities": [
+   {"title":"short name","outcome":"the concrete better result the person wants — specific, measurable where possible","how":"how AI delivers it: the mechanism / kind of tool, and what it produces","prep":"how to set it up once / prep fast so you reliably hit that outcome"}
+ ],
+ "flow": [ {"text":"redesigned step (<=12 words)","role":"human|ai|both"} ]
+}
+Rules:
+- 2–4 opportunities, each tied to a real outcome and specific to THIS workflow. Example calibration: for "make lunch for my kids", a strong opportunity is "a weekly shopping list sized for two kids with balanced nutrition" and "a fast every-morning lunch plan optimized for growing kids", plus how to prep in minutes — NOT vague "use AI to help".
+- "flow" is the redesigned workflow. Keep steps HUMAN (green) where judgment, care, taste, safety, or relationships matter. Give AI (gold) the search / planning / drafting / organizing / list-making. Use "both" ONLY for a step where a human is clearly acting on an AI-produced draft — use it sparingly; when unsure, pick human or ai, never default to both.
+- No vague "leverage AI".`,
+    },
+    {
+      role: "user",
+      content: `Workflow: ${name || "(unnamed)"}\nContext: ${description || ""}\n\nAs-is steps (all human today):\n${asIsSteps.map((t, i) => `${i + 1}. ${t}`).join("\n") || "(none)"}`,
+    },
+  ];
+  const raw = await complete(messages, { json: true, temperature: 0.5 });
+  try {
+    const p = extractJson(raw);
+    return {
+      summary: String(p.summary || ""),
+      opportunities: Array.isArray(p.opportunities)
+        ? p.opportunities.slice(0, 6).map((o: any) => ({
+            title: String(o.title || "").slice(0, 80),
+            outcome: String(o.outcome || ""),
+            how: String(o.how || ""),
+            prep: String(o.prep || ""),
+          }))
+        : [],
+      flow: Array.isArray(p.flow)
+        ? p.flow.slice(0, 14).map((s: any) => ({
+            text: String(s.text || "").slice(0, 160),
+            role: ["human", "ai", "both"].includes(s.role) ? s.role : "human",
+          }))
+        : [],
+    };
+  } catch {
+    return { summary: "", opportunities: [], flow: [] };
+  }
+}
+
+// Helps the person fill out the three OCC trade-offs for THIS workflow.
+export async function workflowTradeoffsAI(
+  name: string,
+  description: string,
+  analysisSummary: string
+): Promise<Record<string, string>> {
+  const messages: ChatMsg[] = [
+    {
+      role: "system",
+      content: `You help someone fill out three trade-offs for redesigning a workflow with AI (the OCC lens: Outcomes, Capabilities, Control). Given the workflow, suggest a concise, specific starting answer for each field — something they can accept or edit. Return STRICT JSON only:
+{
+ "more":"where pushing for more / faster / cheaper / higher-volume genuinely helps here",
+ "better":"where slower / deeper / stronger is what actually matters here",
+ "accuracy":"what must stay exactly right — no AI drift allowed",
+ "generality":"where roughly-right is fine and a general approach helps",
+ "chaos":"what unchecked AI autonomy would look like here (the failure mode)",
+ "architect":"the structure / guardrails that make AI autonomy safe here"
+}
+Each value is ONE sentence, concrete and specific to THIS workflow. No prose outside the JSON.`,
+    },
+    {
+      role: "user",
+      content: `Workflow: ${name || "(unnamed)"}\nContext: ${description || ""}\nWhere AI helps: ${analysisSummary || "(not yet analyzed)"}`,
+    },
+  ];
+  const raw = await complete(messages, { json: true, temperature: 0.5 });
+  try {
+    const p = extractJson(raw);
+    const keys = ["more", "better", "accuracy", "generality", "chaos", "architect"];
+    const out: Record<string, string> = {};
+    for (const k of keys) out[k] = String(p[k] || "");
+    return out;
+  } catch {
+    return {};
   }
 }
 

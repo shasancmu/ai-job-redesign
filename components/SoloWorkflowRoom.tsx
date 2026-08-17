@@ -54,6 +54,36 @@ export default function SoloWorkflowRoom({
 
   const steps: any[] = doc.steps || [];
   const setSteps = (next: any[]) => update({ steps: next });
+  const analysis: any = doc.analysis || {};
+  const redesignFlow: any[] = analysis.flow?.length ? analysis.flow : steps;
+
+  // AI help for the three trade-offs — fills any blanks with a specific first draft.
+  const [tradeoffBusy, setTradeoffBusy] = useState(false);
+  const [tradeoffErr, setTradeoffErr] = useState<string | null>(null);
+  async function suggestTradeoffs() {
+    setTradeoffBusy(true);
+    setTradeoffErr(null);
+    try {
+      const r = await fetch("/api/workflow/tradeoffs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: doc.name, description: doc.why || "", summary: analysis.summary || "" }),
+      }).then((x) => x.json());
+      if (r.fields) {
+        const patch: Record<string, string> = {};
+        for (const k of ["more", "better", "accuracy", "generality", "chaos", "architect"]) {
+          if (!doc[k] && r.fields[k]) patch[k] = r.fields[k];
+        }
+        if (Object.keys(patch).length) update(patch);
+        else setTradeoffErr("Your answers are already filled in — edit them freely.");
+      } else {
+        setTradeoffErr(r.reason === "ai-off" ? "AI isn't set up for this session." : "Couldn't get suggestions — try again.");
+      }
+    } catch {
+      setTradeoffErr("Couldn't get suggestions — try again.");
+    }
+    setTradeoffBusy(false);
+  }
 
   async function go(i: number) {
     const clamped = Math.max(0, Math.min(SOLO_WORKFLOW_STEPS.length - 1, i));
@@ -127,8 +157,21 @@ export default function SoloWorkflowRoom({
           <MapStep doc={doc} chat={chat} setSteps={setSteps} steps={steps} />
         )}
 
+        {step.key === "analyze" && (
+          <AnalyzeStep doc={doc} chat={chat} steps={steps} analysis={analysis} update={update} />
+        )}
+
         {step.key === "tradeoffs" && (
           <div className="space-y-5">
+            <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
+              <div className="text-sm text-slate-500">
+                Not sure how to fill these in? Let AI draft a first pass for this workflow — then make it yours.
+              </div>
+              <button onClick={suggestTradeoffs} disabled={tradeoffBusy} className="btn-primary text-sm">
+                {tradeoffBusy ? "Thinking…" : "✨ Help me think this through"}
+              </button>
+            </div>
+            {tradeoffErr && <p className="text-sm text-clay">{tradeoffErr}</p>}
             <TradeoffRow occ="Outcomes" title="More vs. Better" hint="AI pulls toward more. Is that where you want to land?" leftLabel="More (faster, cheaper, more volume)" rightLabel="Better (slower, deeper, stronger)" left={bind("more")} right={bind("better")} />
             <TradeoffRow occ="Capabilities" title="Accuracy vs. Generality" hint="AI pulls toward generality. What must stay precise?" leftLabel="Must stay exactly right" rightLabel="Roughly right is fine" left={bind("accuracy")} right={bind("generality")} />
             <TradeoffRow occ="Control" title="Structure vs. Autonomy" hint="AI pulls toward autonomy — without structure, that's chaos." leftLabel="What chaos looks like here" rightLabel="The structure that makes autonomy safe (Architect)" left={bind("chaos")} right={bind("architect")} />
@@ -140,9 +183,22 @@ export default function SoloWorkflowRoom({
             <div className="card p-5">
               <div className="text-xs font-semibold uppercase tracking-wide text-sage">Your AI + Human workflow</div>
               <div className="mt-1 text-lg font-bold text-ink">{doc.name || "—"}</div>
+              {analysis.summary && <p className="mt-1 text-sm text-slate-500">{analysis.summary}</p>}
               <div className="mt-2"><Legend /></div>
-              <div className="mt-4"><WorkflowFlow steps={steps} editable={false} /></div>
+              <div className="mt-4"><WorkflowFlow steps={redesignFlow} editable={false} /></div>
             </div>
+            {analysis.opportunities?.length > 0 && (
+              <div className="card p-5">
+                <div className="text-xs font-semibold uppercase tracking-wide text-amber">What to start this week</div>
+                <ul className="mt-2 space-y-2">
+                  {analysis.opportunities.map((o: any, i: number) => (
+                    <li key={i} className="text-sm text-slate-700">
+                      <span className="font-semibold text-ink">{o.title}:</span> {o.outcome}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="card p-5">
               <label className="lbl">If we actually redesigned this, we&apos;d stop ___ and start ___.</label>
               <textarea className="field min-h-[110px]" placeholder="We would stop… and start…" {...bind("stop_start")} />
@@ -325,13 +381,131 @@ function MapStep({
   return (
     <div className="space-y-4">
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
-        <Legend />
+        <div className="text-sm text-slate-500">
+          The workflow exactly as it runs <span className="font-semibold text-ink">today</span> — every step a human does now. You&apos;ll add AI in the next step.
+        </div>
         <button onClick={draw} disabled={busy} className="btn-primary text-sm">
-          {busy ? "Drawing…" : steps.length ? "↻ Redraw with AI" : "✨ Draw with AI"}
+          {busy ? "Drawing…" : steps.length ? "↻ Redraw" : "✨ Draw the current workflow"}
         </button>
       </div>
       {err && <p className="text-sm text-clay">{err}</p>}
       <WorkflowFlow steps={steps} onChange={setSteps} />
+    </div>
+  );
+}
+
+function Field({ label, color, children }: { label: string; color: string; children: any }) {
+  if (!children) return null;
+  return (
+    <div className="mt-3">
+      <div className="text-[11px] font-semibold uppercase tracking-wide" style={{ color }}>
+        {label}
+      </div>
+      <p className="mt-0.5 text-sm leading-relaxed text-slate-600">{children}</p>
+    </div>
+  );
+}
+
+function AnalyzeStep({
+  doc,
+  chat,
+  steps,
+  analysis,
+  update,
+}: {
+  doc: any;
+  chat: Msg[];
+  steps: any[];
+  analysis: any;
+  update: (p: any) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const opps: any[] = analysis.opportunities || [];
+  const flow: any[] = analysis.flow || [];
+
+  async function analyze() {
+    setBusy(true);
+    setErr(null);
+    const transcript = chat.map((m) => `${m.role === "user" ? "Them" : "Interviewer"}: ${m.content}`).join("\n");
+    const description = `${doc.why || ""}${transcript ? `\n\nInterview:\n${transcript}` : ""}`;
+    try {
+      const r = await fetch("/api/workflow/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: doc.name, description, steps }),
+      }).then((x) => x.json());
+      if (r.analysis) {
+        const withIds = (r.analysis.flow || []).map((s: any) => ({
+          id: newId(),
+          text: s.text,
+          role: s.role || "human",
+        }));
+        update({
+          analysis: {
+            summary: r.analysis.summary || "",
+            opportunities: r.analysis.opportunities || [],
+            flow: withIds,
+          },
+        });
+      } else {
+        setErr(r.reason === "ai-off" ? "AI isn't set up for this session." : "Couldn't analyze — try again.");
+      }
+    } catch {
+      setErr("Couldn't analyze — try again.");
+    }
+    setBusy(false);
+  }
+
+  const setFlow = (next: any[]) => update({ analysis: { ...analysis, flow: next } });
+
+  return (
+    <div className="space-y-4">
+      <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
+        <div className="text-sm text-slate-500">
+          AI reads your real workflow and finds where it genuinely helps — the outcome you want, how AI gets there, and how to prep fast.
+        </div>
+        <button onClick={analyze} disabled={busy || !steps.length} className="btn-primary text-sm">
+          {busy ? "Analyzing…" : opps.length ? "↻ Re-analyze" : "✨ Analyze with AI"}
+        </button>
+      </div>
+
+      {!steps.length && (
+        <p className="text-sm text-clay">Draw the current workflow first (the previous step), then analyze it.</p>
+      )}
+      {err && <p className="text-sm text-clay">{err}</p>}
+
+      {analysis.summary && (
+        <div className="card p-5">
+          <div className="text-xs font-semibold uppercase tracking-wide text-sage">Where AI helps</div>
+          <p className="mt-1 leading-relaxed text-slate-700">{analysis.summary}</p>
+        </div>
+      )}
+
+      {opps.length > 0 && (
+        <div className="grid gap-3 md:grid-cols-2">
+          {opps.map((o, i) => (
+            <div key={i} className="card overflow-hidden p-0">
+              <div className="h-1.5" style={{ background: "#CE8F2C" }} />
+              <div className="p-5">
+                <div className="text-base font-bold text-ink">{o.title}</div>
+                <Field label="The outcome" color="#CE8F2C">{o.outcome}</Field>
+                <Field label="How AI does it" color="#CE8F2C">{o.how}</Field>
+                <Field label="Prep fast" color="#CE8F2C">{o.prep}</Field>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {flow.length > 0 && (
+        <div className="card p-5">
+          <div className="text-xs font-semibold uppercase tracking-wide text-sage">Redesigned flow — AI + human</div>
+          <p className="mt-1 text-sm text-slate-500">Green stays human; gold is AI. Recolor or edit anything that isn&apos;t right.</p>
+          <div className="mt-3"><Legend /></div>
+          <div className="mt-4"><WorkflowFlow steps={flow} onChange={setFlow} /></div>
+        </div>
+      )}
     </div>
   );
 }

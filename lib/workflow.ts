@@ -76,23 +76,30 @@ export const SOLO_WORKFLOW_STEPS: WFStep[] = [
   {
     key: "map",
     index: 2,
-    title: "Draw it out",
-    subtitle: "AI sketches the flow from what you told it. Add, remove, split, or recolor the steps.",
+    title: "Draw it as it is today",
+    subtitle: "The honest current state — every step a human does now. AI sketches it; you make it match reality.",
+    minutes: 6,
+  },
+  {
+    key: "analyze",
+    index: 3,
+    title: "How AI makes it better",
+    subtitle: "AI studies your real workflow and finds where it genuinely helps — the outcome, how, and how to prep fast.",
     minutes: 8,
   },
   {
     key: "tradeoffs",
-    index: 3,
+    index: 4,
     title: "The three trade-offs",
-    subtitle: "AI pulls toward more, toward generality, toward chaos. Decide where each has to hold the line.",
-    minutes: 7,
+    subtitle: "AI pulls toward more, toward generality, toward chaos. Decide where each has to hold the line — AI can help you think it through.",
+    minutes: 6,
   },
   {
     key: "redesign",
-    index: 4,
+    index: 5,
     title: "Your AI + Human workflow",
     subtitle: "The redesigned workflow. Finish the thought: we'd stop ___ and start ___.",
-    minutes: 6,
+    minutes: 5,
   },
 ];
 
