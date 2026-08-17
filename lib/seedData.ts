@@ -261,6 +261,49 @@ export function fourASeed(i: number): any {
 
 export function canvasSeed(exercise: string): any {
   if (exercise === "four-a") return fourASeed(0);
+  if (exercise === "venture") {
+    return {
+      subject: "A subscription meal-prep service for busy families in Austin",
+      synthesis:
+        "The pain is real and the price point works, but this is a brutal, low-moat industry: food delivery is crowded, switching is easy, and margins leak to ingredients and drivers. It can work — but only as a tight local operation with high retention, not a land-grab.",
+      verdict: "Marginal. It's a good local business only if retention beats 8 months and CAC stays under $90 — otherwise the economics don't close.",
+      ratings: { industry: 30, advantage: 40, coherence: 60, profit_pool: 45 },
+      fields: {
+        idea: "Weekly, chef-designed meal kits for time-pressed families in Austin; today they cobble together takeout, HelloFresh, and grocery runs.",
+        five_forces: "Brutal: low entry barriers, HelloFresh/Factor and every ghost kitchen competing, buyers switch in a click, and grocers are a cheap substitute. Supplier power (ingredients, drivers) squeezes margin.",
+        advantage: "Thin. 'Local & fresh' is valuable but easy to copy. The only durable edge would be a beloved local brand + tight delivery density in Austin — rare and hard to imitate only if you dominate one city first.",
+        activity_system: "Wins only if the pieces reinforce: local sourcing → fresher product → higher retention → denser routes → lower delivery cost. That density flywheel is the real moat, if achieved.",
+        profit_pool: "Most profit leaks to ingredients (~35%) and last-mile delivery (~20%). You capture the middle only at scale/density; nationally, platforms and drivers keep the money.",
+        unit_economics: [
+          { a: "Price / order", b: "$85" },
+          { a: "Variable cost (food + delivery)", b: "$55" },
+          { a: "Contribution margin", b: "$30 (35%)" },
+          { a: "CAC", b: "$90" },
+          { a: "Avg. lifetime", b: "6 months (~24 orders? assume weekly)" },
+          { a: "LTV (contribution)", b: "~$180" },
+          { a: "LTV : CAC", b: "2.0× (below the 3× bar)" },
+          { a: "CAC payback", b: "~3 orders (~3 weeks)" },
+          { a: "Break-even", b: "~450 active subscribers / month" },
+        ],
+        market: [
+          { a: "TAM (US meal kits)", b: "~$12B, ~12%/yr" },
+          { a: "SAM (Austin families)", b: "~$40M" },
+          { a: "Realistic share, yr 3", b: "2–3% of SAM" },
+        ],
+        would_need_true: [
+          "Average retention exceeds 8 months (LTV:CAC clears 3×).",
+          "CAC stays under $90 as you scale past early adopters.",
+          "Delivery density in Austin cuts last-mile cost below $12/order.",
+          "You can hold price at $85 without discounting into a margin war.",
+        ],
+        risks: [
+          "Churn: meal-kit fatigue kills LTV fast.",
+          "A national player undercuts on price in Austin.",
+          "Ingredient/driver cost inflation erases the thin margin.",
+        ],
+      },
+    };
+  }
   if (exercise === "scorecard") {
     return {
       subject: "Become the #1 self-serve product for small businesses in 18 months",

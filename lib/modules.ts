@@ -33,7 +33,8 @@ export type ModuleDef = {
     | "ocfit"
     | "experiment"
     | "four-a"
-    | "scorecard"; // which room engine renders it
+    | "scorecard"
+    | "venture"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -157,6 +158,21 @@ export const MODULES: ModuleDef[] = [
     emoji: "🧭",
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_FOURA",
+  },
+  {
+    slug: "good-business",
+    exercise: "venture",
+    name: "Is This a Good Business?",
+    tagline: "Pressure-test a business idea with real strategy and real numbers.",
+    description:
+      "An AI partner interviews you about a business you're considering — naturally, but guided by Five Forces, VRIN, activity systems, and profit pools — then delivers a rigorous analysis: industry attractiveness, your durable edge, the unit economics (CAC, LTV, payback, break-even), and the few things that would need to be true for it to work.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 22,
+    ai: true,
+    emoji: "🚀",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_VENTURE",
   },
   {
     slug: "balanced-scorecard",

@@ -250,7 +250,67 @@ Actively help them think through the measures. A good measure is relevant, accur
   },
 };
 
-export const CANVASES: CanvasDef[] = [FOURA, SCORECARD, GAS, OCFIT, EXPERIMENT];
+// ---------------------------------------------------------------------------
+// 6) Is This a Good Business? — a rigorous, framework-driven read on a venture:
+//    Five Forces, VRIN, activity systems, profit pools + unit economics.
+// ---------------------------------------------------------------------------
+const VENTURE: CanvasDef = {
+  slug: "good-business",
+  exercise: "venture",
+  name: "Is This a Good Business?",
+  subjectLabel: "business idea",
+  setupTitle: "The business you're thinking about starting",
+  setupHint: "In a line or two: what it is and who it's for. Your AI partner will interview you, then analyze whether it's a good business.",
+  setupPlaceholder: "e.g. A subscription meal-prep service for busy families in Austin",
+  interviewSystem: `You are a sharp venture strategist and investor interviewing a founder about a business they're considering starting, to judge whether it's a GOOD business. Keep every question natural and concrete — NEVER name a framework or use jargon — but over the conversation make sure you understand each of these (the underlying lenses in brackets are for you only):
+- The idea and the customer: who exactly it's for, what job it does for them, and what they do today instead. [buyer power, substitutes]
+- Competition and entry: who else solves this, how crowded it is, and how easily a copycat or a big incumbent could move in. [rivalry, barriers to entry — Five Forces]
+- The unfair advantage: what they'd have that's genuinely hard for others to get or copy — and whether it would last. [VRIN]
+- How the pieces fit: the few things they'd do differently that reinforce each other and would be hard to imitate as a whole. [activity systems]
+- Where the money is: in this kind of business, who actually keeps the profit along the chain — them, suppliers, platforms, landlords, distributors? [profit pools]
+- The numbers: what they'd charge, what each sale costs them, how they'd get customers and what that might cost, how often customers buy or how long they stay, and how big and fast-growing the market is. [unit economics, TAM, growth]
+Draw out real numbers wherever you can — press gently for actual figures, not ranges. Do not analyze or give a verdict yet — just understand the idea, the market, and the economics.`,
+  draftSystem: `You are a rigorous venture strategist producing an honest analysis of whether a business is a GOOD business, using core strategy frameworks (Porter's Five Forces, VRIN resources, activity-system fit, profit pools) and unit economics. Be QUANTITATIVE: use the numbers the founder gave; where a number is missing, make a clearly reasonable estimate and label it as an assumption. In the unit economics, compute and state: price, variable cost per unit, contribution margin (price − variable cost, and %), CAC, LTV, the LTV:CAC ratio, CAC payback period, and a rough break-even (customers or units/month). In the market, state TAM/SAM, the growth rate, and a realistic share. Score each lens 0–100 (be discerning — spread them). Name the 3–5 things that WOULD NEED TO BE TRUE for this to work (the make-or-break assumptions, stated so they could be tested), and the biggest risks. End with an honest verdict — is this a good business, and under what conditions. Be specific to THIS venture; no generic startup advice.`,
+  ratings: [
+    { key: "industry", label: "Industry attractiveness" },
+    { key: "advantage", label: "Durable advantage" },
+    { key: "coherence", label: "Strategic fit" },
+    { key: "profit_pool", label: "Profit-pool position" },
+  ],
+  fields: [
+    { key: "idea", label: "The idea & the customer", hint: "What it is, who it's for, and what they do today instead", kind: "long", group: "The idea", accent: "sage" },
+    { key: "five_forces", label: "Industry — how attractive?", hint: "Rivalry, ease of entry, buyer & supplier power, substitutes — brutal or benign?", kind: "long", group: "Industry & advantage", accent: "gold" },
+    { key: "advantage", label: "Your edge — and does it last?", hint: "Something valuable, rare, hard to copy, with no easy substitute", kind: "long", group: "Industry & advantage", accent: "sage" },
+    { key: "activity_system", label: "How the pieces reinforce", hint: "The few choices that fit together and are hard to imitate as a system", kind: "long", group: "How you'd win", accent: "sage" },
+    { key: "profit_pool", label: "Where the money actually sits", hint: "Who captures profit along the chain — and can you?", kind: "long", group: "How you'd win", accent: "gold" },
+    { key: "unit_economics", label: "Unit economics", hint: "Price, variable cost, contribution margin, CAC, LTV, LTV:CAC, payback, break-even", kind: "pairs", leftLabel: "Metric", rightLabel: "Value", group: "The numbers", accent: "gold" },
+    { key: "market", label: "Market & growth", hint: "TAM / SAM, growth rate, realistic share", kind: "pairs", leftLabel: "Metric", rightLabel: "Value", group: "The numbers", accent: "plum" },
+    { key: "would_need_true", label: "What would need to be true", hint: "The make-or-break assumptions — stated so they can be tested", kind: "list", group: "The verdict", accent: "sage" },
+    { key: "risks", label: "Biggest risks", kind: "list", group: "The verdict", accent: "plum" },
+  ],
+  hasVerdict: { label: "Is this a good business?" },
+  about:
+    "A rigorous read on whether this is a good business, using core strategy frameworks — is the industry attractive (Five Forces), do you have a durable advantage (VRIN), do your choices reinforce each other (activity systems), and where does the money actually sit (profit pools) — plus the unit economics. The output names the key numbers and the few things that would need to be true for it to work.",
+  groupNotes: {
+    "The idea": "What you'd sell, to whom, and what they do today instead.",
+    "Industry & advantage": "Is the game worth playing (Five Forces), and do you have an edge that lasts (VRIN)?",
+    "How you'd win": "Do your choices reinforce each other (activity system), and can you capture the profit (profit pools)?",
+    "The numbers": "The economics that decide it — and the market that has to be there.",
+    "The verdict": "The make-or-break assumptions to test, and what could sink it.",
+  },
+  canvasTip: {
+    title: "What makes a business “good”?",
+    items: [
+      "Attractive industry — not brutally competitive, and hard for others to enter.",
+      "A durable edge — valuable, rare, and hard to copy — that lasts, not just a head start.",
+      "Coherent activities that reinforce each other and are hard to imitate as a whole.",
+      "You keep the profit — it doesn't all leak to suppliers, platforms, landlords, or a price war.",
+      "Economics that work — LTV well above CAC (aim ≥ 3×), payback in months, a real path to break-even.",
+    ],
+  },
+};
+
+export const CANVASES: CanvasDef[] = [FOURA, SCORECARD, VENTURE, GAS, OCFIT, EXPERIMENT];
 
 export function canvasByExercise(exercise: string): CanvasDef | undefined {
   return CANVASES.find((c) => c.exercise === exercise);

@@ -25,6 +25,7 @@ const MODULES = [
   "workflow-solo",
   "execution-4a",
   "balanced-scorecard",
+  "good-business",
   "ai-canvas",
   "opportunity-capability",
   "test-the-bet",
@@ -214,6 +215,7 @@ export async function POST(request: Request) {
   addCanvas(users[2], "ocfit");
   addCanvas(users[4], "experiment");
   addCanvas(users[7], "scorecard");
+  addCanvas(users[9], "venture");
 
   // 4A diagnostic — several people so the cohort heatmap has rows.
   [1, 3, 5, 6, 8].forEach((ui, i) => {
