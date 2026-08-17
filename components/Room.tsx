@@ -13,8 +13,7 @@ import SharePanel from "@/components/phases/SharePanel";
 import FinalPanel from "@/components/phases/FinalPanel";
 import Timer from "@/components/Timer";
 import PairWaiting from "@/components/PairWaiting";
-import Bi from "@/components/Bi";
-import { useBi } from "@/components/I18nProvider";
+import { useT } from "@/components/I18nProvider";
 
 export type Session = any;
 export type Workspace = any;
@@ -32,7 +31,7 @@ export default function Room({
   initialProfiles: Profile[];
 }) {
   const supabase = useMemo(() => createClient(), []);
-  const bi = useBi();
+  const t = useT();
   const [session, setSession] = useState<Session>(initialSession);
   const [workspaces, setWorkspaces] = useState<Workspace[]>(initialWorkspaces);
   const [profiles, setProfiles] = useState<Profile[]>(initialProfiles);
@@ -293,7 +292,7 @@ export default function Room({
             href="/dashboard"
             className="text-sm text-slate-400 hover:text-slate-600"
           >
-            ← <Bi {...bi("room.exit")} inline />
+            ← {t("room.exit")}
           </Link>
           <span className="rounded-lg bg-slate-100 px-2.5 py-1 font-mono text-sm font-semibold tracking-widest">
             {session.code}
@@ -339,7 +338,7 @@ export default function Room({
       {/* Phase header */}
       <div className="mb-5">
         <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          <Bi {...bi("room.step", { n: session.phase + 1, total: PHASES.length })} inline /> · {phase.minutes} min
+          {t("room.step", { n: session.phase + 1, total: PHASES.length })} · {phase.minutes} min
         </div>
         <h1 className="mt-1 text-2xl font-bold">{phase.title}</h1>
         <p className="mt-1 max-w-3xl text-slate-500">{phase.subtitle}</p>
@@ -347,7 +346,7 @@ export default function Room({
 
       {!partnerHere && (
         <div className="mb-5 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          <Bi {...bi("room.waitingPartner", { code: session.code })} />
+          {t("room.waitingPartner", { code: session.code })}
         </div>
       )}
 
@@ -372,10 +371,10 @@ export default function Room({
             disabled={session.phase === 0}
             className="btn-ghost"
           >
-            <Bi {...bi("room.back")} />
+            {t("room.back")}
           </button>
-          <div className="hidden text-center text-sm text-slate-400 sm:block">
-            <Bi {...bi(timerDone ? "room.timerUp" : "room.timerWait")} />
+          <div className="hidden text-sm text-slate-400 sm:block">
+            {t(timerDone ? "room.timerUp" : "room.timerWait")}
           </div>
           {session.phase < PHASES.length - 1 ? (
             <button
@@ -383,11 +382,11 @@ export default function Room({
               disabled={!timerDone}
               className="btn-primary"
             >
-              <Bi {...bi("room.next")} /> →
+              {t("room.next")} →
             </button>
           ) : (
             <Link href="/dashboard" className="btn-primary">
-              <Bi {...bi("room.finish")} />
+              {t("room.finish")}
             </Link>
           )}
         </div>

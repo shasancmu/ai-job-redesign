@@ -58,20 +58,3 @@ export function makeT(locale: string): T {
     return String(s);
   };
 }
-
-// Bilingual pair: English is always primary; `tr` is the translation, or null
-// when the locale is English or the key has no (distinct) translation. Callers
-// render `en` prominently and `tr` in a lighter, secondary tone.
-export type BiPair = { en: string; tr: string | null };
-export type BiFn = (key: string, vars?: Record<string, string | number>) => BiPair;
-
-export function makeBi(locale: string): BiFn {
-  const enT = makeT("en");
-  const locT = makeT(locale);
-  return (key, vars) => {
-    const en = enT(key, vars);
-    if (locale === "en") return { en, tr: null };
-    const tr = locT(key, vars);
-    return { en, tr: tr === en ? null : tr };
-  };
-}

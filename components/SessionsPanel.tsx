@@ -3,14 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { moduleByExercise } from "@/lib/modules";
-import { useT, useBi } from "@/components/I18nProvider";
-import Bi from "@/components/Bi";
+import { useT } from "@/components/I18nProvider";
 
 // Past/started sessions — hidden by default (they pile up), with the option to
 // show them and delete your own rooms off the dashboard.
 export default function SessionsPanel({ sessions, me }: { sessions: any[]; me: string }) {
   const t = useT();
-  const bi = useBi();
   const [open, setOpen] = useState(false);
   const [list, setList] = useState<any[]>(sessions);
   const [busy, setBusy] = useState<string | null>(null);
@@ -43,7 +41,7 @@ export default function SessionsPanel({ sessions, me }: { sessions: any[]; me: s
   }
 
   if (list.length === 0) {
-    return <p className="text-slate-500"><Bi {...bi("sessions.empty")} /></p>;
+    return <p className="text-slate-500">{t("sessions.empty")}</p>;
   }
 
   return (
@@ -53,7 +51,7 @@ export default function SessionsPanel({ sessions, me }: { sessions: any[]; me: s
         className="text-sm text-slate-500 hover:text-ink"
         aria-expanded={open}
       >
-        <Bi {...bi(open ? "sessions.hide" : "sessions.show", { n: list.length })} inline />
+        {open ? t("sessions.hide", { n: list.length }) : t("sessions.show", { n: list.length })}
       </button>
 
       {open && (
