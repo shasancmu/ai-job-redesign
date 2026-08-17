@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin, UNTAGGED } from "@/lib/admin";
-import { MODULES } from "@/lib/modules";
+import { MODULES, moduleByExercise } from "@/lib/modules";
+import { ROLE_META } from "@/lib/workflow";
 import { AI_CELLS, HUMAN_CELLS, FEEDBACK_FIELDS, Cell } from "@/lib/exercise";
 
 export const dynamic = "force-dynamic";
@@ -297,12 +298,17 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
                     {s.code}
                   </span>
                   <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
-                    {s.exercise === "workflow" ? "workflow" : "job"}
+                    {moduleByExercise(s.exercise || "job")?.name || s.exercise}
                   </span>
                   <span className="text-sm text-slate-600">
-                    {nameOf(s.host_id)}{" "}
-                    <span className="text-slate-300">&amp;</span>{" "}
-                    {s.guest_id ? nameOf(s.guest_id) : "— (no partner)"}
+                    {nameOf(s.host_id)}
+                    {s.exercise !== "solo" && s.exercise !== "workflow-solo" && (
+                      <>
+                        {" "}
+                        <span className="text-slate-300">&amp;</span>{" "}
+                        {s.guest_id ? nameOf(s.guest_id) : "— (no partner)"}
+                      </>
+                    )}
                   </span>
                 </div>
                 <span
@@ -319,10 +325,10 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
                 </span>
               </div>
 
-              {s.exercise === "workflow" ? (
-                <WorkflowView doc={docFor(s.id)} />
+              {s.exercise === "workflow" || s.exercise === "workflow-solo" ? (
+                <WorkflowView doc={docFor(s.id)} code={s.code} />
               ) : s.exercise === "solo" ? (
-                <SoloView authorName={nameOf(s.host_id)} ws={wsFor(s.id, s.host_id)} />
+                <SoloView authorName={nameOf(s.host_id)} ws={wsFor(s.id, s.host_id)} code={s.code} />
               ) : (
                 <div className="grid gap-5 md:grid-cols-2">
                   <ParticipantColumn
@@ -446,7 +452,7 @@ function ClassOverview({ data }: { data: any }) {
   );
 }
 
-function SoloView({ authorName, ws }: { authorName: string; ws: any }) {
+function SoloView({ authorName, ws, code }: { authorName: string; ws: any; code: string }) {
   if (!ws) {
     return (
       <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">
@@ -455,8 +461,17 @@ function SoloView({ authorName, ws }: { authorName: string; ws: any }) {
     );
   }
   const chat: any[] = ws.interview_chat || [];
+  const hasPlan =
+    ws.plan && (ws.plan.headline || ws.plan.summary || (ws.plan.human?.length || 0) + (ws.plan.ai?.length || 0) > 0);
   return (
     <div className="grid gap-5 md:grid-cols-2">
+      {hasPlan && (
+        <div className="md:col-span-2">
+          <Link href={`/plan/${code}`} className="text-sm font-medium text-sage hover:underline">
+            View implementation plan →
+          </Link>
+        </div>
+      )}
       <ParticipantColumn authorName={authorName} subjectName="their own job" ws={ws} />
       <div className="rounded-xl border border-slate-200 p-4">
         <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -481,7 +496,7 @@ function SoloView({ authorName, ws }: { authorName: string; ws: any }) {
   );
 }
 
-function WorkflowView({ doc }: { doc: any }) {
+function WorkflowView({ doc, code }: { doc: any; code: string }) {
   if (!doc) {
     return (
       <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">
@@ -489,52 +504,79 @@ function WorkflowView({ doc }: { doc: any }) {
       </div>
     );
   }
-  const steps: any[] = doc.steps || [];
-  const roleColor: Record<string, string> = {
-    ai: "#2563eb",
-    human: "#ea580c",
-    both: "#7c3aed",
-  };
-  const roleLabel: Record<string, string> = { ai: "AI", human: "Human", both: "Both" };
+  const analysis: any = doc.analysis || {};
+  const flow: any[] = analysis.flow?.length ? analysis.flow : doc.steps || [];
+  const opps: any[] = analysis.opportunities || [];
+  const to: any = analysis.tradeoffs || {};
+  const analyzed = analysis.summary || opps.length > 0 || analysis.tradeoffs;
+
   return (
-    <div className="grid gap-5 md:grid-cols-2">
-      <div className="rounded-xl border border-slate-200 p-4">
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-sm font-bold text-slate-800">{doc.name || "—"}</div>
-        <Field label="Why redesign">{doc.why}</Field>
-        <div className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-          Steps
-        </div>
-        <div className="mt-1 space-y-1">
-          {steps.length === 0 ? (
-            <span className="text-slate-300">—</span>
-          ) : (
-            steps.map((st, i) => (
-              <div key={st.id || i} className="flex items-center gap-2 text-sm">
-                <span className="w-5 text-right text-slate-400">{i + 1}</span>
-                <span className="flex-1 text-slate-700">{st.text}</span>
-                {st.role && (
-                  <span
-                    className="rounded-full px-2 py-0.5 text-xs font-semibold text-white"
-                    style={{ backgroundColor: roleColor[st.role] || "#94a3b8" }}
-                  >
-                    {roleLabel[st.role] || st.role}
-                  </span>
-                )}
-              </div>
-            ))
-          )}
-        </div>
+        {analyzed && (
+          <Link href={`/workflow-plan/${code}`} className="text-sm font-medium text-sage hover:underline">
+            View full plan →
+          </Link>
+        )}
       </div>
-      <div className="rounded-xl border border-slate-200 p-4">
-        <Field label="Success">{doc.success}</Field>
-        <Field label="Failure">{doc.failure}</Field>
-        <Field label="More">{doc.more}</Field>
-        <Field label="Better">{doc.better}</Field>
-        <Field label="Accuracy">{doc.accuracy}</Field>
-        <Field label="Generality">{doc.generality}</Field>
-        <Field label="Chaos">{doc.chaos}</Field>
-        <Field label="Architect">{doc.architect}</Field>
-        <Field label="Stop / Start">{doc.stop_start}</Field>
+
+      <div className="grid gap-5 md:grid-cols-2">
+        <div className="rounded-xl border border-slate-200 p-4">
+          <Field label="Why redesign">{doc.why}</Field>
+          <div className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            {analysis.flow?.length ? "Redesigned flow" : "Current flow (as-is)"}
+          </div>
+          <div className="mt-1 space-y-1">
+            {flow.length === 0 ? (
+              <span className="text-slate-300">—</span>
+            ) : (
+              flow.map((st: any, i: number) => {
+                const meta = ROLE_META[st.role] || ROLE_META[""];
+                return (
+                  <div key={st.id || i} className="flex items-center gap-2 text-sm">
+                    <span className="w-5 text-right text-slate-400">{i + 1}</span>
+                    <span className="flex-1 text-slate-700">{st.text}</span>
+                    {st.role && (
+                      <span
+                        className="rounded-full px-2 py-0.5 text-xs font-semibold text-white"
+                        style={{ backgroundColor: meta.color }}
+                      >
+                        {meta.label}
+                      </span>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 p-4">
+          {analysis.summary && <Field label="Where AI helps">{analysis.summary}</Field>}
+          {opps.length > 0 && (
+            <div className="mt-2 text-sm">
+              <div className="font-medium text-slate-500">Start this week</div>
+              <ul className="mt-0.5 space-y-0.5">
+                {opps.map((o: any, i: number) => (
+                  <li key={i} className="flex gap-1.5 text-slate-600">
+                    <span className="text-slate-300">•</span>
+                    <span><span className="font-medium text-slate-700">{o.title}:</span> {o.outcome}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {analysis.tradeoffs && (
+            <div className="mt-3 text-sm">
+              <div className="font-medium text-slate-500">Trade-off plan</div>
+              <Field label="Outcomes → Better">{to.outcomes?.aim}</Field>
+              <Field label="Capabilities → Accuracy">{to.capabilities?.aim}</Field>
+              <Field label="Control → Structure">{to.control?.aim}</Field>
+            </div>
+          )}
+          <Field label="Stop / Start">{doc.stop_start}</Field>
+        </div>
       </div>
     </div>
   );

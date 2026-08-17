@@ -24,6 +24,13 @@ function makeCode() {
 
 const PAIRED = new Set(["job", "workflow"]);
 
+// Where "View last result" should land: the printable artifact when there is one.
+function resultHref(exercise: string, code: string) {
+  if (exercise === "workflow" || exercise === "workflow-solo") return `/workflow-plan/${code}`;
+  if (exercise === "solo") return `/plan/${code}`;
+  return `/room/${code}`;
+}
+
 export default function Catalog({
   userId,
   unlocked,
@@ -130,7 +137,7 @@ export default function Catalog({
                   )}
                   {completed[m.slug] && lastCode[m.slug] && (
                     <Link
-                      href={`/room/${lastCode[m.slug]}`}
+                      href={resultHref(m.exercise, lastCode[m.slug])}
                       className="block text-center text-sm text-slate2 hover:text-ink"
                     >
                       View last result →
