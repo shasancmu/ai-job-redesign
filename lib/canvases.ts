@@ -11,7 +11,7 @@ export type CanvasField = {
   hint?: string;
   kind: "text" | "long" | "list" | "pairs"; // pairs = list of {a,b}, e.g. measure → target
   group: string; // section heading in the room + artifact
-  accent?: "human" | "ai" | "both" | "sage" | "gold" | "plum";
+  accent?: "human" | "ai" | "both" | "sage" | "gold" | "plum" | "clay";
   leftLabel?: string; // pairs: label for the "a" side (e.g. "Measure")
   rightLabel?: string; // pairs: label for the "b" side (e.g. "Target")
 };
@@ -40,7 +40,7 @@ export type CanvasDef = {
   }; // a live calculator; AI seeds the numbers, the user tweaks them
 };
 
-const ACCENTS = { human: "#3F7A52", ai: "#CE8F2C", both: "#7C5CBF", sage: "#3F7A52", gold: "#CE8F2C", plum: "#7C5CBF" };
+const ACCENTS = { human: "#3F7A52", ai: "#CE8F2C", both: "#7C5CBF", sage: "#3F7A52", gold: "#CE8F2C", plum: "#7C5CBF", clay: "#C0603A" };
 export function accentColor(a?: string) {
   return (a && (ACCENTS as any)[a]) || "#3F7A52";
 }
@@ -324,7 +324,79 @@ Draw out real numbers wherever you can — press gently for actual figures, not 
   },
 };
 
-export const CANVASES: CanvasDef[] = [FOURA, SCORECARD, VENTURE, GAS, OCFIT, EXPERIMENT];
+// ---------------------------------------------------------------------------
+// 7) Dual Uncertainty Canvas (deep tech: technical × market uncertainty)
+// ---------------------------------------------------------------------------
+const DEEPTECH: CanvasDef = {
+  slug: "deeptech-canvas",
+  exercise: "deeptech",
+  name: "Dual Uncertainty Canvas",
+  subjectLabel: "technology",
+  setupTitle: "The deep-tech technology you're commercializing",
+  setupHint: "A novel physical, material, chemical, or biological capability — describe it as it exists today. Your AI partner will interview you about it.",
+  setupPlaceholder: "e.g. A solid-state electrolyte that enables non-flammable, high-density batteries",
+  interviewSystem: `You are a sharp deep-tech commercialization advisor interviewing a founder/scientist to fill the Dual Uncertainty Canvas (Duke University). Deep tech faces TWO uncertainties at once, and your job is to separate them:
+- TECHNICAL uncertainty — "can we make it work?" — the gap between what the technology does today and what a real application requires.
+- MARKET uncertainty — "will anyone actually buy it?" — whether specific customers want it enough to switch and pay.
+Ground the conversation in this framework:
+- Anchor on the technology AS IT EXISTS TODAY — its core new capability, its 2–3 key quantitative performance parameters, and which of those parameters trade off against each other. Do not let them describe speculative future applications yet.
+- Push for CUSTOMER EVIDENCE, not vision: who specifically would buy this, what they do today instead, and what real conversations/signals suggest they want it. Quantify the economic value in dollars/time where possible.
+- For a candidate application, separate the TECHNICAL gap (which metric must improve, by how much, and the known unknowns) from the MARKET gap (adoption barriers, sales cycle, regulation).
+- Probe PATH DEPENDENCY: optimizing the technology for one application locks in equipment, expertise, and design choices that may not transfer. Surface what would be hard to reverse.
+- Probe the FUNDER fit implicitly: time to first deployment, time to first revenue, and capital to technical validation.
+Interview craft: ask exactly ONE short, open question at a time and follow their lead; pull concrete detail, not generalities. Do not lecture or fill the canvas yet.
+After about 7 exchanges, reflect the dual-uncertainty picture back, ask what you missed, then close.`,
+  draftSystem: `You fill the Dual Uncertainty Canvas (Duke University) for a deep-tech venture. Apply its logic rigorously:
+- Describe the technology only as it exists today; keep speculation out of Section 1.
+- Everywhere, SEPARATE technical uncertainty ("can we make it work?") from market uncertainty ("will anyone buy it?"). Name which one dominates.
+- Choose the PRIORITY application by combined technical readiness AND market certainty — the lowest-risk path forward — and justify it.
+- Design a MINIMUM VIABLE EXPERIMENT that resolves the DOMINANT uncertainty first: the simplest test, with an explicit success signal and kill criterion, and the resources it needs. Favor the experiment that, if it fails, saves the most wasted effort downstream.
+- Make the IRREVERSIBILITIES explicit: the performance targets being committed to, the capabilities sacrificed, the switching costs of a later pivot, and what a "useful failure" would still teach.
+- Match FUNDERS to the uncertainty/timeline profile honestly: government grants (high technical risk, long horizon), corporate partners (clear business fit, 1–3 yrs), early customers/co-development (working prototype soon), venture capital (large proven market, defensible edge), or philanthropic/impact (mission, uncertain returns).
+- The verdict must state which uncertainty dominates and the single next experiment to run.`,
+  fields: [
+    { key: "core_function", label: "Core technical function", hint: "One sentence: the new physical/material/chemical/biological capability that wasn't previously possible or practical", kind: "long", group: "The technology", accent: "sage" },
+    { key: "key_parameters", label: "Key technical parameters", hint: "The 2–3 most important quantitative performance metrics (e.g. sensitivity, strength, yield, precision)", kind: "list", group: "The technology", accent: "sage" },
+    { key: "tradeoffs", label: "Technical trade-offs", hint: "Which performance metrics are in tension with each other?", kind: "long", group: "The technology", accent: "sage" },
+    { key: "candidate_applications", label: "Candidate applications", hint: "The real-world problems well-matched to the technology's current capabilities (one line each)", kind: "list", group: "Where it could go", accent: "gold" },
+    { key: "customer_evidence", label: "Customer evidence", hint: "Who specifically would buy this, and what real signals show they want it — not vision", kind: "long", group: "Where it could go", accent: "gold" },
+    { key: "economic_value", label: "Economic value & alternatives", hint: "How much value it creates (quantified), what customers do today, and why they'd switch", kind: "long", group: "Where it could go", accent: "gold" },
+    { key: "technical_gap", label: "Technical gap & known unknowns", hint: "The gap between current performance and what the priority application needs — which metric, by how much — and the key questions you can't answer today", kind: "long", group: "Where it could go", accent: "gold" },
+    { key: "priority_application", label: "The priority application", hint: "The one with the highest combined technical readiness and market certainty — the lowest-risk path — and why", kind: "long", group: "The priority bet", accent: "plum" },
+    { key: "primary_uncertainty", label: "The dominant uncertainty", hint: "Technical (can we make it work?), Market (will they buy?), or Both — and exactly what it is", kind: "long", group: "The minimum viable experiment", accent: "clay" },
+    { key: "the_experiment", label: "The minimum viable experiment", hint: "The simplest test of that uncertainty: setup, the success signal, the kill criterion, and the resources needed", kind: "long", group: "The minimum viable experiment", accent: "clay" },
+    { key: "performance_commitments", label: "Performance commitments", hint: "The 2–3 metrics that will drive all development decisions if you optimize for this path", kind: "list", group: "Commitments & irreversibilities", accent: "plum" },
+    { key: "sacrifices", label: "Sacrificed capabilities", hint: "What other performance characteristics or applications you give up by optimizing for this path", kind: "long", group: "Commitments & irreversibilities", accent: "plum" },
+    { key: "switching_costs", label: "Switching costs", hint: "If you pivot in 12–24 months, what's hard or impossible to change — equipment, expertise, partnerships, design lock-in", kind: "long", group: "Commitments & irreversibilities", accent: "plum" },
+    { key: "useful_failure", label: "Useful failure", hint: "If this application fails, what you'd need to learn to make the effort worthwhile — knowledge that transfers", kind: "long", group: "Commitments & irreversibilities", accent: "plum" },
+    { key: "resource_requirements", label: "Resource requirements", hint: "Time to first real-world deployment, time to first revenue, and capital to reach technical validation", kind: "long", group: "Who funds this", accent: "sage" },
+    { key: "funder_match", label: "Funder match", hint: "Which funder type(s) realistically fit your uncertainty profile and timeline — grants, corporate, early customers, VC, philanthropic — and why", kind: "long", group: "Who funds this", accent: "sage" },
+    { key: "one_sentence_strategy", label: "One-sentence strategy", hint: "We are developing [capability] for [application], resolving [uncertainty] through [experiment] to demonstrate [signal] within [timeline]", kind: "long", group: "The strategy", accent: "gold" },
+  ],
+  hasVerdict: { label: "The dominant uncertainty, and the single experiment to run next" },
+  about:
+    "The Dual Uncertainty Canvas (Duke University): deep tech faces two uncertainties at once — technical (can we make it work?) and market (will anyone buy it?). Progress means resolving the dominant one with the smallest, fastest experiment; choosing a priority application with eyes open to the path dependencies it locks in; and matching funders to your uncertainty profile. This canvas walks one technology through that choice.",
+  groupNotes: {
+    "The technology": "The new capability as it exists today — its real parameters and the trade-offs between them. No speculation yet.",
+    "Where it could go": "Match the technology to real problems, with customer evidence and a separated technical vs. market gap.",
+    "The priority bet": "One application — the lowest-risk combination of technical readiness and market certainty.",
+    "The minimum viable experiment": "Resolve the dominant uncertainty first, with the test that saves the most wasted effort if it fails.",
+    "Commitments & irreversibilities": "Deep-tech application choices create path dependencies. Commit with eyes open to what you can't easily undo.",
+    "Who funds this": "Different funders accept different uncertainties. Match the money to your risk profile and timeline.",
+    "The strategy": "The whole canvas, distilled to one testable sentence.",
+  },
+  canvasTip: {
+    title: "Deep tech has two uncertainties — resolve the dominant one",
+    items: [
+      "Separate technical (can we make it work?) from market (will they buy?) at every step.",
+      "Run the experiment that, if it fails, saves the most wasted effort downstream.",
+      "Early application choices lock in equipment, expertise, and design — pivot costs are real.",
+      "Match funders to your uncertainty: grants for technical risk, customers/VC for market-proven paths.",
+    ],
+  },
+};
+
+export const CANVASES: CanvasDef[] = [FOURA, SCORECARD, VENTURE, GAS, OCFIT, EXPERIMENT, DEEPTECH];
 
 export function canvasByExercise(exercise: string): CanvasDef | undefined {
   return CANVASES.find((c) => c.exercise === exercise);

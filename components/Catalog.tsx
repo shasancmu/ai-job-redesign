@@ -29,7 +29,7 @@ const PAIRED = new Set(["job", "workflow"]);
 function resultHref(exercise: string, code: string) {
   if (exercise === "workflow" || exercise === "workflow-solo") return `/workflow-plan/${code}`;
   if (exercise === "solo") return `/plan/${code}`;
-  if (["gas", "ocfit", "experiment", "four-a", "scorecard", "venture"].includes(exercise)) return `/canvas/${code}`;
+  if (["gas", "ocfit", "experiment", "four-a", "scorecard", "venture", "deeptech"].includes(exercise)) return `/canvas/${code}`;
   if (exercise === "career-xray" || exercise === "jd-xray") return `/career/${code}`;
   if (exercise === "career-roadmap") return `/roadmap/${code}`;
   return `/room/${code}`;

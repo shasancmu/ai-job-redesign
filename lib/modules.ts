@@ -35,6 +35,7 @@ export type ModuleDef = {
     | "four-a"
     | "scorecard"
     | "venture"
+    | "deeptech"
     | "negotiation"
     | "haggle"
     | "career-xray"
@@ -270,6 +271,21 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_SCORECARD",
   },
   {
+    slug: "deeptech-canvas",
+    exercise: "deeptech",
+    name: "Dual Uncertainty Canvas",
+    tagline: "Navigate deep tech's two uncertainties — and design the experiment that resolves the biggest.",
+    description:
+      "For deep-tech ventures (novel physical, material, chemical, or biological capabilities). An AI partner interviews you, then fills Duke's Dual Uncertainty Canvas: it separates technical uncertainty (can we make it work?) from market uncertainty (will anyone buy it?), picks a priority application, designs the minimum viable experiment to resolve the dominant uncertainty, makes the path dependencies explicit, and matches you to realistic funders — ending in a one-sentence strategy.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 22,
+    ai: true,
+    emoji: "🔬",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_DEEPTECH",
+  },
+  {
     slug: "ai-canvas",
     exercise: "gas",
     name: "AI Opportunity Canvas",
@@ -347,6 +363,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "execution-4a": "strategy",
   "balanced-scorecard": "strategy",
   "ai-canvas": "strategy",
+  "deeptech-canvas": "strategy",
   "opportunity-capability": "strategy",
   "test-the-bet": "strategy",
   "good-business": "strategy",
