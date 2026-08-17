@@ -3,13 +3,15 @@
     "signIn": "Anmelden",
     "getStarted": "Erste Schritte",
     "signOut": "Abmelden",
-    "facilitator": "Facilitator"
+    "facilitator": "Facilitator",
+    "profile": "Profil"
   },
   "dash": {
     "greeting": "Hallo {name}",
     "exercises": "Übungen",
     "framing": "Ein Instrument, viele Wege: Gestalten Sie Ihren Job oder einen Workflow neu, durchleuchten Sie einen Lebenslauf oder eine Rolle, schärfen Sie eine Entscheidung, oder verhandeln Sie — allein, mit einem Partner oder live mit einer Gruppe.",
-    "yourSessions": "Ihre Sitzungen"
+    "yourSessions": "Ihre Sitzungen",
+    "recommended": "Für Sie empfohlen"
   },
   "cat": {
     "redesign": "Arbeit & KI",

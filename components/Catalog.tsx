@@ -42,6 +42,7 @@ export default function Catalog({
   fixedCohort,
   completed = {},
   lastCode = {},
+  recommended = [],
 }: {
   userId: string;
   unlocked: Record<string, boolean>;
@@ -50,6 +51,7 @@ export default function Catalog({
   fixedCohort?: string;
   completed?: Record<string, boolean>;
   lastCode?: Record<string, string>;
+  recommended?: string[];
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -166,6 +168,11 @@ export default function Catalog({
   const grouped = !moduleSlugs;
   const grid = "grid gap-4 sm:grid-cols-2 lg:grid-cols-3";
 
+  // "Recommended for you" — resolve the segment/goal slugs to modules, in order.
+  const recModules = grouped
+    ? (recommended.map((s) => MODULES.find((m) => m.slug === s)).filter(Boolean) as typeof MODULES)
+    : [];
+
   return (
     <div>
       {err && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
@@ -174,6 +181,15 @@ export default function Catalog({
         <div className={grid}>{shown.map(renderCard)}</div>
       ) : (
         <div className="space-y-8">
+          {recModules.length > 0 && (
+            <div>
+              <div className="mb-3 flex items-baseline gap-2">
+                <span className="h-2 w-2 rounded-full bg-ink" />
+                <h3 className="text-sm font-bold text-ink">{t("dash.recommended")}</h3>
+              </div>
+              <div className={grid}>{recModules.map(renderCard)}</div>
+            </div>
+          )}
           {CATEGORIES.map((cat) => {
             const mods = shown.filter((m) => moduleCategory(m.slug) === cat.key);
             if (mods.length === 0) return null;

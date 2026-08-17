@@ -3,13 +3,15 @@
     "signIn": "Entrar",
     "getStarted": "Começar",
     "signOut": "Sair",
-    "facilitator": "Facilitador"
+    "facilitator": "Facilitador",
+    "profile": "Perfil"
   },
   "dash": {
     "greeting": "Olá {name}",
     "exercises": "Exercícios",
     "framing": "Um instrumento, muitas formas de usar: redesenhe seu trabalho ou um fluxo, faça uma radiografia de um currículo ou função, aguçe uma decisão, ou negocie — sozinho, com um parceiro, ou ao vivo com uma turma.",
-    "yourSessions": "Suas sessões"
+    "yourSessions": "Suas sessões",
+    "recommended": "Recomendado para você"
   },
   "cat": {
     "redesign": "Trabalho & IA",

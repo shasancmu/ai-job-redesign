@@ -19,6 +19,22 @@ alter table public.profiles add column if not exists role text not null default 
 -- Preferred language for AI-generated content (interviews, analyses, debriefs).
 alter table public.profiles add column if not exists language text not null default 'English';
 
+-- Onboarding + audience segmentation (drives "Recommended for you").
+alter table public.profiles add column if not exists segment text;         -- SegmentKey (who they are)
+alter table public.profiles add column if not exists goal text;            -- GoalKey (what they want)
+alter table public.profiles add column if not exists team_size text;       -- managers / small business
+alter table public.profiles add column if not exists founder_stage text;   -- founder-curious
+alter table public.profiles add column if not exists study_field text;     -- students
+alter table public.profiles add column if not exists grad_year text;       -- students
+alter table public.profiles add column if not exists onboarded_at timestamptz;
+-- Passive signals (collected in the background, never asked).
+alter table public.profiles add column if not exists org_type text;        -- personal | education | corporate
+alter table public.profiles add column if not exists org_domain text;      -- email domain
+alter table public.profiles add column if not exists country text;         -- from hosting geo header
+alter table public.profiles add column if not exists device text;          -- mobile | desktop
+alter table public.profiles add column if not exists referrer text;        -- document.referrer at first visit
+alter table public.profiles add column if not exists utm jsonb;            -- {source,medium,campaign}
+
 -- --- sessions: one row per paired room ------------------------------------
 create table if not exists public.sessions (
   id uuid primary key default gen_random_uuid(),

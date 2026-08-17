@@ -8,6 +8,8 @@ import { MODULES } from "@/lib/modules";
 import Catalog from "@/components/Catalog";
 import SessionsPanel from "@/components/SessionsPanel";
 import LanguagePicker from "@/components/LanguagePicker";
+import EnrichOnce from "@/components/EnrichOnce";
+import { recommendedSlugs } from "@/lib/segments";
 import { getServerLocale } from "@/lib/i18n-server";
 import { makeT } from "@/lib/i18n";
 import Footer from "@/components/Footer";
@@ -42,6 +44,18 @@ export default async function Dashboard({
       await supabase.from("profiles").update({ display_name: clean }).eq("id", user.id);
       profile.display_name = clean;
     }
+  }
+
+  // First-run: send people through onboarding before the dashboard. Guarded so
+  // that if the onboarding columns haven't been migrated yet, we DON'T redirect
+  // (a missing column would otherwise loop dashboard ⇄ welcome forever).
+  {
+    const { data: ob, error: obErr } = await supabase
+      .from("profiles")
+      .select("onboarded_at")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (!obErr && ob && !ob.onboarded_at) redirect("/welcome");
   }
 
   const instructor = isAdmin(user.email);
@@ -81,6 +95,13 @@ export default async function Dashboard({
 
   const t = makeT(await getServerLocale());
 
+  // "Recommended for you" — from their onboarding segment + goal.
+  const validSlugs = new Set(MODULES.map((m) => m.slug));
+  const recommended = recommendedSlugs(
+    { segment: (profile as any)?.segment, goal: (profile as any)?.goal },
+    validSlugs
+  );
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between gap-3">
@@ -90,6 +111,9 @@ export default async function Dashboard({
         </div>
         <div className="flex items-center gap-2">
           <LanguagePicker me={user.id} initial={(profile as any)?.language} />
+          <a href="/profile" className="btn-ghost text-sm">
+            {t("nav.profile")}
+          </a>
           {instructor && (
             <a href="/facilitator" className="btn-ghost text-sm">
               {t("nav.facilitator")}
@@ -100,6 +124,7 @@ export default async function Dashboard({
           </form>
         </div>
       </header>
+      <EnrichOnce />
 
       <section>
         <h2 className="eyebrow">{t("dash.exercises")}</h2>
@@ -110,6 +135,7 @@ export default async function Dashboard({
           initialCohort={searchParams.cohort || ""}
           completed={completed}
           lastCode={lastCode}
+          recommended={recommended}
         />
       </section>
 

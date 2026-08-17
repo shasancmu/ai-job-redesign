@@ -3,13 +3,15 @@
     "signIn": "Iniciar sesión",
     "getStarted": "Comenzar",
     "signOut": "Cerrar sesión",
-    "facilitator": "Facilitador"
+    "facilitator": "Facilitador",
+    "profile": "Perfil"
   },
   "dash": {
     "greeting": "Hola {name}",
     "exercises": "Ejercicios",
     "framing": "Un instrumento, muchas formas de usarlo: rediseña tu trabajo o un flujo de trabajo, analiza un currículum o rol, afina una decisión, o negocia — solo, con un compañero, o en vivo con un grupo.",
-    "yourSessions": "Tus sesiones"
+    "yourSessions": "Tus sesiones",
+    "recommended": "Recomendado para ti"
   },
   "cat": {
     "redesign": "Trabajo e IA",

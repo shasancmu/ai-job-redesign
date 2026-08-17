@@ -3,13 +3,15 @@
     "signIn": "Se connecter",
     "getStarted": "Commencer",
     "signOut": "Se déconnecter",
-    "facilitator": "Animateur"
+    "facilitator": "Animateur",
+    "profile": "Profil"
   },
   "dash": {
     "greeting": "Bonjour {name}",
     "exercises": "Exercices",
     "framing": "Un outil, plusieurs approches : réinventez votre poste ou un processus, radiographiez un CV ou un rôle, affinez une décision, ou négociez — seul, en binôme, ou en direct avec votre cohorte.",
-    "yourSessions": "Vos sessions"
+    "yourSessions": "Vos sessions",
+    "recommended": "Recommandé pour vous"
   },
   "cat": {
     "redesign": "Travail & IA",

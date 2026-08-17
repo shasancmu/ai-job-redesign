@@ -3,13 +3,15 @@
     "signIn": "登录",
     "getStarted": "开始使用",
     "signOut": "登出",
-    "facilitator": "讲师"
+    "facilitator": "讲师",
+    "profile": "个人资料"
   },
   "dash": {
     "greeting": "你好 {name}",
     "exercises": "练习",
     "framing": "一个工具，多种用法：重新设计你的工作或工作流程、透视简历或职位、优化决策，或进行谈判——独自完成、与伙伴合作，或在班级中实时进行。",
-    "yourSessions": "你的会话"
+    "yourSessions": "你的会话",
+    "recommended": "为您推荐"
   },
   "cat": {
     "redesign": "工作与AI",

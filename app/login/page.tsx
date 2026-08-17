@@ -111,7 +111,14 @@ function LoginInner() {
           />
         </div>
         <div>
-          <label className="lbl">Password</label>
+          <div className="flex items-baseline justify-between">
+            <label className="lbl">Password</label>
+            {mode === "signin" && (
+              <Link href="/forgot-password" className="text-xs text-slate-400 hover:text-slate-700">
+                Forgot password?
+              </Link>
+            )}
+          </div>
           <input
             className="field"
             type="password"
