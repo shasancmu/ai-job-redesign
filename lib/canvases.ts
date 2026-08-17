@@ -28,6 +28,9 @@ export type CanvasDef = {
   ratings?: { key: string; label: string }[]; // 0–100 scorecard dimensions (e.g. the 4 A's) → also the cohort heatmap
   hasScore?: { label: string }; // show a single 0–100 meter (e.g. capability fit)
   hasVerdict?: { label: string }; // show a headline verdict
+  frontier?: { xLabel: string; yLabel: string }; // plot the subject on the automate/copilot/adjunct map
+  about?: string; // shown during the exercise — what the framework is
+  groupNotes?: Record<string, string>; // one-line explainer under each section heading
 };
 
 const ACCENTS = { human: "#3F7A52", ai: "#CE8F2C", both: "#7C5CBF", sage: "#3F7A52", gold: "#CE8F2C", plum: "#7C5CBF" };
@@ -80,6 +83,18 @@ After about 6 exchanges, reflect the shape back, ask what you missed, then close
     { key: "deployment", label: "Deployment strategy", hint: "Autonomous vs. human-in-the-loop (end-user check or provider review); off-the-shelf / RAG / fine-tuned", kind: "long", group: "Make it real", accent: "sage" },
   ],
   hasVerdict: { label: "Where it sits on the G–A frontier, and the play" },
+  frontier: { xLabel: "Predictable / narrow →", yLabel: "Cost per mistake →" },
+  about:
+    "The GAS framework (Hasan, Oettl & Samila): AI trades off Generality, Accuracy, and Simplicity — you can't max all three. A simple experience for users doesn't remove complexity; it relocates it to data, infrastructure, compliance, and new expertise. Advantage comes from choosing where to sit on the Generality–Accuracy frontier and mastering the complexity that moves. This canvas walks one workflow through that choice.",
+  groupNotes: {
+    "The bet": "The value you're actually chasing — speed, volume, cost, or quality.",
+    "The frontier":
+      "You can't max Generality and Accuracy at once. How predictable the task is and how costly a mistake is decide whether AI can automate it, copilot with you, or only advise.",
+    "The split": "Give AI the predictable, low-stakes work; keep judgment, relationships, and the final accuracy check with people.",
+    "Where complexity lands":
+      "A simple experience for users doesn't remove complexity — it moves it to data, infrastructure, compliance, and specialist roles. Decide who owns it.",
+    "Make it real": "The human complements that get more valuable here, and how you'd actually deploy it.",
+  },
 };
 
 // ---------------------------------------------------------------------------

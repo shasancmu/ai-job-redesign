@@ -572,6 +572,11 @@ export async function canvasDraftAI(
     const rl = def.ratings.map((r) => `"${r.key}": integer 0–100`).join(", ");
     extra.push(`  "ratings": { ${rl} }   // score each dimension; spread them, be discerning`);
   }
+  if (def.frontier) {
+    extra.push(
+      `  "frontier": { "x": integer 0–100, "y": integer 0–100 }   // x = how predictable/narrow the task is (100 = highly predictable); y = cost per mistake (100 = catastrophic). Place it honestly.`
+    );
+  }
 
   const system = `${def.draftSystem}
 
@@ -609,6 +614,11 @@ Rules: fill EVERY field, grounded in the interview and specific to this ${def.su
         if (v !== undefined) ratings[r.key] = v;
       }
       out.ratings = ratings;
+    }
+    if (def.frontier) {
+      const x = clamp(p.frontier?.x);
+      const y = clamp(p.frontier?.y);
+      if (x !== undefined && y !== undefined) out.frontier = { x, y };
     }
     return out;
   } catch {

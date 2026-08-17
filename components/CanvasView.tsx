@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import { accentColor, scoreColor, type CanvasDef } from "@/lib/canvases";
+import FrontierPlot, { frontierZone } from "@/components/FrontierPlot";
 
 const SAGE = "#3F7A52";
 const GOLD = "#CE8F2C";
@@ -90,12 +91,36 @@ export default function CanvasView({
         </section>
       ) : null}
 
+      {/* Frontier plot */}
+      {def.frontier && canvas.frontier ? (
+        <section className="mx-auto max-w-4xl px-6 pt-10">
+          <div className="eyebrow mb-3">The frontier</div>
+          <div className="card p-6">
+            <div className="grid gap-5 sm:grid-cols-2 sm:items-center">
+              <FrontierPlot x={canvas.frontier.x} y={canvas.frontier.y} xLabel={def.frontier.xLabel} yLabel={def.frontier.yLabel} />
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold text-white" style={{ background: frontierZone(canvas.frontier.y).color }}>
+                  {frontierZone(canvas.frontier.y).label}
+                </div>
+                {def.groupNotes?.["The frontier"] && (
+                  <p className="mt-3 text-sm leading-relaxed text-slate-600">{def.groupNotes["The frontier"]}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {/* Groups */}
       <section className="mx-auto max-w-4xl px-6 py-10">
         <div className="space-y-6">
-          {groups.map((g) => (
+          {groups.map((g) => {
+            const note = def.frontier && g === "The frontier" ? null : def.groupNotes?.[g];
+            return (
             <div key={g}>
-              <div className="eyebrow mb-3">{g}</div>
+              <div className="eyebrow mb-1">{g}</div>
+              {note && <p className="mb-3 text-sm text-slate-500">{note}</p>}
+              {!note && <div className="mb-3" />}
               <div className="grid gap-4 sm:grid-cols-2">
                 {def.fields.filter((f) => f.group === g).map((f) => {
                   const v = fields[f.key];
@@ -126,7 +151,8 @@ export default function CanvasView({
                 })}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {!embedded && (

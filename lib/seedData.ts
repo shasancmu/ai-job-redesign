@@ -267,6 +267,7 @@ export function canvasSeed(exercise: string): any {
       synthesis:
         "You want faster, more consistent first responses without losing the human touch on the hard cases. AI can classify, route, and draft the routine replies; your team keeps the judgment calls, the angry customers, and anything with money or risk attached.",
       verdict: "Mid-risk copilot: AI drafts the routine 70%; agents curate and own the 30% that decides loyalty.",
+      frontier: { x: 58, y: 55 },
       fields: {
         strategic_outcome: "Cut first-response time from hours to minutes and free agents for the cases that actually retain customers.",
         required_accuracy: "High on routing (wrong queue is costly) and on anything touching billing; a rough draft is fine for the reply itself since a human reviews it.",

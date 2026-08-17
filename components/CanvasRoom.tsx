@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { CANVAS_STEPS, accentColor, type CanvasDef, type CanvasField } from "@/lib/canvases";
 import Timer from "@/components/Timer";
 import CanvasView from "@/components/CanvasView";
+import FrontierPlot, { frontierZone } from "@/components/FrontierPlot";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -85,15 +86,23 @@ export default function CanvasRoom({
 
       <div className="pb-24">
         {step.key === "setup" && (
-          <div className="card p-5">
-            <label className="lbl">{def.setupTitle}</label>
-            <textarea
-              className="field min-h-[90px]"
-              placeholder={def.setupPlaceholder}
-              value={canvas.subject || ""}
-              onChange={(e) => setCanvas({ subject: e.target.value })}
-            />
-            <p className="mt-2 text-sm text-slate-500">{def.setupHint}</p>
+          <div className="space-y-4">
+            {def.about && (
+              <div className="rounded-2xl border border-line bg-mist p-5 text-sm leading-relaxed text-slate-600">
+                <span className="font-semibold text-ink">About this canvas. </span>
+                {def.about}
+              </div>
+            )}
+            <div className="card p-5">
+              <label className="lbl">{def.setupTitle}</label>
+              <textarea
+                className="field min-h-[90px]"
+                placeholder={def.setupPlaceholder}
+                value={canvas.subject || ""}
+                onChange={(e) => setCanvas({ subject: e.target.value })}
+              />
+              <p className="mt-2 text-sm text-slate-500">{def.setupHint}</p>
+            </div>
           </div>
         )}
 
@@ -301,6 +310,40 @@ function CanvasStep({
         </div>
       )}
 
+      {def.frontier ? (
+        <div className="card p-5">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Where it sits on the frontier</div>
+          <p className="mt-1 text-sm text-slate-500">Place your workflow: how predictable it is, and how costly a mistake is. The band it lands in is the play.</p>
+          <div className="mt-3 grid gap-5 sm:grid-cols-2 sm:items-center">
+            <FrontierPlot x={canvas.frontier?.x} y={canvas.frontier?.y} xLabel={def.frontier.xLabel} yLabel={def.frontier.yLabel} />
+            <div className="space-y-4">
+              {(() => {
+                const z = frontierZone(canvas.frontier?.y ?? 50);
+                return (
+                  <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold text-white" style={{ background: z.color }}>
+                    {z.label}
+                  </div>
+                );
+              })()}
+              <FrontierSlider
+                label={def.frontier.xLabel.replace(" →", "")}
+                lo="varied"
+                hi="predictable"
+                value={canvas.frontier?.x ?? 50}
+                onChange={(v) => setCanvas({ frontier: { x: v, y: canvas.frontier?.y ?? 50 } })}
+              />
+              <FrontierSlider
+                label={def.frontier.yLabel.replace(" →", "")}
+                lo="low"
+                hi="high"
+                value={canvas.frontier?.y ?? 50}
+                onChange={(v) => setCanvas({ frontier: { x: canvas.frontier?.x ?? 50, y: v } })}
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {def.ratings?.length ? (
         <div className="card p-5">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Scorecard — 0 (broken) to 100 (strong)</div>
@@ -328,16 +371,52 @@ function CanvasStep({
         </div>
       ) : null}
 
-      {groups.map((g) => (
-        <div key={g} className="card p-5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{g}</div>
-          <div className="mt-3 space-y-4">
-            {def.fields.filter((f) => f.group === g).map((f) => (
-              <FieldInput key={f.key} field={f} value={fields[f.key]} onChange={(v) => setField(f.key, v)} />
-            ))}
+      {groups.map((g) => {
+        const note = def.frontier && g === "The frontier" ? null : def.groupNotes?.[g];
+        return (
+          <div key={g} className="card p-5">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{g}</div>
+            {note && <p className="mt-1 text-sm text-slate-500">{note}</p>}
+            <div className="mt-3 space-y-4">
+              {def.fields.filter((f) => f.group === g).map((f) => (
+                <FieldInput key={f.key} field={f} value={fields[f.key]} onChange={(v) => setField(f.key, v)} />
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
+    </div>
+  );
+}
+
+function FrontierSlider({
+  label,
+  lo,
+  hi,
+  value,
+  onChange,
+}: {
+  label: string;
+  lo: string;
+  hi: string;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div>
+      <div className="text-sm font-medium text-ink">{label}</div>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="mt-1 w-full accent-sage"
+      />
+      <div className="flex justify-between text-[11px] text-slate-400">
+        <span>{lo}</span>
+        <span>{hi}</span>
+      </div>
     </div>
   );
 }
