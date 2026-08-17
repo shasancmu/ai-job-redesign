@@ -59,7 +59,7 @@ export default async function Paywall({
   const isFreeTierModule = mod ? FREE_TIER_MODULES.has(mod.slug) : false;
   const alumnus = await cohortAlumnus(supabase, user.id);
 
-  const allLabel = await priceLabel(PRICE_ALL, "$29 / year");
+  const allLabel = await priceLabel(PRICE_ALL, "$29");
   const cohortLabel = await priceLabel(PRICE_COHORT, "$19");
 
   return (
@@ -92,13 +92,13 @@ export default async function Paywall({
         </div>
       )}
 
-      {/* $29 / year public plan */}
+      {/* $29 one-time public plan */}
       <div className={"card mt-4 p-6 " + (alumnus && PRICE_COHORT ? "" : "border-2 border-ink")}>
         <div className="mb-1 flex items-baseline gap-2">
           <span className="text-3xl font-bold">{allLabel}</span>
-          <span className="text-slate-400">all {MODULES.length} modules</span>
+          <span className="text-slate-400">one-time · all {MODULES.length} modules</span>
         </div>
-        <p className="mb-3 text-sm text-slate-500">Every current module — and everything added later. {PAID_RUNS} runs each.</p>
+        <p className="mb-3 text-sm text-slate-500">Every current module — and everything added later, {PAID_RUNS} runs each.</p>
         <PayButton plan="all" label="Get full access" />
       </div>
 

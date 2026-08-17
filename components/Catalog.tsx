@@ -126,7 +126,7 @@ export default function Catalog({
 
               {!open ? (
                 <Link href={`/paywall?module=${m.slug}`} className="btn-dark mt-5">
-                  {t("catalog.unlock")} — {formatPrice(m.priceCents)}
+                  {t("catalog.unlock")}
                 </Link>
               ) : m.partner === "group" && !cohort ? (
                 <div className="mt-5 rounded-lg bg-mist px-3 py-2.5 text-xs leading-relaxed text-slate2">

@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   try {
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
-      mode: plan === "cohort" ? "payment" : "subscription", // $19 one-time · $29/yr recurring
+      mode: "payment", // one-time — $29 (or $19 alumni) opens up 2 runs of every module
       line_items: [{ price: priceId, quantity: 1 }],
       client_reference_id: user.id,
       customer_email: user.email || undefined,

@@ -55,7 +55,7 @@ export default function AdminCosts({
       {/* Summary tiles */}
       <div className="grid gap-3 sm:grid-cols-3">
         <Tile label={`Worst-case AI cost, one all-access user`} value={money(fullPaidExposure)} sub={`all modules × ${paidRuns} runs`} />
-        <Tile label="$29/yr gross margin (worst case)" value={money(priceAll - fullPaidExposure)} sub={`${money(priceAll)} − AI cost`} />
+        <Tile label="$29 gross margin (worst case)" value={money(priceAll - fullPaidExposure)} sub={`${money(priceAll)} − AI cost`} />
         <Tile label="$19 gross margin (worst case)" value={money(priceCohort - fullPaidExposure)} sub={`${money(priceCohort)} − AI cost`} />
       </div>
       <p className="text-xs text-slate-400">
