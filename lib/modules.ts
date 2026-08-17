@@ -314,11 +314,11 @@ export const SALEABLE_MODULES = MODULES.filter((m) => m.forSale !== false);
 // Thematic categories — how the exercises are grouped on the marketing page
 // (the dashboard groups by partner instead: how you run each one).
 export type CategoryKey = "redesign" | "strategy" | "negotiate" | "live";
-export const CATEGORIES: { key: CategoryKey; title: string; blurb: string }[] = [
-  { key: "redesign", title: "Redesign the work", blurb: "Put people and AI where each does its best — your job or a workflow, with a partner or with AI." },
-  { key: "strategy", title: "Sharpen a decision", blurb: "Pressure-test a strategy, a bet, or a whole business with a real framework and real numbers. AI interviews you, then builds the analysis." },
-  { key: "negotiate", title: "Negotiate", blurb: "Bargain live against an AI counterpart, then get scored on the value you claimed — and the value you created." },
-  { key: "live", title: "Run it live in class", blurb: "Whole-room diagnostics that draw themselves as your cohort responds — instructor-led." },
+export const CATEGORIES: { key: CategoryKey; title: string; blurb: string; chip: string; dot: string }[] = [
+  { key: "redesign", title: "Work & AI", blurb: "Redesign your job or a workflow, and X-ray a résumé or role to see what AI can do — and what only a human can.", chip: "bg-sage-soft text-sage", dot: "#3F7A52" },
+  { key: "strategy", title: "Sharpen a decision", blurb: "Pressure-test a strategy, a bet, or a whole business with a real framework and real numbers. AI interviews you, then builds the analysis.", chip: "bg-amber-soft text-amber", dot: "#C98A2B" },
+  { key: "negotiate", title: "Negotiate", blurb: "Bargain live against an AI counterpart, then get scored on the value you claimed — and the value you created.", chip: "bg-sky-soft text-sky", dot: "#4E79C9" },
+  { key: "live", title: "Run it live in class", blurb: "Whole-room diagnostics that draw themselves as your cohort responds.", chip: "bg-clay-soft text-clay", dot: "#C06A47" },
 ];
 const CATEGORY_OF: Record<string, CategoryKey> = {
   "reimagine-job": "redesign",

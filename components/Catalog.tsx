@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { MODULES, PARTNER_META, formatPrice, type Partner } from "@/lib/modules";
+import { MODULES, PARTNER_META, CATEGORIES, moduleCategory, formatPrice } from "@/lib/modules";
 import ModuleIcon from "@/components/ModuleIcon";
 
 const ACCENT: Record<string, string> = {
@@ -108,9 +108,6 @@ export default function Catalog({
                   {pm.label}
                 </span>
                 <span>{m.minutes} min</span>
-                {m.instructorTool && (
-                  <span className="rounded-full border border-line px-2 py-0.5 text-ink/55">Instructor tool</span>
-                )}
                 {completed[m.slug] && (
                   <span className="rounded-full bg-sage-soft px-2 py-0.5 font-medium text-sage">✓ Done</span>
                 )}
@@ -157,12 +154,7 @@ export default function Catalog({
   };
 
   // On the class view (moduleSlugs given) keep the curated order flat.
-  // On the main dashboard, group by who you do it with.
-  const SECTIONS: { partner: Partner; title: string; sub: string }[] = [
-    { partner: "human", title: "With a partner", sub: "Live, two people in a breakout room" },
-    { partner: "ai", title: "With AI", sub: "Solo — an AI plays your partner" },
-    { partner: "group", title: "In class", sub: "Live, large-group activities" },
-  ];
+  // On the main dashboard, group by TOPIC.
   const grouped = !moduleSlugs;
   const grid = "grid gap-4 sm:grid-cols-2 lg:grid-cols-3";
 
@@ -174,14 +166,14 @@ export default function Catalog({
         <div className={grid}>{shown.map(renderCard)}</div>
       ) : (
         <div className="space-y-8">
-          {SECTIONS.map(({ partner, title, sub }) => {
-            const mods = shown.filter((m) => m.partner === partner);
+          {CATEGORIES.map((cat) => {
+            const mods = shown.filter((m) => moduleCategory(m.slug) === cat.key);
             if (mods.length === 0) return null;
             return (
-              <div key={partner}>
-                <div className="mb-3 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <h3 className="text-sm font-bold text-ink">{title}</h3>
-                  <span className="text-xs text-slate2">{sub}</span>
+              <div key={cat.key}>
+                <div className="mb-3 flex items-baseline gap-2">
+                  <span className="h-2 w-2 rounded-full" style={{ background: cat.dot }} />
+                  <h3 className="text-sm font-bold text-ink">{cat.title}</h3>
                 </div>
                 <div className={grid}>{mods.map(renderCard)}</div>
               </div>

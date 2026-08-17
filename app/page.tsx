@@ -1,17 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { MODULES, PARTNER_META, CATEGORIES, moduleCategory, type CategoryKey } from "@/lib/modules";
+import { MODULES, PARTNER_META, CATEGORIES, moduleCategory } from "@/lib/modules";
 import Logo from "@/components/Logo";
 import ModuleIcon from "@/components/ModuleIcon";
 import Footer from "@/components/Footer";
-
-const CAT_ACCENT: Record<CategoryKey, { chip: string; dot: string }> = {
-  redesign: { chip: "bg-sage-soft text-sage", dot: "#3F7A52" },
-  strategy: { chip: "bg-amber-soft text-amber", dot: "#CE8F2C" },
-  negotiate: { chip: "bg-sky-soft text-sky", dot: "#3B7FB5" },
-  live: { chip: "bg-clay-soft text-clay", dot: "#B4532E" },
-};
 
 export default async function Home() {
   const supabase = createClient();
@@ -100,14 +93,14 @@ export default async function Home() {
             return (
               <div key={cat.key}>
                 <div className="flex items-baseline gap-3">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: CAT_ACCENT[cat.key].dot }} />
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: cat.dot }} />
                   <h3 className="text-xl font-bold tracking-tight text-ink">{cat.title}</h3>
                 </div>
                 <p className="mt-1 max-w-2xl text-sm text-slate2">{cat.blurb}</p>
                 <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {mods.map((m) => (
                     <div key={m.slug} className="card p-6 transition hover:shadow-lift">
-                      <div className={"flex h-11 w-11 items-center justify-center rounded-xl " + CAT_ACCENT[cat.key].chip}>
+                      <div className={"flex h-11 w-11 items-center justify-center rounded-xl " + cat.chip}>
                         <ModuleIcon slug={m.slug} />
                       </div>
                       <h4 className="mt-4 text-lg font-bold text-ink">{m.name}</h4>
@@ -118,9 +111,6 @@ export default async function Home() {
                           {PARTNER_META[m.partner].label}
                         </span>
                         <span>{m.minutes} min</span>
-                        {m.instructorTool && (
-                          <span className="rounded-full border border-line px-2 py-0.5 text-ink/55">Instructor-led</span>
-                        )}
                       </div>
                     </div>
                   ))}
