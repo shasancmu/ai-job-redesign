@@ -121,6 +121,45 @@
     "timerUp": "Time's up — either of you can move the room on.",
     "timerWait": "Next unlocks when the timer ends.",
     "waitingPartner": "Waiting for your partner to join room {code}…",
-    "reviewStep": "Review: {title}"
+    "reviewStep": "Review: {title}",
+    "soloTag": "Solo · AI partner",
+    "typeAnswer": "Type your answer…",
+    "aiUnavailable": "The AI partner is unavailable.",
+    "thinking": "Thinking…",
+    "draftWithAI": "✨ Draft with AI"
+  },
+  "solo": {
+    "jobTitle": "Job title",
+    "jobTitlePh": "e.g. Senior Marketing Manager",
+    "whatDoYouDo": "In one or two lines, what do you actually do?",
+    "whatDoYouDoPh": "What you're responsible for, and where your time goes.",
+    "reimaginedJob": "Your reimagined job",
+    "openingQ": "Your AI partner is thinking of an opening question…",
+    "splitIntro": "Let AI reason through the split — what it can genuinely take, and what only you can do — then make it yours.",
+    "whySplit": "Why this split",
+    "newJobLabel": "Your new job description",
+    "newJobPh": "In my reimagined role, I focus on… while AI handles…",
+    "nextPlan": "Next step turns this into your plan — where your time goes, and how to actually use AI.",
+    "cantDraft": "Couldn't draft a redesign."
+  },
+  "steps": {
+    "solo": {
+      "setup": {
+        "title": "Your job today",
+        "subtitle": "Name your job and describe it in a line. Your AI partner will interview you about it."
+      },
+      "interview": {
+        "title": "Talk to your AI partner",
+        "subtitle": "Answer its questions. It's trying to understand what only you can do — and what drains you."
+      },
+      "redesign": {
+        "title": "Your reimagined job",
+        "subtitle": "Get an AI-drafted 2×4 split and new job description, then make it yours."
+      },
+      "final": {
+        "title": "Make it real",
+        "subtitle": "Where your week should go, the value you lead, and the AI recipes — with where to look — to start this week."
+      }
+    }
   }
 }

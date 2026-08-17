@@ -7,8 +7,17 @@ import { SOLO_STEPS } from "@/lib/solo";
 import GridEditor from "@/components/GridEditor";
 import Timer from "@/components/Timer";
 import BuildPlan from "@/components/BuildPlan";
+import { useT } from "@/components/I18nProvider";
+import type { T } from "@/lib/i18n";
 
 type Msg = { role: "user" | "assistant"; content: string };
+
+// Translate with a fallback to the passed-in English (for step titles that live
+// in lib/solo.ts): if the key is missing, show the original rather than a key.
+function tf(t: T, key: string, fallback: string) {
+  const v = t(key);
+  return v === key ? fallback : v;
+}
 
 export default function SoloRoom({
   me,
@@ -20,6 +29,7 @@ export default function SoloRoom({
   initialWorkspace: any;
 }) {
   const supabase = createClient();
+  const t = useT();
   const [session, setSession] = useState<any>(initialSession);
   const [ws, setWs] = useState<any>({
     grid: {},
@@ -67,10 +77,10 @@ export default function SoloRoom({
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="text-sm text-slate-400 hover:text-slate-600">
-            ← Exit
+            ← {t("room.exit")}
           </Link>
           <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-sm font-semibold">
-            Solo · AI partner
+            {t("room.soloTag")}
           </span>
         </div>
         <Timer startedAt={session.phase_started_at} minutes={step.minutes} onReset={() => goToPhase(phase)} />
@@ -91,26 +101,26 @@ export default function SoloRoom({
 
       <div className="mb-5">
         <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          Step {phase + 1} of {SOLO_STEPS.length} · {step.minutes} min
+          {t("room.step", { n: phase + 1, total: SOLO_STEPS.length })} · {t("catalog.min", { n: step.minutes })}
         </div>
-        <h1 className="mt-1 text-2xl font-bold">{step.title}</h1>
-        <p className="mt-1 max-w-3xl text-slate-500">{step.subtitle}</p>
+        <h1 className="mt-1 text-2xl font-bold">{tf(t, "steps.solo." + step.key + ".title", step.title)}</h1>
+        <p className="mt-1 max-w-3xl text-slate-500">{tf(t, "steps.solo." + step.key + ".subtitle", step.subtitle)}</p>
       </div>
 
       <div className="pb-24">
         {step.key === "setup" && (
           <div className="card p-5">
-            <label className="lbl">Job title</label>
+            <label className="lbl">{t("solo.jobTitle")}</label>
             <input
               className="field"
-              placeholder="e.g. Senior Marketing Manager"
+              placeholder={t("solo.jobTitlePh")}
               value={ws.owner_job_title || ""}
               onChange={(e) => update({ owner_job_title: e.target.value })}
             />
-            <label className="lbl mt-4">In one or two lines, what do you actually do?</label>
+            <label className="lbl mt-4">{t("solo.whatDoYouDo")}</label>
             <textarea
               className="field"
-              placeholder="What you're responsible for, and where your time goes."
+              placeholder={t("solo.whatDoYouDoPh")}
               value={ws.owner_job_description || ""}
               onChange={(e) => update({ owner_job_description: e.target.value })}
             />
@@ -130,7 +140,7 @@ export default function SoloRoom({
             {ws.new_job_description && (
               <div className="card bg-slate-50 p-4">
                 <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                  Your reimagined job
+                  {t("solo.reimaginedJob")}
                 </div>
                 <p className="mt-1 whitespace-pre-wrap text-slate-600">{ws.new_job_description}</p>
               </div>
@@ -152,15 +162,15 @@ export default function SoloRoom({
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <button onClick={() => goToPhase(phase - 1)} disabled={phase === 0} className="btn-ghost">
-            Back
+            {t("room.back")}
           </button>
           {phase < SOLO_STEPS.length - 1 ? (
             <button onClick={() => goToPhase(phase + 1)} className="btn-primary">
-              Next step →
+              {t("room.next")} →
             </button>
           ) : (
             <Link href="/dashboard" className="btn-primary">
-              Finish
+              {t("room.finish")}
             </Link>
           )}
         </div>
@@ -170,6 +180,7 @@ export default function SoloRoom({
 }
 
 function Interview({ ws, update }: { ws: any; update: (p: any) => void }) {
+  const t = useT();
   const messages: Msg[] = ws.interview_chat || [];
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -191,12 +202,12 @@ function Interview({ ws, update }: { ws: any; update: (p: any) => void }) {
         });
         const data = await res.json();
         if (!res.ok) {
-          setErr(data.error || "The AI partner is unavailable.");
+          setErr(data.error || t("room.aiUnavailable"));
           return null;
         }
         return data.reply as string;
       } catch {
-        setErr("The AI partner is unavailable.");
+        setErr(t("room.aiUnavailable"));
         return null;
       } finally {
         setBusy(false);
@@ -236,7 +247,7 @@ function Interview({ ws, update }: { ws: any; update: (p: any) => void }) {
     <div className="card flex flex-col p-5" style={{ height: "60vh", minHeight: 420 }}>
       <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto pr-1">
         {messages.length === 0 && busy && (
-          <div className="text-slate-400">Your AI partner is thinking of an opening question…</div>
+          <div className="text-slate-400">{t("solo.openingQ")}</div>
         )}
         {messages.map((m, i) => (
           <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
@@ -264,11 +275,11 @@ function Interview({ ws, update }: { ws: any; update: (p: any) => void }) {
           className="field"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your answer…"
+          placeholder={t("room.typeAnswer")}
           disabled={busy}
         />
         <button className="btn-primary" disabled={busy || !input.trim()}>
-          Send
+          {t("room.send")}
         </button>
       </form>
     </div>
@@ -276,6 +287,7 @@ function Interview({ ws, update }: { ws: any; update: (p: any) => void }) {
 }
 
 function Redesign({ ws, update, session }: { ws: any; update: (p: any) => void; session: any }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [rationale, setRationale] = useState<string | null>(null);
@@ -296,7 +308,7 @@ function Redesign({ ws, update, session }: { ws: any; update: (p: any) => void; 
       });
       const data = await res.json();
       if (!res.ok) {
-        setErr(data.error || "Couldn't draft a redesign.");
+        setErr(data.error || t("solo.cantDraft"));
         return;
       }
       update({ grid: data.grid || {}, new_job_description: data.new_job_description || "" });
@@ -312,16 +324,16 @@ function Redesign({ ws, update, session }: { ws: any; update: (p: any) => void; 
     <div className="space-y-4">
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
         <div className="text-sm text-slate-500">
-          Let AI reason through the split — what it can genuinely take, and what only you can do — then make it yours.
+          {t("solo.splitIntro")}
         </div>
         <button onClick={draft} disabled={busy} className="btn-primary">
-          {busy ? "Thinking…" : "✨ Draft with AI"}
+          {busy ? t("room.thinking") : t("room.draftWithAI")}
         </button>
       </div>
       {err && <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
       {rationale && (
         <div className="card p-4">
-          <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-sage">Why this split</div>
+          <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-sage">{t("solo.whySplit")}</div>
           <p className="text-sm leading-relaxed text-slate2">{rationale}</p>
         </div>
       )}
@@ -329,17 +341,17 @@ function Redesign({ ws, update, session }: { ws: any; update: (p: any) => void; 
       <GridEditor grid={ws.grid || {}} onChange={(grid) => update({ grid })} />
 
       <div className="card p-5">
-        <label className="lbl">Your new job description</label>
+        <label className="lbl">{t("solo.newJobLabel")}</label>
         <textarea
           className="field min-h-[130px]"
-          placeholder="In my reimagined role, I focus on… while AI handles…"
+          placeholder={t("solo.newJobPh")}
           value={ws.new_job_description || ""}
           onChange={(e) => update({ new_job_description: e.target.value })}
         />
       </div>
 
       <p className="text-center text-sm text-slate2">
-        Next step turns this into your plan — where your time goes, and how to actually use AI.
+        {t("solo.nextPlan")}
       </p>
     </div>
   );

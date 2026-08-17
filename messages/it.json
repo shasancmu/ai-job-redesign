@@ -8,7 +8,7 @@
   "dash": {
     "greeting": "Ciao {name}",
     "exercises": "Esercizi",
-    "framing": "Uno strumento, molti modi per usarlo: riprogetta il tuo lavoro o un flusso di lavoro, analizza un CV o un ruolo, affina una decisione, o negozia — da solo, con un partner, o dal vivo con un gruppo.",
+    "framing": "Un strumento, molti modi per usarlo: riprogetta il tuo lavoro o un flusso di lavoro, analizza un CV o un ruolo, affina una decisione, o negozia — da solo, con un partner, o dal vivo con un gruppo.",
     "yourSessions": "Le tue sessioni"
   },
   "cat": {
@@ -36,7 +36,7 @@
   "modules": {
     "reimagine-job": {
       "name": "Riprogetta il Tuo Lavoro",
-      "tagline": "Riprogetta il lavoro di un partner intorno a ciò che solo un umano può fare."
+      "tagline": "Riprogetta il lavoro di un partner attorno a ciò che solo un umano può fare."
     },
     "reimagine-workflow": {
       "name": "Riprogetta un Flusso di Lavoro",
@@ -72,37 +72,37 @@
     },
     "close-the-offer": {
       "name": "Chiudi l'Offerta",
-      "tagline": "Negozia un'offerta di lavoro contro un omologo IA — poi ottieni un punteggio."
+      "tagline": "Negozia un'offerta di lavoro contro un omologo IA — poi ricevi un punteggio."
     },
     "name-your-price": {
       "name": "Fissa il Tuo Prezzo",
-      "tagline": "Una pura contrattazione sul prezzo — ancora, trova la ZOPA e rivendica il margine."
+      "tagline": "Una pura contrattazione sul prezzo — ancora, trova la ZOPA e rivendica il divario."
     },
     "good-business": {
       "name": "È un Buon Affare?",
-      "tagline": "Metti alla prova un'idea di business con vera strategia e veri numeri."
+      "tagline": "Metti alla prova un'idea di business con vera strategia e numeri reali."
     },
     "balanced-scorecard": {
       "name": "Balanced Scorecard",
       "tagline": "Trasforma una strategia in OKR e iniziative su quattro prospettive collegate."
     },
     "ai-canvas": {
-      "name": "Canvas di Opportunità IA",
+      "name": "Canvas delle Opportunità IA",
       "tagline": "Dove dovrebbe andare davvero l'IA — e come la distribuisci bene?"
     },
     "opportunity-capability": {
       "name": "Allineamento Opportunità-Capacità",
-      "tagline": "Dovresti fare questa scommessa? Mettila alla prova rispetto a quello che puoi davvero fare."
+      "tagline": "Dovresti fare questa scommessa? Mettila alla prova contro quello che puoi davvero fare."
     },
     "test-the-bet": {
-      "name": "Metti alla Prova la Scommessa",
-      "tagline": "Prima di impegnarti, progetta un esperimento pulito per metterla alla prova."
+      "name": "Testa la Scommessa",
+      "tagline": "Prima di impegnarti, progetta un esperimento pulito per testarla."
     }
   },
   "sessions": {
     "show": "▸ Mostra le tue sessioni ({n})",
     "hide": "▾ Nascondi le tue sessioni ({n})",
-    "empty": "Niente ancora — inizia un esercizio qui sopra per cominciare.",
+    "empty": "Niente ancora — inizia un esercizio sopra per cominciare.",
     "deleteTitle": "Elimina questa stanza"
   },
   "lang": {
@@ -119,8 +119,47 @@
     "with": "con {name}",
     "yourPartner": "il tuo partner",
     "timerUp": "Tempo scaduto — uno di voi può far avanzare la stanza.",
-    "timerWait": "Si sblocca quando il timer termina.",
+    "timerWait": "Il prossimo si sblocca quando il timer termina.",
     "waitingPartner": "In attesa che il tuo partner si unisca alla stanza {code}…",
-    "reviewStep": "Revisione: {title}"
+    "reviewStep": "Revisione: {title}",
+    "soloTag": "Solo · Partner IA",
+    "typeAnswer": "Digita la tua risposta…",
+    "aiUnavailable": "Il partner IA non è disponibile.",
+    "thinking": "Riflessione in corso…",
+    "draftWithAI": "✨ Bozza con IA"
+  },
+  "solo": {
+    "jobTitle": "Titolo del lavoro",
+    "jobTitlePh": "es. Senior Marketing Manager",
+    "whatDoYouDo": "In una o due righe, cosa fai davvero?",
+    "whatDoYouDoPh": "Di cosa sei responsabile e dove va il tuo tempo.",
+    "reimaginedJob": "Il tuo lavoro riprogettato",
+    "openingQ": "Il tuo partner IA sta pensando a una domanda di apertura…",
+    "splitIntro": "Lascia che l'IA ragioni sulla divisione — cosa può davvero gestire e cosa solo tu puoi fare — poi rendila tua.",
+    "whySplit": "Perché questa divisione",
+    "newJobLabel": "La tua nuova descrizione del lavoro",
+    "newJobPh": "Nel mio ruolo riprogettato, mi concentro su… mentre l'IA gestisce…",
+    "nextPlan": "Il passo successivo trasforma questo nel tuo piano — dove va il tuo tempo e come usare davvero l'IA.",
+    "cantDraft": "Non è stato possibile elaborare una riprogettazione."
+  },
+  "steps": {
+    "solo": {
+      "setup": {
+        "title": "Il tuo lavoro oggi",
+        "subtitle": "Nomina il tuo lavoro e descrivilo in una riga. Il tuo partner IA ti intervisterà su di esso."
+      },
+      "interview": {
+        "title": "Parla con il tuo partner IA",
+        "subtitle": "Rispondi alle sue domande. Sta cercando di capire cosa solo tu puoi fare — e cosa ti drena."
+      },
+      "redesign": {
+        "title": "Il tuo lavoro riprogettato",
+        "subtitle": "Ottieni una divisione 2×4 elaborata dall'IA e una nuova descrizione del lavoro, poi rendila tua."
+      },
+      "final": {
+        "title": "Rendilo reale",
+        "subtitle": "Dove dovrebbe andare la tua settimana, il valore che guidi e le ricette IA — con dove cercare — per iniziare questa settimana."
+      }
+    }
   }
 }

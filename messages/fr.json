@@ -8,7 +8,7 @@
   "dash": {
     "greeting": "Bonjour {name}",
     "exercises": "Exercices",
-    "framing": "Un outil, plusieurs approches : repensez votre poste ou un processus, analysez un CV ou un rôle, affinez une décision, ou négociez — seul, en binôme, ou en direct avec votre cohorte.",
+    "framing": "Un outil, plusieurs approches : réinventez votre poste ou un processus, radiographiez un CV ou un rôle, affinez une décision, ou négociez — seul, en binôme, ou en direct avec votre cohorte.",
     "yourSessions": "Vos sessions"
   },
   "cat": {
@@ -31,39 +31,39 @@
   "partner": {
     "human": "Avec un partenaire",
     "ai": "Avec l'IA",
-    "group": "Avec la salle"
+    "group": "Avec le groupe"
   },
   "modules": {
     "reimagine-job": {
-      "name": "Repensez votre poste",
-      "tagline": "Repensez le poste d'un partenaire autour de ce que seul un humain peut faire."
+      "name": "Réinventez votre poste",
+      "tagline": "Réinventez le poste d'un partenaire autour de ce que seul un humain peut faire."
     },
     "reimagine-workflow": {
-      "name": "Repensez un processus",
-      "tagline": "Rethinkez un processus avec un partenaire — ne le rafistollez pas."
+      "name": "Réinventez un processus",
+      "tagline": "Repensez un processus avec un partenaire — ne le rafistollez pas."
     },
     "benchmark": {
       "name": "L'étalon",
-      "tagline": "Testez-vous contre la machine — puis voyez la salle."
+      "tagline": "Testez-vous contre la machine — puis voyez le groupe."
     },
     "workflow-solo": {
-      "name": "Repensez un processus avec l'IA",
-      "tagline": "L'IA vous interroge, puis redessine votre processus avec l'IA + les humains aux bons postes."
+      "name": "Réinventez un processus avec l'IA",
+      "tagline": "L'IA vous interroge, puis redessine votre processus avec l'IA et les humains aux bons postes."
     },
     "network": {
       "name": "Le réseau",
-      "tagline": "Cartographiez le vrai réseau de la salle — en direct et anonyme."
+      "tagline": "Cartographiez le vrai réseau du groupe — en direct et anonyme."
     },
     "jd-x-ray": {
-      "name": "Analyse radiographique de la description de poste",
-      "tagline": "Collez un rôle — voyez son exposition à l'IA et exactement qui embaucher."
+      "name": "Radiographie de description de poste",
+      "tagline": "Collez une offre — voyez son exposition à l'IA et exactement qui embaucher."
     },
     "career-x-ray": {
-      "name": "Analyse radiographique de carrière",
+      "name": "Radiographie de carrière",
       "tagline": "Collez votre CV — voyez ce que l'IA peut faire et sur quoi vous appuyer."
     },
     "solo-ai": {
-      "name": "Repensez votre poste avec l'IA",
+      "name": "Réinventez votre poste avec l'IA",
       "tagline": "Appuyez-vous sur la part humaine de votre poste."
     },
     "execution-4a": {
@@ -72,7 +72,7 @@
     },
     "close-the-offer": {
       "name": "Conclure l'offre",
-      "tagline": "Négociez une offre d'emploi contre un homologue IA — puis obtenez une note."
+      "tagline": "Négociez une offre d'emploi contre un homologue IA — puis obtenez votre score."
     },
     "name-your-price": {
       "name": "Fixez votre prix",
@@ -84,7 +84,7 @@
     },
     "balanced-scorecard": {
       "name": "Tableau de bord équilibré",
-      "tagline": "Transformez une stratégie en OKRs + initiatives sur quatre perspectives liées."
+      "tagline": "Transformez une stratégie en OKR et initiatives sur quatre perspectives liées."
     },
     "ai-canvas": {
       "name": "Canevas d'opportunité IA",
@@ -119,8 +119,47 @@
     "with": "avec {name}",
     "yourPartner": "votre partenaire",
     "timerUp": "Temps écoulé — l'un de vous peut faire avancer la salle.",
-    "timerWait": "Le suivant se déverrouille quand le minuteur se termine.",
+    "timerWait": "Déverrouillé quand le minuteur se termine.",
     "waitingPartner": "En attente de votre partenaire pour rejoindre la salle {code}…",
-    "reviewStep": "Révision : {title}"
+    "reviewStep": "Révision : {title}",
+    "soloTag": "Solo · Partenaire IA",
+    "typeAnswer": "Tapez votre réponse…",
+    "aiUnavailable": "Le partenaire IA n'est pas disponible.",
+    "thinking": "Réflexion…",
+    "draftWithAI": "✨ Brouillon avec l'IA"
+  },
+  "solo": {
+    "jobTitle": "Titre du poste",
+    "jobTitlePh": "p. ex. Responsable marketing senior",
+    "whatDoYouDo": "En une ou deux lignes, que faites-vous vraiment ?",
+    "whatDoYouDoPh": "Ce dont vous êtes responsable et où va votre temps.",
+    "reimaginedJob": "Votre poste réinventé",
+    "openingQ": "Votre partenaire IA réfléchit à une question d'ouverture…",
+    "splitIntro": "Laissez l'IA raisonner sur la répartition — ce qu'elle peut vraiment prendre et ce que seul vous pouvez faire — puis faites-en vôtre.",
+    "whySplit": "Pourquoi cette répartition",
+    "newJobLabel": "Votre nouvelle description de poste",
+    "newJobPh": "Dans mon rôle réinventé, je me concentre sur… tandis que l'IA gère…",
+    "nextPlan": "L'étape suivante transforme cela en votre plan — où va votre temps et comment utiliser réellement l'IA.",
+    "cantDraft": "Impossible de rédiger une réinvention."
+  },
+  "steps": {
+    "solo": {
+      "setup": {
+        "title": "Votre poste aujourd'hui",
+        "subtitle": "Nommez votre poste et décrivez-le en une ligne. Votre partenaire IA vous l'interrogera."
+      },
+      "interview": {
+        "title": "Parlez à votre partenaire IA",
+        "subtitle": "Répondez à ses questions. Elle essaie de comprendre ce que seul vous pouvez faire — et ce qui vous épuise."
+      },
+      "redesign": {
+        "title": "Votre poste réinventé",
+        "subtitle": "Obtenez une répartition 2×4 rédigée par l'IA et une nouvelle description de poste, puis faites-la vôtre."
+      },
+      "final": {
+        "title": "Rendez-le réel",
+        "subtitle": "Où votre semaine devrait aller, la valeur que vous pilotez et les recettes IA — avec où chercher — pour commencer cette semaine."
+      }
+    }
   }
 }

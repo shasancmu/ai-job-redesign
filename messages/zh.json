@@ -8,12 +8,12 @@
   "dash": {
     "greeting": "你好 {name}",
     "exercises": "练习",
-    "framing": "一个工具，多种用法：重新设计你的工作或工作流程、分析简历或职位、做出更好的决策，或进行谈判——独自完成、与搭档合作，或在班级中实时进行。",
+    "framing": "一个工具，多种用法：重新设计你的工作或工作流程、透视简历或职位、优化决策，或进行谈判——独自完成、与伙伴合作，或在班级中实时进行。",
     "yourSessions": "你的会话"
   },
   "cat": {
     "redesign": "工作与AI",
-    "strategy": "做出更好的决策",
+    "strategy": "优化决策",
     "negotiate": "谈判",
     "live": "在课堂中实时运行"
   },
@@ -29,66 +29,66 @@
     "min": "{n} 分钟"
   },
   "partner": {
-    "human": "与搭档",
-    "ai": "与AI",
-    "group": "与全体"
+    "human": "与伙伴合作",
+    "ai": "与AI合作",
+    "group": "与全班合作"
   },
   "modules": {
     "reimagine-job": {
       "name": "重新想象你的工作",
-      "tagline": "围绕人类独有的能力重新设计搭档的工作。"
+      "tagline": "围绕只有人类才能做的事情重新设计伙伴的工作。"
     },
     "reimagine-workflow": {
       "name": "重新想象工作流程",
-      "tagline": "与搭档重新思考工作流程——不只是修补。"
+      "tagline": "与伙伴重新思考工作流程——不只是修补。"
     },
     "benchmark": {
       "name": "基准测试",
-      "tagline": "与机器比较你的能力——然后看看全班的结果。"
+      "tagline": "与机器对标测试——然后看全班的表现。"
     },
     "workflow-solo": {
       "name": "用AI重新想象工作流程",
-      "tagline": "AI与你进行对话，然后用AI和人类重新设计你的工作流程。"
+      "tagline": "AI对你进行访谈，然后用AI和人类重新绘制你的工作流程，确保人员配置恰当。"
     },
     "network": {
       "name": "网络图",
-      "tagline": "实时匿名地绘制全班的真实网络。"
+      "tagline": "实时绘制全班的真实网络——匿名进行。"
     },
     "jd-x-ray": {
-      "name": "职位描述X光扫描",
-      "tagline": "粘贴一个职位——查看其AI风险，以及具体需要招聘谁。"
+      "name": "职位描述透视",
+      "tagline": "粘贴职位——查看其AI风险，以及具体需要招聘谁。"
     },
     "career-x-ray": {
-      "name": "职业X光扫描",
-      "tagline": "粘贴你的简历——查看AI能做什么，以及你应该强化什么。"
+      "name": "职业透视",
+      "tagline": "粘贴你的简历——查看AI能做什么，以及你应该专注什么。"
     },
     "solo-ai": {
       "name": "用AI重新想象你的工作",
-      "tagline": "强化你工作中的人性化部分。"
+      "tagline": "专注于工作中的人性化部分。"
     },
     "execution-4a": {
       "name": "4A执行诊断",
-      "tagline": "这个项目真的能够执行吗？"
+      "tagline": "这个计划真的能够执行吗？"
     },
     "close-the-offer": {
-      "name": "达成录用",
-      "tagline": "与AI对手谈判工作机会——然后获得评分。"
+      "name": "敲定offer",
+      "tagline": "与AI对手谈判工作offer——然后获得评分。"
     },
     "name-your-price": {
       "name": "报价",
-      "tagline": "纯粹的价格谈判——设定锚点、找到协议区间、争取最大收益。"
+      "tagline": "纯粹的价格谈判——设定锚点、找到最佳协议区间、争取最大差价。"
     },
     "good-business": {
-      "name": "这是个好生意吗？",
-      "tagline": "用真实的战略和数据对商业想法进行压力测试。"
+      "name": "这是好生意吗？",
+      "tagline": "用真实的战略和数字对商业想法进行压力测试。"
     },
     "balanced-scorecard": {
       "name": "平衡计分卡",
-      "tagline": "将战略转化为跨四个关联视角的OKR和项目。"
+      "tagline": "将战略转化为跨四个关联视角的OKR和计划。"
     },
     "ai-canvas": {
       "name": "AI机会画布",
-      "tagline": "AI应该在哪里发挥作用——你如何有效地部署它？"
+      "tagline": "AI应该真正用在哪里——以及如何有效部署它？"
     },
     "opportunity-capability": {
       "name": "机会-能力匹配",
@@ -117,10 +117,49 @@
     "sending": "发送中…",
     "step": "第 {n} 步，共 {total} 步",
     "with": "与 {name}",
-    "yourPartner": "你的搭档",
-    "timerUp": "时间到——你们中任何一人都可以继续。",
+    "yourPartner": "你的伙伴",
+    "timerUp": "时间到——你们中的任何一个都可以继续。",
     "timerWait": "计时器结束时解锁下一步。",
-    "waitingPartner": "等待你的搭档加入房间 {code}…",
-    "reviewStep": "回顾：{title}"
+    "waitingPartner": "等待你的伙伴加入房间 {code}…",
+    "reviewStep": "回顾：{title}",
+    "soloTag": "独自 · AI伙伴",
+    "typeAnswer": "输入你的答案…",
+    "aiUnavailable": "AI伙伴暂时不可用。",
+    "thinking": "思考中…",
+    "draftWithAI": "✨ 用AI起草"
+  },
+  "solo": {
+    "jobTitle": "职位名称",
+    "jobTitlePh": "例如 高级营销经理",
+    "whatDoYouDo": "用一两句话，你实际上做什么？",
+    "whatDoYouDoPh": "你负责什么，以及你的时间花在哪里。",
+    "reimaginedJob": "你重新想象的工作",
+    "openingQ": "你的AI伙伴正在思考一个开场问题…",
+    "splitIntro": "让AI推理这个分工——它能真正承担什么，以及只有你能做什么——然后让它成为你的。",
+    "whySplit": "为什么这样分工",
+    "newJobLabel": "你的新职位描述",
+    "newJobPh": "在我重新想象的角色中，我专注于…而AI处理…",
+    "nextPlan": "下一步将其转化为你的计划——你的时间分配，以及如何实际使用AI。",
+    "cantDraft": "无法起草重新设计方案。"
+  },
+  "steps": {
+    "solo": {
+      "setup": {
+        "title": "你今天的工作",
+        "subtitle": "命名你的工作并用一句话描述它。你的AI伙伴将对你进行访谈。"
+      },
+      "interview": {
+        "title": "与你的AI伙伴交谈",
+        "subtitle": "回答它的问题。它试图理解只有你能做什么——以及什么让你感到疲惫。"
+      },
+      "redesign": {
+        "title": "你重新想象的工作",
+        "subtitle": "获得AI起草的2×4分工和新职位描述，然后让它成为你的。"
+      },
+      "final": {
+        "title": "让它成为现实",
+        "subtitle": "你的周计划应该如何分配、你领导的价值，以及AI方案——包括查看位置——以便本周开始。"
+      }
+    }
   }
 }

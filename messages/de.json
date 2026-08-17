@@ -8,7 +8,7 @@
   "dash": {
     "greeting": "Hallo {name}",
     "exercises": "Übungen",
-    "framing": "Ein Instrument, viele Wege: Gestalten Sie Ihren Job oder einen Workflow neu, durchleuchten Sie einen Lebenslauf oder eine Rolle, schärfen Sie eine Entscheidung oder verhandeln Sie — allein, mit einem Partner oder live mit einer Gruppe.",
+    "framing": "Ein Instrument, viele Wege: Gestalten Sie Ihren Job oder einen Workflow neu, durchleuchten Sie einen Lebenslauf oder eine Rolle, schärfen Sie eine Entscheidung, oder verhandeln Sie — allein, mit einem Partner oder live mit einer Gruppe.",
     "yourSessions": "Ihre Sitzungen"
   },
   "cat": {
@@ -22,7 +22,7 @@
     "starting": "Wird gestartet…",
     "pairUp": "Partnern finden →",
     "doItAgain": "Nochmal machen",
-    "viewLast": "Letztes Ergebnis anzeigen →",
+    "viewLast": "Letztes Ergebnis ansehen →",
     "cohortOnly": "Läuft live in einer Gruppe. Öffnen Sie den Cohort-Link Ihres Facilitators, um teilzunehmen.",
     "done": "✓ Fertig",
     "unlock": "Freischalten",
@@ -48,7 +48,7 @@
     },
     "workflow-solo": {
       "name": "Einen Workflow mit KI neu gestalten",
-      "tagline": "KI befragt Sie, dann zeichnet sie Ihren Workflow mit KI + Menschen in den richtigen Rollen neu."
+      "tagline": "KI befragt Sie, dann zeichnet sie Ihren Workflow mit KI + Menschen in den richtigen Positionen neu."
     },
     "network": {
       "name": "Das Netzwerk",
@@ -84,19 +84,19 @@
     },
     "balanced-scorecard": {
       "name": "Balanced Scorecard",
-      "tagline": "Wandeln Sie eine Strategie in OKRs + Initiativen über vier verknüpfte Perspektiven um."
+      "tagline": "Verwandeln Sie eine Strategie in OKRs + Initiativen über vier verknüpfte Perspektiven."
     },
     "ai-canvas": {
       "name": "KI-Chancen-Canvas",
-      "tagline": "Wo sollte KI wirklich hin — und wie setzen Sie sie richtig ein?"
+      "tagline": "Wo sollte KI wirklich hin — und wie setzen Sie sie gut ein?"
     },
     "opportunity-capability": {
       "name": "Chance–Fähigkeit Passung",
       "tagline": "Sollten Sie diese Wette eingehen? Testen Sie sie gegen das, was Sie wirklich können."
     },
     "test-the-bet": {
-      "name": "Die Wette testen",
-      "tagline": "Bevor Sie sich festlegen, entwerfen Sie ein sauberes Experiment, um sie zu testen."
+      "name": "Test-the-Bet",
+      "tagline": "Bevor Sie sich festlegen, entwerfen Sie ein sauberes Experiment, um es zu testen."
     }
   },
   "sessions": {
@@ -118,9 +118,48 @@
     "step": "Schritt {n} von {total}",
     "with": "mit {name}",
     "yourPartner": "Ihrem Partner",
-    "timerUp": "Zeit ist um — einer von Ihnen kann den Raum weiterbewegen.",
-    "timerWait": "Wird freigeschaltet, wenn der Timer endet.",
-    "waitingPartner": "Warten auf Ihren Partner, um Raum {code} zu betreten…",
-    "reviewStep": "Überprüfung: {title}"
+    "timerUp": "Zeit abgelaufen — einer von Ihnen kann den Raum weiterführen.",
+    "timerWait": "Nächster Schritt wird freigegeben, wenn der Timer endet.",
+    "waitingPartner": "Warten auf Ihren Partner, um Raum {code} beizutreten…",
+    "reviewStep": "Überprüfung: {title}",
+    "soloTag": "Solo · KI-Partner",
+    "typeAnswer": "Geben Sie Ihre Antwort ein…",
+    "aiUnavailable": "Der KI-Partner ist nicht verfügbar.",
+    "thinking": "Überlegt…",
+    "draftWithAI": "✨ Mit KI entwerfen"
+  },
+  "solo": {
+    "jobTitle": "Berufsbezeichnung",
+    "jobTitlePh": "z. B. Senior Marketing Manager",
+    "whatDoYouDo": "Beschreiben Sie in ein oder zwei Zeilen, was Sie wirklich tun?",
+    "whatDoYouDoPh": "Wofür Sie verantwortlich sind und wo Ihre Zeit hingeht.",
+    "reimaginedJob": "Ihr neu gestalteter Job",
+    "openingQ": "Ihr KI-Partner überlegt sich eine Eröffnungsfrage…",
+    "splitIntro": "Lassen Sie KI die Aufteilung durchdenken — was sie wirklich übernehmen kann und was nur Sie können — dann machen Sie es zu Ihrem eigenen.",
+    "whySplit": "Warum diese Aufteilung",
+    "newJobLabel": "Ihre neue Stellenbeschreibung",
+    "newJobPh": "In meiner neu gestalteten Rolle konzentriere ich mich auf… während KI… übernimmt.",
+    "nextPlan": "Der nächste Schritt verwandelt dies in Ihren Plan — wo Ihre Zeit hingeht und wie Sie KI wirklich nutzen.",
+    "cantDraft": "Konnte keine Neugestaltung entwerfen."
+  },
+  "steps": {
+    "solo": {
+      "setup": {
+        "title": "Ihr Job heute",
+        "subtitle": "Nennen Sie Ihren Job und beschreiben Sie ihn in einer Zeile. Ihr KI-Partner wird Sie darüber befragen."
+      },
+      "interview": {
+        "title": "Sprechen Sie mit Ihrem KI-Partner",
+        "subtitle": "Beantworten Sie seine Fragen. Er versucht zu verstehen, was nur Sie können — und was Sie belastet."
+      },
+      "redesign": {
+        "title": "Ihr neu gestalteter Job",
+        "subtitle": "Erhalten Sie einen KI-entworfenen 2×4-Split und eine neue Stellenbeschreibung, dann machen Sie sie zu Ihrer eigenen."
+      },
+      "final": {
+        "title": "Machen Sie es real",
+        "subtitle": "Wo Ihre Woche hingehen sollte, der Wert, den Sie führen, und die KI-Rezepte — mit wo Sie nachschauen — um diese Woche zu starten."
+      }
+    }
   }
 }

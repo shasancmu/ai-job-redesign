@@ -15,10 +15,10 @@
     "redesign": "Trabalho & IA",
     "strategy": "Aguçar uma decisão",
     "negotiate": "Negociar",
-    "live": "Executar ao vivo em sala"
+    "live": "Executar ao vivo em aula"
   },
   "catalog": {
-    "start": "Iniciar",
+    "start": "Começar",
     "starting": "Iniciando…",
     "pairUp": "Formar dupla →",
     "doItAgain": "Fazer novamente",
@@ -31,7 +31,7 @@
   "partner": {
     "human": "Com um parceiro",
     "ai": "Com IA",
-    "group": "Com a sala"
+    "group": "Com a turma"
   },
   "modules": {
     "reimagine-job": {
@@ -44,7 +44,7 @@
     },
     "benchmark": {
       "name": "O Benchmark",
-      "tagline": "Teste-se contra a máquina — depois veja a sala."
+      "tagline": "Teste-se contra a máquina — depois veja a turma."
     },
     "workflow-solo": {
       "name": "Reimagine um Fluxo de Trabalho com IA",
@@ -52,7 +52,7 @@
     },
     "network": {
       "name": "A Rede",
-      "tagline": "Mapeie a rede real da sala — ao vivo e anônimo."
+      "tagline": "Mapeie a rede real da turma — ao vivo e anonimamente."
     },
     "jd-x-ray": {
       "name": "Radiografia de Descrição de Cargo",
@@ -72,19 +72,19 @@
     },
     "close-the-offer": {
       "name": "Feche a Oferta",
-      "tagline": "Negocie uma oferta de emprego contra um contraparte IA — depois receba uma pontuação."
+      "tagline": "Negocie uma oferta de emprego contra um parceiro IA — depois receba uma pontuação."
     },
     "name-your-price": {
       "name": "Defina Seu Preço",
-      "tagline": "Uma pura negociação de preço — estabeleça âncora, encontre a ZOPA e reivindique a diferença."
+      "tagline": "Uma pura negociação de preço — ancora, encontre a ZOPA e reivindique a diferença."
     },
     "good-business": {
-      "name": "É um Bom Negócio?",
+      "name": "Isto é um Bom Negócio?",
       "tagline": "Teste uma ideia de negócio com estratégia real e números reais."
     },
     "balanced-scorecard": {
       "name": "Balanced Scorecard",
-      "tagline": "Transforme uma estratégia em OKRs + iniciativas em quatro perspectivas interligadas."
+      "tagline": "Transforme uma estratégia em OKRs + iniciativas em quatro perspectivas conectadas."
     },
     "ai-canvas": {
       "name": "Canvas de Oportunidade com IA",
@@ -102,7 +102,7 @@
   "sessions": {
     "show": "▸ Mostrar suas sessões ({n})",
     "hide": "▾ Ocultar suas sessões ({n})",
-    "empty": "Nada ainda — inicie um exercício acima para começar.",
+    "empty": "Nada ainda — comece um exercício acima para iniciar.",
     "deleteTitle": "Deletar esta sala"
   },
   "lang": {
@@ -119,8 +119,47 @@
     "with": "com {name}",
     "yourPartner": "seu parceiro",
     "timerUp": "Tempo esgotado — qualquer um de vocês pode avançar a sala.",
-    "timerWait": "Próximo desbloqueia quando o cronômetro terminar.",
+    "timerWait": "Próxima etapa desbloqueia quando o cronômetro termina.",
     "waitingPartner": "Aguardando seu parceiro entrar na sala {code}…",
-    "reviewStep": "Revisão: {title}"
+    "reviewStep": "Revisão: {title}",
+    "soloTag": "Solo · Parceiro IA",
+    "typeAnswer": "Digite sua resposta…",
+    "aiUnavailable": "O parceiro IA está indisponível.",
+    "thinking": "Pensando…",
+    "draftWithAI": "✨ Rascunho com IA"
+  },
+  "solo": {
+    "jobTitle": "Título do cargo",
+    "jobTitlePh": "ex. Gerente Sênior de Marketing",
+    "whatDoYouDo": "Em uma ou duas linhas, o que você realmente faz?",
+    "whatDoYouDoPh": "Pelo que você é responsável e onde seu tempo vai.",
+    "reimaginedJob": "Seu trabalho reimaginado",
+    "openingQ": "Seu parceiro IA está pensando em uma pergunta inicial…",
+    "splitIntro": "Deixe a IA raciocinar sobre a divisão — o que ela pode genuinamente assumir e o que apenas você pode fazer — depois torne-a sua.",
+    "whySplit": "Por que essa divisão",
+    "newJobLabel": "Sua nova descrição de cargo",
+    "newJobPh": "Em meu papel reimaginado, me concentro em… enquanto IA cuida de…",
+    "nextPlan": "Próxima etapa transforma isso em seu plano — onde seu tempo vai e como realmente usar IA.",
+    "cantDraft": "Não conseguiu elaborar um redesenho."
+  },
+  "steps": {
+    "solo": {
+      "setup": {
+        "title": "Seu trabalho hoje",
+        "subtitle": "Nomeie seu cargo e descreva-o em uma linha. Seu parceiro IA o entrevistará sobre isso."
+      },
+      "interview": {
+        "title": "Converse com seu parceiro IA",
+        "subtitle": "Responda suas perguntas. Ela está tentando entender o que apenas você pode fazer — e o que o drena."
+      },
+      "redesign": {
+        "title": "Seu trabalho reimaginado",
+        "subtitle": "Obtenha um rascunho IA de divisão 2×4 e nova descrição de cargo, depois torne-a sua."
+      },
+      "final": {
+        "title": "Torne real",
+        "subtitle": "Onde sua semana deveria ir, o valor que você lidera e as receitas de IA — com onde procurar — para começar esta semana."
+      }
+    }
   }
 }
