@@ -38,7 +38,8 @@ export type ModuleDef = {
     | "negotiation"
     | "haggle"
     | "career-xray"
-    | "jd-xray"; // which room engine renders it
+    | "jd-xray"
+    | "career-roadmap"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -162,6 +163,21 @@ export const MODULES: ModuleDef[] = [
     emoji: "🩻",
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_CAREER",
+  },
+  {
+    slug: "career-roadmap",
+    exercise: "career-roadmap",
+    name: "Career Roadmap",
+    tagline: "See your next career moves — and the skills to get there.",
+    description:
+      "Reuses your résumé (or paste one), matches you to your O*NET occupation, and uses real O*NET skill data to map your skill-adjacent next steps — lateral pivots, step-ups, and stretch moves. For any target it shows a skills radar (you vs. the role), the specific gaps to close, and a sequenced 0–24 month roadmap. AI fills what the résumé can't show via a short interview.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 16,
+    ai: true,
+    emoji: "🗺️",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_ROADMAP",
   },
   {
     slug: "solo-ai",
@@ -326,6 +342,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "solo-ai": "redesign",
   "workflow-solo": "redesign",
   "career-x-ray": "redesign",
+  "career-roadmap": "redesign",
   "jd-x-ray": "redesign",
   "execution-4a": "strategy",
   "balanced-scorecard": "strategy",

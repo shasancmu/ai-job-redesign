@@ -58,15 +58,15 @@ export const FOUNDER_STAGES = ["Just an idea", "Building it", "Already launched"
 
 // Which modules to prioritize, by segment (ordered, best first).
 const SEGMENT_MODULES: Record<SegmentKey, string[]> = {
-  employee: ["solo-ai", "career-x-ray", "close-the-offer", "workflow-solo"],
-  undergrad: ["career-x-ray", "close-the-offer", "benchmark", "good-business"],
-  grad: ["good-business", "execution-4a", "balanced-scorecard", "ai-canvas", "opportunity-capability", "test-the-bet", "close-the-offer", "career-x-ray"],
+  employee: ["career-roadmap", "solo-ai", "career-x-ray", "close-the-offer", "workflow-solo"],
+  undergrad: ["career-x-ray", "career-roadmap", "close-the-offer", "benchmark", "good-business"],
+  grad: ["good-business", "execution-4a", "balanced-scorecard", "ai-canvas", "opportunity-capability", "test-the-bet", "close-the-offer", "career-roadmap"],
   researcher: ["workflow-solo", "ai-canvas", "good-business", "test-the-bet"],
   highschool: ["benchmark", "career-x-ray", "good-business"],
   founder_curious: ["good-business", "test-the-bet", "ai-canvas", "name-your-price", "close-the-offer"],
   smb: ["good-business", "execution-4a", "balanced-scorecard", "workflow-solo", "opportunity-capability"],
   manager: ["execution-4a", "balanced-scorecard", "opportunity-capability", "workflow-solo", "reimagine-workflow", "close-the-offer"],
-  early_career: ["career-x-ray", "solo-ai", "close-the-offer", "benchmark"],
+  early_career: ["career-roadmap", "career-x-ray", "solo-ai", "close-the-offer", "benchmark"],
   learner: ["benchmark", "good-business", "solo-ai", "career-x-ray"],
 };
 
@@ -76,7 +76,7 @@ const GOAL_MODULES: Record<GoalKey, string[]> = {
   team: ["reimagine-workflow", "workflow-solo", "execution-4a", "balanced-scorecard", "opportunity-capability"],
   business_idea: ["good-business", "test-the-bet", "ai-canvas", "name-your-price"],
   negotiation: ["close-the-offer", "name-your-price"],
-  career: ["career-x-ray", "jd-x-ray", "solo-ai"],
+  career: ["career-roadmap", "career-x-ray", "solo-ai", "jd-x-ray"],
   explore: ["benchmark", "good-business", "solo-ai"],
 };
 

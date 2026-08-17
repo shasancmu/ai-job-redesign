@@ -13,6 +13,7 @@ import SoloWorkflowRoom from "@/components/SoloWorkflowRoom";
 import CanvasRoom from "@/components/CanvasRoom";
 import NegotiationRoom from "@/components/NegotiationRoom";
 import CareerRoom from "@/components/CareerRoom";
+import CareerRoadmapRoom from "@/components/CareerRoadmapRoom";
 import { canvasByExercise } from "@/lib/canvases";
 import { scenarioByExercise } from "@/lib/negotiation";
 
@@ -83,6 +84,56 @@ export default async function RoomPage({
         session={session}
         mode={session.exercise === "jd-xray" ? "jd" : "resume"}
         initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
+      />
+    );
+  }
+
+  // Career Roadmap: single-user, host only. Reuses the résumé from the most
+  // recent Career/JD X-ray or prior Roadmap run, if any.
+  if (session.exercise === "career-roadmap") {
+    if (!amHost) redirect("/dashboard");
+    await supabase
+      .from("workspaces")
+      .upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
+
+    let savedResume = (workspace?.canvas as any)?.text as string | undefined;
+    if (!savedResume) {
+      const { data: prior } = await supabase
+        .from("sessions")
+        .select("id, exercise, created_at")
+        .eq("host_id", user.id)
+        .in("exercise", ["career-xray", "jd-xray", "career-roadmap"])
+        .neq("id", session.id)
+        .order("created_at", { ascending: false })
+        .limit(8);
+      const ids = (prior || []).map((s: any) => s.id);
+      if (ids.length) {
+        const { data: wss } = await supabase
+          .from("workspaces")
+          .select("session_id, canvas")
+          .in("session_id", ids)
+          .eq("author_id", user.id);
+        const byId: Record<string, any> = {};
+        for (const w of wss || []) byId[w.session_id] = w;
+        for (const s of prior || []) {
+          const txt = byId[s.id]?.canvas?.text;
+          if (typeof txt === "string" && txt.trim().length >= 60) { savedResume = txt; break; }
+        }
+      }
+    }
+
+    return (
+      <CareerRoadmapRoom
+        me={user.id}
+        session={session}
+        initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
+        savedResume={savedResume}
       />
     );
   }
