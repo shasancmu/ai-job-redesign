@@ -45,16 +45,24 @@ export default async function Home() {
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate2">
               Everyone&apos;s asking how to use AI. The sharper question is how to
-              use <span className="text-ink">humans</span>. Hands-on modules that
+              use <span className="text-ink">humans</span>. Hands-on exercises that
               redesign the work so people and AI each do what they do best.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/login" className="btn-primary">
-                Sign in <span aria-hidden>→</span>
+                Start with Reimagine Your Job <span aria-hidden>→</span>
               </Link>
               <Link href="/join" className="btn-ghost">
                 Join as a guest
               </Link>
+            </div>
+            <div className="mt-4">
+              <a
+                href="mailto:shasanx@gmail.com?subject=Running%20Superadditive%20for%20a%20team"
+                className="text-sm font-medium text-slate2 underline-offset-4 hover:text-ink hover:underline"
+              >
+                Running this for a team? <span aria-hidden>→</span>
+              </a>
             </div>
           </div>
         </div>
@@ -70,14 +78,23 @@ export default async function Home() {
         </p>
         <p className="mt-4 text-slate2">
           Companies that gain from AI rethink the work — they don&apos;t patch it.
-          Every module helps you do exactly that.
+          Every exercise helps you do exactly that.
         </p>
       </section>
 
-      {/* Modules */}
+      {/* Exercises */}
       <section className="mx-auto mt-16 max-w-6xl px-6">
-        <span className="eyebrow">The modules</span>
-        <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <span className="eyebrow">The exercises</span>
+        <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+          One instrument, four ways in.
+        </h2>
+        <p className="mt-2 max-w-2xl text-slate2">
+          Redesign your <span className="font-semibold text-ink">job</span> or your{" "}
+          <span className="font-semibold text-ink">workflow</span> — with a{" "}
+          <span className="font-semibold text-ink">partner</span>, or with{" "}
+          <span className="font-semibold text-ink">AI</span>. Same instrument, two lenses, two ways to run it.
+        </p>
+        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {SALEABLE_MODULES.map((m) => (
             <div key={m.slug} className="card p-6 transition hover:shadow-lift">
               <div
@@ -112,7 +129,16 @@ export default async function Home() {
         <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-line bg-mist p-8 sm:flex-row sm:items-center">
           <div>
             <h2 className="text-xl font-bold text-ink">Ready to reimagine the work?</h2>
-            <p className="mt-1 text-slate2">Create an account and run a module in minutes.</p>
+            <p className="mt-1 text-slate2">
+              Create an account and start an exercise in minutes — or{" "}
+              <a
+                href="mailto:shasanx@gmail.com?subject=Running%20Superadditive%20for%20a%20team"
+                className="font-medium text-ink underline underline-offset-4 hover:text-sage"
+              >
+                run it for a team
+              </a>
+              .
+            </p>
           </div>
           <Link href="/login?mode=signup" className="btn-primary">
             Create an account

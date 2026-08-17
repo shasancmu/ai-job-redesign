@@ -39,7 +39,7 @@ export default function SessionsPanel({ sessions, me }: { sessions: any[]; me: s
   }
 
   if (list.length === 0) {
-    return <p className="text-slate-500">Nothing yet — open a module above to begin.</p>;
+    return <p className="text-slate-500">Nothing yet — start an exercise above to begin.</p>;
   }
 
   return (

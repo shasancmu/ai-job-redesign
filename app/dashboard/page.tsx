@@ -96,7 +96,13 @@ export default async function Dashboard({
       </header>
 
       <section>
-        <h2 className="eyebrow mb-3">Modules</h2>
+        <h2 className="eyebrow">Exercises</h2>
+        <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">
+          One instrument, four ways in: redesign your <span className="font-semibold text-ink">job</span> or your{" "}
+          <span className="font-semibold text-ink">workflow</span> — with a{" "}
+          <span className="font-semibold text-ink">partner</span>, or with{" "}
+          <span className="font-semibold text-ink">AI</span>.
+        </p>
         <Catalog
           userId={user.id}
           unlocked={unlocked}
