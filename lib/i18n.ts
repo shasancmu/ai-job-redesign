@@ -7,8 +7,13 @@ import en from "@/messages/en.json";
 import es from "@/messages/es.json";
 import ar from "@/messages/ar.json";
 import ptBR from "@/messages/pt-BR.json";
+import zh from "@/messages/zh.json";
+import hi from "@/messages/hi.json";
+import fr from "@/messages/fr.json";
+import de from "@/messages/de.json";
+import it from "@/messages/it.json";
 
-const DICTS: Record<string, any> = { en, es, ar, "pt-BR": ptBR };
+const DICTS: Record<string, any> = { en, es, ar, "pt-BR": ptBR, zh, hi, fr, de, it };
 
 // Language display names (as stored on profiles.language) → locale codes.
 const LANG_TO_LOCALE: Record<string, string> = {

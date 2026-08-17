@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "signIn": "登录",
+    "getStarted": "开始使用",
+    "signOut": "登出",
+    "facilitator": "讲师"
+  },
+  "dash": {
+    "greeting": "你好 {name}",
+    "exercises": "练习",
+    "framing": "一个工具，多种用法：重新设计你的工作或工作流程、分析简历或职位、优化决策，或进行谈判——可以独立完成、与搭档合作，或在班级中实时进行。",
+    "yourSessions": "你的会话"
+  },
+  "cat": {
+    "redesign": "工作与AI",
+    "strategy": "优化决策",
+    "negotiate": "谈判",
+    "live": "在课堂中实时运行"
+  },
+  "catalog": {
+    "start": "开始",
+    "starting": "开始中…",
+    "pairUp": "配对 →",
+    "doItAgain": "再做一次",
+    "viewLast": "查看上次结果 →",
+    "cohortOnly": "在班级中实时运行。打开讲师的班级链接即可参与。",
+    "done": "✓ 完成",
+    "unlock": "解锁"
+  },
+  "sessions": {
+    "show": "▸ 显示你的会话 ({n})",
+    "hide": "▾ 隐藏你的会话 ({n})",
+    "empty": "暂无内容——开始上面的练习即可开始。",
+    "deleteTitle": "删除此房间"
+  },
+  "lang": {
+    "label": "AI生成内容的语言"
+  }
+}

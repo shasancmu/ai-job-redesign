@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "signIn": "Se connecter",
+    "getStarted": "Commencer",
+    "signOut": "Se déconnecter",
+    "facilitator": "Animateur"
+  },
+  "dash": {
+    "greeting": "Bonjour {name}",
+    "exercises": "Exercices",
+    "framing": "Un outil, plusieurs approches : repensez votre travail ou un processus, analysez un CV ou un rôle, affinez une décision, ou négociez — seul, en binôme, ou en direct avec votre groupe.",
+    "yourSessions": "Vos sessions"
+  },
+  "cat": {
+    "redesign": "Travail & IA",
+    "strategy": "Affiner une décision",
+    "negotiate": "Négocier",
+    "live": "Lancer en direct en classe"
+  },
+  "catalog": {
+    "start": "Commencer",
+    "starting": "Démarrage…",
+    "pairUp": "Former un binôme →",
+    "doItAgain": "Recommencer",
+    "viewLast": "Voir le dernier résultat →",
+    "cohortOnly": "S'exécute en direct dans un groupe. Ouvrez le lien de cohort de votre animateur pour participer.",
+    "done": "✓ Terminé",
+    "unlock": "Déverrouiller"
+  },
+  "sessions": {
+    "show": "▸ Afficher vos sessions ({n})",
+    "hide": "▾ Masquer vos sessions ({n})",
+    "empty": "Rien pour le moment — commencez un exercice ci-dessus pour débuter.",
+    "deleteTitle": "Supprimer cette session"
+  },
+  "lang": {
+    "label": "Langue pour le contenu généré par IA"
+  }
+}

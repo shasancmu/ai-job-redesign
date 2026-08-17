@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "signIn": "Accedi",
+    "getStarted": "Inizia",
+    "signOut": "Esci",
+    "facilitator": "Facilitatore"
+  },
+  "dash": {
+    "greeting": "Ciao {name}",
+    "exercises": "Esercizi",
+    "framing": "Un strumento, molti modi per iniziare: riprogetta il tuo lavoro o un flusso di lavoro, analizza un curriculum o un ruolo, affina una decisione, o negozia — da solo, con un partner, o dal vivo con una coorte.",
+    "yourSessions": "Le tue sessioni"
+  },
+  "cat": {
+    "redesign": "Lavoro e IA",
+    "strategy": "Affina una decisione",
+    "negotiate": "Negozia",
+    "live": "Esegui dal vivo in classe"
+  },
+  "catalog": {
+    "start": "Inizia",
+    "starting": "Avvio in corso…",
+    "pairUp": "Forma una coppia →",
+    "doItAgain": "Ripeti",
+    "viewLast": "Visualizza ultimo risultato →",
+    "cohortOnly": "Si esegue dal vivo in una coorte. Apri il link della coorte del tuo facilitatore per partecipare.",
+    "done": "✓ Completato",
+    "unlock": "Sblocca"
+  },
+  "sessions": {
+    "show": "▸ Mostra le tue sessioni ({n})",
+    "hide": "▾ Nascondi le tue sessioni ({n})",
+    "empty": "Niente ancora — inizia un esercizio qui sopra per cominciare.",
+    "deleteTitle": "Elimina questa stanza"
+  },
+  "lang": {
+    "label": "Lingua per i contenuti generati dall'IA"
+  }
+}
