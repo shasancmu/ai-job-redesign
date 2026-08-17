@@ -24,12 +24,14 @@ export default function Onboarding({ me, firstName }: { me: string; firstName?: 
   const [studyField, setStudyField] = useState("");
   const [gradYear, setGradYear] = useState("");
   const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   const followup: FollowupKind = segment ? SEGMENTS.find((s) => s.key === segment)!.followup : null;
   const totalSteps = followup ? 3 : 2;
 
   async function finish() {
     setSaving(true);
+    setErr(null);
     const patch: Record<string, any> = { onboarded_at: new Date().toISOString() };
     if (segment) patch.segment = segment;
     if (goal) patch.goal = goal;
@@ -37,7 +39,17 @@ export default function Onboarding({ me, firstName }: { me: string; firstName?: 
     if (founderStage) patch.founder_stage = founderStage;
     if (studyField) patch.study_field = studyField;
     if (gradYear) patch.grad_year = gradYear;
-    await supabase.from("profiles").update(patch).eq("id", me);
+    const { error } = await supabase.from("profiles").update(patch).eq("id", me);
+    if (error) {
+      // Almost always: the onboarding columns haven't been migrated yet.
+      setErr(
+        /column|schema/i.test(error.message)
+          ? "Couldn't save — the profile fields aren't set up in the database yet. Run supabase/schema.sql, then try again."
+          : error.message
+      );
+      setSaving(false);
+      return;
+    }
     router.push("/dashboard");
     router.refresh();
   }
@@ -71,6 +83,8 @@ export default function Onboarding({ me, firstName }: { me: string; firstName?: 
           />
         ))}
       </div>
+
+      {err && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
 
       {step === 0 && (
         <div>
