@@ -309,6 +309,48 @@ export function careerSeed(): any {
   };
 }
 
+export function jdSeed(): any {
+  return {
+    mode: "jd",
+    role: "Data Analyst",
+    level: "Mid",
+    xray: {
+      occupation: "Data Analysts (SOC 15-2051)",
+      headline: "The querying and reporting are highly exposed; the framing and stakeholder judgment are the hire.",
+      summary:
+        "Most of this role as written — pulling data, building dashboards, writing summaries — is squarely in AI's wheelhouse. Hire for the parts that aren't: framing the right question, knowing which number to trust, and translating analysis into a decision. Rewrite the role around that.",
+      topDownExposure: 72,
+      bottomUpExposure: 66,
+      automateShare: 40,
+      augmentShare: 38,
+      humanShare: 22,
+      tasks: [
+        { task: "Write SQL queries and pull data", exposure: "E2", mode: "substitute", note: "AI + tools do this well" },
+        { task: "Build and maintain dashboards", exposure: "E2", mode: "substitute", note: "near-automatable" },
+        { task: "Summarize findings into a memo", exposure: "E1", mode: "complement", note: "AI drafts, human frames" },
+        { task: "Decide which question is worth answering", exposure: "E0", mode: "complement", note: "judgment" },
+        { task: "Vet data quality and spot the wrong number", exposure: "E1", mode: "complement", note: "skepticism AI lacks" },
+        { task: "Present to and align stakeholders", exposure: "E0", mode: "complement", note: "trust + persuasion" },
+        { task: "Clean and reshape messy data", exposure: "E2", mode: "substitute", note: "tool-assisted" },
+      ],
+      newTasks: [
+        { task: "Own the analytics AI stack + guardrails", why: "As querying automates, someone must ensure the AI's answers are trustworthy." },
+        { task: "Partner as a decision consultant, not a report factory", why: "The value shifts from producing analysis to shaping decisions." },
+      ],
+      durableValue: ["Framing the right question", "Judgment on which numbers to trust", "Turning analysis into a decision", "Stakeholder credibility"],
+      careerVectors: [
+        { role: "Analytics Engineer / Decision Scientist", why: "Leans into the parts AI amplifies rather than replaces" },
+        { role: "Product / Strategy Analyst", why: "Rewards framing and stakeholder judgment" },
+      ],
+      jobSearch: {
+        keywords: ["decision scientist", "product analytics", "experimentation", "SQL + causal inference", "stakeholder-facing analyst"],
+        whereToLook: ["Data teams at PLG startups", "analytics guilds and dbt community", "ex-consulting analysts moving in-house"],
+        signals: ["A writeup where they framed a question, not just charts", "evidence they changed a decision", "healthy skepticism about a metric"],
+      },
+    },
+  };
+}
+
 export function haggleSeed(i: number): any {
   const s = HAGGLE_SEEDS[i % HAGGLE_SEEDS.length];
   return { terms: { price: s.price }, noDeal: false, chat: s.chat, feedback: s.feedback };

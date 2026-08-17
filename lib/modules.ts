@@ -37,7 +37,8 @@ export type ModuleDef = {
     | "venture"
     | "negotiation"
     | "haggle"
-    | "career-xray"; // which room engine renders it
+    | "career-xray"
+    | "jd-xray"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -131,6 +132,21 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_NETWORK",
     forSale: false,
     instructorTool: true,
+  },
+  {
+    slug: "jd-x-ray",
+    exercise: "jd-xray",
+    name: "Job Description X-ray",
+    tagline: "Paste a role — see its AI exposure, and exactly who to hire.",
+    description:
+      "The recruiter's cut: AI decomposes a job description into tasks, scores each for AI exposure (Eloundou et al.), benchmarks the role against its occupation, rewrites it as a superadditive human+AI role, and tells you how to find the person — sourcing keywords, where they are, and what to screen for.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 14,
+    ai: true,
+    emoji: "📄",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_JDXRAY",
   },
   {
     slug: "career-x-ray",
@@ -310,6 +326,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "solo-ai": "redesign",
   "workflow-solo": "redesign",
   "career-x-ray": "redesign",
+  "jd-x-ray": "redesign",
   "execution-4a": "strategy",
   "balanced-scorecard": "strategy",
   "ai-canvas": "strategy",

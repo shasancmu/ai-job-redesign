@@ -230,6 +230,7 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
         if (slug === "close-the-offer") return bySession("negotiation");
         if (slug === "name-your-price") return bySession("haggle");
         if (slug === "career-x-ray") return bySession("career-xray");
+        if (slug === "jd-x-ray") return bySession("jd-xray");
         if (slug === "ai-canvas") return bySession("gas");
         if (slug === "opportunity-capability") return bySession("ocfit");
         if (slug === "test-the-bet") return bySession("experiment");

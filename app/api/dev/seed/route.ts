@@ -17,6 +17,7 @@ import {
   randomOfferOutcome,
   randomHaggleOutcome,
   careerSeed,
+  jdSeed,
 } from "@/lib/seedData";
 
 export const runtime = "nodejs";
@@ -28,6 +29,7 @@ const MODULES = [
   "reimagine-workflow",
   "solo-ai",
   "career-x-ray",
+  "jd-x-ray",
   "workflow-solo",
   "execution-4a",
   "balanced-scorecard",
@@ -225,11 +227,16 @@ export async function POST(request: Request) {
   addCanvas(users[7], "scorecard");
   addCanvas(users[9], "venture");
 
-  // Career X-ray
+  // Career X-ray + JD X-ray
   {
     const id = crypto.randomUUID();
     sessionRows.push({ id, code: makeCode(), cohort: code, exercise: "career-xray", host_id: users[6].id, status: "done", phase: 1, phase_started_at: new Date().toISOString() });
     workspaceRows.push({ session_id: id, author_id: users[6].id, canvas: careerSeed() });
+  }
+  {
+    const id = crypto.randomUUID();
+    sessionRows.push({ id, code: makeCode(), cohort: code, exercise: "jd-xray", host_id: users[8].id, status: "done", phase: 1, phase_started_at: new Date().toISOString() });
+    workspaceRows.push({ session_id: id, author_id: users[8].id, canvas: jdSeed() });
   }
 
   // Negotiations — crafted strong/weak examples + a spread for the cohort plots.
