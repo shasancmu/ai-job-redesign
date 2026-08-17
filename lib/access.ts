@@ -1,5 +1,5 @@
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
-import { moduleBySlug } from "@/lib/modules";
+import { moduleBySlug, MODULES } from "@/lib/modules";
 import { hasClassAccess } from "@/lib/classes";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -89,6 +89,40 @@ export async function moduleRunAccess(
     return { ok: runs <= FREE_TIER_RUNS, via: runs <= FREE_TIER_RUNS ? "free-tier" : "blocked", runs, cap: FREE_TIER_RUNS };
   }
   return { ok: false, via: "blocked", runs: 0, cap: 0 };
+}
+
+// Runs remaining per module for a user, for the catalog counter. null =
+// unlimited (admin, payments off, free-to-run module); a number = new runs they
+// can still start; 0 = out (locked, or entitlement exhausted → re-buy).
+export async function runsLeftByModule(
+  supabase: SupabaseClient,
+  userId: string,
+  isAdmin = false
+): Promise<Record<string, number | null>> {
+  const out: Record<string, number | null> = {};
+  if (!PAYMENTS_ENABLED || isAdmin) {
+    for (const m of MODULES) out[m.slug] = null;
+    return out;
+  }
+  const ents = await activeEnts(supabase, userId);
+  const paid = ents.find((e) => e.module === "all");
+  const since = paid?.current_period_start || null;
+
+  // Count this user's sessions per exercise (paid → since the purchase window).
+  let q = supabase.from("sessions").select("exercise").or(`host_id.eq.${userId},guest_id.eq.${userId}`);
+  if (since) q = q.gte("created_at", since);
+  const { data } = await q;
+  const counts: Record<string, number> = {};
+  for (const r of data || []) counts[(r as any).exercise] = (counts[(r as any).exercise] || 0) + 1;
+
+  for (const m of MODULES) {
+    if (m.forSale === false) { out[m.slug] = null; continue; }
+    const used = counts[m.exercise] || 0;
+    if (paid) out[m.slug] = Math.max(0, PAID_RUNS - used);
+    else if (FREE_TIER_MODULES.has(m.slug)) out[m.slug] = Math.max(0, FREE_TIER_RUNS - used);
+    else out[m.slug] = 0; // paid-only module, not owned
+  }
+  return out;
 }
 
 // Has this user ever been in ANY cohort (your class or a corporate rollout)?

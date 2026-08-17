@@ -44,6 +44,7 @@ export default function Catalog({
   completed = {},
   lastCode = {},
   recommended = [],
+  runsLeft = {},
 }: {
   userId: string;
   unlocked: Record<string, boolean>;
@@ -53,6 +54,7 @@ export default function Catalog({
   completed?: Record<string, boolean>;
   lastCode?: Record<string, string>;
   recommended?: string[];
+  runsLeft?: Record<string, number | null>;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -106,6 +108,9 @@ export default function Catalog({
     const chip = ACCENT[m.slug] || "bg-sage-soft text-sage";
     const paired = PAIRED.has(m.exercise);
     const pm = PARTNER_META[m.partner];
+    const left = runsLeft[m.slug]; // null = unlimited, number = runs remaining
+    const out = left === 0; // no runs remaining → send to the paywall
+    const canStart = open && !out;
     return (
             <div key={m.slug} className="card flex flex-col p-6 transition hover:shadow-lift">
               <div className={"flex h-11 w-11 items-center justify-center rounded-xl " + chip}>
@@ -122,11 +127,16 @@ export default function Catalog({
                 {completed[m.slug] && (
                   <span className="rounded-full bg-sage-soft px-2 py-0.5 font-medium text-sage">{t("catalog.done")}</span>
                 )}
+                {typeof left === "number" && (
+                  <span className={"rounded-full px-2 py-0.5 font-medium " + (out ? "bg-clay-soft text-clay" : "bg-mist text-slate2")}>
+                    {out ? "No runs left" : `${left} run${left === 1 ? "" : "s"} left`}
+                  </span>
+                )}
               </div>
 
-              {!open ? (
+              {!canStart ? (
                 <Link href={`/paywall?module=${m.slug}`} className="btn-dark mt-5">
-                  {t("catalog.unlock")}
+                  {out && open ? "Get more runs" : t("catalog.unlock")}
                 </Link>
               ) : m.partner === "group" && !cohort ? (
                 <div className="mt-5 rounded-lg bg-mist px-3 py-2.5 text-xs leading-relaxed text-slate2">

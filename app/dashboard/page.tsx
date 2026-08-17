@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { activeEntitlements, FREE_TIER_MODULES } from "@/lib/access";
+import { activeEntitlements, FREE_TIER_MODULES, runsLeftByModule } from "@/lib/access";
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { isAdmin } from "@/lib/admin";
 import { titleCaseName } from "@/lib/name";
@@ -136,6 +136,8 @@ export default async function Dashboard({
   const nextMod = nextSlug ? MODULES.find((m) => m.slug === nextSlug) : null;
   const nextItem = nextMod ? { slug: nextMod.slug, name: nextMod.name, tagline: nextMod.tagline } : null;
 
+  const runsLeft = await runsLeftByModule(supabase, user.id, instructor);
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between gap-3">
@@ -179,6 +181,7 @@ export default async function Dashboard({
           completed={completed}
           lastCode={lastCode}
           recommended={recommended}
+          runsLeft={runsLeft}
         />
       </section>
 
