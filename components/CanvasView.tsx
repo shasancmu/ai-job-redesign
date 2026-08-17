@@ -4,6 +4,7 @@ import Link from "next/link";
 import Logo from "@/components/Logo";
 import { accentColor, scoreColor, type CanvasDef } from "@/lib/canvases";
 import FrontierPlot, { complexityLevel } from "@/components/FrontierPlot";
+import UnitEconomics from "@/components/UnitEconomics";
 
 const SAGE = "#3F7A52";
 const GOLD = "#CE8F2C";
@@ -107,6 +108,16 @@ export default function CanvasView({
                 )}
               </div>
             </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Unit economics calculator */}
+      {def.calculator && canvas.calc && Object.keys(canvas.calc).length > 0 ? (
+        <section className="mx-auto max-w-4xl px-6 pt-10">
+          <div className="eyebrow mb-3">Unit economics</div>
+          <div className="card p-6">
+            <UnitEconomics inputs={def.calculator.inputs} value={canvas.calc} readOnly />
           </div>
         </section>
       ) : null}

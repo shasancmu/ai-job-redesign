@@ -34,6 +34,10 @@ export type CanvasDef = {
   about?: string; // shown during the exercise — what the framework is
   groupNotes?: Record<string, string>; // one-line explainer under each section heading
   canvasTip?: { title: string; items: string[] }; // a teaching callout on the canvas step
+  calculator?: {
+    kind: "unit-economics";
+    inputs: { key: string; label: string; prefix?: string; suffix?: string }[];
+  }; // a live calculator; AI seeds the numbers, the user tweaks them
 };
 
 const ACCENTS = { human: "#3F7A52", ai: "#CE8F2C", both: "#7C5CBF", sage: "#3F7A52", gold: "#CE8F2C", plum: "#7C5CBF" };
@@ -283,7 +287,6 @@ Draw out real numbers wherever you can — press gently for actual figures, not 
     { key: "advantage", label: "Your edge — and does it last?", hint: "Something valuable, rare, hard to copy, with no easy substitute", kind: "long", group: "Industry & advantage", accent: "sage" },
     { key: "activity_system", label: "How the pieces reinforce", hint: "The few choices that fit together and are hard to imitate as a system", kind: "long", group: "How you'd win", accent: "sage" },
     { key: "profit_pool", label: "Where the money actually sits", hint: "Who captures profit along the chain — and can you?", kind: "long", group: "How you'd win", accent: "gold" },
-    { key: "unit_economics", label: "Unit economics", hint: "Price, variable cost, contribution margin, CAC, LTV, LTV:CAC, payback, break-even", kind: "pairs", leftLabel: "Metric", rightLabel: "Value", group: "The numbers", accent: "gold" },
     { key: "market", label: "Market & growth", hint: "TAM / SAM, growth rate, realistic share", kind: "pairs", leftLabel: "Metric", rightLabel: "Value", group: "The numbers", accent: "plum" },
     { key: "would_need_true", label: "What would need to be true", hint: "The make-or-break assumptions — stated so they can be tested", kind: "list", group: "The verdict", accent: "sage" },
     { key: "risks", label: "Biggest risks", kind: "list", group: "The verdict", accent: "plum" },
@@ -306,6 +309,17 @@ Draw out real numbers wherever you can — press gently for actual figures, not 
       "Coherent activities that reinforce each other and are hard to imitate as a whole.",
       "You keep the profit — it doesn't all leak to suppliers, platforms, landlords, or a price war.",
       "Economics that work — LTV well above CAC (aim ≥ 3×), payback in months, a real path to break-even.",
+    ],
+  },
+  calculator: {
+    kind: "unit-economics",
+    inputs: [
+      { key: "price", label: "Price per sale", prefix: "$" },
+      { key: "varCost", label: "Variable cost per sale", prefix: "$" },
+      { key: "ordersPerMonth", label: "Purchases / customer / month", suffix: "/mo" },
+      { key: "retentionMonths", label: "Avg. customer lifetime", suffix: "mo" },
+      { key: "cac", label: "Customer acquisition cost", prefix: "$" },
+      { key: "fixedMonthly", label: "Fixed costs / month", prefix: "$" },
     ],
   },
 };

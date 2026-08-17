@@ -590,6 +590,12 @@ export async function canvasDraftAI(
       `  "frontier": { "x": integer 0–100, "y": integer 0–100 }   // Place the workflow on the Generality–Accuracy frontier. x = required GENERALITY (0 = one narrow context, 100 = must handle many varied contexts). y = required ACCURACY (0 = loose/errors cheap, 100 = must be exact, errors costly). Be honest — a point far up-right demands high hidden complexity.`
     );
   }
+  if (def.calculator) {
+    const ins = def.calculator.inputs.map((i) => `"${i.key}": number`).join(", ");
+    extra.push(
+      `  "calc": { ${ins} }   // your best numeric estimate for each of: ${def.calculator.inputs.map((i) => i.label).join("; ")}. Use the founder's numbers where given; otherwise a clearly reasonable estimate. Plain numbers, no $ or symbols.`
+    );
+  }
 
   const system = `${def.draftSystem}
 
@@ -639,6 +645,14 @@ Rules: fill EVERY field, grounded in the interview and specific to this ${def.su
       const x = clamp(p.frontier?.x);
       const y = clamp(p.frontier?.y);
       if (x !== undefined && y !== undefined) out.frontier = { x, y };
+    }
+    if (def.calculator) {
+      const calc: Record<string, number> = {};
+      for (const i of def.calculator.inputs) {
+        const v = Number(p.calc?.[i.key]);
+        if (Number.isFinite(v)) calc[i.key] = v;
+      }
+      out.calc = calc;
     }
     return out;
   } catch {

@@ -7,6 +7,7 @@ import { CANVAS_STEPS, accentColor, type CanvasDef, type CanvasField } from "@/l
 import Timer from "@/components/Timer";
 import CanvasView from "@/components/CanvasView";
 import FrontierPlot, { complexityLevel } from "@/components/FrontierPlot";
+import UnitEconomics from "@/components/UnitEconomics";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -262,12 +263,16 @@ function CanvasStep({
       });
       const d = await res.json();
       if (res.ok && d.canvas) {
-        setCanvas({
+        const patch: Record<string, any> = {
           fields: { ...(canvas.fields || {}), ...(d.canvas.fields || {}) },
           synthesis: d.canvas.synthesis || "",
           verdict: d.canvas.verdict || "",
           score: d.canvas.score,
-        });
+        };
+        if (d.canvas.ratings) patch.ratings = d.canvas.ratings;
+        if (d.canvas.frontier) patch.frontier = d.canvas.frontier;
+        if (d.canvas.calc) patch.calc = d.canvas.calc;
+        setCanvas(patch);
       } else {
         setErr(d.error || "Couldn't draft — fill it in by hand.");
       }
@@ -370,6 +375,16 @@ function CanvasStep({
           </div>
         </div>
       ) : null}
+
+      {def.calculator && (
+        <div className="card p-5">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Unit economics — live</div>
+          <p className="mt-1 text-sm text-slate-500">Adjust the numbers; the economics update as you go. Aim for LTV:CAC ≥ 3× and a fast payback.</p>
+          <div className="mt-3">
+            <UnitEconomics inputs={def.calculator.inputs} value={canvas.calc || {}} onChange={(calc) => setCanvas({ calc })} />
+          </div>
+        </div>
+      )}
 
       {def.canvasTip && (
         <div className="rounded-2xl border border-line bg-mist p-5">
