@@ -10,6 +10,8 @@ import SoloRoom from "@/components/SoloRoom";
 import BenchmarkRoom from "@/components/BenchmarkRoom";
 import NetworkRoom from "@/components/NetworkRoom";
 import SoloWorkflowRoom from "@/components/SoloWorkflowRoom";
+import CanvasRoom from "@/components/CanvasRoom";
+import { canvasByExercise } from "@/lib/canvases";
 
 export default async function RoomPage({
   params,
@@ -58,6 +60,30 @@ export default async function RoomPage({
     if (!amHost) redirect("/dashboard");
     if (!session.cohort) redirect("/dashboard");
     return <NetworkRoom me={user.id} session={session} />;
+  }
+
+  // Strategy-canvas modules (GAS / opportunity-capability / experiment):
+  // single-user, only the host belongs here.
+  const canvasDef = canvasByExercise(session.exercise || "");
+  if (canvasDef) {
+    if (!amHost) redirect("/dashboard");
+    await supabase
+      .from("workspaces")
+      .upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
+    return (
+      <CanvasRoom
+        me={user.id}
+        session={session}
+        def={canvasDef}
+        initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
+      />
+    );
   }
 
   // Solo workflow (AI): single-user, only the host belongs here.

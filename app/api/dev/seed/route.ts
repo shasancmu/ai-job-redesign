@@ -10,13 +10,24 @@ import {
   jobFeedback,
   workflowDoc,
   soloChat,
+  canvasSeed,
 } from "@/lib/seedData";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const DEMO_DOMAIN = "seed.superadditive.co";
-const MODULES = ["reimagine-job", "reimagine-workflow", "solo-ai", "workflow-solo", "benchmark", "network"];
+const MODULES = [
+  "reimagine-job",
+  "reimagine-workflow",
+  "solo-ai",
+  "workflow-solo",
+  "ai-canvas",
+  "opportunity-capability",
+  "test-the-bet",
+  "benchmark",
+  "network",
+];
 
 function makeCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -189,6 +200,16 @@ export async function POST(request: Request) {
     sessionRows.push({ id, code: makeCode(), cohort: code, exercise: "workflow-solo", host_id: u.id, status: "done", phase: 5, phase_started_at: new Date().toISOString() });
     docRows.push({ session_id: id, ...workflowDoc(1) });
   }
+
+  // Strategy canvases (GAS / opportunity-capability / experiment)
+  const addCanvas = (u: any, exercise: string) => {
+    const id = crypto.randomUUID();
+    sessionRows.push({ id, code: makeCode(), cohort: code, exercise, host_id: u.id, status: "done", phase: 3, phase_started_at: new Date().toISOString() });
+    workspaceRows.push({ session_id: id, author_id: u.id, canvas: canvasSeed(exercise) });
+  };
+  addCanvas(users[0], "gas");
+  addCanvas(users[2], "ocfit");
+  addCanvas(users[4], "experiment");
 
   await admin.from("sessions").insert(sessionRows);
   await admin.from("workspaces").insert(workspaceRows);

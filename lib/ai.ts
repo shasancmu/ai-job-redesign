@@ -15,6 +15,8 @@ const MODEL = process.env.AI_MODEL || "llama-3.3-70b-versatile";
 
 export type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
 
+import type { CanvasDef } from "./canvases";
+
 // Anthropic's OpenAI-compatible endpoint requires max_tokens and doesn't take
 // response_format — so we set the first and only send the second elsewhere.
 const IS_ANTHROPIC = BASE_URL.includes("anthropic.com");
@@ -527,4 +529,79 @@ Be specific and realistic — no vague "leverage AI." Output short markdown, one
     },
   ];
   return complete(messages, { temperature: 0.5 });
+}
+
+// ============================================================================
+// Generic strategy-canvas AI — one interviewer + one drafter, configured per
+// framework by lib/canvases.ts (GAS, opportunity-capability, experiment, …).
+// ============================================================================
+
+export async function canvasInterviewReply(
+  interviewSystem: string,
+  subjectLabel: string,
+  subject: string,
+  history: ChatMsg[]
+): Promise<string> {
+  const ctx = subject
+    ? `Their ${subjectLabel}: ${subject}`
+    : `They haven't named the ${subjectLabel} yet; open by asking what it is.`;
+  const conversation: ChatMsg[] = history.length
+    ? history
+    : [{ role: "user", content: `Please begin — ask your first question about my ${subjectLabel}.` }];
+  return complete(
+    [{ role: "system", content: `${interviewSystem}\n\n${ctx}` }, ...conversation],
+    { temperature: 0.7 }
+  );
+}
+
+export async function canvasDraftAI(
+  def: CanvasDef,
+  subject: string,
+  transcript: string
+): Promise<{ fields: Record<string, any>; synthesis: string; verdict?: string; score?: number; _raw?: string }> {
+  const fieldLines = def.fields
+    .map((f) => {
+      const t = f.kind === "list" ? "array of 2–4 short strings" : "string";
+      return `  "${f.key}": ${t},   // ${f.label}: ${f.hint || ""}`;
+    })
+    .join("\n");
+  const extra: string[] = [`  "synthesis": string   // 2–3 sentences, second person, summarizing the canvas`];
+  if (def.hasVerdict) extra.push(`  "verdict": string   // ${def.hasVerdict.label} — one sharp sentence`);
+  if (def.hasScore) extra.push(`  "score": integer 0–100   // ${def.hasScore.label}`);
+
+  const system = `${def.draftSystem}
+
+Return STRICT JSON only — no prose, no code fences:
+{
+${fieldLines}
+${extra.join("\n")}
+}
+Rules: fill EVERY field, grounded in the interview and specific to this ${def.subjectLabel}. List fields get 2–4 tight items. No vague filler.`;
+
+  const user = `The ${def.subjectLabel}: ${subject || "(unnamed)"}\n\nInterview:\n${transcript || "(none)"}`;
+  const raw = await complete(
+    [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+    { json: true, temperature: 0.4 }
+  );
+  try {
+    const p = extractJson(raw);
+    const fields: Record<string, any> = {};
+    for (const f of def.fields) {
+      const v = p[f.key];
+      if (f.kind === "list") fields[f.key] = Array.isArray(v) ? v.slice(0, 6).map((x: any) => String(x)) : [];
+      else fields[f.key] = String(v || "");
+    }
+    const out: any = { fields, synthesis: String(p.synthesis || ""), _raw: raw };
+    if (def.hasVerdict) out.verdict = String(p.verdict || "");
+    if (def.hasScore) {
+      const s = Number(p.score);
+      out.score = Number.isFinite(s) ? Math.max(0, Math.min(100, Math.round(s))) : undefined;
+    }
+    return out;
+  } catch {
+    return { fields: {}, synthesis: "", _raw: raw };
+  }
 }

@@ -5,8 +5,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin, UNTAGGED } from "@/lib/admin";
 import { MODULES, moduleByExercise } from "@/lib/modules";
 import { ROLE_META } from "@/lib/workflow";
+import { canvasByExercise } from "@/lib/canvases";
 import { AI_CELLS, HUMAN_CELLS, FEEDBACK_FIELDS, Cell } from "@/lib/exercise";
 import SeedDemo from "@/components/SeedDemo";
+import CanvasView from "@/components/CanvasView";
 
 export const dynamic = "force-dynamic";
 
@@ -219,6 +221,9 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
         if (slug === "reimagine-job") return bySession("job");
         if (slug === "reimagine-workflow") return bySession("workflow");
         if (slug === "solo-ai") return bySession("solo");
+        if (slug === "ai-canvas") return bySession("gas");
+        if (slug === "opportunity-capability") return bySession("ocfit");
+        if (slug === "test-the-bet") return bySession("experiment");
         return 0;
       };
       classOverview = {
@@ -327,7 +332,9 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
                 </span>
               </div>
 
-              {s.exercise === "workflow" || s.exercise === "workflow-solo" ? (
+              {canvasByExercise(s.exercise || "") ? (
+                <CanvasFacilitatorView exercise={s.exercise} ws={wsFor(s.id, s.host_id)} code={s.code} authorName={nameOf(s.host_id)} />
+              ) : s.exercise === "workflow" || s.exercise === "workflow-solo" ? (
                 <WorkflowView doc={docFor(s.id)} code={s.code} />
               ) : s.exercise === "solo" ? (
                 <SoloView authorName={nameOf(s.host_id)} ws={wsFor(s.id, s.host_id)} code={s.code} />
@@ -494,6 +501,44 @@ function SoloView({ authorName, ws, code }: { authorName: string; ws: any; code:
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function CanvasFacilitatorView({
+  exercise,
+  ws,
+  code,
+  authorName,
+}: {
+  exercise: string;
+  ws: any;
+  code: string;
+  authorName: string;
+}) {
+  const def = canvasByExercise(exercise);
+  const canvas = ws?.canvas || {};
+  const hasContent =
+    def &&
+    (canvas.synthesis ||
+      canvas.verdict ||
+      Object.values(canvas.fields || {}).some((v: any) => (Array.isArray(v) ? v.length : v)));
+  if (!def || !hasContent) {
+    return (
+      <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">
+        {authorName} — no canvas yet.
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="text-sm font-bold text-slate-800">{canvas.subject || def.name}</div>
+        <Link href={`/canvas/${code}`} className="text-sm font-medium text-sage hover:underline">
+          View full canvas →
+        </Link>
+      </div>
+      <CanvasView def={def} canvas={canvas} embedded />
     </div>
   );
 }

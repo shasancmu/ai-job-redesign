@@ -73,6 +73,9 @@ create table if not exists public.workspaces (
 
 -- Add plan to any pre-existing workspaces table.
 alter table public.workspaces add column if not exists plan jsonb not null default '{}'::jsonb;
+-- Generic strategy-canvas modules (GAS / opportunity-capability / experiment)
+-- store everything under one jsonb: { subject, chat, fields, synthesis, verdict, score }
+alter table public.workspaces add column if not exists canvas jsonb not null default '{}'::jsonb;
 
 create index if not exists workspaces_session_idx on public.workspaces (session_id);
 

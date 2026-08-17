@@ -28,6 +28,7 @@ const PAIRED = new Set(["job", "workflow"]);
 function resultHref(exercise: string, code: string) {
   if (exercise === "workflow" || exercise === "workflow-solo") return `/workflow-plan/${code}`;
   if (exercise === "solo") return `/plan/${code}`;
+  if (exercise === "gas" || exercise === "ocfit" || exercise === "experiment") return `/canvas/${code}`;
   return `/room/${code}`;
 }
 

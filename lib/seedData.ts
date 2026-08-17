@@ -199,3 +199,60 @@ function rid() {
   // Non-crypto id is fine for seed content.
   return `s${Math.floor(Math.random() * 1e9).toString(36)}${Math.floor(Math.random() * 1e9).toString(36)}`;
 }
+
+// ----- Strategy-canvas content (GAS / opportunity-capability / experiment) ---
+export function canvasSeed(exercise: string): any {
+  if (exercise === "gas") {
+    return {
+      subject: "Triaging inbound support tickets and drafting first replies",
+      synthesis:
+        "You want faster, more consistent first responses without losing the human touch on the hard cases. AI can classify, route, and draft the routine replies; your team keeps the judgment calls, the angry customers, and anything with money or risk attached.",
+      verdict: "AI drafts the first reply on the routine 70%; humans own the 30% that decides loyalty.",
+      fields: {
+        strategic_outcome: "Cut first-response time from hours to minutes and free agents for the cases that actually retain customers.",
+        required_accuracy: "High on routing (wrong queue is costly) and on anything touching billing; a rough draft is fine for the reply itself since a human reviews it.",
+        required_generality: "Narrow — a defined set of ticket types; escalate anything it hasn't seen.",
+        human_tasks: ["Handle escalations and at-risk accounts", "Approve any reply touching money or policy"],
+        humanai_tasks: ["Review and send AI-drafted replies", "Correct mis-routed tickets so the model learns"],
+        ai_tasks: ["Classify and route incoming tickets", "Draft first replies for known issue types"],
+        user_simplicity: "Agents, not engineers — it must live inside the existing helpdesk with one-click send/edit.",
+        distributed_complexity: "Complexity sits in the model + routing rules; the agent UI stays a simple approve/edit box.",
+        risks: ["Overtrust — agents rubber-stamp a wrong draft", "A confident reply on a case it misread", "Tone-deaf reply to an upset customer"],
+        deployment: "Off-the-shelf LLM + RAG over the help center and past tickets; no fine-tuning needed to start.",
+      },
+    };
+  }
+  if (exercise === "ocfit") {
+    return {
+      subject: "Launch a self-serve product for small businesses",
+      synthesis:
+        "The opportunity is real, but your organization is built for high-touch enterprise sales. Product and brand transfer well; the go-to-market motion, pricing systems, and a sales-led culture are the parts that would strain.",
+      verdict: "Attractive bet, but don't run it inside the enterprise engine — it needs its own motion.",
+      score: 55,
+      fields: {
+        tasks: "Self-serve needs onboarding, docs, and product-led growth — different work from the current solution-selling.",
+        people: "Strong product talent; thin on growth marketing and lifecycle/PLG skills.",
+        systems: "Billing and CRM are built for annual enterprise contracts, not low-touch monthly self-serve.",
+        culture: "Sales-led, relationship-driven — a self-serve motion cuts against how people are rewarded here.",
+        biggest_gap: "The go-to-market system and incentives — a PLG motion can't run on an enterprise sales engine.",
+        to_build: ["A self-serve billing + onboarding stack", "A small growth team with PLG incentives", "A separate P&L so it isn't judged on enterprise metrics"],
+      },
+    };
+  }
+  // experiment
+  return {
+    subject: "Adding live chat will lift trial-to-paid conversion",
+    synthesis:
+      "You believe live chat during trial removes the friction that stalls conversion. Test it cheaply on a slice of new trials before staffing it everywhere.",
+    verdict: "Run live chat on half of new trials for three weeks; ship it only if paid conversion beats control by 15%+.",
+    fields: {
+      hypothesis: "Offering live chat to trial users increases trial-to-paid conversion, because unanswered setup questions are what stall them.",
+      condition_a: "Business as usual — email support only during trial.",
+      condition_b: "Live chat widget available to trial users during business hours.",
+      metric: "Trial-to-paid conversion rate within 30 days (the single decision metric).",
+      design: ["Randomly assign new trials 50/50 for 3 weeks", "Keep everything else identical", "Pre-register the target lift before starting"],
+      decision_rule: "Scale if B beats A by ≥15% relative; kill if no positive difference; extend if promising but noisy.",
+      confounds: ["A pricing change mid-test", "Chat only reaching business-hours timezones", "Novelty effect from the launch"],
+    },
+  };
+}

@@ -22,7 +22,16 @@ export const PARTNER_META: Record<
 
 export type ModuleDef = {
   slug: string; // stable id used in entitlements + URLs, e.g. "reimagine-job"
-  exercise: "job" | "workflow" | "solo" | "benchmark" | "network" | "workflow-solo"; // which room engine renders it
+  exercise:
+    | "job"
+    | "workflow"
+    | "solo"
+    | "benchmark"
+    | "network"
+    | "workflow-solo"
+    | "gas"
+    | "ocfit"
+    | "experiment"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -131,6 +140,51 @@ export const MODULES: ModuleDef[] = [
     emoji: "✨",
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_SOLO",
+  },
+  {
+    slug: "ai-canvas",
+    exercise: "gas",
+    name: "AI Opportunity Canvas",
+    tagline: "Where should AI actually go — and how do you deploy it well?",
+    description:
+      "An AI partner interviews you about one workflow, then drafts the GAS canvas: the outcome, the accuracy and generality it needs, the human/AI split, where complexity lives, the risks, and how to deploy. You leave with an implementation-grade plan.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "🧠",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_GAS",
+  },
+  {
+    slug: "opportunity-capability",
+    exercise: "ocfit",
+    name: "Opportunity–Capability Fit",
+    tagline: "Should you make this bet? Test it against what you can actually do.",
+    description:
+      "Name an opportunity; an AI partner interviews you, then scores how well it fits your Tasks, People, Systems, and Culture — and names the one capability gap most likely to break the bet, plus what to build first.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "🎯",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_OCFIT",
+  },
+  {
+    slug: "test-the-bet",
+    exercise: "experiment",
+    name: "Test-the-Bet",
+    tagline: "Before you commit, design a clean experiment to test it.",
+    description:
+      "Turn a strategic belief into a runnable business experiment. An AI partner helps you sharpen the hypothesis, the control vs. change, the one metric that matters, and the decision rule — a test you could start this week.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 18,
+    ai: true,
+    emoji: "🧪",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_EXPERIMENT",
   },
 ];
 

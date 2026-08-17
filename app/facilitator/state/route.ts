@@ -4,6 +4,7 @@ import { isAdmin, UNTAGGED } from "@/lib/admin";
 import { PHASES } from "@/lib/exercise";
 import { WORKFLOW_STEPS, SOLO_WORKFLOW_STEPS } from "@/lib/workflow";
 import { SOLO_STEPS } from "@/lib/solo";
+import { CANVAS_STEPS, canvasByExercise } from "@/lib/canvases";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,8 +51,9 @@ export async function GET(request: Request) {
     (id && profiles.find((p) => p.id === id)?.display_name) || null;
 
   const rooms = (sessions || []).map((s: any) => {
-    const steps =
-      s.exercise === "workflow"
+    const steps = canvasByExercise(s.exercise || "")
+      ? CANVAS_STEPS
+      : s.exercise === "workflow"
         ? WORKFLOW_STEPS
         : s.exercise === "workflow-solo"
           ? SOLO_WORKFLOW_STEPS
