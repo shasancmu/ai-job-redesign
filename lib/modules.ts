@@ -279,6 +279,35 @@ export const ALL_ACCESS = {
 // Modules sold on the public marketing page (excludes free instructor tools).
 export const SALEABLE_MODULES = MODULES.filter((m) => m.forSale !== false);
 
+// Thematic categories — how the exercises are grouped on the marketing page
+// (the dashboard groups by partner instead: how you run each one).
+export type CategoryKey = "redesign" | "strategy" | "negotiate" | "live";
+export const CATEGORIES: { key: CategoryKey; title: string; blurb: string }[] = [
+  { key: "redesign", title: "Redesign the work", blurb: "Put people and AI where each does its best — your job or a workflow, with a partner or with AI." },
+  { key: "strategy", title: "Sharpen a decision", blurb: "Pressure-test a strategy, a bet, or a whole business with a real framework and real numbers. AI interviews you, then builds the analysis." },
+  { key: "negotiate", title: "Negotiate", blurb: "Bargain live against an AI counterpart, then get scored on the value you claimed — and the value you created." },
+  { key: "live", title: "Run it live in class", blurb: "Whole-room diagnostics that draw themselves as your cohort responds — instructor-led." },
+];
+const CATEGORY_OF: Record<string, CategoryKey> = {
+  "reimagine-job": "redesign",
+  "reimagine-workflow": "redesign",
+  "solo-ai": "redesign",
+  "workflow-solo": "redesign",
+  "execution-4a": "strategy",
+  "balanced-scorecard": "strategy",
+  "ai-canvas": "strategy",
+  "opportunity-capability": "strategy",
+  "test-the-bet": "strategy",
+  "good-business": "strategy",
+  "close-the-offer": "negotiate",
+  "name-your-price": "negotiate",
+  benchmark: "live",
+  network: "live",
+};
+export function moduleCategory(slug: string): CategoryKey {
+  return CATEGORY_OF[slug] || "strategy";
+}
+
 export function moduleBySlug(slug: string): ModuleDef | undefined {
   return MODULES.find((m) => m.slug === slug);
 }

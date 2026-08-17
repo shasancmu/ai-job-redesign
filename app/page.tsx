@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { SALEABLE_MODULES, PARTNER_META } from "@/lib/modules";
+import { MODULES, PARTNER_META, CATEGORIES, moduleCategory, type CategoryKey } from "@/lib/modules";
 import Logo from "@/components/Logo";
 import ModuleIcon from "@/components/ModuleIcon";
 import Footer from "@/components/Footer";
 
-const ACCENT: Record<string, string> = {
-  "reimagine-job": "bg-sage-soft text-sage",
-  "reimagine-workflow": "bg-sky-soft text-sky",
-  "solo-ai": "bg-amber-soft text-amber",
+const CAT_ACCENT: Record<CategoryKey, { chip: string; dot: string }> = {
+  redesign: { chip: "bg-sage-soft text-sage", dot: "#3F7A52" },
+  strategy: { chip: "bg-amber-soft text-amber", dot: "#CE8F2C" },
+  negotiate: { chip: "bg-sky-soft text-sky", dot: "#3B7FB5" },
+  live: { chip: "bg-clay-soft text-clay", dot: "#B4532E" },
 };
 
 export default async function Home() {
@@ -39,14 +40,16 @@ export default async function Home() {
           </nav>
 
           <div className="max-w-2xl pb-28 pt-16 sm:pb-36 sm:pt-24">
-            <span className="eyebrow">Strategic org design in the age of AI</span>
+            <span className="eyebrow">Hands-on business exercises, run by AI</span>
             <h1 className="display mt-4 text-[2.75rem] text-ink sm:text-[4rem]">
               Human + AI, worth more together.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate2">
               Everyone&apos;s asking how to use AI. The sharper question is how to
-              use <span className="text-ink">humans</span>. Hands-on exercises that
-              redesign the work so people and AI each do what they do best.
+              use <span className="text-ink">humans</span>. Superadditive turns the
+              frameworks of strategy, execution, and negotiation into hands-on
+              exercises — AI runs the interview, plays your partner, argues the
+              other side, and coaches the debrief. You bring the judgment.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/login" className="btn-primary">
@@ -84,43 +87,50 @@ export default async function Home() {
 
       {/* Exercises */}
       <section className="mx-auto mt-16 max-w-6xl px-6">
-        <span className="eyebrow">The exercises</span>
+        <span className="eyebrow">The library</span>
         <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
-          One instrument, four ways in.
+          A library of exercises, each run by AI.
         </h2>
         <p className="mt-2 max-w-2xl text-slate2">
-          Redesign your <span className="font-semibold text-ink">job</span> or your{" "}
-          <span className="font-semibold text-ink">workflow</span> — with a{" "}
-          <span className="font-semibold text-ink">partner</span>, or with{" "}
-          <span className="font-semibold text-ink">AI</span>. Same instrument, two lenses, two ways to run it.
+          Every one is grounded in a real framework, run by an AI interviewer, partner, counterpart, or coach — and
+          ends in something you keep. Do them on your own, with a partner, or live with a cohort.
         </p>
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {SALEABLE_MODULES.map((m) => (
-            <div key={m.slug} className="card p-6 transition hover:shadow-lift">
-              <div
-                className={
-                  "flex h-11 w-11 items-center justify-center rounded-xl " +
-                  (ACCENT[m.slug] || "bg-sage-soft text-sage")
-                }
-              >
-                <ModuleIcon slug={m.slug} />
+
+        <div className="mt-10 space-y-12">
+          {CATEGORIES.map((cat) => {
+            const mods = MODULES.filter((m) => moduleCategory(m.slug) === cat.key);
+            if (mods.length === 0) return null;
+            return (
+              <div key={cat.key}>
+                <div className="flex items-baseline gap-3">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: CAT_ACCENT[cat.key].dot }} />
+                  <h3 className="text-xl font-bold tracking-tight text-ink">{cat.title}</h3>
+                </div>
+                <p className="mt-1 max-w-2xl text-sm text-slate2">{cat.blurb}</p>
+                <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {mods.map((m) => (
+                    <div key={m.slug} className="card p-6 transition hover:shadow-lift">
+                      <div className={"flex h-11 w-11 items-center justify-center rounded-xl " + CAT_ACCENT[cat.key].chip}>
+                        <ModuleIcon slug={m.slug} />
+                      </div>
+                      <h4 className="mt-4 text-lg font-bold text-ink">{m.name}</h4>
+                      <p className="mt-1.5 text-sm leading-relaxed text-slate2">{m.tagline}</p>
+                      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-ink/45">
+                        <span className={"inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium " + PARTNER_META[m.partner].chip}>
+                          <span className="h-1.5 w-1.5 rounded-full" style={{ background: PARTNER_META[m.partner].dot }} />
+                          {PARTNER_META[m.partner].label}
+                        </span>
+                        <span>{m.minutes} min</span>
+                        {m.instructorTool && (
+                          <span className="rounded-full border border-line px-2 py-0.5 text-ink/55">Instructor-led</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <h3 className="mt-4 text-lg font-bold text-ink">{m.name}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-slate2">{m.tagline}</p>
-              <div className="mt-4 flex items-center gap-2 text-xs text-ink/45">
-                <span
-                  className={
-                    "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium " +
-                    PARTNER_META[m.partner].chip
-                  }
-                >
-                  <span className="h-1.5 w-1.5 rounded-full" style={{ background: PARTNER_META[m.partner].dot }} />
-                  {PARTNER_META[m.partner].label}
-                </span>
-                <span>{m.minutes} min</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 

@@ -44,6 +44,17 @@ h1 {
   isolation: isolate;
   overflow: hidden;
 }
+/* Fade the gradient ribbon smoothly into the page before the next panel. */
+.hero-wrap::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 200px;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), var(--paper) 88%);
+}
 .ribbon,
 .ribbon-2 {
   position: absolute;
