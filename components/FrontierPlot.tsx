@@ -76,3 +76,38 @@ export default function FrontierPlot({
     </svg>
   );
 }
+
+// A plain 2×2 quadrant map (e.g. technical × market uncertainty) — distinct from
+// the complexity-curve frontier above. The subject dot sits at (x, y); each
+// corner carries a label (often the implied next move / funder). Pure, no hooks,
+// so it renders in both the room (client) and the artifact page.
+export function QuadrantPlot({
+  fr,
+  x,
+  y,
+}: {
+  fr: { xLabel: string; yLabel: string; quadrants?: { bl: string; br: string; tl: string; tr: string } };
+  x: number;
+  y: number;
+}) {
+  const q = fr.quadrants || { bl: "", br: "", tl: "", tr: "" };
+  const clamp = (v: number) => Math.max(0, Math.min(100, v));
+  return (
+    <div className="mx-auto w-full" style={{ maxWidth: 340 }}>
+      <div className="relative aspect-square rounded-lg border border-line bg-mist/40">
+        <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-slate-300" />
+        <div className="absolute inset-y-0 left-1/2 border-l border-dashed border-slate-300" />
+        <span className="absolute left-2 top-2 max-w-[47%] text-[10px] leading-tight text-slate-500">{q.tl}</span>
+        <span className="absolute right-2 top-2 max-w-[47%] text-right text-[10px] leading-tight text-slate-500">{q.tr}</span>
+        <span className="absolute bottom-2 left-2 max-w-[47%] text-[10px] leading-tight text-slate-500">{q.bl}</span>
+        <span className="absolute bottom-2 right-2 max-w-[47%] text-right text-[10px] leading-tight text-slate-500">{q.br}</span>
+        <div
+          className="absolute h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink ring-2 ring-white"
+          style={{ left: `${clamp(x)}%`, top: `${100 - clamp(y)}%` }}
+        />
+      </div>
+      <div className="mt-1.5 text-center text-[11px] text-slate-400">{fr.xLabel}</div>
+      <div className="text-center text-[11px] text-slate-400">↑ {fr.yLabel.replace(/[→↑]/g, "").trim()}</div>
+    </div>
+  );
+}

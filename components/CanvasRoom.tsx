@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { CANVAS_STEPS, accentColor, type CanvasDef, type CanvasField } from "@/lib/canvases";
 import Timer from "@/components/Timer";
 import CanvasView from "@/components/CanvasView";
-import FrontierPlot, { complexityLevel } from "@/components/FrontierPlot";
+import FrontierPlot, { complexityLevel, QuadrantPlot } from "@/components/FrontierPlot";
 import UnitEconomics from "@/components/UnitEconomics";
 import { useT } from "@/components/I18nProvider";
 import type { T } from "@/lib/i18n";
@@ -329,35 +329,57 @@ function CanvasStep({
 
       {def.frontier ? (
         <div className="card p-5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("canvas.frontierHeading")}</div>
-          <p className="mt-1 text-sm text-slate-500">{def.groupNotes?.["The frontier"]}</p>
-          <div className="mt-3 grid gap-5 sm:grid-cols-2 sm:items-center">
-            <FrontierPlot x={canvas.frontier?.x} y={canvas.frontier?.y} xLabel={def.frontier.xLabel} yLabel={def.frontier.yLabel} />
-            <div className="space-y-4">
-              {(() => {
-                const c = complexityLevel(canvas.frontier?.x ?? 50, canvas.frontier?.y ?? 50);
-                return (
-                  <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold text-white" style={{ background: c.color }}>
-                    {c.label}
-                  </div>
-                );
-              })()}
-              <FrontierSlider
-                label={t("canvas.frontierGeneralityLabel")}
-                lo={t("canvas.frontierGeneralityLo")}
-                hi={t("canvas.frontierGeneralityHi")}
-                value={canvas.frontier?.x ?? 50}
-                onChange={(v) => setCanvas({ frontier: { x: v, y: canvas.frontier?.y ?? 50 } })}
-              />
-              <FrontierSlider
-                label={t("canvas.frontierAccuracyLabel")}
-                lo={t("canvas.frontierAccuracyLo")}
-                hi={t("canvas.frontierAccuracyHi")}
-                value={canvas.frontier?.y ?? 50}
-                onChange={(v) => setCanvas({ frontier: { x: canvas.frontier?.x ?? 50, y: v } })}
-              />
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{def.frontier.heading || t("canvas.frontierHeading")}</div>
+          {def.frontier.mode === "quadrant" ? (
+            <div className="mt-3 grid gap-5 sm:grid-cols-2 sm:items-center">
+              <QuadrantPlot fr={def.frontier} x={canvas.frontier?.x ?? 50} y={canvas.frontier?.y ?? 50} />
+              <div className="space-y-4">
+                <FrontierSlider
+                  label={def.frontier.xLabel.replace(/[→↑]/g, "").trim()}
+                  lo="low" hi="high"
+                  value={canvas.frontier?.x ?? 50}
+                  onChange={(v) => setCanvas({ frontier: { x: v, y: canvas.frontier?.y ?? 50 } })}
+                />
+                <FrontierSlider
+                  label={def.frontier.yLabel.replace(/[→↑]/g, "").trim()}
+                  lo="low" hi="high"
+                  value={canvas.frontier?.y ?? 50}
+                  onChange={(v) => setCanvas({ frontier: { x: canvas.frontier?.x ?? 50, y: v } })}
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              <p className="mt-1 text-sm text-slate-500">{def.groupNotes?.["The frontier"]}</p>
+              <div className="mt-3 grid gap-5 sm:grid-cols-2 sm:items-center">
+                <FrontierPlot x={canvas.frontier?.x} y={canvas.frontier?.y} xLabel={def.frontier.xLabel} yLabel={def.frontier.yLabel} />
+                <div className="space-y-4">
+                  {(() => {
+                    const c = complexityLevel(canvas.frontier?.x ?? 50, canvas.frontier?.y ?? 50);
+                    return (
+                      <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold text-white" style={{ background: c.color }}>
+                        {c.label}
+                      </div>
+                    );
+                  })()}
+                  <FrontierSlider
+                    label={t("canvas.frontierGeneralityLabel")}
+                    lo={t("canvas.frontierGeneralityLo")}
+                    hi={t("canvas.frontierGeneralityHi")}
+                    value={canvas.frontier?.x ?? 50}
+                    onChange={(v) => setCanvas({ frontier: { x: v, y: canvas.frontier?.y ?? 50 } })}
+                  />
+                  <FrontierSlider
+                    label={t("canvas.frontierAccuracyLabel")}
+                    lo={t("canvas.frontierAccuracyLo")}
+                    hi={t("canvas.frontierAccuracyHi")}
+                    value={canvas.frontier?.y ?? 50}
+                    onChange={(v) => setCanvas({ frontier: { x: canvas.frontier?.x ?? 50, y: v } })}
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
       ) : null}
 
@@ -534,3 +556,4 @@ function PairsEditor({
     </div>
   );
 }
+

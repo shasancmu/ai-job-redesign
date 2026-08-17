@@ -30,7 +30,15 @@ export type CanvasDef = {
   ratings?: { key: string; label: string }[]; // 0–100 scorecard dimensions (e.g. the 4 A's) → also the cohort heatmap
   hasScore?: { label: string }; // show a single 0–100 meter (e.g. capability fit)
   hasVerdict?: { label: string }; // show a headline verdict
-  frontier?: { xLabel: string; yLabel: string }; // plot the subject on the automate/copilot/adjunct map
+  frontier?: {
+    xLabel: string;
+    yLabel: string;
+    mode?: "complexity" | "quadrant"; // default complexity (GAS G–A map)
+    heading?: string; // section heading override
+    xDesc?: string; // how the AI should score x (0–100) — defaults to GAS Generality
+    yDesc?: string; // how the AI should score y (0–100) — defaults to GAS Accuracy
+    quadrants?: { bl: string; br: string; tl: string; tr: string }; // corner labels (quadrant mode)
+  };
   about?: string; // shown during the exercise — what the framework is
   groupNotes?: Record<string, string>; // one-line explainer under each section heading
   canvasTip?: { title: string; items: string[] }; // a teaching callout on the canvas step
@@ -374,6 +382,20 @@ After about 7 exchanges, reflect the dual-uncertainty picture back, ask what you
     { key: "one_sentence_strategy", label: "One-sentence strategy", hint: "We are developing [capability] for [application], resolving [uncertainty] through [experiment] to demonstrate [signal] within [timeline]", kind: "long", group: "The strategy", accent: "gold" },
   ],
   hasVerdict: { label: "The dominant uncertainty, and the single experiment to run next" },
+  frontier: {
+    mode: "quadrant",
+    heading: "The dual-uncertainty map",
+    xLabel: "Market uncertainty →",
+    yLabel: "Technical uncertainty →",
+    xDesc: "x = MARKET uncertainty (0 = customers proven, they clearly want and will pay for this; 100 = you don't yet know if anyone will buy)",
+    yDesc: "y = TECHNICAL uncertainty (0 = it demonstrably works at the required performance; 100 = core technical feasibility is unproven)",
+    quadrants: {
+      bl: "Proven both ways → scale it (venture / growth capital)",
+      br: "Tech works, demand unproven → find the buyer (early customers, corporates)",
+      tl: "Demand clear, tech unproven → de-risk the tech (grants, corporate R&D)",
+      tr: "Both unknown → a frontier bet (government / DARPA / deep-tech VC)",
+    },
+  },
   about:
     "The Dual Uncertainty Canvas (Duke University): deep tech faces two uncertainties at once — technical (can we make it work?) and market (will anyone buy it?). Progress means resolving the dominant one with the smallest, fastest experiment; choosing a priority application with eyes open to the path dependencies it locks in; and matching funders to your uncertainty profile. This canvas walks one technology through that choice.",
   groupNotes: {

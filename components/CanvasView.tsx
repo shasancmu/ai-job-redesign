@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import { accentColor, scoreColor, type CanvasDef } from "@/lib/canvases";
-import FrontierPlot, { complexityLevel } from "@/components/FrontierPlot";
+import FrontierPlot, { complexityLevel, QuadrantPlot } from "@/components/FrontierPlot";
 import UnitEconomics from "@/components/UnitEconomics";
 
 const SAGE = "#3F7A52";
@@ -92,22 +92,26 @@ export default function CanvasView({
         </section>
       ) : null}
 
-      {/* Frontier plot */}
+      {/* Frontier / quadrant plot */}
       {def.frontier && canvas.frontier ? (
         <section className="mx-auto max-w-4xl px-6 pt-10">
-          <div className="eyebrow mb-3">The frontier</div>
+          <div className="eyebrow mb-3">{def.frontier.heading || "The frontier"}</div>
           <div className="card p-6">
-            <div className="grid gap-5 sm:grid-cols-2 sm:items-center">
-              <FrontierPlot x={canvas.frontier.x} y={canvas.frontier.y} xLabel={def.frontier.xLabel} yLabel={def.frontier.yLabel} />
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold text-white" style={{ background: complexityLevel(canvas.frontier.x, canvas.frontier.y).color }}>
-                  {complexityLevel(canvas.frontier.x, canvas.frontier.y).label}
+            {def.frontier.mode === "quadrant" ? (
+              <QuadrantPlot fr={def.frontier} x={canvas.frontier.x ?? 50} y={canvas.frontier.y ?? 50} />
+            ) : (
+              <div className="grid gap-5 sm:grid-cols-2 sm:items-center">
+                <FrontierPlot x={canvas.frontier.x} y={canvas.frontier.y} xLabel={def.frontier.xLabel} yLabel={def.frontier.yLabel} />
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold text-white" style={{ background: complexityLevel(canvas.frontier.x, canvas.frontier.y).color }}>
+                    {complexityLevel(canvas.frontier.x, canvas.frontier.y).label}
+                  </div>
+                  {def.groupNotes?.["The frontier"] && (
+                    <p className="mt-3 text-sm leading-relaxed text-slate-600">{def.groupNotes["The frontier"]}</p>
+                  )}
                 </div>
-                {def.groupNotes?.["The frontier"] && (
-                  <p className="mt-3 text-sm leading-relaxed text-slate-600">{def.groupNotes["The frontier"]}</p>
-                )}
               </div>
-            </div>
+            )}
           </div>
         </section>
       ) : null}
