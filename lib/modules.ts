@@ -4,13 +4,30 @@
 // `exercise` maps a module to its runtime engine (Room / WorkflowRoom / SoloRoom).
 // ============================================================================
 
+// Who you do the exercise WITH. This is the one signal we standardize across
+// every surface so a learner can tell at a glance what a module needs:
+//   human → two real people, live (breakout rooms)
+//   ai    → solo, an AI plays your partner
+//   group → a live whole-room activity an instructor runs
+export type Partner = "human" | "ai" | "group";
+
+export const PARTNER_META: Record<
+  Partner,
+  { label: string; short: string; chip: string; dot: string }
+> = {
+  human: { label: "With a partner", short: "Partner", chip: "bg-sage-soft text-sage", dot: "#3F7A52" },
+  ai: { label: "With AI", short: "AI", chip: "bg-amber-soft text-amber", dot: "#CE8F2C" },
+  group: { label: "With the room", short: "Room", chip: "bg-sky-soft text-sky", dot: "#3B7FB5" },
+};
+
 export type ModuleDef = {
   slug: string; // stable id used in entitlements + URLs, e.g. "reimagine-job"
   exercise: "job" | "workflow" | "solo" | "benchmark" | "network" | "workflow-solo"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
-  mode: string; // human-readable: "Paired", "Shared canvas", "Solo + AI"
+  partner: Partner; // who you do it with — drives the standardized chip everywhere
+  mode: string; // legacy human-readable label; kept in sync with the partner chip
   minutes: number;
   ai: boolean;
   emoji: string;
@@ -28,7 +45,8 @@ export const MODULES: ModuleDef[] = [
     tagline: "Redesign a partner's job around what only a human can do.",
     description:
       "You and a partner interview each other, then redesign each other's jobs with the 2×4 model — what AI can Search, Structure, Think, and Translate, and what only you can Lead, Own, Judge, and Integrate.",
-    mode: "Paired",
+    partner: "human",
+    mode: "With a partner",
     minutes: 30,
     ai: false,
     emoji: "🧭",
@@ -39,10 +57,11 @@ export const MODULES: ModuleDef[] = [
     slug: "reimagine-workflow",
     exercise: "workflow",
     name: "Reimagine a Workflow",
-    tagline: "Rethink a workflow — don't patch it.",
+    tagline: "Rethink a workflow with a partner — don't patch it.",
     description:
-      "Pick a workflow worth redesigning and weigh AI's three pulls — more vs. better, accuracy vs. generality, chaos vs. architect — then redraw it with AI and humans in the right seats.",
-    mode: "Shared canvas",
+      "On a shared canvas, you and a partner pick a workflow worth redesigning and weigh AI's three pulls — more vs. better, accuracy vs. generality, chaos vs. architect — then redraw it with AI and humans in the right seats.",
+    partner: "human",
+    mode: "With a partner",
     minutes: 30,
     ai: false,
     emoji: "🔧",
@@ -56,7 +75,8 @@ export const MODULES: ModuleDef[] = [
     tagline: "Test yourself against the machine — then see the room.",
     description:
       "A timed set of reasoning questions. Take it, get your score, and watch a live histogram of how the whole room did — next to how AI does the same test.",
-    mode: "Timed",
+    partner: "group",
+    mode: "With the room",
     minutes: 10,
     ai: false,
     emoji: "⏱️",
@@ -68,11 +88,12 @@ export const MODULES: ModuleDef[] = [
   {
     slug: "workflow-solo",
     exercise: "workflow-solo",
-    name: "Reimagine a Workflow — Solo",
+    name: "Reimagine a Workflow with AI",
     tagline: "AI interviews you, then redraws your workflow with AI + humans in the right seats.",
     description:
-      "No partner needed. Describe a workflow, let AI interview you to understand it, then watch it draw the flow — recolor and refine who does what, and end with a redesigned AI+Human workflow.",
-    mode: "Solo + AI",
+      "No partner needed — an AI plays your partner. Describe a workflow, let AI interview you to understand it, then watch it draw the flow — recolor and refine who does what, and end with a redesigned AI+Human workflow.",
+    partner: "ai",
+    mode: "With AI",
     minutes: 30,
     ai: true,
     emoji: "🔧",
@@ -86,7 +107,8 @@ export const MODULES: ModuleDef[] = [
     tagline: "Map the room's real network — live, and anonymous.",
     description:
       "Everyone names who they go to for advice and who they call a friend. Watch the advice and friendship networks draw themselves live — then reveal who's most central.",
-    mode: "Live survey",
+    partner: "group",
+    mode: "With the room",
     minutes: 8,
     ai: false,
     emoji: "🕸️",
@@ -98,11 +120,12 @@ export const MODULES: ModuleDef[] = [
   {
     slug: "solo-ai",
     exercise: "solo",
-    name: "Solo with an AI Partner",
+    name: "Reimagine Your Job with AI",
     tagline: "Lean into the human part of your job.",
     description:
-      "No partner needed. An AI interviews you to find your real job, then drafts a redesign that hands AI the busywork and keeps the judgment with you.",
-    mode: "Solo + AI",
+      "No partner needed — an AI plays your partner. It interviews you to find your real job, then drafts a redesign that hands AI the busywork and keeps the judgment with you.",
+    partner: "ai",
+    mode: "With AI",
     minutes: 18,
     ai: true,
     emoji: "✨",

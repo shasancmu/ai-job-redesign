@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { SALEABLE_MODULES } from "@/lib/modules";
+import { SALEABLE_MODULES, PARTNER_META } from "@/lib/modules";
 import Logo from "@/components/Logo";
 import ModuleIcon from "@/components/ModuleIcon";
 import Footer from "@/components/Footer";
@@ -91,15 +91,16 @@ export default async function Home() {
               <h3 className="mt-4 text-lg font-bold text-ink">{m.name}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-slate2">{m.tagline}</p>
               <div className="mt-4 flex items-center gap-2 text-xs text-ink/45">
-                <span className="rounded-full border border-line px-2 py-0.5 text-ink/60">
-                  {m.mode}
+                <span
+                  className={
+                    "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium " +
+                    PARTNER_META[m.partner].chip
+                  }
+                >
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ background: PARTNER_META[m.partner].dot }} />
+                  {PARTNER_META[m.partner].label}
                 </span>
                 <span>{m.minutes} min</span>
-                {m.ai && (
-                  <span className="rounded-full bg-amber-soft px-2 py-0.5 font-medium text-amber">
-                    AI partner
-                  </span>
-                )}
               </div>
             </div>
           ))}

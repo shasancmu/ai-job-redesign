@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { MODULES, formatPrice } from "@/lib/modules";
+import { MODULES, PARTNER_META, formatPrice } from "@/lib/modules";
 import ModuleIcon from "@/components/ModuleIcon";
 
 const ACCENT: Record<string, string> = {
@@ -84,6 +84,7 @@ export default function Catalog({
           const open = !!unlocked[m.slug];
           const chip = ACCENT[m.slug] || "bg-sage-soft text-sage";
           const paired = PAIRED.has(m.exercise);
+          const pm = PARTNER_META[m.partner];
           return (
             <div key={m.slug} className="card flex flex-col p-6 transition hover:shadow-lift">
               <div className={"flex h-11 w-11 items-center justify-center rounded-xl " + chip}>
@@ -92,9 +93,14 @@ export default function Catalog({
               <h3 className="mt-4 text-lg font-bold text-ink">{m.name}</h3>
               <p className="mt-1.5 flex-1 text-sm leading-relaxed text-slate2">{m.tagline}</p>
               <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-ink/45">
-                <span className="rounded-full border border-line px-2 py-0.5 text-ink/60">{m.mode}</span>
+                <span className={"inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium " + pm.chip}>
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ background: pm.dot }} />
+                  {pm.label}
+                </span>
                 <span>{m.minutes} min</span>
-                {m.ai && <span className="rounded-full bg-amber-soft px-2 py-0.5 font-medium text-amber">AI</span>}
+                {m.instructorTool && (
+                  <span className="rounded-full border border-line px-2 py-0.5 text-ink/55">Instructor tool</span>
+                )}
                 {completed[m.slug] && (
                   <span className="rounded-full bg-sage-soft px-2 py-0.5 font-medium text-sage">✓ Done</span>
                 )}
