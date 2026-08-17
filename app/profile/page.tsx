@@ -5,12 +5,6 @@ import ProfileForm from "@/components/ProfileForm";
 import ChangePassword from "@/components/ChangePassword";
 import Logo from "@/components/Logo";
 
-const ORG_LABEL: Record<string, string> = {
-  personal: "Personal email",
-  education: "Education",
-  corporate: "Company",
-};
-
 export default async function ProfilePage() {
   const supabase = createClient();
   const {
@@ -56,16 +50,6 @@ export default async function ProfilePage() {
         <p className="mb-3 mt-1 text-xs text-slate-400">Set a new password for your account.</p>
         <ChangePassword />
       </section>
-
-      {(p.org_type || p.country) && (
-        <section className="mt-5 rounded-xl bg-mist p-4 text-xs text-slate-500">
-          <div className="font-medium text-slate-600">What we can tell so far</div>
-          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
-            {p.org_type && <span>{ORG_LABEL[p.org_type] || p.org_type}{p.org_domain ? ` · ${p.org_domain}` : ""}</span>}
-            {p.country && <span>Country: {p.country}</span>}
-          </div>
-        </section>
-      )}
     </main>
   );
 }
