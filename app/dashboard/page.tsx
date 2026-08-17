@@ -9,6 +9,8 @@ import Catalog from "@/components/Catalog";
 import SessionsPanel from "@/components/SessionsPanel";
 import LanguagePicker from "@/components/LanguagePicker";
 import EnrichOnce from "@/components/EnrichOnce";
+import YourWork, { type WorkItem } from "@/components/YourWork";
+import { computeStreak, artifactHref, nextStep } from "@/lib/momentum";
 import { recommendedSlugs } from "@/lib/segments";
 import { getServerLocale } from "@/lib/i18n-server";
 import { makeT } from "@/lib/i18n";
@@ -110,6 +112,30 @@ export default async function Dashboard({
     validSlugs
   );
 
+  // ---- "Your work" hub + momentum -----------------------------------------
+  const streak = computeStreak((sessions || []).map((s: any) => s.created_at));
+  const workItems: WorkItem[] = [];
+  const seen = new Set<string>();
+  for (const s of sessions || []) {
+    const m = MODULES.find((mm) => mm.exercise === s.exercise);
+    if (!m || m.partner === "group" || seen.has(m.slug)) continue; // group runs have no revisitable artifact
+    seen.add(m.slug);
+    const done = s.status === "done";
+    workItems.push({
+      slug: m.slug,
+      name: m.name,
+      done,
+      href: done ? artifactHref(s.exercise, s.code) : `/room/${s.code}`,
+      at: s.created_at,
+    });
+  }
+  const completedSet = new Set(MODULES.filter((m) => completed[m.slug]).map((m) => m.slug));
+  const exploredCount = new Set([...seen, ...(benchmarkDone ? ["benchmark"] : []), ...(networkDone ? ["network"] : [])]).size;
+  const artifactCount = workItems.filter((w) => w.done).length;
+  const nextSlug = nextStep(completedSet, recommended, validSlugs);
+  const nextMod = nextSlug ? MODULES.find((m) => m.slug === nextSlug) : null;
+  const nextItem = nextMod ? { slug: nextMod.slug, name: nextMod.name, tagline: nextMod.tagline } : null;
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between gap-3">
@@ -133,6 +159,15 @@ export default async function Dashboard({
         </div>
       </header>
       <EnrichOnce />
+
+      <YourWork
+        streak={streak}
+        exploredCount={exploredCount}
+        total={MODULES.length}
+        artifactCount={artifactCount}
+        items={workItems}
+        next={nextItem}
+      />
 
       <section>
         <h2 className="eyebrow">{t("dash.exercises")}</h2>
