@@ -17,6 +17,7 @@ export async function grantFromSession(session: Stripe.Checkout.Session) {
     module: "all",
     paid: true,
     stripe_session_id: session.id,
+    stripe_customer_id: typeof session.customer === "string" ? session.customer : session.customer?.id ?? null,
     amount_total: session.amount_total ?? null,
     currency: session.currency ?? null,
   };

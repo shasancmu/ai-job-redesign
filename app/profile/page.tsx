@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProfileForm from "@/components/ProfileForm";
 import ChangePassword from "@/components/ChangePassword";
+import ManageSubscription from "@/components/ManageSubscription";
+import { PAYMENTS_ENABLED } from "@/lib/stripe";
+import { activeEntitlements } from "@/lib/access";
 import Logo from "@/components/Logo";
 
 export default async function ProfilePage() {
@@ -19,6 +22,8 @@ export default async function ProfilePage() {
     .maybeSingle();
 
   const p = (profile || {}) as any;
+  const ents = PAYMENTS_ENABLED ? await activeEntitlements(supabase, user.id) : new Set<string>();
+  const hasPlan = ents.has("all");
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
@@ -50,6 +55,14 @@ export default async function ProfilePage() {
         <p className="mb-3 mt-1 text-xs text-slate-400">Set a new password for your account.</p>
         <ChangePassword />
       </section>
+
+      {hasPlan && (
+        <section className="card mt-5 p-6">
+          <h2 className="text-sm font-bold text-ink">Billing</h2>
+          <p className="mb-3 mt-1 text-xs text-slate-400">You have full access. Update your card, view invoices, or cancel anytime.</p>
+          <ManageSubscription />
+        </section>
+      )}
     </main>
   );
 }

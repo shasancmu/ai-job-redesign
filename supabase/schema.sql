@@ -358,6 +358,7 @@ create table if not exists public.entitlements (
 alter table public.entitlements add column if not exists current_period_start timestamptz;
 alter table public.entitlements add column if not exists current_period_end timestamptz;
 alter table public.entitlements add column if not exists stripe_subscription_id text;
+alter table public.entitlements add column if not exists stripe_customer_id text;
 
 -- Migrate a pre-existing single-key entitlements table to per-module rows.
 -- Any existing paid user becomes an 'all' (all-access) holder.
