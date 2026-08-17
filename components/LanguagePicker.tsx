@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useT } from "@/components/I18nProvider";
 
 // The exercises' AI content (interviews, analyses, debriefs) runs in this
 // language. Stored on the profile; every AI route reads it.
@@ -21,6 +23,8 @@ export const LANGUAGES = [
 ];
 
 export default function LanguagePicker({ me, initial }: { me: string; initial?: string }) {
+  const t = useT();
+  const router = useRouter();
   const [lang, setLang] = useState(initial || "English");
   const [saving, setSaving] = useState(false);
 
@@ -29,13 +33,14 @@ export default function LanguagePicker({ me, initial }: { me: string; initial?: 
     setSaving(true);
     try {
       await createClient().from("profiles").update({ language: v }).eq("id", me);
+      router.refresh(); // re-render the UI in the new locale
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <label className="flex items-center gap-1.5 text-sm text-slate-500" title="Language for AI-generated content">
+    <label className="flex items-center gap-1.5 text-sm text-slate-500" title={t("lang.label")}>
       <span aria-hidden>🌐</span>
       <select
         value={lang}

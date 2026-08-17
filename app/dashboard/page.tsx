@@ -8,6 +8,8 @@ import { MODULES } from "@/lib/modules";
 import Catalog from "@/components/Catalog";
 import SessionsPanel from "@/components/SessionsPanel";
 import LanguagePicker from "@/components/LanguagePicker";
+import { getServerLocale } from "@/lib/i18n-server";
+import { makeT } from "@/lib/i18n";
 import Footer from "@/components/Footer";
 import Logo from "@/components/Logo";
 
@@ -77,34 +79,31 @@ export default async function Dashboard({
           : runs.some((s: any) => s.status === "done");
   }
 
+  const t = makeT(await getServerLocale());
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between gap-3">
         <div>
           <Logo />
-          <h1 className="mt-3 text-2xl">Hi, {profile?.display_name || "there"}</h1>
+          <h1 className="mt-3 text-2xl">{t("dash.greeting", { name: profile?.display_name || "there" })}</h1>
         </div>
         <div className="flex items-center gap-2">
           <LanguagePicker me={user.id} initial={(profile as any)?.language} />
           {instructor && (
             <a href="/facilitator" className="btn-ghost text-sm">
-              Facilitator
+              {t("nav.facilitator")}
             </a>
           )}
           <form action="/auth/signout" method="post">
-            <button className="btn-ghost text-sm">Sign out</button>
+            <button className="btn-ghost text-sm">{t("nav.signOut")}</button>
           </form>
         </div>
       </header>
 
       <section>
-        <h2 className="eyebrow">Exercises</h2>
-        <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">
-          One instrument, four ways in: redesign your <span className="font-semibold text-ink">job</span> or your{" "}
-          <span className="font-semibold text-ink">workflow</span> — with a{" "}
-          <span className="font-semibold text-ink">partner</span>, or with{" "}
-          <span className="font-semibold text-ink">AI</span>.
-        </p>
+        <h2 className="eyebrow">{t("dash.exercises")}</h2>
+        <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">{t("dash.framing")}</p>
         <Catalog
           userId={user.id}
           unlocked={unlocked}
@@ -115,7 +114,7 @@ export default async function Dashboard({
       </section>
 
       <section className="mt-10">
-        <h2 className="eyebrow mb-3">Your sessions</h2>
+        <h2 className="eyebrow mb-3">{t("dash.yourSessions")}</h2>
         <SessionsPanel sessions={sessions || []} me={user.id} />
       </section>
 

@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "signIn": "Sign in",
+    "getStarted": "Get started",
+    "signOut": "Sign out",
+    "facilitator": "Facilitator"
+  },
+  "dash": {
+    "greeting": "Hi {name}",
+    "exercises": "Exercises",
+    "framing": "One instrument, many ways in: redesign your job or a workflow, X-ray a résumé or role, sharpen a decision, or negotiate — on your own, with a partner, or live with a cohort.",
+    "yourSessions": "Your sessions"
+  },
+  "cat": {
+    "redesign": "Work & AI",
+    "strategy": "Sharpen a decision",
+    "negotiate": "Negotiate",
+    "live": "Run it live in class"
+  },
+  "catalog": {
+    "start": "Start",
+    "starting": "Starting…",
+    "pairUp": "Pair up →",
+    "doItAgain": "Do it again",
+    "viewLast": "View last result →",
+    "cohortOnly": "Runs live in a cohort. Open your facilitator's cohort link to take part.",
+    "done": "✓ Done",
+    "unlock": "Unlock"
+  },
+  "sessions": {
+    "show": "▸ Show your sessions ({n})",
+    "hide": "▾ Hide your sessions ({n})",
+    "empty": "Nothing yet — start an exercise above to begin.",
+    "deleteTitle": "Delete this room"
+  },
+  "lang": {
+    "label": "Language for AI-generated content"
+  }
+}

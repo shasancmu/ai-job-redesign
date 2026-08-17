@@ -3,10 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { moduleByExercise } from "@/lib/modules";
+import { useT } from "@/components/I18nProvider";
 
 // Past/started sessions — hidden by default (they pile up), with the option to
 // show them and delete your own rooms off the dashboard.
 export default function SessionsPanel({ sessions, me }: { sessions: any[]; me: string }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [list, setList] = useState<any[]>(sessions);
   const [busy, setBusy] = useState<string | null>(null);
@@ -39,7 +41,7 @@ export default function SessionsPanel({ sessions, me }: { sessions: any[]; me: s
   }
 
   if (list.length === 0) {
-    return <p className="text-slate-500">Nothing yet — start an exercise above to begin.</p>;
+    return <p className="text-slate-500">{t("sessions.empty")}</p>;
   }
 
   return (
@@ -49,7 +51,7 @@ export default function SessionsPanel({ sessions, me }: { sessions: any[]; me: s
         className="text-sm text-slate-500 hover:text-ink"
         aria-expanded={open}
       >
-        {open ? "▾ Hide" : "▸ Show"} your sessions ({list.length})
+        {open ? t("sessions.hide", { n: list.length }) : t("sessions.show", { n: list.length })}
       </button>
 
       {open && (
@@ -82,7 +84,7 @@ export default function SessionsPanel({ sessions, me }: { sessions: any[]; me: s
                     <button
                       onClick={() => del(s.id, s.code)}
                       disabled={busy === s.id}
-                      title="Delete this room"
+                      title={t("sessions.deleteTitle")}
                       className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
                     >
                       {busy === s.id ? "…" : "✕"}
