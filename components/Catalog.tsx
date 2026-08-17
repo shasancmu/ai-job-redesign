@@ -60,6 +60,12 @@ export default function Catalog({
   // Single-user modules (solo, benchmark, network) start immediately.
   async function startSolo(slug: string, exercise: string) {
     setErr(null);
+    // In-class activities (benchmark, network) are cohort-scoped — without a
+    // cohort they'd aggregate into one unbounded, global bucket.
+    if ((exercise === "network" || exercise === "benchmark") && !cohort) {
+      setErr("This runs in a cohort — open your facilitator's cohort link to take part.");
+      return;
+    }
     setBusy(slug);
     for (let attempt = 0; attempt < 5; attempt++) {
       const code = makeCode();
@@ -112,6 +118,10 @@ export default function Catalog({
                 <Link href={`/paywall?module=${m.slug}`} className="btn-dark mt-5">
                   Unlock — {formatPrice(m.priceCents)}
                 </Link>
+              ) : m.partner === "group" && !cohort ? (
+                <div className="mt-5 rounded-lg bg-mist px-3 py-2.5 text-xs leading-relaxed text-slate2">
+                  Runs live in a cohort. Open your facilitator&apos;s cohort link to take part.
+                </div>
               ) : (
                 <div className="mt-5 space-y-2">
                   {paired ? (

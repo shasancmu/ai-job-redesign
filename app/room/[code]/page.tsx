@@ -48,12 +48,15 @@ export default async function RoomPage({
   // Benchmark: single-user timed test, only the host belongs here.
   if (session.exercise === "benchmark") {
     if (!amHost) redirect("/dashboard");
+    // In-class only: an untagged run would aggregate into one global bucket.
+    if (!session.cohort) redirect("/dashboard");
     return <BenchmarkRoom me={user.id} session={session} />;
   }
 
   // Network survey: single-user, only the host belongs here.
   if (session.exercise === "network") {
     if (!amHost) redirect("/dashboard");
+    if (!session.cohort) redirect("/dashboard");
     return <NetworkRoom me={user.id} session={session} />;
   }
 
