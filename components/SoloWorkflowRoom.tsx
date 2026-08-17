@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { SOLO_WORKFLOW_STEPS, STEP_ROLES } from "@/lib/workflow";
 import Timer from "@/components/Timer";
 import WorkflowFlow from "@/components/WorkflowFlow";
+import TradeoffPlan from "@/components/TradeoffPlan";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -69,13 +70,13 @@ export default function SoloWorkflowRoom({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: doc.name, description: doc.why || "", summary: analysis.summary || "" }),
       }).then((x) => x.json());
-      if (r.fields) {
-        const patch: Record<string, string> = {};
+      if (r.fields || r.plan) {
+        const patch: Record<string, any> = {};
         for (const k of ["more", "better", "accuracy", "generality", "chaos", "architect"]) {
-          if (!doc[k] && r.fields[k]) patch[k] = r.fields[k];
+          if (!doc[k] && r.fields?.[k]) patch[k] = r.fields[k];
         }
+        if (r.plan) patch.analysis = { ...analysis, tradeoffs: r.plan };
         if (Object.keys(patch).length) update(patch);
-        else setTradeoffErr("Your answers are already filled in — edit them freely.");
       } else {
         setTradeoffErr(r.reason === "ai-off" ? "AI isn't set up for this session." : "Couldn't get suggestions — try again.");
       }
@@ -165,16 +166,17 @@ export default function SoloWorkflowRoom({
           <div className="space-y-5">
             <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="text-sm text-slate-500">
-                Not sure how to fill these in? Let AI draft a first pass for this workflow — then make it yours.
+                Decide where each has to hold the line — then let AI build the plan for how you actually get to better, accuracy, and safe autonomy.
               </div>
               <button onClick={suggestTradeoffs} disabled={tradeoffBusy} className="btn-primary text-sm">
-                {tradeoffBusy ? "Thinking…" : "✨ Help me think this through"}
+                {tradeoffBusy ? "Thinking…" : analysis.tradeoffs ? "↻ Rebuild the plan" : "✨ Think it through & plan"}
               </button>
             </div>
             {tradeoffErr && <p className="text-sm text-clay">{tradeoffErr}</p>}
             <TradeoffRow occ="Outcomes" title="More vs. Better" hint="AI pulls toward more. Is that where you want to land?" leftLabel="More (faster, cheaper, more volume)" rightLabel="Better (slower, deeper, stronger)" left={bind("more")} right={bind("better")} />
             <TradeoffRow occ="Capabilities" title="Accuracy vs. Generality" hint="AI pulls toward generality. What must stay precise?" leftLabel="Must stay exactly right" rightLabel="Roughly right is fine" left={bind("accuracy")} right={bind("generality")} />
             <TradeoffRow occ="Control" title="Structure vs. Autonomy" hint="AI pulls toward autonomy — without structure, that's chaos." leftLabel="What chaos looks like here" rightLabel="The structure that makes autonomy safe (Architect)" left={bind("chaos")} right={bind("architect")} />
+            <TradeoffPlan plan={analysis.tradeoffs} />
           </div>
         )}
 

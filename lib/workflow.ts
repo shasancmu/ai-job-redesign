@@ -42,7 +42,7 @@ export const WORKFLOW_STEPS: WFStep[] = [
     index: 3,
     title: "The three trade-offs",
     subtitle:
-      "AI pulls toward more, toward generality, toward chaos. Decide where each has to hold the line — AI can help you think it through.",
+      "AI pulls toward more, toward generality, toward chaos. Decide where each holds the line — then AI builds your plan for getting to better outcomes, accuracy where it counts, and structure that makes autonomy safe.",
     minutes: 6,
   },
   {
@@ -91,7 +91,7 @@ export const SOLO_WORKFLOW_STEPS: WFStep[] = [
     key: "tradeoffs",
     index: 4,
     title: "The three trade-offs",
-    subtitle: "AI pulls toward more, toward generality, toward chaos. Decide where each has to hold the line — AI can help you think it through.",
+    subtitle: "AI pulls toward more, toward generality, toward chaos. Decide where each holds the line — then AI builds your plan for getting to better outcomes, accuracy where it counts, and structure that makes autonomy safe.",
     minutes: 6,
   },
   {

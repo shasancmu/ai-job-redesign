@@ -7,6 +7,7 @@ import { WORKFLOW_STEPS, STEP_ROLES } from "@/lib/workflow";
 import Timer from "@/components/Timer";
 import PairWaiting from "@/components/PairWaiting";
 import WorkflowFlow from "@/components/WorkflowFlow";
+import TradeoffPlan from "@/components/TradeoffPlan";
 
 type Doc = any;
 
@@ -203,13 +204,13 @@ export default function WorkflowRoom({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: doc.name, description: doc.why || "", summary: analysis.summary || "" }),
       }).then((x) => x.json());
-      if (r.fields) {
-        const patch: Record<string, string> = {};
+      if (r.fields || r.plan) {
+        const patch: Record<string, any> = {};
         for (const k of ["more", "better", "accuracy", "generality", "chaos", "architect"]) {
-          if (!doc[k] && r.fields[k]) patch[k] = r.fields[k];
+          if (!doc[k] && r.fields?.[k]) patch[k] = r.fields[k];
         }
+        if (r.plan) patch.analysis = { ...analysis, tradeoffs: r.plan };
         if (Object.keys(patch).length) update(patch);
-        else setTradeoffErr("Your answers are already filled in — edit them freely.");
       } else {
         setTradeoffErr(r.reason === "ai-off" ? "AI isn't set up for this session." : "Couldn't get suggestions — try again.");
       }
@@ -438,10 +439,10 @@ export default function WorkflowRoom({
           <div className="space-y-5">
             <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="text-sm text-slate-500">
-                Not sure how to fill these in? Let AI draft a first pass for this workflow — then make it yours.
+                Decide where each has to hold the line — then let AI build the plan for how you actually get to better, accuracy, and safe autonomy.
               </div>
               <button onClick={suggestTradeoffs} disabled={tradeoffBusy} className="btn-primary text-sm">
-                {tradeoffBusy ? "Thinking…" : "✨ Help me think this through"}
+                {tradeoffBusy ? "Thinking…" : analysis.tradeoffs ? "↻ Rebuild the plan" : "✨ Think it through & plan"}
               </button>
             </div>
             {tradeoffErr && <p className="text-sm text-clay">{tradeoffErr}</p>}
@@ -472,6 +473,7 @@ export default function WorkflowRoom({
               left={bind("chaos")}
               right={bind("architect")}
             />
+            <TradeoffPlan plan={analysis.tradeoffs} />
           </div>
         )}
 

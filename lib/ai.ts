@@ -276,25 +276,39 @@ Rules:
   }
 }
 
-// Helps the person fill out the three OCC trade-offs for THIS workflow.
+// Turns the three OCC trade-offs into an IMPLEMENTATION PLAN for THIS workflow.
+// AI naturally pulls toward MORE (volume), GENERALITY, and CHAOS (unbounded
+// autonomy). The value move is to consciously hold the line toward BETTER
+// outcomes, ACCURACY where it counts, and STRUCTURE that makes autonomy safe —
+// and, crucially, to say HOW you actually get there.
+type TradeoffAim = { aim: string; why: string; moves: string[]; check: string };
 export async function workflowTradeoffsAI(
   name: string,
   description: string,
   analysisSummary: string
-): Promise<Record<string, string>> {
+): Promise<{ fields: Record<string, string>; plan: Record<string, TradeoffAim> }> {
   const messages: ChatMsg[] = [
     {
       role: "system",
-      content: `You help someone fill out three trade-offs for redesigning a workflow with AI (the OCC lens: Outcomes, Capabilities, Control). Given the workflow, suggest a concise, specific starting answer for each field — something they can accept or edit. Return STRICT JSON only:
+      content: `You help someone turn three AI trade-offs into an IMPLEMENTATION PLAN for one workflow, using the OCC lens (Outcomes, Capabilities, Control). AI naturally pulls toward MORE (volume), GENERALITY, and unbounded autonomy (CHAOS). The value move is to consciously hold the line toward the valuable endpoint — BETTER outcomes, ACCURACY where it counts, and STRUCTURE that makes autonomy safe — AND to say how you actually get there.
+
+Return STRICT JSON only — no prose, no code fences:
 {
- "more":"where pushing for more / faster / cheaper / higher-volume genuinely helps here",
- "better":"where slower / deeper / stronger is what actually matters here",
- "accuracy":"what must stay exactly right — no AI drift allowed",
- "generality":"where roughly-right is fine and a general approach helps",
- "chaos":"what unchecked AI autonomy would look like here (the failure mode)",
- "architect":"the structure / guardrails that make AI autonomy safe here"
+ "fields": {
+   "more":"where more / faster / cheaper / higher-volume genuinely helps here",
+   "better":"where slower / deeper / stronger is what actually matters here",
+   "accuracy":"what must stay exactly right — no AI drift allowed",
+   "generality":"where roughly-right is fine and a general approach helps",
+   "chaos":"what unchecked AI autonomy would look like here (the failure mode)",
+   "architect":"the structure / guardrails that make AI autonomy safe here"
+ },
+ "plan": {
+   "outcomes":     {"aim":"Better, not just more","why":"why better is the real win in THIS workflow (1 sentence)","moves":["a concrete move to raise quality","another concrete move"],"check":"the guard that stops it sliding back to just 'more'"},
+   "capabilities": {"aim":"Accuracy where it counts","why":"where being exactly right actually matters here","moves":["how to guarantee it — verification, ground-truth source, human sign-off","another concrete move"],"check":"the check to run before trusting AI output"},
+   "control":      {"aim":"Structure that frees autonomy","why":"why unbounded AI autonomy would be chaos here","moves":["the guardrail / gate / escalation to set up","another concrete move"],"check":"what a human reviews, and when"}
+ }
 }
-Each value is ONE sentence, concrete and specific to THIS workflow. No prose outside the JSON.`,
+Rules: everything specific to THIS workflow — no generic advice like "review carefully". Each field = one tight sentence. Each plan "moves" list = 2–3 concrete, do-able steps. No prose outside the JSON.`,
     },
     {
       role: "user",
@@ -302,14 +316,25 @@ Each value is ONE sentence, concrete and specific to THIS workflow. No prose out
     },
   ];
   const raw = await complete(messages, { json: true, temperature: 0.5 });
+  const fieldKeys = ["more", "better", "accuracy", "generality", "chaos", "architect"];
+  const aim = (o: any): TradeoffAim => ({
+    aim: String(o?.aim || ""),
+    why: String(o?.why || ""),
+    moves: Array.isArray(o?.moves) ? o.moves.slice(0, 4).map((m: any) => String(m)) : [],
+    check: String(o?.check || ""),
+  });
   try {
     const p = extractJson(raw);
-    const keys = ["more", "better", "accuracy", "generality", "chaos", "architect"];
-    const out: Record<string, string> = {};
-    for (const k of keys) out[k] = String(p[k] || "");
-    return out;
+    const fields: Record<string, string> = {};
+    for (const k of fieldKeys) fields[k] = String(p.fields?.[k] || p[k] || "");
+    const plan = {
+      outcomes: aim(p.plan?.outcomes),
+      capabilities: aim(p.plan?.capabilities),
+      control: aim(p.plan?.control),
+    };
+    return { fields, plan };
   } catch {
-    return {};
+    return { fields: {}, plan: { outcomes: aim(null), capabilities: aim(null), control: aim(null) } };
   }
 }
 

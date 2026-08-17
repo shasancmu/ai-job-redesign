@@ -20,16 +20,18 @@ export async function POST(request: Request) {
   }
 
   try {
-    const fields = await workflowTradeoffsAI(
+    const { fields, plan } = await workflowTradeoffsAI(
       String(body.name || "").slice(0, 200),
       String(body.description || "").slice(0, 1800),
       String(body.summary || "").slice(0, 600)
     );
-    if (!fields || Object.keys(fields).length === 0) {
-      return Response.json({ fields: null, reason: "empty" }, { status: 502 });
+    const hasFields = fields && Object.values(fields).some((v) => v);
+    const hasPlan = plan && Object.values(plan).some((a: any) => a?.aim || a?.moves?.length);
+    if (!hasFields && !hasPlan) {
+      return Response.json({ fields: null, plan: null, reason: "empty" }, { status: 502 });
     }
-    return Response.json({ fields });
+    return Response.json({ fields, plan });
   } catch (e: any) {
-    return Response.json({ fields: null, reason: e?.message || "ai-error" }, { status: 502 });
+    return Response.json({ fields: null, plan: null, reason: e?.message || "ai-error" }, { status: 502 });
   }
 }
