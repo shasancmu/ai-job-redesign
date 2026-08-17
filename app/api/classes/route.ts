@@ -26,7 +26,7 @@ export async function GET() {
   }
   const { data } = await admin
     .from("classes")
-    .select("id, code, name, modules, language, created_at")
+    .select("id, code, name, modules, language, kind, allowed_emails, created_at")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -63,6 +63,11 @@ export async function POST(request: Request) {
     VALID.has(s)
   );
   const language = String(body.language || "English").slice(0, 40) || "English";
+  const kind = body.kind === "enterprise" ? "enterprise" : "teaching";
+  const allowed_emails =
+    kind === "enterprise" && Array.isArray(body.allowed_emails)
+      ? [...new Set(body.allowed_emails.map((e: string) => String(e).trim().toLowerCase()).filter((e: string) => e.includes("@")))].slice(0, 5000)
+      : [];
   if (!code || !name) return Response.json({ error: "code and name required" }, { status: 400 });
 
   let admin;
@@ -84,7 +89,7 @@ export async function POST(request: Request) {
 
   const { error } = await admin
     .from("classes")
-    .upsert({ code, name, owner_id: user.id, modules, language }, { onConflict: "code" });
+    .upsert({ code, name, owner_id: user.id, modules, language, kind, allowed_emails }, { onConflict: "code" });
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
   return Response.json({ ok: true, code });

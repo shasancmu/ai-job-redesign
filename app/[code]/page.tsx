@@ -22,7 +22,7 @@ export default async function ClassPage({ params }: { params: { code: string } }
     const admin = createAdminClient();
     const { data } = await admin
       .from("classes")
-      .select("id, code, name, modules, language")
+      .select("id, code, name, modules, language, kind, allowed_emails")
       .eq("code", code)
       .maybeSingle();
     klass = data;
@@ -77,6 +77,24 @@ export default async function ClassPage({ params }: { params: { code: string } }
     const clean = titleCaseName(profile.display_name);
     if (clean !== profile.display_name) {
       await supabase.from("profiles").update({ display_name: clean }).eq("id", user.id);
+    }
+  }
+
+  // Enterprise cohorts are email-gated: only invited addresses may join.
+  if (klass.kind === "enterprise") {
+    const allowed: string[] = (klass.allowed_emails as any) || [];
+    const email = (user.email || "").trim().toLowerCase();
+    if (!allowed.includes(email)) {
+      return (
+        <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12 text-center">
+          <Logo />
+          <h1 className="mt-8 text-2xl font-bold text-ink">This cohort is invite-only</h1>
+          <p className="mt-2 text-slate2">
+            {klass.name} is limited to invited members. Your account ({user.email}) isn&apos;t on the list — ask your organizer to add it.
+          </p>
+          <Link href="/dashboard" className="btn-primary mt-6">← Dashboard</Link>
+        </main>
+      );
     }
   }
 

@@ -85,6 +85,9 @@ async function Overview({ admin }: { admin: any }) {
           <Link href="/facilitator/classes" className="btn-primary text-sm">
             Create cohort
           </Link>
+          <Link href="/admin/costs" className="btn-ghost text-sm">
+            Costs
+          </Link>
           <Link href="/dashboard" className="btn-ghost text-sm">
             ← My dashboard
           </Link>

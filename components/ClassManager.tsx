@@ -6,7 +6,7 @@ import { MODULES } from "@/lib/modules";
 import { normalizeCode } from "@/lib/classes";
 import { LANGUAGES } from "@/components/LanguagePicker";
 
-type Klass = { id: string; code: string; name: string; modules: string[]; members: number; language?: string };
+type Klass = { id: string; code: string; name: string; modules: string[]; members: number; language?: string; kind?: string; allowed_emails?: string[] };
 
 const nameOf = (slug: string) => MODULES.find((m) => m.slug === slug)?.name || slug;
 
@@ -15,6 +15,8 @@ export default function ClassManager() {
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState("English");
+  const [kind, setKind] = useState<"teaching" | "enterprise">("teaching");
+  const [emails, setEmails] = useState(""); // enterprise invite list (one per line)
   const [order, setOrder] = useState<string[]>([]); // ordered module slugs
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -47,6 +49,8 @@ export default function ClassManager() {
     setName(k.name);
     setCode(k.code);
     setLanguage(k.language || "English");
+    setKind((k.kind as any) || "teaching");
+    setEmails(((k.allowed_emails as any) || []).join("\n"));
     setOrder(k.modules || []);
     setErr(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -56,6 +60,8 @@ export default function ClassManager() {
     setName("");
     setCode("");
     setLanguage("English");
+    setKind("teaching");
+    setEmails("");
     setOrder([]);
   }
 
@@ -81,7 +87,14 @@ export default function ClassManager() {
     const res = await fetch("/api/classes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, code: c, modules: order, language }),
+      body: JSON.stringify({
+        name,
+        code: c,
+        modules: order,
+        language,
+        kind,
+        allowed_emails: kind === "enterprise" ? emails.split(/[\s,;]+/).map((e) => e.trim()).filter(Boolean) : [],
+      }),
     });
     const d = await res.json().catch(() => ({}));
     setBusy(false);
@@ -113,6 +126,40 @@ export default function ClassManager() {
             {code && <div className="mt-1 truncate text-xs text-slate2">{origin}/{normalizeCode(code)}</div>}
           </div>
         </div>
+
+        {/* Cohort type */}
+        <div className="mt-4">
+          <label className="lbl">Cohort type</label>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {([
+              { k: "teaching", title: "Teaching / class", sub: "Open join. Selected modules free; students can buy $19 all-access." },
+              { k: "enterprise", title: "Enterprise (contract)", sub: "Invite-only by email. Comped — no online payment." },
+            ] as const).map((o) => (
+              <button
+                key={o.k}
+                type="button"
+                onClick={() => setKind(o.k)}
+                className={"rounded-xl border-2 p-3 text-left transition " + (kind === o.k ? "border-ink bg-slate-50" : "border-slate-200 hover:border-slate-300")}
+              >
+                <div className="text-sm font-semibold">{o.title}</div>
+                <div className="text-xs text-slate-400">{o.sub}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {kind === "enterprise" && (
+          <div className="mt-4">
+            <label className="lbl">Invited emails (one per line)</label>
+            <textarea
+              className="field min-h-[110px] font-mono text-sm"
+              value={emails}
+              onChange={(e) => setEmails(e.target.value)}
+              placeholder={"alex@acme.com\njordan@acme.com"}
+            />
+            <p className="mt-1 text-xs text-slate-400">Only these addresses can join at the link. {emails.split(/[\s,;]+/).filter(Boolean).length} listed.</p>
+          </div>
+        )}
 
         <div className="mt-4 max-w-xs">
           <label className="lbl">Language (AI content runs in this)</label>
