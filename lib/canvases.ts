@@ -53,31 +53,33 @@ const GAS: CanvasDef = {
   setupTitle: "The workflow you want to augment with AI",
   setupHint: "One task, process, or decision — be specific. Your AI partner will interview you about it.",
   setupPlaceholder: "e.g. Triaging inbound support tickets and drafting first replies",
-  interviewSystem: `You are a sharp AI-strategy advisor interviewing someone about ONE workflow they want to augment with AI, to fill out the GAS canvas (Generality, Accuracy, Simplicity) from Hasan, Samila & Oettl. The framework's logic guides your questions:
-- GENERALITY vs. ACCURACY is a trade-off frontier: an AI that handles a wider range of situations tends to be less accurate on any one of them, and vice versa. The strategic choice is WHERE on that frontier this workflow needs to sit — you cannot maximize both.
-- ACCURACY requirement is set by the COST OF ERRORS: the more damaging a mistake, the more accuracy (and human oversight) the task demands.
-- GENERALITY requirement is set by HOW VARIED the situations are: a narrow, repeatable task can be automated; a wildly varied one needs either a human or a general (less accurate) model.
-- SIMPLICITY is about where COMPLEXITY LIVES: complexity is conserved — if you hide it from the user it moves into the interface, the model, the data plumbing, or human oversight. Good design chooses who bears it so users aren't overwhelmed.
-Use good interviewing craft:
-- Ask exactly ONE short, open question at a time; follow their lead.
-- Pull the concrete detail the canvas needs: the workflow and the outcome they actually want; how costly an error is and how failure would show up (→ accuracy); how varied the situations are (→ generality); which steps must stay human vs. AI-assisted vs. fully automated; who the users are and how much complexity they can carry (→ simplicity); what could go wrong (missed nuance, overtrust, misuse).
-- Probe where their judgment is the thing that saves it, and where volume is drowning them.
-- Do not lecture or fill the canvas yet — just understand it.
+  interviewSystem: `You are a sharp AI-strategy advisor interviewing someone about ONE workflow they want to augment with AI, to fill the AI Opportunity Canvas. Ground every question in the GAS framework (Hasan, Oettl & Samila, "From Model Design to Organizational Design"):
+- GENERALITY (breadth of situations handled), ACCURACY (how well outputs match reality), and SIMPLICITY (ease of use AND where the underlying complexity resides) trade off — you cannot maximize all three. The strategic question is WHERE on the Generality–Accuracy frontier this workflow must sit.
+- Position the workflow on Dhar's map — PREDICTABILITY of the task vs. COST PER MISTAKE. Low error-cost / predictable work (drafting copy, code scaffolds, brainstorming) can be automated; MID-risk work (support replies, compliance emails, enterprise search) creates an "overproduction" problem where the human becomes a CURATOR of machine output; HIGH error-cost work (legal, medical, safety-critical) keeps AI as an ADJUNCT only — retrieval and ideation, never the core decision.
+- SIMPLICITY is not the absence of complexity — it is RELOCATED. A simple interface pushes complexity into infrastructure, data pipelines, model-risk/compliance, and specialist roles (prompt engineering, data governance, oversight). Ask where the hidden complexity will land and who owns it.
+- LLMs have an ACCURACY CEILING (they pattern-match); in high-stakes use the ceiling becomes the binding constraint. Complements RISE in value: judgment, relationships, data quality, and the oversight capacity to catch errors.
+Interview craft: ask exactly ONE short, open question at a time; follow their lead. Pull the concrete detail the canvas needs — the outcome they want; how costly a mistake is and how failure shows up; how varied the situations are; which steps stay human vs. copilot vs. automated; who the users are and where complexity should live; what could go wrong. Do not lecture or fill the canvas yet.
 After about 6 exchanges, reflect the shape back, ask what you missed, then close.`,
-  draftSystem: `You turn an interview into a filled GAS AI Opportunity Canvas (Hasan, Samila & Oettl). Apply the framework's logic: set required ACCURACY from the cost of errors; set required GENERALITY from how varied the situations are; treat these as a trade-off (a workflow that needs both high accuracy AND high generality is a warning sign — narrow it or keep a human in the loop). Split tasks so high-stakes / low-error-tolerance work stays human or human-in-the-loop, and narrow, error-tolerant work goes to AI. For SIMPLICITY, be explicit about where complexity lives so users aren't overwhelmed. Be specific to THIS workflow — no generic "leverage AI".`,
+  draftSystem: `You fill the AI Opportunity Canvas using the GAS framework (Hasan, Oettl & Samila). Apply its logic rigorously:
+- Set required ACCURACY from the COST PER MISTAKE; set required GENERALITY from how VARIED the situations are; treat them as a frontier — a workflow demanding BOTH high accuracy and high generality is a warning sign (narrow the domain, or keep a human in the loop).
+- Place the workflow on the frontier and pick the pattern: AUTOMATE (predictable, low error-cost), COPILOT / human-curates (mid-risk, overproduction), or ADJUNCT only (high error-cost). Let that drive the human / human+AI / AI task split.
+- SIMPLICITY: name where the relocated complexity lands (infrastructure, data, compliance/model-risk, specialist roles) — don't pretend it disappears.
+- Name the human COMPLEMENTS that rise in value here. Be specific to THIS workflow — no generic "leverage AI".`,
   fields: [
     { key: "strategic_outcome", label: "Strategic outcome", hint: "The value/impact you expect — speed, volume, cost, accuracy, quality", kind: "long", group: "The bet", accent: "sage" },
-    { key: "required_accuracy", label: "Required accuracy", hint: "How exact must it be to avoid costly mistakes, and how you'd measure it", kind: "long", group: "Capabilities", accent: "gold" },
-    { key: "required_generality", label: "Required generality", hint: "Handle varied situations, or stay in a narrow domain?", kind: "long", group: "Capabilities", accent: "gold" },
+    { key: "required_accuracy", label: "Required accuracy", hint: "How costly is a mistake? High error-cost demands more accuracy + oversight. How would you measure it?", kind: "long", group: "The frontier", accent: "gold" },
+    { key: "required_generality", label: "Required generality", hint: "How varied are the situations? Narrow → automatable; broad → trades accuracy", kind: "long", group: "The frontier", accent: "gold" },
+    { key: "frontier_position", label: "Where it sits on the frontier", hint: "Automate (predictable, low error-cost) · Copilot/human-curates (mid-risk) · Adjunct only (high error-cost)", kind: "long", group: "The frontier", accent: "gold" },
     { key: "human_tasks", label: "Human tasks", hint: "Stay human-led — and why humans are essential there", kind: "list", group: "The split", accent: "human" },
-    { key: "humanai_tasks", label: "Human + AI tasks", hint: "AI supports the human (drafts, suggests, flags)", kind: "list", group: "The split", accent: "both" },
-    { key: "ai_tasks", label: "AI tasks", hint: "AI handles independently, no human in the loop", kind: "list", group: "The split", accent: "gold" },
-    { key: "user_simplicity", label: "User-level simplicity", hint: "Who are the users, and how much complexity can they manage?", kind: "long", group: "Control", accent: "plum" },
-    { key: "distributed_complexity", label: "Where complexity lives", hint: "UI, infrastructure, model, or human oversight?", kind: "long", group: "Control", accent: "plum" },
-    { key: "risks", label: "Risks", hint: "Missed nuance, overtrust, misuse, blind spots", kind: "list", group: "Control", accent: "plum" },
-    { key: "deployment", label: "Deployment strategy", hint: "Off-the-shelf, RAG, or fine-tuned — and why", kind: "long", group: "Make it real", accent: "sage" },
+    { key: "humanai_tasks", label: "Human + AI tasks", hint: "AI drafts / suggests / flags; the human curates and does the accuracy check", kind: "list", group: "The split", accent: "both" },
+    { key: "ai_tasks", label: "AI tasks", hint: "AI handles independently — only where errors are cheap and tolerable", kind: "list", group: "The split", accent: "gold" },
+    { key: "user_simplicity", label: "User-facing simplicity", hint: "Who are the users, and how much complexity can they carry?", kind: "long", group: "Where complexity lands", accent: "plum" },
+    { key: "distributed_complexity", label: "Where the complexity relocates", hint: "It doesn't vanish: infrastructure, data pipelines, compliance/model-risk, and specialist roles — who owns it?", kind: "long", group: "Where complexity lands", accent: "plum" },
+    { key: "risks", label: "Risks", hint: "The accuracy ceiling: missed nuance, overtrust, misuse, blind spots", kind: "list", group: "Where complexity lands", accent: "plum" },
+    { key: "complements", label: "Complements that rise in value", hint: "Judgment, relationships, data quality, oversight capacity", kind: "list", group: "Make it real", accent: "sage" },
+    { key: "deployment", label: "Deployment strategy", hint: "Autonomous vs. human-in-the-loop (end-user check or provider review); off-the-shelf / RAG / fine-tuned", kind: "long", group: "Make it real", accent: "sage" },
   ],
-  hasVerdict: { label: "The opportunity in one line" },
+  hasVerdict: { label: "Where it sits on the G–A frontier, and the play" },
 };
 
 // ---------------------------------------------------------------------------

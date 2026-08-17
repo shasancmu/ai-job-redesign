@@ -266,18 +266,20 @@ export function canvasSeed(exercise: string): any {
       subject: "Triaging inbound support tickets and drafting first replies",
       synthesis:
         "You want faster, more consistent first responses without losing the human touch on the hard cases. AI can classify, route, and draft the routine replies; your team keeps the judgment calls, the angry customers, and anything with money or risk attached.",
-      verdict: "AI drafts the first reply on the routine 70%; humans own the 30% that decides loyalty.",
+      verdict: "Mid-risk copilot: AI drafts the routine 70%; agents curate and own the 30% that decides loyalty.",
       fields: {
         strategic_outcome: "Cut first-response time from hours to minutes and free agents for the cases that actually retain customers.",
         required_accuracy: "High on routing (wrong queue is costly) and on anything touching billing; a rough draft is fine for the reply itself since a human reviews it.",
         required_generality: "Narrow — a defined set of ticket types; escalate anything it hasn't seen.",
+        frontier_position: "Mid-risk copilot: AI over-produces draft replies, the agent curates — automate only the low-stakes routing.",
         human_tasks: ["Handle escalations and at-risk accounts", "Approve any reply touching money or policy"],
         humanai_tasks: ["Review and send AI-drafted replies", "Correct mis-routed tickets so the model learns"],
         ai_tasks: ["Classify and route incoming tickets", "Draft first replies for known issue types"],
         user_simplicity: "Agents, not engineers — it must live inside the existing helpdesk with one-click send/edit.",
-        distributed_complexity: "Complexity sits in the model + routing rules; the agent UI stays a simple approve/edit box.",
+        distributed_complexity: "The complexity relocates to RAG plumbing over the help center, a routing model, and a QA reviewer role — it doesn't vanish.",
         risks: ["Overtrust — agents rubber-stamp a wrong draft", "A confident reply on a case it misread", "Tone-deaf reply to an upset customer"],
-        deployment: "Off-the-shelf LLM + RAG over the help center and past tickets; no fine-tuning needed to start.",
+        complements: ["Agent judgment on angry/at-risk customers", "Clean, current help-center content", "A QA loop that catches drift"],
+        deployment: "Human-in-the-loop (end-user check): off-the-shelf LLM + RAG over the help center and past tickets; no fine-tuning to start.",
       },
     };
   }
