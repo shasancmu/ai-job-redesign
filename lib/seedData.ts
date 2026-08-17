@@ -269,16 +269,32 @@ export function canvasSeed(exercise: string): any {
       verdict: "It all rides on activation: fix time-to-value first, and the customer and financial results follow.",
       fields: {
         fin_obj: "Build a self-serve revenue line that compounds without added sales headcount.",
-        fin_kr: ["Self-serve ARR to $6M by month 18", "Net revenue retention ≥ 115%", "CAC payback under 6 months"],
+        fin_kr: [
+          { a: "Self-serve ARR", b: "$6M by month 18" },
+          { a: "Net revenue retention", b: "≥ 115%" },
+          { a: "CAC payback", b: "< 6 months" },
+        ],
         fin_init: ["Usage-based pricing tier", "Monthly cohort revenue review"],
         cust_obj: "New customers reach value fast and stay on their own.",
-        cust_kr: ["Trial-to-paid ≥ 12%", "Time-to-first-value under 10 minutes", "Activation rate ≥ 55%"],
+        cust_kr: [
+          { a: "Trial-to-paid conversion", b: "≥ 12%" },
+          { a: "Time-to-first-value", b: "< 10 minutes" },
+          { a: "Activation rate", b: "≥ 55%" },
+        ],
         cust_init: ["Guided in-product onboarding", "Lifecycle nudges to the aha moment"],
         proc_obj: "Onboarding and support run themselves for the common cases.",
-        proc_kr: ["80% of setup self-served, no human", "Median first-response under 5 minutes", "Support tickets per 100 users down 30%"],
+        proc_kr: [
+          { a: "Setup self-served, no human", b: "80%" },
+          { a: "Median first-response time", b: "< 5 minutes" },
+          { a: "Support tickets per 100 users", b: "down 30%" },
+        ],
         proc_init: ["Template-driven setup flow", "AI-assisted support triage"],
         learn_obj: "The team can run a product-led motion and read the funnel.",
-        learn_kr: ["A growth pod stood up in Q1", "Funnel dashboard live for every team", "2 PLG experiments shipped per month"],
+        learn_kr: [
+          { a: "Growth pod stood up", b: "by end of Q1" },
+          { a: "Funnel dashboard live", b: "every team" },
+          { a: "PLG experiments shipped", b: "2 / month" },
+        ],
         learn_init: ["Hire a growth lead", "Instrument the activation funnel end-to-end"],
       },
     };

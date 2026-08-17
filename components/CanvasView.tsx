@@ -125,7 +125,7 @@ export default function CanvasView({
                 {def.fields.filter((f) => f.group === g).map((f) => {
                   const v = fields[f.key];
                   const color = accentColor(f.accent);
-                  const empty = f.kind === "list" ? !(Array.isArray(v) && v.length) : !v;
+                  const empty = f.kind === "list" || f.kind === "pairs" ? !(Array.isArray(v) && v.length) : !v;
                   return (
                     <div key={f.key} className="card overflow-hidden p-0">
                       <div className="h-1.5" style={{ background: color }} />
@@ -133,6 +133,19 @@ export default function CanvasView({
                         <div className="text-[11px] font-semibold uppercase tracking-wide" style={{ color }}>{f.label}</div>
                         {empty ? (
                           <p className="mt-1 text-sm text-slate-300">—</p>
+                        ) : f.kind === "pairs" ? (
+                          <ul className="mt-1.5 space-y-1.5">
+                            {(v as { a: string; b: string }[]).map((p, i) => (
+                              <li key={i} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                                <span className="text-slate-700">{p.a}</span>
+                                {p.b && (
+                                  <span className="rounded-full px-2 py-0.5 text-xs font-semibold" style={{ background: color + "22", color }}>
+                                    {p.b}
+                                  </span>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
                         ) : f.kind === "list" ? (
                           <ul className="mt-1.5 space-y-1">
                             {(v as string[]).map((it, i) => (

@@ -371,6 +371,20 @@ function CanvasStep({
         </div>
       ) : null}
 
+      {def.canvasTip && (
+        <div className="rounded-2xl border border-line bg-mist p-5">
+          <div className="text-sm font-semibold text-ink">{def.canvasTip.title}</div>
+          <ul className="mt-2 space-y-1.5">
+            {def.canvasTip.items.map((it, i) => (
+              <li key={i} className="flex gap-2 text-sm text-slate-600">
+                <span className="text-sage">•</span>
+                <span>{it}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {groups.map((g) => {
         const note = def.frontier && g === "The frontier" ? null : def.groupNotes?.[g];
         return (
@@ -430,7 +444,9 @@ function FieldInput({ field, value, onChange }: { field: CanvasField; value: any
         {field.label}
       </label>
       {field.hint && <div className="mt-0.5 text-xs text-slate-500">{field.hint}</div>}
-      {field.kind === "list" ? (
+      {field.kind === "pairs" ? (
+        <PairsEditor field={field} value={Array.isArray(value) ? value : []} onChange={onChange} />
+      ) : field.kind === "list" ? (
         <textarea
           className="field mt-1.5"
           placeholder="One per line…"
@@ -442,6 +458,49 @@ function FieldInput({ field, value, onChange }: { field: CanvasField; value: any
       ) : (
         <input className="field mt-1.5" value={value || ""} onChange={(e) => onChange(e.target.value)} />
       )}
+    </div>
+  );
+}
+
+function PairsEditor({
+  field,
+  value,
+  onChange,
+}: {
+  field: CanvasField;
+  value: { a: string; b: string }[];
+  onChange: (v: { a: string; b: string }[]) => void;
+}) {
+  const rows = value.length ? value : [{ a: "", b: "" }];
+  const set = (i: number, patch: Partial<{ a: string; b: string }>) =>
+    onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)).filter((r) => r.a || r.b));
+  const remove = (i: number) => onChange(rows.filter((_, idx) => idx !== i));
+  return (
+    <div className="mt-1.5 space-y-2">
+      {rows.map((r, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <input
+            className="field"
+            placeholder={field.leftLabel || "Measure"}
+            value={r.a}
+            onChange={(e) => set(i, { a: e.target.value })}
+          />
+          <span className="text-slate-300">→</span>
+          <input
+            className="field"
+            style={{ maxWidth: 150 }}
+            placeholder={field.rightLabel || "Target"}
+            value={r.b}
+            onChange={(e) => set(i, { b: e.target.value })}
+          />
+          <button onClick={() => remove(i)} className="px-1 text-slate-400 hover:text-clay" title="Remove" type="button">
+            ✕
+          </button>
+        </div>
+      ))}
+      <button onClick={() => onChange([...value, { a: "", b: "" }])} className="text-sm text-slate2 hover:text-ink" type="button">
+        + Add
+      </button>
     </div>
   );
 }

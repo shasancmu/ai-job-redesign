@@ -569,7 +569,12 @@ export async function canvasDraftAI(
 ): Promise<{ fields: Record<string, any>; synthesis: string; verdict?: string; score?: number; _raw?: string }> {
   const fieldLines = def.fields
     .map((f) => {
-      const t = f.kind === "list" ? "array of 2–4 short strings" : "string";
+      const t =
+        f.kind === "list"
+          ? "array of 2–4 short strings"
+          : f.kind === "pairs"
+            ? `array of 2–3 objects { "a": "${f.leftLabel || "left"}", "b": "${f.rightLabel || "right"}" }`
+            : "string";
       return `  "${f.key}": ${t},   // ${f.label}: ${f.hint || ""}`;
     })
     .join("\n");
@@ -608,8 +613,15 @@ Rules: fill EVERY field, grounded in the interview and specific to this ${def.su
     const fields: Record<string, any> = {};
     for (const f of def.fields) {
       const v = p[f.key];
-      if (f.kind === "list") fields[f.key] = Array.isArray(v) ? v.slice(0, 6).map((x: any) => String(x)) : [];
-      else fields[f.key] = String(v || "");
+      if (f.kind === "list") {
+        fields[f.key] = Array.isArray(v) ? v.slice(0, 6).map((x: any) => String(x)) : [];
+      } else if (f.kind === "pairs") {
+        fields[f.key] = Array.isArray(v)
+          ? v.slice(0, 6).map((x: any) => ({ a: String(x?.a || ""), b: String(x?.b || "") })).filter((x: any) => x.a || x.b)
+          : [];
+      } else {
+        fields[f.key] = String(v || "");
+      }
     }
     const out: any = { fields, synthesis: String(p.synthesis || ""), _raw: raw };
     if (def.hasVerdict) out.verdict = String(p.verdict || "");

@@ -9,9 +9,11 @@ export type CanvasField = {
   key: string;
   label: string;
   hint?: string;
-  kind: "text" | "long" | "list";
+  kind: "text" | "long" | "list" | "pairs"; // pairs = list of {a,b}, e.g. measure → target
   group: string; // section heading in the room + artifact
   accent?: "human" | "ai" | "both" | "sage" | "gold" | "plum";
+  leftLabel?: string; // pairs: label for the "a" side (e.g. "Measure")
+  rightLabel?: string; // pairs: label for the "b" side (e.g. "Target")
 };
 
 export type CanvasDef = {
@@ -31,6 +33,7 @@ export type CanvasDef = {
   frontier?: { xLabel: string; yLabel: string }; // plot the subject on the automate/copilot/adjunct map
   about?: string; // shown during the exercise — what the framework is
   groupNotes?: Record<string, string>; // one-line explainer under each section heading
+  canvasTip?: { title: string; items: string[] }; // a teaching callout on the canvas step
 };
 
 const ACCENTS = { human: "#3F7A52", ai: "#CE8F2C", both: "#7C5CBF", sage: "#3F7A52", gold: "#CE8F2C", plum: "#7C5CBF" };
@@ -210,30 +213,40 @@ const SCORECARD: CanvasDef = {
   setupHint: "One strategy you're responsible for delivering. Your AI partner will interview you, then build the scorecard across four linked perspectives.",
   setupPlaceholder: "e.g. Become the #1 self-serve product for small businesses within 18 months",
   interviewSystem: `You are a strategy advisor helping translate ONE strategy or goal into a Balanced Scorecard (Kaplan & Norton) — essentially OKRs plus the initiatives to hit them, across four linked perspectives: Financial, Customer, Internal Process, and Learning & Growth. These form a cause-and-effect chain: investing in LEARNING & GROWTH improves internal PROCESSES, which improves the CUSTOMER experience, which drives FINANCIAL results.
-Your job in this interview is to understand the strategy well enough to build that scorecard. Across the four perspectives, draw out: the Objective (what success looks like there), how they would MEASURE it (concrete key results with a target and timeframe), and the Initiatives (what they'd actually do). Gently push vague aims ("grow revenue") toward measurable results ("lift net revenue retention to 120% by Q4"), and probe how the perspectives connect — which internal capability actually drives the customer and financial outcomes. Do not fill the scorecard yet — just understand the strategy, the metrics that matter, and the levers they have.`,
-  draftSystem: `You translate a strategy into a Balanced Scorecard (Kaplan & Norton) = OKRs + initiatives across four LINKED perspectives (Financial, Customer, Internal Process, Learning & Growth) that form a cause-and-effect chain (Learning → Process → Customer → Financial). For EACH perspective write: one clear Objective; 2–3 Key Results that are measurable, each with a concrete target and timeframe; and 1–2 Initiatives (the work that moves them). Make the perspectives LINK — the learning and process initiatives should plausibly drive the customer and financial results. Be specific to THIS strategy — no generic "increase revenue".`,
+Your job in this interview is to understand the strategy well enough to build that scorecard. Across the four perspectives, draw out: the Objective (what success looks like there), how they would MEASURE progress, and the Initiatives (what they'd actually do). Each key result is a MEASURE paired with a TARGET — help them separate the two: first "how would you know you're making progress?" (the measure), then "what counts as enough?" (the target, a number and timeframe).
+Actively help them think through the measures. A good measure is relevant, accurate, reliable, clear, timely, and cost-effective. Watch for the Wells Fargo trap: a single high-stakes measure tied to narrow incentives (like "sell eight accounts per customer") gets gamed; short-term-only or purely quantitative measures miss what matters. So probe: "Could this measure be gamed, and how?", "What would it miss?", and nudge toward a balanced set (leading and lagging, quantitative and qualitative). Also probe how the perspectives connect — which internal capability actually drives the customer and financial outcomes. Do not fill the scorecard yet — just understand the strategy, the metrics that matter, and the levers they have.`,
+  draftSystem: `You translate a strategy into a Balanced Scorecard (Kaplan & Norton) = OKRs + initiatives across four LINKED perspectives (Financial, Customer, Internal Process, Learning & Growth) that form a cause-and-effect chain (Learning → Process → Customer → Financial). For EACH perspective write: one clear Objective; 2–3 Key Results, EACH split into a MEASURE (what you track) and a TARGET (a concrete number + timeframe); and 1–2 Initiatives (the work that moves them). Choose measures that are relevant, accurate, reliable, clear, timely, and cost-effective. Avoid a single gameable metric tied to narrow incentives (the Wells Fargo "Eight is Great" trap); balance leading and lagging, quantitative and qualitative. Make the perspectives LINK — the learning and process initiatives should plausibly drive the customer and financial results. Be specific to THIS strategy — no generic "increase revenue".`,
   fields: [
     { key: "fin_obj", label: "Objective", hint: "The financial result — revenue, margin, cost", kind: "long", group: "Financial", accent: "sage" },
-    { key: "fin_kr", label: "Key results (with targets)", kind: "list", group: "Financial", accent: "gold" },
+    { key: "fin_kr", label: "Key results", kind: "pairs", leftLabel: "Measure", rightLabel: "Target", group: "Financial", accent: "gold" },
     { key: "fin_init", label: "Initiatives", kind: "list", group: "Financial", accent: "plum" },
     { key: "cust_obj", label: "Objective", hint: "The value customers feel — why they choose and stay", kind: "long", group: "Customer", accent: "sage" },
-    { key: "cust_kr", label: "Key results (with targets)", kind: "list", group: "Customer", accent: "gold" },
+    { key: "cust_kr", label: "Key results", kind: "pairs", leftLabel: "Measure", rightLabel: "Target", group: "Customer", accent: "gold" },
     { key: "cust_init", label: "Initiatives", kind: "list", group: "Customer", accent: "plum" },
     { key: "proc_obj", label: "Objective", hint: "The few processes you must excel at", kind: "long", group: "Internal process", accent: "sage" },
-    { key: "proc_kr", label: "Key results (with targets)", kind: "list", group: "Internal process", accent: "gold" },
+    { key: "proc_kr", label: "Key results", kind: "pairs", leftLabel: "Measure", rightLabel: "Target", group: "Internal process", accent: "gold" },
     { key: "proc_init", label: "Initiatives", kind: "list", group: "Internal process", accent: "plum" },
     { key: "learn_obj", label: "Objective", hint: "The people, skills, and tools that power it", kind: "long", group: "Learning & growth", accent: "sage" },
-    { key: "learn_kr", label: "Key results (with targets)", kind: "list", group: "Learning & growth", accent: "gold" },
+    { key: "learn_kr", label: "Key results", kind: "pairs", leftLabel: "Measure", rightLabel: "Target", group: "Learning & growth", accent: "gold" },
     { key: "learn_init", label: "Initiatives", kind: "list", group: "Learning & growth", accent: "plum" },
   ],
   hasVerdict: { label: "The through-line — from learning to financial results" },
   about:
-    "The Balanced Scorecard (Kaplan & Norton) turns a strategy into measurable objectives across four linked perspectives — Financial, Customer, Internal Process, and Learning & Growth. It's OKRs plus the initiatives to hit them: each perspective gets an Objective, Key Results (with targets), and Initiatives. The four form a cause-and-effect chain — investing in learning improves process, which improves the customer experience, which drives financial results.",
+    "The Balanced Scorecard (Kaplan & Norton) turns a strategy into measurable objectives across four linked perspectives — Financial, Customer, Internal Process, and Learning & Growth. It's OKRs plus the initiatives to hit them: each perspective gets an Objective, Key Results (a Measure + a Target), and Initiatives. The four form a cause-and-effect chain — investing in learning improves process, which improves the customer experience, which drives financial results.",
   groupNotes: {
     Financial: "The results owners and investors see — revenue, margin, cost. The end of the chain.",
     Customer: "The value customers feel — what makes them choose and stay. This drives the financials.",
     "Internal process": "The few processes you must excel at to deliver that customer value.",
     "Learning & growth": "The people, skills, and tools that power the processes. The start of the chain.",
+  },
+  canvasTip: {
+    title: "What makes a good measure?",
+    items: [
+      "Relevant, accurate, reliable, clear, timely, cost-effective.",
+      "Balanced — pair leading with lagging, quantitative with qualitative.",
+      "Could it be gamed? A single high-stakes metric tied to narrow incentives gets gamed — Wells Fargo's “Eight is Great” drove millions of fake accounts.",
+      "The target is what counts as “enough progress” — a number and a timeframe.",
+    ],
   },
 };
 
