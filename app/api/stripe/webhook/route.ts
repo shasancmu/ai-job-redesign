@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
-import { grantFromSession, syncSubscription } from "@/lib/grant";
+import { grantFromSession, syncSubscription, revokeFromCharge } from "@/lib/grant";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,6 +25,10 @@ export async function POST(request: Request) {
   switch (event.type) {
     case "checkout.session.completed":
       await grantFromSession(event.data.object as Stripe.Checkout.Session);
+      break;
+    // A full refund revokes all-access.
+    case "charge.refunded":
+      await revokeFromCharge(event.data.object as any);
       break;
     // Renewal / cancellation of the $29/yr plan — refresh or lapse the period.
     case "customer.subscription.updated":

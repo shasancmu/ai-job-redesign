@@ -42,6 +42,33 @@ export async function grantFromSession(session: Stripe.Checkout.Session) {
   await admin.from("entitlements").upsert(base, { onConflict: "user_id,module" });
 }
 
+// Revoke all-access when a purchase is fully refunded. Matches the entitlement
+// to the refunded checkout session (so refunding an OLD purchase doesn't wipe a
+// later valid one); falls back to the user if the session can't be resolved.
+export async function revokeFromCharge(charge: any) {
+  if (!charge?.refunded) return; // only act on a FULL refund
+  const pi = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
+  if (!pi) return;
+
+  let sessionId: string | undefined;
+  let userId: string | undefined;
+  try {
+    const list = await getStripe().checkout.sessions.list({ payment_intent: pi, limit: 1 });
+    const s = list.data[0];
+    sessionId = s?.id;
+    userId = s?.client_reference_id || (s?.metadata?.user_id as string | undefined);
+  } catch {
+    /* fall through */
+  }
+
+  const admin = createAdminClient();
+  if (sessionId) {
+    await admin.from("entitlements").delete().eq("module", "all").eq("stripe_session_id", sessionId);
+  } else if (userId) {
+    await admin.from("entitlements").delete().eq("user_id", userId).eq("module", "all");
+  }
+}
+
 // Sync an entitlement from a subscription lifecycle event (renewal, cancel).
 export async function syncSubscription(sub: any) {
   const userId = (sub.metadata?.user_id as string) || null;
