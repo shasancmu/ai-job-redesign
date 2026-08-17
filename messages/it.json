@@ -8,7 +8,7 @@
   "dash": {
     "greeting": "Ciao {name}",
     "exercises": "Esercizi",
-    "framing": "Uno strumento, molti modi: riprogetta il tuo lavoro o un flusso di lavoro, analizza un CV o un ruolo, affina una decisione, o negozia — da solo, con un partner, o dal vivo con una coorte.",
+    "framing": "Uno strumento, molti modi per usarlo: riprogetta il tuo lavoro o un flusso di lavoro, analizza un CV o un ruolo, affina una decisione, o negozia — da solo, con un partner, o dal vivo con un gruppo.",
     "yourSessions": "Le tue sessioni"
   },
   "cat": {
@@ -23,9 +23,81 @@
     "pairUp": "Forma una coppia →",
     "doItAgain": "Ripeti",
     "viewLast": "Visualizza ultimo risultato →",
-    "cohortOnly": "Si esegue dal vivo in una coorte. Apri il link della coorte del tuo facilitatore per partecipare.",
+    "cohortOnly": "Si esegue dal vivo in un gruppo. Apri il link del gruppo del tuo facilitatore per partecipare.",
     "done": "✓ Completato",
-    "unlock": "Sblocca"
+    "unlock": "Sblocca",
+    "min": "{n} min"
+  },
+  "partner": {
+    "human": "Con un partner",
+    "ai": "Con l'IA",
+    "group": "Con il gruppo"
+  },
+  "modules": {
+    "reimagine-job": {
+      "name": "Riprogetta il Tuo Lavoro",
+      "tagline": "Riprogetta il lavoro di un partner intorno a ciò che solo un umano può fare."
+    },
+    "reimagine-workflow": {
+      "name": "Riprogetta un Flusso di Lavoro",
+      "tagline": "Ripensa un flusso di lavoro con un partner — non limitarti a correggerlo."
+    },
+    "benchmark": {
+      "name": "Il Benchmark",
+      "tagline": "Mettiti alla prova contro la macchina — poi vedi il gruppo."
+    },
+    "workflow-solo": {
+      "name": "Riprogetta un Flusso di Lavoro con l'IA",
+      "tagline": "L'IA ti intervista, poi ridisegna il tuo flusso di lavoro con IA e umani nei ruoli giusti."
+    },
+    "network": {
+      "name": "La Rete",
+      "tagline": "Mappa la vera rete del gruppo — dal vivo e anonima."
+    },
+    "jd-x-ray": {
+      "name": "Analisi Approfondita della Descrizione del Ruolo",
+      "tagline": "Incolla un ruolo — vedi la sua esposizione all'IA e esattamente chi assumere."
+    },
+    "career-x-ray": {
+      "name": "Analisi Approfondita della Carriera",
+      "tagline": "Incolla il tuo CV — vedi cosa può fare l'IA e su cosa concentrarti."
+    },
+    "solo-ai": {
+      "name": "Riprogetta il Tuo Lavoro con l'IA",
+      "tagline": "Concentrati sulla parte umana del tuo lavoro."
+    },
+    "execution-4a": {
+      "name": "Diagnostica di Esecuzione 4A",
+      "tagline": "Questa iniziativa è davvero impostata per l'esecuzione?"
+    },
+    "close-the-offer": {
+      "name": "Chiudi l'Offerta",
+      "tagline": "Negozia un'offerta di lavoro contro un omologo IA — poi ottieni un punteggio."
+    },
+    "name-your-price": {
+      "name": "Fissa il Tuo Prezzo",
+      "tagline": "Una pura contrattazione sul prezzo — ancora, trova la ZOPA e rivendica il margine."
+    },
+    "good-business": {
+      "name": "È un Buon Affare?",
+      "tagline": "Metti alla prova un'idea di business con vera strategia e veri numeri."
+    },
+    "balanced-scorecard": {
+      "name": "Balanced Scorecard",
+      "tagline": "Trasforma una strategia in OKR e iniziative su quattro prospettive collegate."
+    },
+    "ai-canvas": {
+      "name": "Canvas di Opportunità IA",
+      "tagline": "Dove dovrebbe andare davvero l'IA — e come la distribuisci bene?"
+    },
+    "opportunity-capability": {
+      "name": "Allineamento Opportunità-Capacità",
+      "tagline": "Dovresti fare questa scommessa? Mettila alla prova rispetto a quello che puoi davvero fare."
+    },
+    "test-the-bet": {
+      "name": "Metti alla Prova la Scommessa",
+      "tagline": "Prima di impegnarti, progetta un esperimento pulito per metterla alla prova."
+    }
   },
   "sessions": {
     "show": "▸ Mostra le tue sessioni ({n})",
@@ -47,7 +119,7 @@
     "with": "con {name}",
     "yourPartner": "il tuo partner",
     "timerUp": "Tempo scaduto — uno di voi può far avanzare la stanza.",
-    "timerWait": "Il prossimo si sblocca quando il timer termina.",
+    "timerWait": "Si sblocca quando il timer termina.",
     "waitingPartner": "In attesa che il tuo partner si unisca alla stanza {code}…",
     "reviewStep": "Revisione: {title}"
   }

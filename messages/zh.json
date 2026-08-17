@@ -8,7 +8,7 @@
   "dash": {
     "greeting": "你好 {name}",
     "exercises": "练习",
-    "framing": "一个工具，多种用法：重新设计你的工作或工作流程、分析简历或职位、做出更好的决策，或进行谈判——独立完成、与伙伴合作，或在班级中实时进行。",
+    "framing": "一个工具，多种用法：重新设计你的工作或工作流程、分析简历或职位、做出更好的决策，或进行谈判——独自完成、与搭档合作，或在班级中实时进行。",
     "yourSessions": "你的会话"
   },
   "cat": {
@@ -19,18 +19,90 @@
   },
   "catalog": {
     "start": "开始",
-    "starting": "正在开始…",
+    "starting": "启动中…",
     "pairUp": "配对 →",
     "doItAgain": "再做一次",
     "viewLast": "查看上次结果 →",
     "cohortOnly": "在班级中实时运行。打开讲师的班级链接即可参与。",
     "done": "✓ 完成",
-    "unlock": "解锁"
+    "unlock": "解锁",
+    "min": "{n} 分钟"
+  },
+  "partner": {
+    "human": "与搭档",
+    "ai": "与AI",
+    "group": "与全体"
+  },
+  "modules": {
+    "reimagine-job": {
+      "name": "重新想象你的工作",
+      "tagline": "围绕人类独有的能力重新设计搭档的工作。"
+    },
+    "reimagine-workflow": {
+      "name": "重新想象工作流程",
+      "tagline": "与搭档重新思考工作流程——不只是修补。"
+    },
+    "benchmark": {
+      "name": "基准测试",
+      "tagline": "与机器比较你的能力——然后看看全班的结果。"
+    },
+    "workflow-solo": {
+      "name": "用AI重新想象工作流程",
+      "tagline": "AI与你进行对话，然后用AI和人类重新设计你的工作流程。"
+    },
+    "network": {
+      "name": "网络图",
+      "tagline": "实时匿名地绘制全班的真实网络。"
+    },
+    "jd-x-ray": {
+      "name": "职位描述X光扫描",
+      "tagline": "粘贴一个职位——查看其AI风险，以及具体需要招聘谁。"
+    },
+    "career-x-ray": {
+      "name": "职业X光扫描",
+      "tagline": "粘贴你的简历——查看AI能做什么，以及你应该强化什么。"
+    },
+    "solo-ai": {
+      "name": "用AI重新想象你的工作",
+      "tagline": "强化你工作中的人性化部分。"
+    },
+    "execution-4a": {
+      "name": "4A执行诊断",
+      "tagline": "这个项目真的能够执行吗？"
+    },
+    "close-the-offer": {
+      "name": "达成录用",
+      "tagline": "与AI对手谈判工作机会——然后获得评分。"
+    },
+    "name-your-price": {
+      "name": "报价",
+      "tagline": "纯粹的价格谈判——设定锚点、找到协议区间、争取最大收益。"
+    },
+    "good-business": {
+      "name": "这是个好生意吗？",
+      "tagline": "用真实的战略和数据对商业想法进行压力测试。"
+    },
+    "balanced-scorecard": {
+      "name": "平衡计分卡",
+      "tagline": "将战略转化为跨四个关联视角的OKR和项目。"
+    },
+    "ai-canvas": {
+      "name": "AI机会画布",
+      "tagline": "AI应该在哪里发挥作用——你如何有效地部署它？"
+    },
+    "opportunity-capability": {
+      "name": "机会-能力匹配",
+      "tagline": "你应该做这个赌注吗？根据你的实际能力进行测试。"
+    },
+    "test-the-bet": {
+      "name": "测试赌注",
+      "tagline": "在承诺之前，设计一个清晰的实验来测试它。"
+    }
   },
   "sessions": {
     "show": "▸ 显示你的会话 ({n})",
     "hide": "▾ 隐藏你的会话 ({n})",
-    "empty": "还没有内容——开始上面的练习即可开始。",
+    "empty": "还没有——开始上面的练习即可开始。",
     "deleteTitle": "删除此房间"
   },
   "lang": {
@@ -42,13 +114,13 @@
     "next": "下一步",
     "finish": "完成",
     "send": "发送",
-    "sending": "正在发送…",
+    "sending": "发送中…",
     "step": "第 {n} 步，共 {total} 步",
     "with": "与 {name}",
-    "yourPartner": "你的伙伴",
-    "timerUp": "时间到——你们中的任何一方都可以继续。",
+    "yourPartner": "你的搭档",
+    "timerUp": "时间到——你们中任何一人都可以继续。",
     "timerWait": "计时器结束时解锁下一步。",
-    "waitingPartner": "等待你的伙伴加入房间 {code}…",
+    "waitingPartner": "等待你的搭档加入房间 {code}…",
     "reviewStep": "回顾：{title}"
   }
 }

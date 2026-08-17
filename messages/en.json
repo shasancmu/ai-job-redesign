@@ -25,7 +25,79 @@
     "viewLast": "View last result →",
     "cohortOnly": "Runs live in a cohort. Open your facilitator's cohort link to take part.",
     "done": "✓ Done",
-    "unlock": "Unlock"
+    "unlock": "Unlock",
+    "min": "{n} min"
+  },
+  "partner": {
+    "human": "With a partner",
+    "ai": "With AI",
+    "group": "With the room"
+  },
+  "modules": {
+    "reimagine-job": {
+      "name": "Reimagine Your Job",
+      "tagline": "Redesign a partner's job around what only a human can do."
+    },
+    "reimagine-workflow": {
+      "name": "Reimagine a Workflow",
+      "tagline": "Rethink a workflow with a partner — don't patch it."
+    },
+    "benchmark": {
+      "name": "The Benchmark",
+      "tagline": "Test yourself against the machine — then see the room."
+    },
+    "workflow-solo": {
+      "name": "Reimagine a Workflow with AI",
+      "tagline": "AI interviews you, then redraws your workflow with AI + humans in the right seats."
+    },
+    "network": {
+      "name": "The Network",
+      "tagline": "Map the room's real network — live, and anonymous."
+    },
+    "jd-x-ray": {
+      "name": "Job Description X-ray",
+      "tagline": "Paste a role — see its AI exposure, and exactly who to hire."
+    },
+    "career-x-ray": {
+      "name": "Career X-ray",
+      "tagline": "Paste your resume — see what AI can do, and what to lean into."
+    },
+    "solo-ai": {
+      "name": "Reimagine Your Job with AI",
+      "tagline": "Lean into the human part of your job."
+    },
+    "execution-4a": {
+      "name": "4A Execution Diagnostic",
+      "tagline": "Is this initiative actually set up to execute?"
+    },
+    "close-the-offer": {
+      "name": "Close the Offer",
+      "tagline": "Negotiate a job offer against an AI counterpart — then get scored."
+    },
+    "name-your-price": {
+      "name": "Name Your Price",
+      "tagline": "A pure price haggle — anchor, find the ZOPA, and claim the gap."
+    },
+    "good-business": {
+      "name": "Is This a Good Business?",
+      "tagline": "Pressure-test a business idea with real strategy and real numbers."
+    },
+    "balanced-scorecard": {
+      "name": "Balanced Scorecard",
+      "tagline": "Turn a strategy into OKRs + initiatives across four linked perspectives."
+    },
+    "ai-canvas": {
+      "name": "AI Opportunity Canvas",
+      "tagline": "Where should AI actually go — and how do you deploy it well?"
+    },
+    "opportunity-capability": {
+      "name": "Opportunity–Capability Fit",
+      "tagline": "Should you make this bet? Test it against what you can actually do."
+    },
+    "test-the-bet": {
+      "name": "Test-the-Bet",
+      "tagline": "Before you commit, design a clean experiment to test it."
+    }
   },
   "sessions": {
     "show": "▸ Show your sessions ({n})",

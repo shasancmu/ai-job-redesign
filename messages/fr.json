@@ -8,14 +8,14 @@
   "dash": {
     "greeting": "Bonjour {name}",
     "exercises": "Exercices",
-    "framing": "Un outil, plusieurs approches : repensez votre travail ou un processus, analysez un CV ou un rôle, affinez une décision, ou négociez — seul, en binôme, ou en direct avec votre cohorte.",
+    "framing": "Un outil, plusieurs approches : repensez votre poste ou un processus, analysez un CV ou un rôle, affinez une décision, ou négociez — seul, en binôme, ou en direct avec votre cohorte.",
     "yourSessions": "Vos sessions"
   },
   "cat": {
     "redesign": "Travail & IA",
-    "strategy": "Affiner une décision",
+    "strategy": "Affinez une décision",
     "negotiate": "Négocier",
-    "live": "Lancer en direct en classe"
+    "live": "Lancez-le en direct en classe"
   },
   "catalog": {
     "start": "Commencer",
@@ -25,16 +25,88 @@
     "viewLast": "Voir le dernier résultat →",
     "cohortOnly": "S'exécute en direct dans une cohorte. Ouvrez le lien de cohorte de votre animateur pour participer.",
     "done": "✓ Terminé",
-    "unlock": "Déverrouiller"
+    "unlock": "Déverrouiller",
+    "min": "{n} min"
+  },
+  "partner": {
+    "human": "Avec un partenaire",
+    "ai": "Avec l'IA",
+    "group": "Avec la salle"
+  },
+  "modules": {
+    "reimagine-job": {
+      "name": "Repensez votre poste",
+      "tagline": "Repensez le poste d'un partenaire autour de ce que seul un humain peut faire."
+    },
+    "reimagine-workflow": {
+      "name": "Repensez un processus",
+      "tagline": "Rethinkez un processus avec un partenaire — ne le rafistollez pas."
+    },
+    "benchmark": {
+      "name": "L'étalon",
+      "tagline": "Testez-vous contre la machine — puis voyez la salle."
+    },
+    "workflow-solo": {
+      "name": "Repensez un processus avec l'IA",
+      "tagline": "L'IA vous interroge, puis redessine votre processus avec l'IA + les humains aux bons postes."
+    },
+    "network": {
+      "name": "Le réseau",
+      "tagline": "Cartographiez le vrai réseau de la salle — en direct et anonyme."
+    },
+    "jd-x-ray": {
+      "name": "Analyse radiographique de la description de poste",
+      "tagline": "Collez un rôle — voyez son exposition à l'IA et exactement qui embaucher."
+    },
+    "career-x-ray": {
+      "name": "Analyse radiographique de carrière",
+      "tagline": "Collez votre CV — voyez ce que l'IA peut faire et sur quoi vous appuyer."
+    },
+    "solo-ai": {
+      "name": "Repensez votre poste avec l'IA",
+      "tagline": "Appuyez-vous sur la part humaine de votre poste."
+    },
+    "execution-4a": {
+      "name": "Diagnostic d'exécution 4A",
+      "tagline": "Cette initiative est-elle vraiment configurée pour s'exécuter ?"
+    },
+    "close-the-offer": {
+      "name": "Conclure l'offre",
+      "tagline": "Négociez une offre d'emploi contre un homologue IA — puis obtenez une note."
+    },
+    "name-your-price": {
+      "name": "Fixez votre prix",
+      "tagline": "Une pure négociation de prix — ancrez, trouvez la ZOPA et réclamez l'écart."
+    },
+    "good-business": {
+      "name": "Est-ce une bonne affaire ?",
+      "tagline": "Testez une idée commerciale avec une vraie stratégie et de vrais chiffres."
+    },
+    "balanced-scorecard": {
+      "name": "Tableau de bord équilibré",
+      "tagline": "Transformez une stratégie en OKRs + initiatives sur quatre perspectives liées."
+    },
+    "ai-canvas": {
+      "name": "Canevas d'opportunité IA",
+      "tagline": "Où l'IA devrait-elle vraiment aller — et comment la déployer efficacement ?"
+    },
+    "opportunity-capability": {
+      "name": "Adéquation opportunité-capacité",
+      "tagline": "Devriez-vous faire ce pari ? Testez-le contre ce que vous pouvez vraiment faire."
+    },
+    "test-the-bet": {
+      "name": "Testez le pari",
+      "tagline": "Avant de vous engager, concevez une expérience nette pour le tester."
+    }
   },
   "sessions": {
     "show": "▸ Afficher vos sessions ({n})",
     "hide": "▾ Masquer vos sessions ({n})",
-    "empty": "Rien pour le moment — commencez un exercice ci-dessus pour débuter.",
+    "empty": "Rien pour l'instant — commencez un exercice ci-dessus pour débuter.",
     "deleteTitle": "Supprimer cette salle"
   },
   "lang": {
-    "label": "Langue pour le contenu généré par IA"
+    "label": "Langue pour le contenu généré par l'IA"
   },
   "room": {
     "exit": "Quitter",
@@ -47,7 +119,7 @@
     "with": "avec {name}",
     "yourPartner": "votre partenaire",
     "timerUp": "Temps écoulé — l'un de vous peut faire avancer la salle.",
-    "timerWait": "La suite se déverrouille à la fin du chronomètre.",
+    "timerWait": "Le suivant se déverrouille quand le minuteur se termine.",
     "waitingPartner": "En attente de votre partenaire pour rejoindre la salle {code}…",
     "reviewStep": "Révision : {title}"
   }

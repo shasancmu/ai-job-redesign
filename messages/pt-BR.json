@@ -8,24 +8,96 @@
   "dash": {
     "greeting": "Olá {name}",
     "exercises": "Exercícios",
-    "framing": "Um instrumento, muitas formas de usar: redesenhe seu trabalho ou um fluxo, analise um currículo ou função, refine uma decisão ou negocie — sozinho, com um parceiro ou ao vivo com uma turma.",
+    "framing": "Um instrumento, muitas formas de usar: redesenhe seu trabalho ou um fluxo, faça uma radiografia de um currículo ou função, aguçe uma decisão, ou negocie — sozinho, com um parceiro, ou ao vivo com uma turma.",
     "yourSessions": "Suas sessões"
   },
   "cat": {
     "redesign": "Trabalho & IA",
-    "strategy": "Refine uma decisão",
-    "negotiate": "Negocie",
-    "live": "Execute ao vivo em aula"
+    "strategy": "Aguçar uma decisão",
+    "negotiate": "Negociar",
+    "live": "Executar ao vivo em sala"
   },
   "catalog": {
     "start": "Iniciar",
     "starting": "Iniciando…",
-    "pairUp": "Forme dupla →",
+    "pairUp": "Formar dupla →",
     "doItAgain": "Fazer novamente",
     "viewLast": "Ver último resultado →",
     "cohortOnly": "Executa ao vivo em uma turma. Abra o link da turma do seu facilitador para participar.",
     "done": "✓ Concluído",
-    "unlock": "Desbloquear"
+    "unlock": "Desbloquear",
+    "min": "{n} min"
+  },
+  "partner": {
+    "human": "Com um parceiro",
+    "ai": "Com IA",
+    "group": "Com a sala"
+  },
+  "modules": {
+    "reimagine-job": {
+      "name": "Reimagine Seu Trabalho",
+      "tagline": "Redesenhe o trabalho de um parceiro focando no que apenas um humano pode fazer."
+    },
+    "reimagine-workflow": {
+      "name": "Reimagine um Fluxo de Trabalho",
+      "tagline": "Repense um fluxo de trabalho com um parceiro — não apenas corrija."
+    },
+    "benchmark": {
+      "name": "O Benchmark",
+      "tagline": "Teste-se contra a máquina — depois veja a sala."
+    },
+    "workflow-solo": {
+      "name": "Reimagine um Fluxo de Trabalho com IA",
+      "tagline": "IA o entrevista, depois redesenha seu fluxo com IA + humanos nos lugares certos."
+    },
+    "network": {
+      "name": "A Rede",
+      "tagline": "Mapeie a rede real da sala — ao vivo e anônimo."
+    },
+    "jd-x-ray": {
+      "name": "Radiografia de Descrição de Cargo",
+      "tagline": "Cole uma função — veja sua exposição à IA e exatamente quem contratar."
+    },
+    "career-x-ray": {
+      "name": "Radiografia de Carreira",
+      "tagline": "Cole seu currículo — veja o que IA pode fazer e no que se aprofundar."
+    },
+    "solo-ai": {
+      "name": "Reimagine Seu Trabalho com IA",
+      "tagline": "Aprofunde-se na parte humana do seu trabalho."
+    },
+    "execution-4a": {
+      "name": "Diagnóstico de Execução 4A",
+      "tagline": "Esta iniciativa está realmente preparada para executar?"
+    },
+    "close-the-offer": {
+      "name": "Feche a Oferta",
+      "tagline": "Negocie uma oferta de emprego contra um contraparte IA — depois receba uma pontuação."
+    },
+    "name-your-price": {
+      "name": "Defina Seu Preço",
+      "tagline": "Uma pura negociação de preço — estabeleça âncora, encontre a ZOPA e reivindique a diferença."
+    },
+    "good-business": {
+      "name": "É um Bom Negócio?",
+      "tagline": "Teste uma ideia de negócio com estratégia real e números reais."
+    },
+    "balanced-scorecard": {
+      "name": "Balanced Scorecard",
+      "tagline": "Transforme uma estratégia em OKRs + iniciativas em quatro perspectivas interligadas."
+    },
+    "ai-canvas": {
+      "name": "Canvas de Oportunidade com IA",
+      "tagline": "Onde a IA deveria realmente ir — e como você a implementa bem?"
+    },
+    "opportunity-capability": {
+      "name": "Alinhamento Oportunidade–Capacidade",
+      "tagline": "Você deveria fazer essa aposta? Teste contra o que você realmente consegue fazer."
+    },
+    "test-the-bet": {
+      "name": "Teste a Aposta",
+      "tagline": "Antes de se comprometer, desenhe um experimento limpo para testá-la."
+    }
   },
   "sessions": {
     "show": "▸ Mostrar suas sessões ({n})",
@@ -47,7 +119,7 @@
     "with": "com {name}",
     "yourPartner": "seu parceiro",
     "timerUp": "Tempo esgotado — qualquer um de vocês pode avançar a sala.",
-    "timerWait": "Próximo desbloqueado quando o cronômetro terminar.",
+    "timerWait": "Próximo desbloqueia quando o cronômetro terminar.",
     "waitingPartner": "Aguardando seu parceiro entrar na sala {code}…",
     "reviewStep": "Revisão: {title}"
   }

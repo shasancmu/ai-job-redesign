@@ -8,12 +8,12 @@
   "dash": {
     "greeting": "Hola {name}",
     "exercises": "Ejercicios",
-    "framing": "Un instrumento, muchas formas de usarlo: rediseña tu trabajo o un flujo de trabajo, analiza un currículum o rol, aclara una decisión o negocia — solo, con un compañero, o en vivo con tu cohorte.",
+    "framing": "Un instrumento, muchas formas de entrar: rediseña tu trabajo o un flujo de trabajo, analiza un CV o rol, agudiza una decisión, o negocia — solo, con un compañero, o en vivo con tu cohorte.",
     "yourSessions": "Tus sesiones"
   },
   "cat": {
     "redesign": "Trabajo e IA",
-    "strategy": "Aclara una decisión",
+    "strategy": "Agudiza una decisión",
     "negotiate": "Negocia",
     "live": "Ejecuta en vivo en clase"
   },
@@ -24,14 +24,86 @@
     "doItAgain": "Hazlo de nuevo",
     "viewLast": "Ver último resultado →",
     "cohortOnly": "Se ejecuta en vivo en una cohorte. Abre el enlace de cohorte de tu facilitador para participar.",
-    "done": "✓ Completado",
-    "unlock": "Desbloquear"
+    "done": "✓ Hecho",
+    "unlock": "Desbloquear",
+    "min": "{n} min"
+  },
+  "partner": {
+    "human": "Con un compañero",
+    "ai": "Con IA",
+    "group": "Con el grupo"
+  },
+  "modules": {
+    "reimagine-job": {
+      "name": "Reimagina Tu Trabajo",
+      "tagline": "Rediseña el trabajo de un compañero alrededor de lo que solo un humano puede hacer."
+    },
+    "reimagine-workflow": {
+      "name": "Reimagina un Flujo de Trabajo",
+      "tagline": "Repiensa un flujo de trabajo con un compañero — no lo parches."
+    },
+    "benchmark": {
+      "name": "El Benchmark",
+      "tagline": "Pruébate contra la máquina — luego ve al grupo."
+    },
+    "workflow-solo": {
+      "name": "Reimagina un Flujo de Trabajo con IA",
+      "tagline": "La IA te entrevista, luego redibuja tu flujo de trabajo con IA + humanos en los lugares correctos."
+    },
+    "network": {
+      "name": "La Red",
+      "tagline": "Mapea la red real del grupo — en vivo, y anónimamente."
+    },
+    "jd-x-ray": {
+      "name": "Análisis de Descripción de Puesto",
+      "tagline": "Pega un rol — ve su exposición a IA, y exactamente a quién contratar."
+    },
+    "career-x-ray": {
+      "name": "Análisis de Carrera",
+      "tagline": "Pega tu CV — ve qué puede hacer la IA, y en qué enfocarte."
+    },
+    "solo-ai": {
+      "name": "Reimagina Tu Trabajo con IA",
+      "tagline": "Enfócate en la parte humana de tu trabajo."
+    },
+    "execution-4a": {
+      "name": "Diagnóstico de Ejecución 4A",
+      "tagline": "¿Esta iniciativa está realmente configurada para ejecutarse?"
+    },
+    "close-the-offer": {
+      "name": "Cierra la Oferta",
+      "tagline": "Negocia una oferta de trabajo contra un homólogo de IA — luego obtén tu puntuación."
+    },
+    "name-your-price": {
+      "name": "Fija Tu Precio",
+      "tagline": "Una pura negociación de precio — ancla, encuentra la ZOPA, y reclama la brecha."
+    },
+    "good-business": {
+      "name": "¿Es Este un Buen Negocio?",
+      "tagline": "Presiona una idea de negocio con estrategia real y números reales."
+    },
+    "balanced-scorecard": {
+      "name": "Cuadro de Mando Integral",
+      "tagline": "Convierte una estrategia en OKRs + iniciativas en cuatro perspectivas vinculadas."
+    },
+    "ai-canvas": {
+      "name": "Lienzo de Oportunidad de IA",
+      "tagline": "¿Dónde debería ir realmente la IA — y cómo la despliegas bien?"
+    },
+    "opportunity-capability": {
+      "name": "Ajuste Oportunidad–Capacidad",
+      "tagline": "¿Deberías hacer esta apuesta? Pruébala contra lo que realmente puedes hacer."
+    },
+    "test-the-bet": {
+      "name": "Prueba la Apuesta",
+      "tagline": "Antes de comprometerte, diseña un experimento limpio para probarla."
+    }
   },
   "sessions": {
-    "show": "▸ Mostrar tus sesiones ({n})",
-    "hide": "▾ Ocultar tus sesiones ({n})",
+    "show": "▸ Muestra tus sesiones ({n})",
+    "hide": "▾ Oculta tus sesiones ({n})",
     "empty": "Nada aún — comienza un ejercicio arriba para empezar.",
-    "deleteTitle": "Eliminar esta sala"
+    "deleteTitle": "Elimina esta sala"
   },
   "lang": {
     "label": "Idioma para contenido generado por IA"

@@ -54,6 +54,12 @@ export default function Catalog({
   const router = useRouter();
   const supabase = createClient();
   const t = useT();
+  // Translate with a graceful fallback: if a key isn't in the locale (or in the
+  // English base), show the registry's own string rather than a raw key.
+  const tf = (key: string, fallback: string) => {
+    const v = t(key);
+    return v === key ? fallback : v;
+  };
   const cohort = fixedCohort ?? initialCohort;
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -102,14 +108,14 @@ export default function Catalog({
               <div className={"flex h-11 w-11 items-center justify-center rounded-xl " + chip}>
                 <ModuleIcon slug={m.slug} />
               </div>
-              <h3 className="mt-4 text-lg font-bold text-ink">{m.name}</h3>
-              <p className="mt-1.5 flex-1 text-sm leading-relaxed text-slate2">{m.tagline}</p>
+              <h3 className="mt-4 text-lg font-bold text-ink">{tf("modules." + m.slug + ".name", m.name)}</h3>
+              <p className="mt-1.5 flex-1 text-sm leading-relaxed text-slate2">{tf("modules." + m.slug + ".tagline", m.tagline)}</p>
               <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-ink/45">
                 <span className={"inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium " + pm.chip}>
                   <span className="h-1.5 w-1.5 rounded-full" style={{ background: pm.dot }} />
-                  {pm.label}
+                  {tf("partner." + m.partner, pm.label)}
                 </span>
-                <span>{m.minutes} min</span>
+                <span>{t("catalog.min", { n: m.minutes })}</span>
                 {completed[m.slug] && (
                   <span className="rounded-full bg-sage-soft px-2 py-0.5 font-medium text-sage">{t("catalog.done")}</span>
                 )}

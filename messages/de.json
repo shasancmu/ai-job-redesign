@@ -3,12 +3,12 @@
     "signIn": "Anmelden",
     "getStarted": "Erste Schritte",
     "signOut": "Abmelden",
-    "facilitator": "Moderator"
+    "facilitator": "Facilitator"
   },
   "dash": {
     "greeting": "Hallo {name}",
     "exercises": "Übungen",
-    "framing": "Ein Instrument, viele Wege: Gestalten Sie Ihren Job oder einen Workflow neu, analysieren Sie einen Lebenslauf oder eine Rolle, schärfen Sie eine Entscheidung oder verhandeln Sie – allein, mit einem Partner oder live mit einer Gruppe.",
+    "framing": "Ein Instrument, viele Wege: Gestalten Sie Ihren Job oder einen Workflow neu, durchleuchten Sie einen Lebenslauf oder eine Rolle, schärfen Sie eine Entscheidung oder verhandeln Sie — allein, mit einem Partner oder live mit einer Gruppe.",
     "yourSessions": "Ihre Sitzungen"
   },
   "cat": {
@@ -20,17 +20,89 @@
   "catalog": {
     "start": "Starten",
     "starting": "Wird gestartet…",
-    "pairUp": "Partnern Sie sich →",
+    "pairUp": "Partnern finden →",
     "doItAgain": "Nochmal machen",
     "viewLast": "Letztes Ergebnis anzeigen →",
-    "cohortOnly": "Läuft live in einer Gruppe. Öffnen Sie den Cohort-Link Ihres Moderators, um teilzunehmen.",
+    "cohortOnly": "Läuft live in einer Gruppe. Öffnen Sie den Cohort-Link Ihres Facilitators, um teilzunehmen.",
     "done": "✓ Fertig",
-    "unlock": "Freischalten"
+    "unlock": "Freischalten",
+    "min": "{n} Min"
+  },
+  "partner": {
+    "human": "Mit einem Partner",
+    "ai": "Mit KI",
+    "group": "Mit der Gruppe"
+  },
+  "modules": {
+    "reimagine-job": {
+      "name": "Ihren Job neu gestalten",
+      "tagline": "Gestalten Sie den Job eines Partners um das neu, was nur ein Mensch kann."
+    },
+    "reimagine-workflow": {
+      "name": "Einen Workflow neu gestalten",
+      "tagline": "Überdenken Sie einen Workflow mit einem Partner — nicht nur flicken."
+    },
+    "benchmark": {
+      "name": "Der Benchmark",
+      "tagline": "Messen Sie sich gegen die Maschine — dann sehen Sie die Gruppe."
+    },
+    "workflow-solo": {
+      "name": "Einen Workflow mit KI neu gestalten",
+      "tagline": "KI befragt Sie, dann zeichnet sie Ihren Workflow mit KI + Menschen in den richtigen Rollen neu."
+    },
+    "network": {
+      "name": "Das Netzwerk",
+      "tagline": "Kartografieren Sie das echte Netzwerk der Gruppe — live und anonym."
+    },
+    "jd-x-ray": {
+      "name": "Stellenbeschreibung Röntgen",
+      "tagline": "Fügen Sie eine Rolle ein — sehen Sie ihre KI-Anfälligkeit und genau wen Sie einstellen sollten."
+    },
+    "career-x-ray": {
+      "name": "Karriere Röntgen",
+      "tagline": "Fügen Sie Ihren Lebenslauf ein — sehen Sie, was KI kann, und worauf Sie setzen sollten."
+    },
+    "solo-ai": {
+      "name": "Ihren Job mit KI neu gestalten",
+      "tagline": "Konzentrieren Sie sich auf den menschlichen Teil Ihres Jobs."
+    },
+    "execution-4a": {
+      "name": "4A Execution Diagnostic",
+      "tagline": "Ist diese Initiative wirklich für die Umsetzung aufgestellt?"
+    },
+    "close-the-offer": {
+      "name": "Das Angebot abschließen",
+      "tagline": "Verhandeln Sie ein Jobangebot gegen einen KI-Gegenspieler — dann werden Sie bewertet."
+    },
+    "name-your-price": {
+      "name": "Nennen Sie Ihren Preis",
+      "tagline": "Ein reines Preisverhandeln — verankern, finden Sie die ZOPA und beanspruchen Sie die Spanne."
+    },
+    "good-business": {
+      "name": "Ist das ein gutes Geschäft?",
+      "tagline": "Testen Sie eine Geschäftsidee mit echter Strategie und echten Zahlen."
+    },
+    "balanced-scorecard": {
+      "name": "Balanced Scorecard",
+      "tagline": "Wandeln Sie eine Strategie in OKRs + Initiativen über vier verknüpfte Perspektiven um."
+    },
+    "ai-canvas": {
+      "name": "KI-Chancen-Canvas",
+      "tagline": "Wo sollte KI wirklich hin — und wie setzen Sie sie richtig ein?"
+    },
+    "opportunity-capability": {
+      "name": "Chance–Fähigkeit Passung",
+      "tagline": "Sollten Sie diese Wette eingehen? Testen Sie sie gegen das, was Sie wirklich können."
+    },
+    "test-the-bet": {
+      "name": "Die Wette testen",
+      "tagline": "Bevor Sie sich festlegen, entwerfen Sie ein sauberes Experiment, um sie zu testen."
+    }
   },
   "sessions": {
     "show": "▸ Ihre Sitzungen anzeigen ({n})",
     "hide": "▾ Ihre Sitzungen ausblenden ({n})",
-    "empty": "Noch nichts – starten Sie oben eine Übung, um zu beginnen.",
+    "empty": "Noch nichts — starten Sie oben eine Übung, um zu beginnen.",
     "deleteTitle": "Diesen Raum löschen"
   },
   "lang": {
@@ -46,9 +118,9 @@
     "step": "Schritt {n} von {total}",
     "with": "mit {name}",
     "yourPartner": "Ihrem Partner",
-    "timerUp": "Zeit abgelaufen – einer von Ihnen kann den Raum weiterführen.",
+    "timerUp": "Zeit ist um — einer von Ihnen kann den Raum weiterbewegen.",
     "timerWait": "Wird freigeschaltet, wenn der Timer endet.",
-    "waitingPartner": "Warten auf Ihren Partner zum Beitreten zu Raum {code}…",
+    "waitingPartner": "Warten auf Ihren Partner, um Raum {code} zu betreten…",
     "reviewStep": "Überprüfung: {title}"
   }
 }
