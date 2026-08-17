@@ -88,9 +88,11 @@ export function matchOccupation(role: string, text = ""): Occupation | null {
   return bestScore >= 3 ? best : null;
 }
 
-// Licensed exposure table — SOC code → β exposure (0–1). EMPTY by default:
-// populate from a licensed source (gaisi-index / Eloundou). Not fabricated.
-export const EXPOSURE_INDEX: Record<string, number> = {};
+// Exposure table — SOC code → exposure % (0–100). Populated by generating your
+// OWN table from public O*NET tasks + the Eloundou rubric (see lib/exposureData.ts
+// and scripts/build-exposure.mjs). Empty here until you generate it.
+import { EXPOSURE_DATA } from "./exposureData";
+export const EXPOSURE_INDEX: Record<string, number> = { ...EXPOSURE_DATA };
 
 export function occupationExposure(code?: string): number | null {
   if (!code) return null;
