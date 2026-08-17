@@ -55,9 +55,6 @@ export default async function Home() {
               <Link href="/login" className="btn-primary">
                 Start with Reimagine Your Job <span aria-hidden>→</span>
               </Link>
-              <Link href="/join" className="btn-ghost">
-                Join as a guest
-              </Link>
             </div>
             <div className="mt-4">
               <a
