@@ -146,6 +146,12 @@ export default async function RoomPage({
   // fills the linked public form; only the buyer (host) sees this room.
   if (session.exercise === "disclosure" || session.exercise === "disclosure-haip") {
     if (!amHost) redirect("/dashboard");
+    // Mint a long, unguessable public token for the vendor link (once).
+    let token: string = session.public_token;
+    if (!token) {
+      token = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, "");
+      await supabase.from("sessions").update({ public_token: token }).eq("id", session.id);
+    }
     await supabase
       .from("workspaces")
       .upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
@@ -159,6 +165,7 @@ export default async function RoomPage({
       <DisclosureRoom
         me={user.id}
         session={session}
+        token={token}
         initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
         variant={variantForExercise(session.exercise)}
       />

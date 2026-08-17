@@ -6,15 +6,15 @@ import Logo from "@/components/Logo";
 export const dynamic = "force-dynamic";
 
 // PUBLIC, no-auth page: a vendor completes a disclosure via the link the buyer
-// shared. Read/write goes through the service-role client, keyed by the session
-// code (the link token) — never RLS-exposed.
-export default async function DisclosePage({ params }: { params: { code: string } }) {
-  const code = params.code.toUpperCase();
+// shared. Looked up by a long unguessable token, through the service-role
+// client (never RLS-exposed).
+export default async function DisclosePage({ params }: { params: { token: string } }) {
+  const token = params.token;
   let session: any = null;
   let workspace: any = null;
   try {
     const admin = createAdminClient();
-    const { data: s } = await admin.from("sessions").select("id, code, exercise").eq("code", code).maybeSingle();
+    const { data: s } = await admin.from("sessions").select("id, exercise, public_token").eq("public_token", token).maybeSingle();
     session = s;
     if (session) {
       const { data: w } = await admin.from("workspaces").select("id, canvas").eq("session_id", session.id).limit(1).maybeSingle();
@@ -52,7 +52,7 @@ export default async function DisclosePage({ params }: { params: { code: string 
       </p>
 
       <DisclosureForm
-        code={code}
+        token={token}
         domains={domains}
         initial={(canvas.responses as any) || {}}
         alreadySubmitted={!!canvas.submittedAt}

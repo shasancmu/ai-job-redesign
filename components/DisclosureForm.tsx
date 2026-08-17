@@ -4,12 +4,12 @@ import { useState } from "react";
 import type { DiscDomain } from "@/lib/disclosure";
 
 export default function DisclosureForm({
-  code,
+  token,
   domains,
   initial,
   alreadySubmitted,
 }: {
-  code: string;
+  token: string;
   domains: DiscDomain[];
   initial: Record<string, string>;
   alreadySubmitted: boolean;
@@ -25,7 +25,7 @@ export default function DisclosureForm({
       const res = await fetch("/api/disclose/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, responses: ans }),
+        body: JSON.stringify({ token, responses: ans }),
       });
       const d = await res.json();
       if (res.ok) { setDone(true); window.scrollTo({ top: 0, behavior: "smooth" }); }

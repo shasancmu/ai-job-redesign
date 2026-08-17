@@ -8,11 +8,13 @@ import { domainsFor, answeredCount, type DiscVariant } from "@/lib/disclosure";
 export default function DisclosureRoom({
   me,
   session,
+  token,
   initialWorkspace,
   variant,
 }: {
   me: string;
   session: any;
+  token: string;
   initialWorkspace: any;
   variant: DiscVariant;
 }) {
@@ -27,7 +29,7 @@ export default function DisclosureRoom({
   const [origin, setOrigin] = useState("");
   const [copied, setCopied] = useState(false);
   useEffect(() => setOrigin(window.location.origin), []);
-  const link = origin ? `${origin}/disclose/${session.code}` : "";
+  const link = origin ? `${origin}/disclose/${token}` : "";
 
   // Autosave the buyer's setup (vendor/product/isAi).
   const pending = useRef<Record<string, any>>({});
@@ -154,7 +156,10 @@ function Response({
     <div className="space-y-4">
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
         <div className="text-sm font-semibold text-ink">The vendor responded.</div>
-        <button onClick={run} disabled={busy || !canReview} className="btn-primary text-sm">{busy ? "Reviewing…" : review ? "↻ Re-review" : "✨ Review against the framework"}</button>
+        <div className="flex items-center gap-3">
+          <Link href={`/disclosure/${code}`} className="text-sm font-medium text-ink hover:underline">View / print →</Link>
+          <button onClick={run} disabled={busy || !canReview} className="btn-primary text-sm">{busy ? "Reviewing…" : review ? "↻ Re-review" : "✨ Review against the framework"}</button>
+        </div>
       </div>
       {err && <p className="text-sm text-clay">{err}</p>}
 

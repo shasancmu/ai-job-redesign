@@ -54,8 +54,11 @@ alter table public.sessions add column if not exists cohort text;
 alter table public.sessions add column if not exists exercise text not null default 'job';
 alter table public.sessions add column if not exists broadcast_msg text;
 alter table public.sessions add column if not exists broadcast_at timestamptz;
+-- Long, unguessable public token for the Vendor Disclosure open link.
+alter table public.sessions add column if not exists public_token text;
 
 create index if not exists sessions_code_idx on public.sessions (code);
+create index if not exists sessions_public_token_idx on public.sessions (public_token);
 create index if not exists sessions_host_idx on public.sessions (host_id);
 create index if not exists sessions_guest_idx on public.sessions (guest_id);
 create index if not exists sessions_cohort_idx on public.sessions (cohort);

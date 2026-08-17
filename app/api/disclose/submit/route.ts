@@ -12,8 +12,8 @@ export async function POST(request: Request) {
   } catch {
     return Response.json({ error: "bad request" }, { status: 400 });
   }
-  const code = String(body.code || "").toUpperCase();
-  if (!code) return Response.json({ error: "Missing link code." }, { status: 400 });
+  const token = String(body.token || "");
+  if (!token) return Response.json({ error: "Missing link token." }, { status: 400 });
 
   // Sanitize responses to a flat map of capped strings.
   const responses: Record<string, string> = {};
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Not available." }, { status: 500 });
   }
 
-  const { data: session } = await admin.from("sessions").select("id, exercise").eq("code", code).maybeSingle();
+  const { data: session } = await admin.from("sessions").select("id, exercise").eq("public_token", token).maybeSingle();
   if (!session || !["disclosure", "disclosure-haip"].includes(session.exercise)) {
     return Response.json({ error: "This link isn't valid." }, { status: 404 });
   }
