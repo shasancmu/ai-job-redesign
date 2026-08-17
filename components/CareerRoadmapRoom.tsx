@@ -6,8 +6,15 @@ import { createClient } from "@/lib/supabase/client";
 import { CAREER_ROADMAP_STEPS } from "@/lib/careerRoadmap";
 import Timer from "@/components/Timer";
 import CareerRoadmapView from "@/components/CareerRoadmapView";
+import { useT } from "@/components/I18nProvider";
 
 type Msg = { role: "user" | "assistant"; content: string };
+
+const STEP_KEY: Record<string, string> = {
+  input: "roadmap.stepInput",
+  interview: "roadmap.stepInterview",
+  roadmap: "roadmap.stepRoadmap",
+};
 
 export default function CareerRoadmapRoom({
   me,
@@ -21,6 +28,7 @@ export default function CareerRoadmapRoom({
   savedResume?: string;
 }) {
   const supabase = createClient();
+  const t = useT();
   const [phase, setPhase] = useState<number>(session.phase || 0);
   const [startedAt, setStartedAt] = useState(session.phase_started_at || new Date().toISOString());
   const [ws, setWs] = useState<any>({ canvas: {}, ...initialWorkspace });
@@ -65,8 +73,8 @@ export default function CareerRoadmapRoom({
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Exit</Link>
-          <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">Career Roadmap</span>
+          <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
+          <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{t("roadmap.tag")}</span>
         </div>
         <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())} />
       </div>
@@ -78,45 +86,45 @@ export default function CareerRoadmapRoom({
       </div>
 
       <div className="mb-5">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Step {phase + 1} of {CAREER_ROADMAP_STEPS.length}</div>
-        <h1 className="mt-1 text-2xl font-bold">{step.title}</h1>
+        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("room.step", { n: phase + 1, total: CAREER_ROADMAP_STEPS.length })}</div>
+        <h1 className="mt-1 text-2xl font-bold">{t(STEP_KEY[step.key] || "roadmap.stepInput")}</h1>
       </div>
 
       <div className="pb-24">
         {step.key === "input" && (
           <div className="space-y-4">
             <div className="rounded-2xl border border-line bg-mist p-4 text-sm text-slate-600">
-              Paste your résumé (or the key parts). We match it to your O*NET occupation, find skill-adjacent next steps, and map the skills to build.
-              <div className="mt-1.5 text-xs text-slate-400">Private to you — nothing is shown to other participants.</div>
+              {t("roadmap.intro")}
+              <div className="mt-1.5 text-xs text-slate-400">{t("career.privateNote")}</div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div><label className="lbl">Your current role</label><input className="field" placeholder="e.g. Senior Marketing Manager" value={state.role || ""} onChange={(e) => setState({ role: e.target.value })} /></div>
-              <div><label className="lbl">Level (optional)</label><input className="field" placeholder="e.g. Manager, VP, IC5" value={state.level || ""} onChange={(e) => setState({ level: e.target.value })} /></div>
+              <div><label className="lbl">{t("career.currentRole")}</label><input className="field" placeholder={t("solo.jobTitlePh")} value={state.role || ""} onChange={(e) => setState({ role: e.target.value })} /></div>
+              <div><label className="lbl">{t("career.levelOptional")}</label><input className="field" placeholder={t("career.levelPh")} value={state.level || ""} onChange={(e) => setState({ level: e.target.value })} /></div>
             </div>
             <div className="card p-5">
               <div className="flex items-baseline justify-between">
-                <label className="lbl">Résumé</label>
-                {state.usedSaved && <span className="text-xs text-sage">Loaded your saved résumé — edit if it changed.</span>}
+                <label className="lbl">{t("career.resumeLabel")}</label>
+                {state.usedSaved && <span className="text-xs text-sage">{t("roadmap.loadedSaved")}</span>}
               </div>
-              <textarea className="field min-h-[220px]" placeholder="Paste your résumé, or your key experience and responsibilities…" value={state.text || ""} onChange={(e) => setState({ text: e.target.value, usedSaved: false })} />
+              <textarea className="field min-h-[220px]" placeholder={t("career.pasteResume")} value={state.text || ""} onChange={(e) => setState({ text: e.target.value, usedSaved: false })} />
             </div>
           </div>
         )}
 
         {step.key === "interview" && <Interview state={state} setState={setState} role={state.role} onSkip={() => go(2)} />}
 
-        {step.key === "roadmap" && <Roadmap state={state} setState={setState} />}
+        {step.key === "roadmap" && <Roadmap state={state} setState={setState} code={session.code} />}
       </div>
 
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">Back</button>
+          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">{t("room.back")}</button>
           {phase < CAREER_ROADMAP_STEPS.length - 1 ? (
             <button onClick={() => go(phase + 1)} disabled={step.key === "input" && (state.text || "").length < 60} className="btn-primary">
-              {step.key === "interview" ? "Build my roadmap →" : "Next →"}
+              {step.key === "interview" ? `${t("roadmap.buildNav")} →` : `${t("roadmap.next")} →`}
             </button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">Finish</Link>
+            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>
@@ -125,6 +133,7 @@ export default function CareerRoadmapRoom({
 }
 
 function Interview({ state, setState, role, onSkip }: { state: any; setState: (p: any) => void; role?: string; onSkip: () => void }) {
+  const t = useT();
   const messages: Msg[] = state.interview_chat || [];
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -137,9 +146,9 @@ function Interview({ state, setState, role, onSkip }: { state: any; setState: (p
     try {
       const res = await fetch("/api/career-roadmap", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", messages: history, role }) });
       const data = await res.json();
-      if (!res.ok) { setErr(data.error || "The coach is unavailable."); return null; }
+      if (!res.ok) { setErr(data.error || t("roadmap.coachUnavailable")); return null; }
       return data.reply as string;
-    } catch { setErr("The coach is unavailable."); return null; } finally { setBusy(false); }
+    } catch { setErr(t("roadmap.coachUnavailable")); return null; } finally { setBusy(false); }
   }, [role]);
 
   useEffect(() => {
@@ -162,10 +171,10 @@ function Interview({ state, setState, role, onSkip }: { state: any; setState: (p
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-slate-500">Optional — a few questions about where you want to grow and your constraints. It sharpens the recommendations. <button onClick={onSkip} className="text-ink underline">Skip to roadmap</button></p>
+      <p className="text-sm text-slate-500">{t("roadmap.interviewIntro")} <button onClick={onSkip} className="text-ink underline">{t("roadmap.skipToRoadmap")}</button></p>
       <div className="card flex flex-col p-5" style={{ height: "52vh", minHeight: 360 }}>
         <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto pr-1">
-          {messages.length === 0 && busy && <div className="text-slate-400">The coach is thinking of an opening question…</div>}
+          {messages.length === 0 && busy && <div className="text-slate-400">{t("roadmap.coachOpening")}</div>}
           {messages.map((m, i) => (
             <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
               <div className={"max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed " + (m.role === "user" ? "bg-ink text-white" : "bg-slate-100 text-slate-800")}>{m.content}</div>
@@ -175,15 +184,16 @@ function Interview({ state, setState, role, onSkip }: { state: any; setState: (p
         </div>
         {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
         <form onSubmit={send} className="mt-3 flex items-center gap-2">
-          <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type your answer…" disabled={busy} />
-          <button className="btn-primary" disabled={busy || !input.trim()}>Send</button>
+          <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t("room.typeAnswer")} disabled={busy} />
+          <button className="btn-primary" disabled={busy || !input.trim()}>{t("room.send")}</button>
         </form>
       </div>
     </div>
   );
 }
 
-function Roadmap({ state, setState }: { state: any; setState: (p: any) => void }) {
+function Roadmap({ state, setState, code }: { state: any; setState: (p: any) => void; code: string }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const roadmap = state.roadmap;
@@ -194,19 +204,24 @@ function Roadmap({ state, setState }: { state: any; setState: (p: any) => void }
       const res = await fetch("/api/career-roadmap", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "analyze", text: state.text || "", role: state.role || "", level: state.level || "", messages: state.interview_chat || [] }) });
       const d = await res.json();
       if (res.ok && d.roadmap) setState({ roadmap: d.roadmap });
-      else setErr(d.error || "Couldn't build the roadmap.");
-    } catch { setErr("Couldn't build the roadmap."); }
+      else setErr(d.error || t("roadmap.cantBuild"));
+    } catch { setErr(t("roadmap.cantBuild")); }
     setBusy(false);
   }
 
   return (
     <div className="space-y-4">
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
-        <div className="text-sm text-slate-500">{(state.text || "").length < 60 ? "Add your résumé on the first step." : "Map your skill-adjacent next steps and the roadmap to get there."}</div>
-        <button onClick={run} disabled={busy || (state.text || "").length < 60} className="btn-primary text-sm">{busy ? "Building…" : roadmap ? "↻ Rebuild" : "✨ Build my roadmap"}</button>
+        <div className="text-sm text-slate-500">{(state.text || "").length < 60 ? t("roadmap.addResume") : t("roadmap.runIntro")}</div>
+        <button onClick={run} disabled={busy || (state.text || "").length < 60} className="btn-primary text-sm">{busy ? t("roadmap.building") : roadmap ? t("roadmap.rebuild") : t("roadmap.build")}</button>
       </div>
       {err && <p className="text-sm text-clay">{err}</p>}
-      {roadmap && <CareerRoadmapView roadmap={roadmap} />}
+      {roadmap && (
+        <>
+          <CareerRoadmapView roadmap={roadmap} />
+          <Link href={`/roadmap/${code}`} className="btn-primary block text-center">{t("roadmap.viewFull")}</Link>
+        </>
+      )}
     </div>
   );
 }

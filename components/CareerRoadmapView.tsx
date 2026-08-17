@@ -1,27 +1,29 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import { useT } from "@/components/I18nProvider";
 
 const TIER = {
-  lateral: { c: "#3B7FB5", label: "Lateral pivot", soft: "#E6F0F8" },
-  step_up: { c: "#3F7A52", label: "Step up", soft: "#E7F1EA" },
-  stretch: { c: "#CE8F2C", label: "Stretch move", soft: "#FaF1DF" },
+  lateral: { c: "#3B7FB5", key: "roadmap.tierLateral", soft: "#E6F0F8" },
+  step_up: { c: "#3F7A52", key: "roadmap.tierStepUp", soft: "#E7F1EA" },
+  stretch: { c: "#CE8F2C", key: "roadmap.tierStretch", soft: "#FaF1DF" },
 } as const;
 type Tier = keyof typeof TIER;
 const tierOf = (t: string): Tier => (t in TIER ? (t as Tier) : "lateral");
 
 export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
+  const t = useT();
   const targets: any[] = roadmap?.targets || [];
   const [sel, setSel] = useState<string>(targets[0]?.code || "");
-  const target = targets.find((t) => t.code === sel) || targets[0];
+  const target = targets.find((x) => x.code === sel) || targets[0];
 
-  if (!target) return <p className="text-sm text-slate2">No roadmap yet.</p>;
+  if (!target) return <p className="text-sm text-slate2">{t("roadmap.noTargets")}</p>;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Your starting point</div>
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("roadmap.startingPoint")}</div>
         <h2 className="mt-0.5 text-xl font-bold text-ink">{roadmap.current?.title}</h2>
         {roadmap.strengths?.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">
@@ -34,16 +36,14 @@ export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
 
       {/* Career map */}
       <div className="card p-5">
-        <div className="mb-1 text-sm font-bold text-ink">Where you can go next</div>
-        <p className="mb-3 text-xs text-slate-400">
-          Positioned by how transferable your skills are (right = closer) and the upside (up = higher pay, or prep level). Tap a role.
-        </p>
+        <div className="mb-1 text-sm font-bold text-ink">{t("roadmap.whereNext")}</div>
+        <p className="mb-3 text-xs text-slate-400">{t("roadmap.mapCaption")}</p>
         <CareerMap roadmap={roadmap} sel={sel} onSelect={setSel} />
         <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-500">
           {(Object.keys(TIER) as Tier[]).map((k) => (
             <span key={k} className="inline-flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: TIER[k].c }} />
-              {TIER[k].label}
+              {t(TIER[k].key)}
             </span>
           ))}
         </div>
@@ -57,15 +57,15 @@ export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
               className="rounded-full px-2 py-0.5 text-xs font-medium"
               style={{ background: TIER[tierOf(target.tier)].soft, color: TIER[tierOf(target.tier)].c }}
             >
-              {TIER[tierOf(target.tier)].label}
+              {t(TIER[tierOf(target.tier)].key)}
             </span>
             <h3 className="mt-1.5 text-lg font-bold text-ink">{target.title}</h3>
           </div>
           <div className="text-right text-xs text-slate-400">
-            <div>Skill match {Math.round(target.sim * 100)}%</div>
+            <div>{t("roadmap.skillMatch", { pct: Math.round(target.sim * 100) })}</div>
             {target.wage != null ? (
               <div>
-                ${Math.round(target.wage / 1000)}k median
+                ${Math.round(target.wage / 1000)}k {t("roadmap.medianWord")}
                 {roadmap.current?.wage != null && (
                   <span className={target.wage >= roadmap.current.wage ? "text-sage" : "text-clay"}>
                     {" "}({target.wage >= roadmap.current.wage ? "+" : ""}
@@ -74,7 +74,7 @@ export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
                 )}
               </div>
             ) : (
-              target.zone != null && <div>Job Zone {target.zone}</div>
+              target.zone != null && <div>{t("roadmap.jobZone", { n: target.zone })}</div>
             )}
           </div>
         </div>
@@ -82,21 +82,21 @@ export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
 
         <div className="mt-4 grid gap-5 sm:grid-cols-2">
           <div>
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">You vs. this role</div>
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">{t("roadmap.youVsRole")}</div>
             <Radar points={target.radar || []} />
             <div className="mt-1 flex justify-center gap-4 text-xs text-slate-500">
-              <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: "#3B7FB5" }} /> You</span>
+              <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: "#3B7FB5" }} /> {t("roadmap.you")}</span>
               <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: "#1c1c1a" }} /> {target.title}</span>
             </div>
           </div>
           <div>
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Skills to build</div>
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">{t("roadmap.skillsToBuildLabel")}</div>
             <div className="space-y-2.5">
               {(target.gaps || []).filter((g: any) => g.gap > 0.2).slice(0, 5).map((g: any, i: number) => (
                 <GapBar key={i} gap={g} />
               ))}
               {(target.gaps || []).filter((g: any) => g.gap > 0.2).length === 0 && (
-                <p className="text-sm text-slate2">You already meet this role's skill bar — the move is about positioning, not upskilling.</p>
+                <p className="text-sm text-slate2">{t("roadmap.noGaps")}</p>
               )}
             </div>
             {target.skillsToBuild?.length > 0 && (
@@ -115,12 +115,12 @@ export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
 
       {/* Roadmap timeline */}
       <div className="card p-5">
-        <div className="mb-3 text-sm font-bold text-ink">Your roadmap</div>
+        <div className="mb-3 text-sm font-bold text-ink">{t("roadmap.yourRoadmap")}</div>
         <div className="grid gap-4 sm:grid-cols-3">
           {[
-            { k: "near", label: "Next 0–3 months", dot: "#3B7FB5" },
-            { k: "mid", label: "3–12 months", dot: "#3F7A52" },
-            { k: "move", label: "12–24 months — the move", dot: "#CE8F2C" },
+            { k: "near", label: t("roadmap.near"), dot: "#3B7FB5" },
+            { k: "mid", label: t("roadmap.mid"), dot: "#3F7A52" },
+            { k: "move", label: t("roadmap.move"), dot: "#CE8F2C" },
           ].map((col) => (
             <div key={col.k}>
               <div className="mb-2 flex items-center gap-2">
@@ -137,7 +137,7 @@ export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
         </div>
         {roadmap.note && (
           <div className="mt-4 rounded-lg bg-mist px-3 py-2 text-sm text-slate-600">
-            <span className="font-semibold">The lever:</span> {roadmap.note}
+            <span className="font-semibold">{t("roadmap.lever")}</span> {roadmap.note}
           </div>
         )}
       </div>
@@ -147,6 +147,7 @@ export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
 
 // ---- Career map (scatter: transferability × preparation) -------------------
 function CareerMap({ roadmap, sel, onSelect }: { roadmap: any; sel: string; onSelect: (c: string) => void }) {
+  const t = useT();
   const W = 640, H = 340, padL = 46, padR = 20, padT = 20, padB = 40;
   const pts: any[] = roadmap.map || [];
   const curWage = roadmap.current?.wage ?? null;
@@ -188,8 +189,8 @@ function CareerMap({ roadmap, sel, onSelect }: { roadmap: any; sel: string; onSe
                 <text x={6} y={yZone(z) + 3} fontSize="9" fill="#94a3b8">Z{z}</text>
               </g>
             ))}
-        <text x={W / 2} y={H - 6} fontSize="10" fill="#94a3b8" textAnchor="middle">Skill transferability →</text>
-        <text x={12} y={14} fontSize="9" fill="#94a3b8">{useWage ? "Median pay ↑" : "Prep level ↑"}</text>
+        <text x={W / 2} y={H - 6} fontSize="10" fill="#94a3b8" textAnchor="middle">{t("roadmap.axisTransfer")}</text>
+        <text x={12} y={14} fontSize="9" fill="#94a3b8">{useWage ? t("roadmap.axisPay") : t("roadmap.axisPrep")}</text>
 
         {/* candidates */}
         {pts.map((p) => {
@@ -226,9 +227,10 @@ function CareerMap({ roadmap, sel, onSelect }: { roadmap: any; sel: string; onSe
 
 // ---- Skills radar ----------------------------------------------------------
 function Radar({ points }: { points: { skill: string; you: number; target: number }[] }) {
+  const t = useT();
   const S = 260, c = S / 2, R = S / 2 - 46, MAX = 7;
   const n = points.length;
-  if (n < 3) return <div className="text-xs text-slate-400">Not enough skill data to chart.</div>;
+  if (n < 3) return <div className="text-xs text-slate-400">{t("roadmap.noRadar")}</div>;
   const ang = (i: number) => (Math.PI * 2 * i) / n - Math.PI / 2;
   const pt = (i: number, v: number) => [c + Math.cos(ang(i)) * R * (v / MAX), c + Math.sin(ang(i)) * R * (v / MAX)];
   const poly = (key: "you" | "target") => points.map((p, i) => pt(i, p[key]).join(",")).join(" ");
