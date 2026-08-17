@@ -859,3 +859,42 @@ Only include targets that genuinely fit this person's background and trajectory 
   );
   return extractJson(raw);
 }
+
+// ---- Vendor Disclosure review --------------------------------------------
+// Scores a vendor's completed disclosure against the framework's minimum-
+// transparency bar: per-domain completeness, red/amber flags, and follow-ups.
+export async function disclosureReviewAI(input: {
+  vendor: string;
+  product: string;
+  framework: string; // "the HAIP AI Vendor Disclosure Framework" | "a vendor disclosure framework (adapted from HAIP)"
+  domains: { key: string; title: string; questions: { key: string; label: string }[] }[];
+  responses: Record<string, string>;
+}): Promise<any> {
+  const body = input.domains
+    .map((d) => {
+      const qs = d.questions
+        .map((q) => `  Q (${q.key}): ${q.label}\n  A: ${(input.responses[q.key] || "").trim() || "[no answer]"}`)
+        .join("\n");
+      return `## ${d.title} [${d.key}]\n${qs}`;
+    })
+    .join("\n\n");
+  const sys = `You are a rigorous, skeptical vendor-risk reviewer applying ${input.framework}. You assess a vendor's completed disclosure against the framework's "minimum information required for transparency". Judge each answer for whether it actually discloses what the question asks — a vague, evasive, or missing answer is NOT complete. Flag red flags hard: unanswered high-stakes items (secondary data use / IP ownership, liability, exit/data portability, external validation, subgroup bias, regulatory status), refusals to accept liability, claims of owning or training on the buyer's data, or "trust us" answers with no evidence. Output STRICT JSON only, no prose, no code fences.`;
+  const user = `Vendor: ${input.vendor || "(unnamed)"} — Product: ${input.product || "(unnamed)"}
+
+DISCLOSURE:
+${body.slice(0, 12000)}
+
+Return JSON with EXACTLY these keys:
+{
+  "score": integer 0–100 (overall disclosure completeness/quality),
+  "overall": "2–3 sentences: is this disclosure adequate to make a decision, and the single biggest concern",
+  "domains": [ one per domain above, { "key": "<domain key>", "score": integer 0–100, "summary": "1 sentence on what's solid and what's thin" } ],
+  "flags": [ up to 8, most severe first, { "severity": "red" | "amber", "topic": "<short label>", "issue": "what's missing or concerning, specific" } ],
+  "followups": [ 3–6 specific questions to send back to the vendor to close the biggest gaps ]
+}`;
+  const raw = await complete(
+    [{ role: "system", content: sys }, { role: "user", content: user }],
+    { json: true, temperature: 0.3, maxTokens: 3000 }
+  );
+  return extractJson(raw);
+}

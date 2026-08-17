@@ -13,6 +13,8 @@ import CanvasRoom from "@/components/CanvasRoom";
 import NegotiationRoom from "@/components/NegotiationRoom";
 import CareerRoom from "@/components/CareerRoom";
 import CareerRoadmapRoom from "@/components/CareerRoadmapRoom";
+import DisclosureRoom from "@/components/DisclosureRoom";
+import { variantForExercise } from "@/lib/disclosure";
 import { canvasByExercise } from "@/lib/canvases";
 import { scenarioByExercise } from "@/lib/negotiation";
 
@@ -136,6 +138,29 @@ export default async function RoomPage({
         session={session}
         initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
         savedResume={savedResume}
+      />
+    );
+  }
+
+  // Vendor Disclosure (general or HAIP healthcare): buyer-side room. The vendor
+  // fills the linked public form; only the buyer (host) sees this room.
+  if (session.exercise === "disclosure" || session.exercise === "disclosure-haip") {
+    if (!amHost) redirect("/dashboard");
+    await supabase
+      .from("workspaces")
+      .upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
+    return (
+      <DisclosureRoom
+        me={user.id}
+        session={session}
+        initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
+        variant={variantForExercise(session.exercise)}
       />
     );
   }

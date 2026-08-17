@@ -40,7 +40,9 @@ export type ModuleDef = {
     | "haggle"
     | "career-xray"
     | "jd-xray"
-    | "career-roadmap"; // which room engine renders it
+    | "career-roadmap"
+    | "disclosure"
+    | "disclosure-haip"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -164,6 +166,36 @@ export const MODULES: ModuleDef[] = [
     emoji: "🩻",
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_CAREER",
+  },
+  {
+    slug: "vendor-disclosure",
+    exercise: "disclosure",
+    name: "Vendor Disclosure",
+    tagline: "Send a vendor one open link; get a rigorous, framework-based disclosure back.",
+    description:
+      "A procurement tool. Name a vendor/product, get a shareable link, and send it to the vendor — no account needed on their side. They complete a structured disclosure adapted from the Health AI Partnership (HAIP) framework across five domains: capabilities & intended use, performance & compliance, data stewardship, integration & cost, and lifecycle & support. Mark the vendor as AI/ML to add the model-performance, subgroup-bias, and drift questions. When it comes back, AI reviews it against the framework — scoring completeness per domain and flagging gaps and red flags.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 10,
+    ai: true,
+    emoji: "📋",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_DISCLOSURE",
+  },
+  {
+    slug: "haip-disclosure",
+    exercise: "disclosure-haip",
+    name: "Healthcare AI Vendor Disclosure (HAIP)",
+    tagline: "The Health AI Partnership framework — sent to your healthcare AI vendor as an open link.",
+    description:
+      "The Health AI Partnership (HAIP) AI Vendor Disclosure Framework in its native healthcare context, delivered as a shareable link for a healthcare delivery organization (HDO). Send it to an AI vendor and they complete the full disclosure across the five domains — system capabilities & intended use (care setting, essential-intervention alignment, maturity), performance & compliance (model metrics + external validation, subgroup bias per Section 1557, known risks, FDA/regulatory status), data stewardship (HIPAA, secondary-use/IP, exit and business-discontinuation), integration (EHR interoperability, total cost of ownership), and lifecycle management (drift monitoring, adverse-event reporting, HEDIS/QI value, SLAs). AI then reviews it against the framework's minimum-transparency bar and flags gaps for local validation.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 12,
+    ai: true,
+    emoji: "🩺",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_DISCLOSURE_HAIP",
   },
   {
     slug: "career-roadmap",
@@ -364,6 +396,8 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "balanced-scorecard": "strategy",
   "ai-canvas": "strategy",
   "deeptech-canvas": "strategy",
+  "vendor-disclosure": "strategy",
+  "haip-disclosure": "strategy",
   "opportunity-capability": "strategy",
   "test-the-bet": "strategy",
   "good-business": "strategy",
