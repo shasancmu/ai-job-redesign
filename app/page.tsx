@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { MODULES, PARTNER_META, CATEGORIES, moduleCategory } from "@/lib/modules";
 import Logo from "@/components/Logo";
-import ModuleIcon from "@/components/ModuleIcon";
+import LandingLibrary from "@/components/LandingLibrary";
 import Footer from "@/components/Footer";
 
 export default async function Home() {
@@ -83,42 +82,11 @@ export default async function Home() {
         </h2>
         <p className="mt-2 max-w-2xl text-slate2">
           Every one is grounded in a real framework, run by an AI interviewer, partner, counterpart, or coach — and
-          ends in something you keep. Do them on your own, with a partner, or live with a cohort.
+          ends in something you keep. Do them on your own, with a partner, or live with a cohort. Filter by theme to
+          find your starting point.
         </p>
 
-        <div className="mt-10 space-y-12">
-          {CATEGORIES.map((cat) => {
-            const mods = MODULES.filter((m) => moduleCategory(m.slug) === cat.key);
-            if (mods.length === 0) return null;
-            return (
-              <div key={cat.key}>
-                <div className="flex items-baseline gap-3">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: cat.dot }} />
-                  <h3 className="text-xl font-bold tracking-tight text-ink">{cat.title}</h3>
-                </div>
-                <p className="mt-1 max-w-2xl text-sm text-slate2">{cat.blurb}</p>
-                <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {mods.map((m) => (
-                    <div key={m.slug} className="card p-6 transition hover:shadow-lift">
-                      <div className={"flex h-11 w-11 items-center justify-center rounded-xl " + cat.chip}>
-                        <ModuleIcon slug={m.slug} />
-                      </div>
-                      <h4 className="mt-4 text-lg font-bold text-ink">{m.name}</h4>
-                      <p className="mt-1.5 text-sm leading-relaxed text-slate2">{m.tagline}</p>
-                      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-ink/45">
-                        <span className={"inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium " + PARTNER_META[m.partner].chip}>
-                          <span className="h-1.5 w-1.5 rounded-full" style={{ background: PARTNER_META[m.partner].dot }} />
-                          {PARTNER_META[m.partner].label}
-                        </span>
-                        <span>{m.minutes} min</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <LandingLibrary />
       </section>
 
       {/* Get started */}
