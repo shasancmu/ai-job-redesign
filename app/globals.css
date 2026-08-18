@@ -156,3 +156,66 @@ textarea.field {
   @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em];
   color: var(--sage);
 }
+
+/* ======================================================================== */
+/* Lux polish — restrained, tactile. Refined depth, motion, and detail.     */
+/* ======================================================================== */
+:root {
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --shadow-card: 0 1px 2px rgba(20, 40, 58, 0.045), 0 10px 30px -16px rgba(20, 40, 58, 0.20);
+  --shadow-lift: 0 2px 6px rgba(20, 40, 58, 0.06), 0 22px 48px -20px rgba(20, 40, 58, 0.30);
+}
+
+/* Crisper type + engineered numerals (prices, scores, timers align) */
+body { font-feature-settings: "kern", "liga", "calt"; letter-spacing: -0.004em; }
+.font-mono, .tabular-nums, [class*="text-2xl"], [class*="text-3xl"] { font-variant-numeric: tabular-nums; }
+
+::selection { background: rgba(63, 122, 82, 0.16); }
+
+/* Quiet, thin scrollbars */
+* { scrollbar-width: thin; scrollbar-color: #d6dde4 transparent; }
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-thumb { background: #d9e0e7; border-radius: 999px; border: 3px solid var(--paper); }
+::-webkit-scrollbar-thumb:hover { background: #c3ccd5; }
+
+/* Keyboard-only focus ring, on-brand (mouse clicks stay clean) */
+:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(63, 122, 82, 0.30); border-radius: 10px; }
+
+/* Cards: softer, layered depth + smooth transitions. Lift only where opted in. */
+.card {
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.4s var(--ease), transform 0.4s var(--ease), border-color 0.4s var(--ease);
+}
+[class*="hover:shadow-lift"]:hover {
+  box-shadow: var(--shadow-lift) !important;
+  transform: translateY(-2px);
+  border-color: #dce3ea;
+}
+
+/* Buttons: smoother motion, a tactile press, and a faint top sheen */
+.btn { transition: transform 0.18s var(--ease), background 0.18s var(--ease), box-shadow 0.18s var(--ease), border-color 0.18s var(--ease); }
+.btn:active { transform: translateY(0) scale(0.985); }
+.btn-primary, .btn-dark { position: relative; }
+.btn-primary::before, .btn-dark::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0) 46%);
+}
+
+/* Inputs: gentle focus transition */
+.field { transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease), background 0.18s var(--ease); }
+
+/* Pills / chips get the same easing when they animate */
+button { transition-timing-function: var(--ease); }
+
+/* One-time page reveal — opacity only, so fixed bars don't shift */
+@keyframes lux-fade { from { opacity: 0; } to { opacity: 1; } }
+main { animation: lux-fade 0.45s var(--ease) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
