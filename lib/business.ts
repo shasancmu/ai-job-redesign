@@ -52,22 +52,10 @@ export const WMS: WmsQuestion[] = [
     options: A("Mostly in people's heads.", "Some are written down.", "Key processes are documented and improved regularly."),
   },
   {
-    id: "ops3",
-    area: "operations",
-    prompt: "How often do you actively improve how the work gets done?",
-    options: A("Rarely, we're firefighting.", "Now and then.", "Continuously, improvement is part of the routine."),
-  },
-  {
     id: "mon1",
     area: "monitoring",
     prompt: "What performance numbers do you track?",
     options: A("Mainly what's in the bank.", "A few key numbers, checked occasionally.", "A clear set of KPIs on a regular cadence."),
-  },
-  {
-    id: "mon2",
-    area: "monitoring",
-    prompt: "How visible is performance to your team?",
-    options: A("Only I see the numbers.", "Shared sometimes.", "Key metrics are visible to the team and discussed."),
   },
   {
     id: "mon3",
@@ -88,12 +76,6 @@ export const WMS: WmsQuestion[] = [
     options: A("Whatever happens, happens.", "Comfortable.", "Realistic but genuinely stretching."),
   },
   {
-    id: "tgt3",
-    area: "targets",
-    prompt: "Does the team see how their work connects to the goals?",
-    options: A("They don't.", "Somewhat.", "Clearly, from the front line up."),
-  },
-  {
     id: "ppl1",
     area: "people",
     prompt: "How do you handle a persistent underperformer?",
@@ -104,12 +86,6 @@ export const WMS: WmsQuestion[] = [
     area: "people",
     prompt: "How do you reward your strongest people?",
     options: A("Everyone's treated the same.", "Ad hoc.", "Consistently recognized and rewarded for performance."),
-  },
-  {
-    id: "ppl3",
-    area: "people",
-    prompt: "How deliberately do you develop your people's skills?",
-    options: A("Sink or swim.", "Some training.", "Deliberate development and clear progression."),
   },
 ];
 

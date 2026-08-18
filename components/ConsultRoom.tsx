@@ -191,7 +191,7 @@ function Practices({ answers, setAnswers }: { answers: Record<string, number>; s
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-line bg-mist p-4 text-sm text-slate-600">
-        Twelve quick reads on how the business is run (Bloom, Van Reenen & Sadun). Pick the closest. <span className="font-medium text-ink">{answered}/{WMS.length}</span>
+        Eight quick reads on how the business is run (Bloom, Van Reenen & Sadun). Pick the closest. <span className="font-medium text-ink">{answered}/{WMS.length}</span>
       </div>
       {WMS_AREAS.map((area) => (
         <div key={area.key}>
