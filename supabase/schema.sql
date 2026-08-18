@@ -18,6 +18,8 @@ create table if not exists public.profiles (
 alter table public.profiles add column if not exists role text not null default 'end_user';
 -- Preferred language for AI-generated content (interviews, analyses, debriefs).
 alter table public.profiles add column if not exists language text not null default 'English';
+-- Seniority/level (paired with job_title) — reused to prefill the career modules.
+alter table public.profiles add column if not exists level text;
 
 -- Onboarding + audience segmentation (drives "Recommended for you").
 alter table public.profiles add column if not exists segment text;         -- SegmentKey (who they are)

@@ -6,8 +6,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // ---- Tier configuration (env-overridable so you can tune without a deploy) ---
 // Free tier: only these modules, this many runs each (mistakes/retries allowed).
 export const FREE_TIER_RUNS = num(process.env.FREE_TIER_RUNS, 4);
-// Paid ($29 or $19 cohort alumni): every module, this many runs per purchase.
-export const PAID_RUNS = num(process.env.PAID_RUNS, 3);
+// Paid ($29 or $19 cohort alumni): a generous per-module cap — high enough that
+// real users almost never hit it, low enough to bound abuse. Buying again resets
+// the window. Set PAID_UNLIMITED=true to remove the cap entirely.
+export const PAID_UNLIMITED = (process.env.PAID_UNLIMITED ?? "false") !== "false";
+export const PAID_RUNS = num(process.env.PAID_RUNS, 5);
 // The modules offered on the free tier. Comma-separated slugs in FREE_TIER_MODULES,
 // else this default hero set. Everything not listed is paid-only.
 export const FREE_TIER_MODULES = new Set(
@@ -78,6 +81,7 @@ export async function moduleRunAccess(
   const ents = await activeEnts(supabase, opts.userId);
   const paid = ents.find((e) => e.module === "all") || ents.find((e) => e.module === opts.slug);
   if (paid) {
+    if (PAID_UNLIMITED) return unlimited("entitled");
     const runs = await runsUsed(supabase, opts.userId, opts.exercise, paid.current_period_start);
     return { ok: runs <= PAID_RUNS, via: runs <= PAID_RUNS ? "entitled" : "blocked", runs, cap: PAID_RUNS };
   }
@@ -118,7 +122,7 @@ export async function runsLeftByModule(
   for (const m of MODULES) {
     if (m.forSale === false) { out[m.slug] = null; continue; }
     const used = counts[m.exercise] || 0;
-    if (paid) out[m.slug] = Math.max(0, PAID_RUNS - used);
+    if (paid) out[m.slug] = PAID_UNLIMITED ? null : Math.max(0, PAID_RUNS - used);
     else if (FREE_TIER_MODULES.has(m.slug)) out[m.slug] = Math.max(0, FREE_TIER_RUNS - used);
     else out[m.slug] = 0; // paid-only module, not owned
   }

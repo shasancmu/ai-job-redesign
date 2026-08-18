@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { CAREER_STEPS, hasXray } from "@/lib/careerXray";
@@ -11,7 +11,7 @@ import type { T } from "@/lib/i18n";
 
 function tf(t: T, key: string, fallback: string) { const v = t(key); return v === key ? fallback : v; }
 
-export default function CareerRoom({ me, session, mode, initialWorkspace }: { me: string; session: any; mode: "resume" | "jd"; initialWorkspace: any }) {
+export default function CareerRoom({ me, session, mode, initialWorkspace, savedRole = "", savedLevel = "" }: { me: string; session: any; mode: "resume" | "jd"; initialWorkspace: any; savedRole?: string; savedLevel?: string }) {
   const supabase = createClient();
   const t = useT();
   const [phase, setPhase] = useState<number>(session.phase || 0);
@@ -35,6 +35,31 @@ export default function CareerRoom({ me, session, mode, initialWorkspace }: { me
     timer.current = setTimeout(flush, 500);
   }, [flush]);
   const setState = (patch: Record<string, any>) => update({ canvas: { ...state, ...patch } });
+
+  // Prefill role/level from the saved profile once (résumé mode only — for a JD
+  // X-ray the role belongs to the job posting, not the user).
+  const prefilled = useRef(false);
+  useEffect(() => {
+    if (prefilled.current || mode !== "resume") return;
+    prefilled.current = true;
+    const patch: Record<string, any> = {};
+    if (!state.role && savedRole) patch.role = savedRole;
+    if (!state.level && savedLevel) patch.level = savedLevel;
+    if (Object.keys(patch).length) setState(patch);
+  }, []); // eslint-disable-line
+
+  // Persist role/level back to the profile (debounced) for future runs.
+  const profTimer = useRef<any>(null);
+  useEffect(() => {
+    if (mode !== "resume") return;
+    if (profTimer.current) clearTimeout(profTimer.current);
+    profTimer.current = setTimeout(() => {
+      const p: Record<string, any> = {};
+      if (state.role) p.job_title = state.role;
+      if (state.level) p.level = state.level;
+      if (Object.keys(p).length) supabase.from("profiles").update(p).eq("id", me);
+    }, 900);
+  }, [state.role, state.level]); // eslint-disable-line
 
   async function go(i: number) {
     const clamped = Math.max(0, Math.min(CAREER_STEPS.length - 1, i));

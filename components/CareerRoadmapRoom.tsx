@@ -21,11 +21,15 @@ export default function CareerRoadmapRoom({
   session,
   initialWorkspace,
   savedResume,
+  savedRole = "",
+  savedLevel = "",
 }: {
   me: string;
   session: any;
   initialWorkspace: any;
   savedResume?: string;
+  savedRole?: string;
+  savedLevel?: string;
 }) {
   const supabase = createClient();
   const t = useT();
@@ -51,14 +55,29 @@ export default function CareerRoadmapRoom({
   }, [flush]);
   const setState = (patch: Record<string, any>) => update({ canvas: { ...state, ...patch } });
 
-  // Prefill the saved résumé once, if they have one and haven't typed here yet.
+  // Prefill saved résumé + role/level once, if not already typed here.
   const prefilled = useRef(false);
   useEffect(() => {
-    if (!prefilled.current && savedResume && !state.text) {
-      prefilled.current = true;
-      setState({ text: savedResume, usedSaved: true });
-    }
+    if (prefilled.current) return;
+    prefilled.current = true;
+    const patch: Record<string, any> = {};
+    if (savedResume && !state.text) { patch.text = savedResume; patch.usedSaved = true; }
+    if (savedRole && !state.role) patch.role = savedRole;
+    if (savedLevel && !state.level) patch.level = savedLevel;
+    if (Object.keys(patch).length) setState(patch);
   }, []); // eslint-disable-line
+
+  // Persist role/level back to the profile (debounced) for future runs.
+  const profTimer = useRef<any>(null);
+  useEffect(() => {
+    if (profTimer.current) clearTimeout(profTimer.current);
+    profTimer.current = setTimeout(() => {
+      const p: Record<string, any> = {};
+      if (state.role) p.job_title = state.role;
+      if (state.level) p.level = state.level;
+      if (Object.keys(p).length) supabase.from("profiles").update(p).eq("id", me);
+    }, 900);
+  }, [state.role, state.level]); // eslint-disable-line
 
   async function go(i: number) {
     const clamped = Math.max(0, Math.min(CAREER_ROADMAP_STEPS.length - 1, i));

@@ -82,12 +82,15 @@ export default async function RoomPage({
       .eq("session_id", session.id)
       .eq("author_id", user.id)
       .maybeSingle();
+    const { data: prof } = await supabase.from("profiles").select("job_title, level").eq("id", user.id).maybeSingle();
     return (
       <CareerRoom
         me={user.id}
         session={session}
         mode={session.exercise === "jd-xray" ? "jd" : "resume"}
         initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
+        savedRole={(prof as any)?.job_title || ""}
+        savedLevel={(prof as any)?.level || ""}
       />
     );
   }
@@ -132,12 +135,15 @@ export default async function RoomPage({
       }
     }
 
+    const { data: rmProf } = await supabase.from("profiles").select("job_title, level").eq("id", user.id).maybeSingle();
     return (
       <CareerRoadmapRoom
         me={user.id}
         session={session}
         initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
         savedResume={savedResume}
+        savedRole={(rmProf as any)?.job_title || ""}
+        savedLevel={(rmProf as any)?.level || ""}
       />
     );
   }
