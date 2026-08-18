@@ -11,7 +11,7 @@ import { analyze as negAnalyze, scenarioByExercise as negScenario, maxJointOf } 
 import { NegotiationScatter, NegotiationStrip } from "@/components/NegotiationPlot";
 import ExposureCohort from "@/components/ExposureCohort";
 import { AI_CELLS, HUMAN_CELLS, FEEDBACK_FIELDS, Cell } from "@/lib/exercise";
-import SeedDemo from "@/components/SeedDemo";
+import FacilitatorMenu from "@/components/FacilitatorMenu";
 import CanvasView from "@/components/CanvasView";
 
 export const dynamic = "force-dynamic";
@@ -73,40 +73,59 @@ async function Overview({ admin }: { admin: any }) {
     return a[0] < b[0] ? -1 : 1;
   });
 
+  const totalPeople = new Set<string>();
+  (sessions || []).forEach((s: any) => {
+    if (s.host_id) totalPeople.add(s.host_id);
+    if (s.guest_id) totalPeople.add(s.guest_id);
+  });
+
   return (
     <Shell>
-      <div className="mb-6 flex items-center justify-between">
+      {/* Header: identity + the one primary action, with the rest tucked away */}
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="text-sm text-slate-400">Facilitator</div>
-          <h1 className="text-2xl font-bold">Cohorts</h1>
+          <div className="text-sm font-medium text-slate-400">Facilitator</div>
+          <h1 className="mt-0.5 text-3xl text-ink">Cohorts</h1>
+          <p className="mt-1 max-w-lg text-sm text-slate2">
+            Run a live activity, open a cohort to teach or review the work, or set up a new one.
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <SeedDemo />
-          <Link href="/facilitator/cloud" className="btn-ghost text-sm">
-            Word cloud
-          </Link>
-          <Link href="/facilitator/classes" className="btn-primary text-sm">
-            Create cohort
-          </Link>
-          <Link href="/admin/costs" className="btn-ghost text-sm">
-            Costs
-          </Link>
-          <Link href="/dashboard" className="btn-ghost text-sm">
-            ← My dashboard
-          </Link>
+        <div className="flex shrink-0 items-center gap-2">
+          <Link href="/dashboard" className="btn-ghost text-sm">← My dashboard</Link>
+          <Link href="/facilitator/classes" className="btn-primary text-sm">New cohort</Link>
+          <FacilitatorMenu />
         </div>
       </div>
 
+      {/* Run something live, right now — one tap, no cohort needed. */}
+      <Link href="/facilitator/cloud" className="card group mb-9 flex items-center gap-4 p-5 transition hover:shadow-lift">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-soft text-2xl">🌥️</div>
+        <div className="min-w-0 flex-1">
+          <div className="font-bold text-ink">Live word cloud</div>
+          <div className="text-sm text-slate2">Ask the room a question. Answers appear from their phones as a cloud, live. No sign-in.</div>
+        </div>
+        <span className="btn-primary shrink-0 text-sm">Start →</span>
+      </Link>
+
+      <div className="mb-3 flex items-baseline justify-between">
+        <h2 className="eyebrow">Your cohorts</h2>
+        {rows.length > 0 && (
+          <span className="text-xs text-slate-400">{totalPeople.size} people across {rows.length} {rows.length === 1 ? "group" : "groups"}</span>
+        )}
+      </div>
+
       {rows.length === 0 ? (
-        <p className="text-slate-500">
-          No sessions yet. Share a link like{" "}
-          <code className="rounded bg-slate-100 px-1">
-            /dashboard?cohort=EXECED-XYZ-DATE
-          </code>{" "}
-          with your cohort so their rooms are tagged.
-        </p>
+        <div className="card p-8 text-center">
+          <div className="text-slate-600">No sessions yet.</div>
+          <p className="mx-auto mt-1 max-w-md text-sm text-slate2">
+            Create a cohort, or share a tagged link like{" "}
+            <code className="rounded bg-slate-100 px-1">/dashboard?cohort=EXECED-XYZ-DATE</code>{" "}
+            so participants' rooms group here.
+          </p>
+          <Link href="/facilitator/classes" className="btn-primary mt-4 inline-block text-sm">New cohort</Link>
+        </div>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-2.5">
           {rows.map(([key, list]) => {
             const people = new Set<string>();
             list.forEach((s) => {
@@ -114,35 +133,40 @@ async function Overview({ admin }: { admin: any }) {
               if (s.guest_id) people.add(s.guest_id);
             });
             const done = list.filter((s) => s.status === "done").length;
+            const active = list.some((s) => s.status === "active");
+            const untagged = key === UNTAGGED;
+            const detail = `/facilitator?cohort=${encodeURIComponent(key)}`;
             return (
               <li key={key}>
-                <div className="card flex items-center justify-between px-5 py-4">
-                  <Link
-                    href={`/facilitator?cohort=${encodeURIComponent(key)}`}
-                    className="flex-1"
-                  >
-                    <div className="font-mono text-lg font-semibold">
-                      {key === UNTAGGED ? "(untagged)" : key}
+                <div className="card group flex items-center gap-3 p-5 transition hover:shadow-lift">
+                  <Link href={detail} className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2.5">
+                      <span className={"font-mono text-lg font-bold " + (untagged ? "text-slate-400" : "text-ink")}>
+                        {untagged ? "untagged" : key}
+                      </span>
+                      {active && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-sage-soft px-2 py-0.5 text-[11px] font-semibold text-sage">
+                          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sage" /> active
+                        </span>
+                      )}
                     </div>
-                    <div className="mt-0.5 text-sm text-slate-500">
-                      {list.length} {list.length === 1 ? "pair" : "pairs"} ·{" "}
-                      {people.size} participants · {done} completed
+                    <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-slate2">
+                      <span><b className="font-semibold text-ink">{list.length}</b> {list.length === 1 ? "pair" : "pairs"}</span>
+                      <span className="text-slate-300">·</span>
+                      <span><b className="font-semibold text-ink">{people.size}</b> {people.size === 1 ? "participant" : "participants"}</span>
+                      <span className="text-slate-300">·</span>
+                      <span><b className="font-semibold text-ink">{done}</b> completed</span>
                     </div>
                   </Link>
-                  <div className="flex items-center gap-2">
-                    <Link
-                      href={`/facilitator/live?cohort=${encodeURIComponent(key)}`}
-                      className="btn-ghost text-sm"
-                    >
-                      Live
-                    </Link>
-                    <Link
-                      href={`/facilitator?cohort=${encodeURIComponent(key)}`}
-                      className="text-slate-300"
-                    >
-                      →
-                    </Link>
-                  </div>
+                  <Link
+                    href={`/facilitator/live?cohort=${encodeURIComponent(key)}`}
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-1.5 text-sm font-medium text-ink transition hover:border-sage hover:bg-sage-soft"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-sage" /> Live
+                  </Link>
+                  <Link href={detail} aria-label="Open cohort" className="shrink-0 rounded-full p-2 text-slate-300 transition hover:bg-mist hover:text-ink">
+                    →
+                  </Link>
                 </div>
               </li>
             );
