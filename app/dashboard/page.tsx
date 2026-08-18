@@ -138,22 +138,8 @@ export default async function Dashboard({
     });
   }
   const reportsCount = workItems.filter((w) => w.done).length;
-
-  // The one thing they touched most recently — "what was I working on last".
-  let recent: WorkItem | null = null;
-  for (const s of sessions || []) {
-    const m = MODULES.find((mm) => mm.exercise === s.exercise);
-    if (!m || m.partner === "group") continue; // group runs have no personal artifact/room to resume
-    const done = s.status === "done";
-    recent = {
-      slug: m.slug,
-      name: m.name,
-      done,
-      at: s.created_at,
-      href: done ? artifactHref(m.exercise, s.code) : `/room/${s.code}`,
-    };
-    break;
-  }
+  // The last few modules touched, newest first — a lightweight "jump back in".
+  const recents = [...workItems].sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, 4);
 
   const runsLeft = await runsLeftByModule(supabase, user.id, instructor);
 
@@ -189,7 +175,7 @@ export default async function Dashboard({
       </header>
       <EnrichOnce />
 
-      <YourWork recent={recent} reportsCount={reportsCount} />
+      <YourWork recents={recents} reportsCount={reportsCount} />
 
       <section>
         <h2 className="eyebrow">{t("dash.exercises")}</h2>
