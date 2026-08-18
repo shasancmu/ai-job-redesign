@@ -1,14 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MAX_PHRASE } from "@/lib/cloud";
 
-// PUBLIC, no sign-in: submit one or more short phrases into the live cloud.
+// PUBLIC, no sign-in: submit ONE phrase per device. The gate is client-side
+// (anonymous participants have no identity), keyed to this browser by code.
 export default function CloudSubmit({ code, question }: { code: string; question: string }) {
+  const key = `cloud:submitted:${code}`;
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [mine, setMine] = useState<string[]>([]);
+  const [submitted, setSubmitted] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+
+  // Read the prior submission after mount (avoids an SSR/hydration mismatch).
+  useEffect(() => {
+    try {
+      setSubmitted(localStorage.getItem(key));
+    } catch {
+      /* private mode / storage blocked: treat as not submitted */
+    }
+    setReady(true);
+  }, [key]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -26,7 +39,12 @@ export default function CloudSubmit({ code, question }: { code: string; question
       if (!res.ok) {
         setErr(data.error || "Couldn't send. Try again.");
       } else {
-        setMine((m) => [phrase, ...m]);
+        try {
+          localStorage.setItem(key, phrase);
+        } catch {
+          /* ignore */
+        }
+        setSubmitted(phrase);
         setText("");
       }
     } catch {
@@ -41,37 +59,38 @@ export default function CloudSubmit({ code, question }: { code: string; question
       <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">The question</div>
       <h1 className="mt-1 text-xl font-bold leading-snug text-ink">{question || "Add a word to the cloud"}</h1>
 
-      <form onSubmit={submit} className="mt-5 space-y-3">
-        <input
-          autoFocus
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="A word or short phrase"
-          maxLength={MAX_PHRASE}
-          autoComplete="off"
-          className="field text-lg"
-        />
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-400">{text.length}/{MAX_PHRASE}</span>
-          <button className="btn-primary" disabled={busy || !text.trim()}>
-            {busy ? "Sending…" : mine.length > 0 ? "Add another" : "Add to cloud"}
-          </button>
+      {ready && submitted ? (
+        <div className="mt-6 text-center">
+          <div className="text-3xl">✓</div>
+          <div className="mt-2 font-semibold text-ink">You're in.</div>
+          <div className="mt-1 text-sm text-slate2">You added</div>
+          <div className="mt-2 inline-block rounded-full bg-sage-soft px-4 py-1.5 text-sm font-medium text-sage">
+            {submitted}
+          </div>
+          <p className="mt-4 text-xs text-slate-400">Your word is on the screen. Watch the cloud build.</p>
         </div>
-      </form>
+      ) : (
+        <form onSubmit={submit} className="mt-5 space-y-3">
+          <input
+            autoFocus
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="A word or short phrase"
+            maxLength={MAX_PHRASE}
+            autoComplete="off"
+            className="field text-lg"
+          />
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-400">{text.length}/{MAX_PHRASE}</span>
+            <button className="btn-primary" disabled={busy || !text.trim() || !ready}>
+              {busy ? "Sending…" : "Add to cloud"}
+            </button>
+          </div>
+          <p className="text-xs text-slate-400">One entry per person.</p>
+        </form>
+      )}
 
       {err && <div className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
-
-      {mine.length > 0 && (
-        <div className="mt-5">
-          <div className="text-sm font-medium text-sage">✓ Sent. Add as many as you like.</div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {mine.map((m, i) => (
-              <span key={i} className="rounded-full bg-mist px-2.5 py-1 text-sm text-ink">{m}</span>
-            ))}
-          </div>
-          <p className="mt-3 text-xs text-slate-400">Your words are on the screen. Waiting for the room…</p>
-        </div>
-      )}
     </div>
   );
 }
