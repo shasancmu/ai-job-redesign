@@ -43,7 +43,8 @@ export type ModuleDef = {
     | "career-roadmap"
     | "disclosure"
     | "disclosure-haip"
-    | "consult"; // which room engine renders it
+    | "consult"
+    | "superpower"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -378,6 +379,21 @@ export const MODULES: ModuleDef[] = [
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_CONSULT",
   },
+  {
+    slug: "find-superpower",
+    exercise: "superpower",
+    name: "Find Your Superpower",
+    tagline: "Your rarest strength is usually invisible to you, because it feels effortless. An AI interview pulls the stories, finds the thread across them, and names the 2 to 3 abilities that make you hard to replace, with the VRIN-O moat and how to build a career around it.",
+    description:
+      "Grounded in the Reflected Best Self method and the resource-based view (VRIN-O). Instead of asking what you're good at, an AI interviewer draws out specific stories of you at your best, then extracts the cross-domain thread. It returns a ranked stack of your 2 to 3 superpowers, how they combine into something rarer than any one alone, why each is hard to copy, and how to organize your work to capture that value.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "⚡",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_SUPERPOWER",
+  },
 ];
 
 // The all-access bundle uses the existing single price env for backward compat.
@@ -407,6 +423,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "workflow-solo": "redesign",
   "career-x-ray": "redesign",
   "career-roadmap": "redesign",
+  "find-superpower": "redesign",
   "jd-x-ray": "redesign",
   "execution-4a": "strategy",
   "balanced-scorecard": "strategy",
@@ -465,6 +482,7 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "career-x-ray": ["career", "ai"],
   "jd-x-ray": ["career", "leadership"],
   "career-roadmap": ["career"],
+  "find-superpower": ["career", "leadership"],
   // Negotiation
   "close-the-offer": ["negotiation", "career"],
   "name-your-price": ["negotiation"],

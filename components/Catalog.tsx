@@ -33,6 +33,7 @@ function resultHref(exercise: string, code: string) {
   if (exercise === "career-xray" || exercise === "jd-xray") return `/career/${code}`;
   if (exercise === "career-roadmap") return `/roadmap/${code}`;
   if (exercise === "consult") return `/consult/${code}`;
+  if (exercise === "superpower") return `/superpower/${code}`;
   return `/room/${code}`;
 }
 
