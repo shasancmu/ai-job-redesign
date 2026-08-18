@@ -291,8 +291,8 @@ function JoinSplash({
             </div>
           </div>
 
-          <div className="-mt-2 text-lg text-slate-400">
-            {raw === 1 ? "response" : "responses"} and counting<span className="cloud-elly" />
+          <div className="-mt-1 text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">
+            {raw === 1 ? "response" : "responses"}
           </div>
 
           {/* The room filling in: one dot per response, popping in as they land */}
@@ -486,9 +486,6 @@ function StyleBlock() {
       .cloud-countpop { animation: cloud-count-pop .45s cubic-bezier(.2,.8,.2,1); }
       @keyframes cloud-count-pop { 0% { transform: scale(.86); } 55% { transform: scale(1.09); } 100% { transform: scale(1); } }
 
-      .cloud-elly::after { content: "…"; animation: cloud-elly 1.4s steps(4, end) infinite; }
-      @keyframes cloud-elly { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "…"; } }
-
       .cloud-dot { width: 10px; height: 10px; border-radius: 9999px; animation: cloud-dot-in .5s cubic-bezier(.2,.8,.2,1) both; }
       @keyframes cloud-dot-in { 0% { opacity: 0; transform: translateY(10px) scale(0); } 60% { transform: translateY(0) scale(1.35); } 100% { opacity: .9; transform: scale(1); } }
 
@@ -518,7 +515,6 @@ function StyleBlock() {
         .cloud-ai-text, .cloud-ai-dot, .cloud-theme, .cloud-answer, .cloud-shimmer,
         .cloud-livedot, .cloud-livepill, .cloud-halo, .cloud-ripple, .cloud-countpop,
         .cloud-dot, .cloud-part, .cloud-flash { animation: none !important; }
-        .cloud-elly::after { content: "…"; animation: none !important; }
       }
     `}</style>
   );
