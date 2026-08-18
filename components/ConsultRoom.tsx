@@ -120,7 +120,7 @@ function Intake({ intake, setIntake }: { intake: any; setIntake: (p: any) => voi
       <Field label="What do you sell?" hint="In a line or two."><textarea className="field min-h-[70px]" value={intake.sells || ""} onChange={(e) => setIntake({ sells: e.target.value })} placeholder="Products or services, and to whom." /></Field>
       <Field label="How do you make money?" hint="Where does the revenue actually come from?"><textarea className="field min-h-[70px]" value={intake.howMakeMoney || ""} onChange={(e) => setIntake({ howMakeMoney: e.target.value })} placeholder="e.g. Walk-in sales, wholesale to cafes, custom orders." /></Field>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Roughly how many people?"><input className="field" value={intake.size || ""} onChange={(e) => setIntake({ size: e.target.value })} placeholder="e.g. Just me / 8 / 40" /></Field>
+        <Field label="How many people work in the business?" hint="Staff, including you. Not customers."><input className="field" value={intake.size || ""} onChange={(e) => setIntake({ size: e.target.value })} placeholder="e.g. Just me / 8 employees / 40 staff" /></Field>
         <Field label="Roughly how old is the business?"><input className="field" value={intake.age || ""} onChange={(e) => setIntake({ age: e.target.value })} placeholder="e.g. 3 years" /></Field>
       </div>
     </div>
