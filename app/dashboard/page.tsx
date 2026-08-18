@@ -121,13 +121,19 @@ export default async function Dashboard({
     const m = MODULES.find((mm) => mm.exercise === s.exercise);
     if (!m || m.partner === "group" || seen.has(m.slug)) continue; // group runs have no revisitable artifact
     seen.add(m.slug);
-    const done = s.status === "done";
+    // Aggregate across THIS module's sessions (already newest-first): "Done" if
+    // any run finished — link to the latest finished artifact; otherwise link to
+    // the latest run to continue. (Matches the catalog's Done badge.)
+    const mine = (sessions || []).filter((x: any) => x.exercise === m.exercise);
+    const doneRun = mine.find((x: any) => x.status === "done");
+    const done = !!doneRun;
+    const ref = done ? doneRun : mine[0];
     workItems.push({
       slug: m.slug,
       name: m.name,
       done,
-      href: done ? artifactHref(s.exercise, s.code) : `/room/${s.code}`,
-      at: s.created_at,
+      href: done ? artifactHref(m.exercise, doneRun.code) : `/room/${mine[0].code}`,
+      at: ref.created_at,
     });
   }
   const completedSet = new Set(MODULES.filter((m) => completed[m.slug]).map((m) => m.slug));
