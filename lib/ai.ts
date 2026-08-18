@@ -6,12 +6,24 @@
 //   AI_MODEL     default llama-3.3-70b-versatile
 // Works as-is with Groq, OpenAI, OpenRouter, Together, and Gemini's
 // OpenAI-compatible endpoint, only the three vars change.
+//
+// VISION (Photo Wall) uses its own optional config so image analysis can run on
+// a vision-capable model without changing the text model. Each falls back to the
+// matching text var when unset:
+//   AI_VISION_API_KEY   (falls back to AI_API_KEY)
+//   AI_VISION_BASE_URL  (falls back to AI_BASE_URL)
+//   AI_VISION_MODEL     (falls back to AI_MODEL) — MUST be vision-capable
 // ============================================================================
 
 export const AI_ENABLED = !!process.env.AI_API_KEY;
 
 const BASE_URL = process.env.AI_BASE_URL || "https://api.groq.com/openai/v1";
 const MODEL = process.env.AI_MODEL || "llama-3.3-70b-versatile";
+
+const VISION_BASE_URL = process.env.AI_VISION_BASE_URL || BASE_URL;
+const VISION_MODEL = process.env.AI_VISION_MODEL || MODEL;
+const VISION_API_KEY = process.env.AI_VISION_API_KEY || process.env.AI_API_KEY || "";
+export const VISION_ENABLED = !!VISION_API_KEY;
 
 export type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
 
@@ -51,21 +63,26 @@ function localize(messages: ChatMsg[]): ChatMsg[] {
 
 async function complete(
   messages: ChatMsg[],
-  opts: { json?: boolean; temperature?: number; maxTokens?: number } = {}
+  opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean } = {}
 ): Promise<string> {
-  const res = await fetch(`${BASE_URL}/chat/completions`, {
+  // Vision requests route to the (optional) dedicated vision model/endpoint/key.
+  const baseUrl = opts.vision ? VISION_BASE_URL : BASE_URL;
+  const model = opts.vision ? VISION_MODEL : MODEL;
+  const apiKey = opts.vision ? VISION_API_KEY : process.env.AI_API_KEY;
+  const isAnthropic = baseUrl.includes("anthropic.com");
+  const res = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.AI_API_KEY}`,
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: MODEL,
+      model,
       messages: localize(messages),
       // Big enough that structured plans don't get truncated into invalid JSON.
       max_tokens: opts.maxTokens ?? 4096,
       temperature: opts.temperature ?? 0.7,
-      ...(opts.json && !IS_ANTHROPIC ? { response_format: { type: "json_object" } } : {}),
+      ...(opts.json && !isAnthropic ? { response_format: { type: "json_object" } } : {}),
     }),
   });
   if (!res.ok) {
@@ -548,7 +565,7 @@ Be specific, concrete, and neutral. Do NOT name or identify real, non-public ind
       ],
     },
   ];
-  const raw = await complete(messages as any, { json: true, temperature: 0.3, maxTokens: 900 });
+  const raw = await complete(messages as any, { json: true, temperature: 0.3, maxTokens: 900, vision: true });
   const p = extractJson(raw);
   const kind = p?.kind === "text" ? "text" : "photo";
   return {

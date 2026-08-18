@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { AI_ENABLED, photoDescribeAI } from "@/lib/ai";
+import { VISION_ENABLED, photoDescribeAI } from "@/lib/ai";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export const maxDuration = 60; // vision can take a few seconds
 // model, stores ONLY the returned text, and discards the image. The image is
 // never written to the database.
 export async function POST(request: Request) {
-  if (!AI_ENABLED) return Response.json({ error: "AI is not configured." }, { status: 503 });
+  if (!VISION_ENABLED) return Response.json({ error: "Photo analysis is not configured." }, { status: 503 });
 
   let body: any;
   try {
