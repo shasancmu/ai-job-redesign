@@ -37,6 +37,16 @@ const PULSES = [
   { d: "M206 214 L86 206", c: "var(--sky)", dur: 2.7, delay: 1.8 },
 ];
 
+// Transient nodes: fade in with a connecting edge, linger, fade out, and cycle,
+// so the network keeps growing and thinning. Each connects to an existing node.
+const TRANSIENTS = [
+  { x: 288, y: 98, r: 3, c: "var(--amber)", tx: 246, ty: 58, dur: 9, delay: 0 },
+  { x: 118, y: 38, r: 2.6, c: "var(--sage)", tx: 58, ty: 64, dur: 11, delay: 2.2 },
+  { x: 282, y: 222, r: 3, c: "var(--sky)", tx: 206, ty: 214, dur: 8.5, delay: 4.6 },
+  { x: 150, y: 242, r: 2.6, c: "var(--clay)", tx: 86, ty: 206, dur: 10, delay: 1.3 },
+  { x: 22, y: 94, r: 2.6, c: "var(--sage)", tx: 36, ty: 146, dur: 9.5, delay: 6.2 },
+];
+
 export default function HeroVisual() {
   return (
     <div className="hero-net" aria-hidden>
@@ -49,6 +59,14 @@ export default function HeroVisual() {
         {/* nodes */}
         {NODES.map((n, i) => (
           <circle key={i} cx={n.x} cy={n.y} r={n.r} className="hn-node" style={{ color: n.c, animationDelay: `${(i % 5) * 0.6}s` }} fill="currentColor" />
+        ))}
+
+        {/* transient nodes: the network grows and thins over time */}
+        {TRANSIENTS.map((t, i) => (
+          <g key={i} className="hn-transient" style={{ color: t.c, ["--dur" as any]: `${t.dur}s`, ["--delay" as any]: `${t.delay}s` }}>
+            <line x1={t.tx} y1={t.ty} x2={t.x} y2={t.y} className="hn-edge" />
+            <circle cx={t.x} cy={t.y} r={t.r} className="hn-tnode" fill="currentColor" />
+          </g>
         ))}
 
         {/* travelling glints of information */}
@@ -70,12 +88,15 @@ export default function HeroVisual() {
           .hn-edge { fill: none; stroke: var(--ink); stroke-opacity: .10; stroke-width: 1; }
           .hn-node { filter: drop-shadow(0 0 5px currentColor); animation: hn-node 4s ease-in-out infinite; }
           @keyframes hn-node { 0%,100% { opacity: .82; } 50% { opacity: 1; } }
+          .hn-tnode { filter: drop-shadow(0 0 5px currentColor); }
+          .hn-transient { opacity: 0; animation: hn-life var(--dur, 10s) ease-in-out infinite; animation-delay: var(--delay, 0s); }
+          @keyframes hn-life { 0% { opacity: 0; } 7% { opacity: .95; } 58% { opacity: .95; } 72% { opacity: 0; } 100% { opacity: 0; } }
           .hn-pulse {
             offset-rotate: 0deg; filter: drop-shadow(0 0 7px currentColor) drop-shadow(0 0 2px currentColor);
             animation: hn-flow var(--dur, 2.4s) ease-in-out infinite; animation-delay: var(--delay, 0s);
           }
           @keyframes hn-flow { 0% { offset-distance: 0%; opacity: 0; } 12% { opacity: 1; } 82% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
-          @media (prefers-reduced-motion: reduce) { .hn-pulse { display: none; } .hn-node { animation: none; } }
+          @media (prefers-reduced-motion: reduce) { .hn-pulse { display: none; } .hn-node { animation: none; } .hn-transient { animation: none; display: none; } }
           @media (max-width: 1023px) { .hero-net { display: none; } }
         `}</style>
       </svg>
