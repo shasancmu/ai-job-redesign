@@ -3,20 +3,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { aggregate, type CloudWord } from "@/lib/cloud";
-import WordCloud from "@/components/WordCloud";
+import type { PhotoEntry } from "@/lib/photo";
+import PhotoWall from "@/components/PhotoWall";
 import PresenterFX from "@/components/PresenterFX";
 import { Aurora, JoinSplash, RevealBurst, SummaryReveal, useCountUp, type Summary } from "@/components/presenterParts";
 
-type Phase = "collecting" | "cloud" | "summary";
+type Phase = "collecting" | "wall" | "summary";
 
-// The presentation. Three deliberate acts: collect (responses hidden, only the
-// count climbs), reveal the cloud (words materialize), reveal the AI summary
-// (the cloud recedes behind an arresting synthesis). Built to make a room go ooh.
-export default function CloudPresenter({
+// Photo Wall presenter — same three acts as the word cloud: collect (photos
+// hidden, only the count climbs), reveal the wall (AI readings materialize),
+// reveal the AI summary. The image is never shown or stored, only its text.
+export default function PhotoPresenter({
   sessionId,
   code,
-  question,
+  prompt,
   initialStatus,
   initialSummary,
   joinHost,
@@ -24,20 +24,19 @@ export default function CloudPresenter({
 }: {
   sessionId: string;
   code: string;
-  question: string;
+  prompt: string;
   initialStatus: string;
   initialSummary: Summary;
-  joinUrl: string;
   joinHost: string;
   qrSvg: string;
 }) {
   const supabase = createClient();
   const stageRef = useRef<HTMLDivElement>(null);
 
-  const [q, setQ] = useState(question);
+  const [p, setP] = useState(prompt);
   const [status, setStatus] = useState(initialStatus);
   const [phase, setPhase] = useState<Phase>("collecting");
-  const [words, setWords] = useState<CloudWord[]>([]);
+  const [entries, setEntries] = useState<PhotoEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [summary, setSummary] = useState<Summary>(initialSummary);
   const [summarizing, setSummarizing] = useState(false);
@@ -46,24 +45,21 @@ export default function CloudPresenter({
   const closed = status === "closed";
   const displayTotal = useCountUp(total);
 
-  // One ripple ring per NEW response (staggered), plus a one-off particle burst
-  // at the moment the cloud is revealed.
   const [ripples, setRipples] = useState<{ id: number; delay: number }[]>([]);
   const [burst, setBurst] = useState(0);
   const ridRef = useRef(0);
   const prevTotalRef = useRef(0);
 
-  // Poll submissions. RLS scopes cloud_entries to the host's own session.
   const load = useCallback(async () => {
     const { data } = await supabase
-      .from("cloud_entries")
-      .select("text, norm")
+      .from("photo_entries")
+      .select("id, kind, title, description, transcript")
       .eq("session_id", sessionId)
       .order("created_at", { ascending: false })
-      .limit(2000);
+      .limit(500);
     if (data) {
+      setEntries(data as any);
       setTotal(data.length);
-      setWords(aggregate(data as any));
     }
   }, [supabase, sessionId]);
 
@@ -79,8 +75,6 @@ export default function CloudPresenter({
     return () => document.removeEventListener("fullscreenchange", onFs);
   }, []);
 
-  // Emit a ripple for each new response as it lands (capped per poll so a big
-  // batch stays elegant), and retire each after it finishes expanding.
   useEffect(() => {
     const delta = total - prevTotalRef.current;
     prevTotalRef.current = total;
@@ -91,24 +85,23 @@ export default function CloudPresenter({
     items.forEach((it, i) => setTimeout(() => setRipples((r) => r.filter((x) => x.id !== it.id)), 1300 + i * 120));
   }, [total, phase]);
 
-  function revealCloud() {
-    setPhase("cloud");
+  function revealWall() {
+    setPhase("wall");
     setBurst((b) => b + 1);
   }
 
-  // Persist the question (debounced) so participants and reloads see it.
   const qTimer = useRef<any>(null);
-  function editQuestion(v: string) {
-    setQ(v);
+  function editPrompt(v: string) {
+    setP(v);
     if (qTimer.current) clearTimeout(qTimer.current);
     qTimer.current = setTimeout(() => {
-      supabase.from("cloud_sessions").update({ question: v, updated_at: new Date().toISOString() }).eq("id", sessionId);
+      supabase.from("photo_sessions").update({ prompt: v, updated_at: new Date().toISOString() }).eq("id", sessionId);
     }, 500);
   }
 
   async function setStatusPersist(next: string) {
     setStatus(next);
-    await supabase.from("cloud_sessions").update({ status: next, updated_at: new Date().toISOString() }).eq("id", sessionId);
+    await supabase.from("photo_sessions").update({ status: next, updated_at: new Date().toISOString() }).eq("id", sessionId);
   }
 
   function toggleFull() {
@@ -120,7 +113,7 @@ export default function CloudPresenter({
     setSummarizing(true);
     setErr(null);
     try {
-      const res = await fetch("/api/cloud/summarize", {
+      const res = await fetch("/api/photo/summarize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code }),
@@ -154,20 +147,18 @@ export default function CloudPresenter({
     <div ref={stageRef} className="relative flex min-h-screen flex-col overflow-hidden bg-paper">
       <Aurora />
 
-      {/* Top bar: unobtrusive, brightens on hover so it stays out of the way. */}
       <header className="relative z-20 flex flex-wrap items-center justify-between gap-3 px-6 py-3 opacity-70 transition hover:opacity-100">
         <div className="text-sm text-slate-500">
-          <span className="font-semibold text-ink">{total}</span> response{total === 1 ? "" : "s"}
-          {phase !== "collecting" && words.length > 0 && <> · <span className="font-semibold text-ink">{words.length}</span> unique</>}
+          <span className="font-semibold text-ink">{total}</span> photo{total === 1 ? "" : "s"}
           {closed && <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">closed</span>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {phase !== "collecting" && joinPill}
           <button onClick={toggleFull} className="btn-ghost text-sm" title="Fullscreen">{isFull ? "Exit full" : "⤢ Full"}</button>
-          {!isFull && <Link href="/facilitator/cloud" className="btn-ghost text-sm">Done</Link>}
+          {!isFull && <Link href="/facilitator/photo" className="btn-ghost text-sm">Done</Link>}
           {!closed && (
             <button
-              onClick={() => window.confirm("Close this word cloud? No new responses will be accepted.") && setStatusPersist("closed")}
+              onClick={() => window.confirm("Close this activity? No new photos will be accepted.") && setStatusPersist("closed")}
               className="text-sm text-slate-400 hover:text-ink"
             >
               Close
@@ -176,13 +167,13 @@ export default function CloudPresenter({
         </div>
       </header>
 
-      {/* Question */}
+      {/* Prompt */}
       <div className="relative z-10 px-6 pt-4 text-center">
         <textarea
-          value={q}
-          onChange={(e) => editQuestion(e.target.value)}
+          value={p}
+          onChange={(e) => editPrompt(e.target.value)}
           rows={1}
-          placeholder="Type your question…"
+          placeholder="Type your prompt… (e.g. Photograph something on your desk that AI can't replace)"
           className="mx-auto block w-full max-w-4xl resize-none border-0 bg-transparent p-0 text-center text-3xl font-bold leading-tight text-ink outline-none focus:ring-0 sm:text-4xl"
         />
       </div>
@@ -192,13 +183,13 @@ export default function CloudPresenter({
       {/* Stage */}
       <div className="relative z-10 flex-1">
         {phase === "collecting" ? (
-          <JoinSplash qrSvg={qrSvg} code={code} joinHost={joinHost} count={displayTotal} raw={total} ripples={ripples} closed={closed} />
+          <JoinSplash qrSvg={qrSvg} code={code} joinHost={joinHost} count={displayTotal} raw={total} ripples={ripples} closed={closed} label="photos" />
         ) : (
           <>
-            <div className={"absolute inset-0 p-4 transition-all duration-700 " + (phase === "summary" ? "scale-[0.92] blur-md opacity-20" : "opacity-100")}>
-              <WordCloud words={words} />
+            <div className={"absolute inset-0 pt-2 transition-all duration-700 " + (phase === "summary" ? "scale-[0.94] blur-md opacity-20" : "opacity-100")}>
+              <PhotoWall entries={entries} />
             </div>
-            {phase === "cloud" && burst > 0 && <RevealBurst key={burst} />}
+            {phase === "wall" && burst > 0 && <RevealBurst key={burst} />}
             {phase === "summary" && (
               <div className="absolute inset-0 flex items-center justify-center p-6">
                 <SummaryReveal summary={summary} loading={summarizing} onRetry={summarize} />
@@ -208,25 +199,25 @@ export default function CloudPresenter({
         )}
       </div>
 
-      {/* Staged primary action, centered at the foot like a presenter remote. */}
+      {/* Staged primary action */}
       <div className="relative z-20 flex items-center justify-center gap-3 px-6 pb-7 pt-2">
         {phase === "collecting" ? (
           <div className="flex flex-col items-center gap-2">
             <button
-              onClick={revealCloud}
+              onClick={revealWall}
               disabled={total === 0}
               className={"cloud-cta rounded-full px-8 py-3.5 text-lg font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-40 " + (total > 0 ? "cloud-cta-glow" : "")}
             >
-              Reveal the cloud →
+              Reveal the wall →
             </button>
-            <span className="text-xs text-slate-400">{total === 0 ? "Waiting for the first response…" : "Reveal when everyone's in"}</span>
+            <span className="text-xs text-slate-400">{total === 0 ? "Waiting for the first photo…" : "Reveal when everyone's in"}</span>
           </div>
-        ) : phase === "cloud" ? (
+        ) : phase === "wall" ? (
           <button onClick={revealSummary} className="cloud-cta cloud-cta-glow rounded-full px-8 py-3.5 text-lg font-semibold text-white transition">
             Reveal the AI summary →
           </button>
         ) : (
-          <button onClick={() => setPhase("cloud")} className="btn-ghost text-sm">← Back to the cloud</button>
+          <button onClick={() => setPhase("wall")} className="btn-ghost text-sm">← Back to the wall</button>
         )}
       </div>
 
@@ -234,4 +225,3 @@ export default function CloudPresenter({
     </div>
   );
 }
-

@@ -522,6 +522,67 @@ export async function cloudSummaryAI(
   return { themes, answer };
 }
 
+// Photo Wall: turn ONE submitted image into text. Works for photographs and for
+// photos of handwritten/printed text. The caller stores only this text; the
+// image is never persisted.
+export async function photoDescribeAI(
+  dataUrl: string,
+  prompt?: string
+): Promise<{ kind: "photo" | "text"; title: string; transcript: string; description: string }> {
+  const ctx = prompt ? `\n\nThe presenter asked the room: "${prompt}". Keep your description relevant to that where you can.` : "";
+  const system = `You are describing an image submitted in a live classroom activity. It may be a photograph of a scene, object, place, or someone's work, OR a photo of handwritten or printed text (a note, sketch, whiteboard, or page). Return STRICT JSON only, no prose outside it:
+{
+  "kind": "photo" | "text",
+  "title": "a 2 to 5 word title",
+  "transcript": "if kind is text, the text transcribed as faithfully as you can, preserving line breaks; otherwise an empty string",
+  "description": "2 to 4 sentences describing the image. For a photo, describe the subject, setting, and notable details. For text, say what it is and note anything notable about the content."
+}
+Be specific, concrete, and neutral. Do NOT name or identify real, non-public individuals. If the image is blank, unreadable, or clearly off-topic, say so plainly in the description.${ctx}`;
+  const messages = [
+    { role: "system", content: system },
+    {
+      role: "user",
+      content: [
+        { type: "text", text: "Here is the image." },
+        { type: "image_url", image_url: { url: dataUrl } },
+      ],
+    },
+  ];
+  const raw = await complete(messages as any, { json: true, temperature: 0.3, maxTokens: 900 });
+  const p = extractJson(raw);
+  const kind = p?.kind === "text" ? "text" : "photo";
+  return {
+    kind,
+    title: String(p?.title || "").slice(0, 90),
+    transcript: String(p?.transcript || "").slice(0, 6000),
+    description: String(p?.description || "").slice(0, 1600),
+  };
+}
+
+// Photo Wall: synthesize across all the image descriptions.
+export async function photoSummaryAI(
+  prompt: string,
+  entries: { title: string; description: string; kind: string }[]
+): Promise<{ themes: string[]; answer: string }> {
+  const list = entries.map((e, i) => `${i + 1}. [${e.kind}] ${e.title}: ${e.description}`).join("\n");
+  const messages: ChatMsg[] = [
+    {
+      role: "system",
+      content: `A presenter asked a room to take photos, and each image was turned into a short text description. Summarize what the room submitted, using ONLY the descriptions given. Return STRICT JSON only, no prose outside it:
+{
+  "themes": ["3 to 5 short theme labels, 1 to 4 words each, ordered by prominence"],
+  "answer": "2 to 4 sentences: what the room showed collectively, the common threads, and any striking outlier. Refer to what the images actually depict. Never invent details not present in the descriptions."
+}`,
+    },
+    { role: "user", content: `Prompt: ${prompt || "(none given)"}\n\nImage descriptions:\n${list || "(none yet)"}` },
+  ];
+  const raw = await complete(messages, { json: true, temperature: 0.5 });
+  const parsed = extractJson(raw);
+  const themes = Array.isArray(parsed?.themes) ? parsed.themes.map((t: any) => String(t)).slice(0, 6) : [];
+  const answer = typeof parsed?.answer === "string" ? parsed.answer : "";
+  return { themes, answer };
+}
+
 const AI_LABELS = "search, structure, think, translate";
 const HUMAN_LABELS = "lead, own, judge, integrate";
 

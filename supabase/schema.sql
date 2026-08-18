@@ -464,3 +464,52 @@ create policy "cloud entries host read" on public.cloud_entries
       where s.id = cloud_entries.session_id and s.host_id = auth.uid()
     )
   );
+
+-- ===========================================================================
+-- Photo Wall: the room takes a photo (a scene, an object, or handwritten text)
+-- from their phones (NO sign-in). Each image is sent to a vision model, which
+-- returns a text description/transcription; ONLY that text is stored. The image
+-- itself is never written to the database. AI then summarizes across all of them.
+-- ===========================================================================
+create table if not exists public.photo_sessions (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  host_id uuid not null references auth.users (id) on delete cascade,
+  prompt text not null default '',
+  status text not null default 'open',    -- open | revealed | closed
+  summary jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists photo_sessions_code_idx on public.photo_sessions (code);
+create index if not exists photo_sessions_host_idx on public.photo_sessions (host_id);
+
+-- One row per submission. NO image is stored, only the model's text output.
+create table if not exists public.photo_entries (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.photo_sessions (id) on delete cascade,
+  kind text not null default 'photo',      -- photo | text (handwritten/printed)
+  title text not null default '',
+  description text not null default '',
+  transcript text not null default '',
+  created_at timestamptz not null default now()
+);
+create index if not exists photo_entries_session_idx on public.photo_entries (session_id);
+
+alter table public.photo_sessions enable row level security;
+alter table public.photo_entries  enable row level security;
+
+drop policy if exists "photo sessions host all" on public.photo_sessions;
+create policy "photo sessions host all" on public.photo_sessions
+  for all using (auth.uid() = host_id) with check (auth.uid() = host_id);
+
+-- Host reads entries for their own sessions. Public submissions are written by
+-- the service role in /api/photo/submit (after the image is described + dropped).
+drop policy if exists "photo entries host read" on public.photo_entries;
+create policy "photo entries host read" on public.photo_entries
+  for select using (
+    exists (
+      select 1 from public.photo_sessions s
+      where s.id = photo_entries.session_id and s.host_id = auth.uid()
+    )
+  );

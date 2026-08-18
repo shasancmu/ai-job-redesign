@@ -98,14 +98,24 @@ async function Overview({ admin }: { admin: any }) {
       </div>
 
       {/* Run something live, right now — one tap, no cohort needed. */}
-      <Link href="/facilitator/cloud" className="card group mb-9 flex items-center gap-4 p-5 transition hover:shadow-lift">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-soft text-2xl">🌥️</div>
-        <div className="min-w-0 flex-1">
-          <div className="font-bold text-ink">Live word cloud</div>
-          <div className="text-sm text-slate2">Ask the room a question. Answers appear from their phones as a cloud, live. No sign-in.</div>
-        </div>
-        <span className="btn-primary shrink-0 text-sm">Start →</span>
-      </Link>
+      <div className="mb-9 grid gap-3 sm:grid-cols-2">
+        <Link href="/facilitator/cloud" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-soft text-2xl">🌥️</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-ink">Live word cloud</div>
+            <div className="text-sm text-slate2">Ask a question. Answers build into a cloud, live.</div>
+          </div>
+          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
+        </Link>
+        <Link href="/facilitator/photo" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sage-soft text-2xl">📷</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-ink">Photo wall</div>
+            <div className="text-sm text-slate2">The room photographs something. AI reads each one; photos never stored.</div>
+          </div>
+          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
+        </Link>
+      </div>
 
       <div className="mb-3 flex items-baseline justify-between">
         <h2 className="eyebrow">Your cohorts</h2>
