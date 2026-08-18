@@ -415,3 +415,52 @@ begin
     alter publication supabase_realtime add table public.workflow_docs;
   end if;
 end $$;
+
+-- ===========================================================================
+-- Live Word Cloud: a presenter poses a question; the room submits short phrases
+-- from their phones (NO sign-in) via a short code or QR at /cloud. The cloud
+-- builds up live on the presenter's screen; AI summarizes the responses.
+-- ===========================================================================
+create table if not exists public.cloud_sessions (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,              -- short join code, entered at /cloud
+  host_id uuid not null references auth.users (id) on delete cascade,
+  question text not null default '',
+  status text not null default 'open',    -- open (collecting) | revealed | closed
+  summary jsonb,                          -- { themes, answer } from the AI pass
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists cloud_sessions_code_idx on public.cloud_sessions (code);
+create index if not exists cloud_sessions_host_idx on public.cloud_sessions (host_id);
+
+-- One row per submitted phrase. Anonymous: no user_id. `norm` is the lowercased,
+-- whitespace-collapsed key used to tally identical entries for the cloud.
+create table if not exists public.cloud_entries (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.cloud_sessions (id) on delete cascade,
+  text text not null,
+  norm text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists cloud_entries_session_idx on public.cloud_entries (session_id);
+
+alter table public.cloud_sessions enable row level security;
+alter table public.cloud_entries  enable row level security;
+
+-- The host owns their cloud sessions end to end.
+drop policy if exists "cloud sessions host all" on public.cloud_sessions;
+create policy "cloud sessions host all" on public.cloud_sessions
+  for all using (auth.uid() = host_id) with check (auth.uid() = host_id);
+
+-- The host reads the entries for their own sessions. Public submissions are
+-- written by the service role in /api/cloud/submit (which bypasses RLS), so no
+-- anon insert policy is needed here.
+drop policy if exists "cloud entries host read" on public.cloud_entries;
+create policy "cloud entries host read" on public.cloud_entries
+  for select using (
+    exists (
+      select 1 from public.cloud_sessions s
+      where s.id = cloud_entries.session_id and s.host_id = auth.uid()
+    )
+  );

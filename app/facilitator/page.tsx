@@ -82,6 +82,9 @@ async function Overview({ admin }: { admin: any }) {
         </div>
         <div className="flex items-center gap-2">
           <SeedDemo />
+          <Link href="/facilitator/cloud" className="btn-ghost text-sm">
+            Word cloud
+          </Link>
           <Link href="/facilitator/classes" className="btn-primary text-sm">
             Create cohort
           </Link>
