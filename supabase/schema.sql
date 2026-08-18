@@ -513,3 +513,45 @@ create policy "photo entries host read" on public.photo_entries
       where s.id = photo_entries.session_id and s.host_id = auth.uid()
     )
   );
+
+-- ===========================================================================
+-- Live Quiz: the standalone, no-sign-in version of The Benchmark. The room
+-- joins by code/QR (no account), takes the same timed question set from
+-- benchmark_config, and is scored server-side. Submissions are ANONYMOUS (no
+-- user_id); the presenter shows the live score distribution vs. the machine.
+-- ===========================================================================
+create table if not exists public.quiz_sessions (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  host_id uuid not null references auth.users (id) on delete cascade,
+  status text not null default 'open',     -- open | revealed | closed
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists quiz_sessions_code_idx on public.quiz_sessions (code);
+create index if not exists quiz_sessions_host_idx on public.quiz_sessions (host_id);
+
+create table if not exists public.quiz_submissions (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.quiz_sessions (id) on delete cascade,
+  score int not null default 0,
+  total int not null default 0,
+  created_at timestamptz not null default now()
+);
+create index if not exists quiz_submissions_session_idx on public.quiz_submissions (session_id);
+
+alter table public.quiz_sessions    enable row level security;
+alter table public.quiz_submissions enable row level security;
+
+drop policy if exists "quiz sessions host all" on public.quiz_sessions;
+create policy "quiz sessions host all" on public.quiz_sessions
+  for all using (auth.uid() = host_id) with check (auth.uid() = host_id);
+
+drop policy if exists "quiz submissions host read" on public.quiz_submissions;
+create policy "quiz submissions host read" on public.quiz_submissions
+  for select using (
+    exists (
+      select 1 from public.quiz_sessions s
+      where s.id = quiz_submissions.session_id and s.host_id = auth.uid()
+    )
+  );

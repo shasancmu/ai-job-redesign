@@ -50,6 +50,10 @@ export default function PresenterFX() {
       .cloud-card { animation: cloud-card-in .6s cubic-bezier(.2,.7,.25,1) both; }
       @keyframes cloud-card-in { from { opacity: 0; transform: translateY(18px) scale(.96); } to { opacity: 1; transform: none; } }
 
+      /* Histogram bar grow (quiz) */
+      .cloud-bar { transform-origin: bottom; animation: cloud-bar .7s cubic-bezier(.2,.7,.25,1) both; }
+      @keyframes cloud-bar { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
       /* Summary reveal */
       .cloud-rise { animation: cloud-rise .6s cubic-bezier(.2,.7,.25,1) both; }
       @keyframes cloud-rise { from { opacity: 0; transform: translateY(26px) scale(.96); } to { opacity: 1; transform: none; } }
@@ -69,7 +73,7 @@ export default function PresenterFX() {
         .cloud-blob, .cloud-cta-glow, .cloud-qr, .cloud-rise, .cloud-sum-border,
         .cloud-ai-text, .cloud-ai-dot, .cloud-theme, .cloud-answer, .cloud-shimmer,
         .cloud-livedot, .cloud-livepill, .cloud-halo, .cloud-ripple, .cloud-countpop,
-        .cloud-dot, .cloud-part, .cloud-flash, .cloud-card { animation: none !important; }
+        .cloud-dot, .cloud-part, .cloud-flash, .cloud-card, .cloud-bar { animation: none !important; }
       }
     `}</style>
   );

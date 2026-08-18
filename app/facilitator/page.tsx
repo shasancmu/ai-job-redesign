@@ -116,11 +116,11 @@ async function Overview({ admin }: { admin: any }) {
           </div>
           <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
         </Link>
-        <Link href="/facilitator/benchmark" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
+        <Link href="/facilitator/quiz" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-clay-soft text-2xl">⏱️</div>
           <div className="min-w-0 flex-1">
             <div className="font-bold text-ink">The Benchmark</div>
-            <div className="text-sm text-slate2">A timed test. The room vs. the machine, scored live.</div>
+            <div className="text-sm text-slate2">A timed test. The room vs. the machine, scored live. No sign-in.</div>
           </div>
           <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
         </Link>
