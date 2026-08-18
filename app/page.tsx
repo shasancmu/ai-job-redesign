@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Logo from "@/components/Logo";
+import HeroVisual from "@/components/HeroVisual";
 import LandingLibrary from "@/components/LandingLibrary";
 import Footer from "@/components/Footer";
 
@@ -18,8 +19,9 @@ export default async function Home() {
       <div className="hero-wrap">
         <div className="ribbon" />
         <div className="ribbon-2" />
-        <div className="mx-auto max-w-6xl px-6">
-          <nav className="flex items-center justify-between py-5">
+        <div className="relative mx-auto max-w-6xl px-6">
+          <HeroVisual />
+          <nav className="relative z-10 flex items-center justify-between py-5">
             <Logo />
             <div className="flex items-center gap-2">
               <Link href="/login" className="hidden text-sm font-semibold text-ink/80 hover:text-ink sm:inline">
@@ -31,7 +33,7 @@ export default async function Home() {
             </div>
           </nav>
 
-          <div className="max-w-2xl pb-28 pt-16 sm:pb-36 sm:pt-24">
+          <div className="relative z-10 max-w-2xl pb-28 pt-16 sm:pb-36 sm:pt-24">
             <span className="eyebrow">Hands-on business exercises, run by AI</span>
             <h1 className="display mt-4 text-[2.75rem] text-ink sm:text-[4rem]">
               Human + AI, worth more together.
