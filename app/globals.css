@@ -219,3 +219,37 @@ main { animation: lux-fade 0.45s var(--ease) both; }
     scroll-behavior: auto !important;
   }
 }
+
+/* ======================================================================== */
+/* Further lux — editorial serif, off-white ground, staggered reveal.        */
+/* ======================================================================== */
+
+/* Barely-there cool off-white so white cards gently lift off the page. */
+:root { --paper: #fafbfd; }
+
+/* Display serif for the biggest moments (hero + page titles). UI stays sans. */
+h1,
+.display {
+  font-family: var(--font-display), "Iowan Old Style", Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  letter-spacing: -0.018em;
+  font-optical-sizing: auto;
+}
+h1 { line-height: 1.1; }
+.display { font-weight: 500; letter-spacing: -0.02em; }
+/* An italic display serif reads as a refined accent where wanted. */
+.serif-italic { font-family: var(--font-display), Georgia, serif; font-style: italic; font-weight: 400; }
+
+/* Staggered content reveal: non-fixed blocks rise, fixed bars just fade. */
+main { animation: none; }
+main > * { animation: lux-fade 0.5s var(--ease) both; }
+main > *:not([class~="fixed"]) { animation-name: lux-rise; }
+main > *:nth-child(2) { animation-delay: 0.05s; }
+main > *:nth-child(3) { animation-delay: 0.1s; }
+main > *:nth-child(4) { animation-delay: 0.15s; }
+main > *:nth-child(5) { animation-delay: 0.2s; }
+main > *:nth-child(n + 6) { animation-delay: 0.24s; }
+@keyframes lux-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}

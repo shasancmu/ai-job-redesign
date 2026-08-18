@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Fraunces } from "next/font/google";
 import "./globals.css";
 import { BRAND } from "@/lib/brand";
 import { getServerLocale } from "@/lib/i18n-server";
@@ -15,6 +15,16 @@ const sans = Inter({
   display: "swap",
 });
 
+// A high-contrast display serif for the biggest headings — an editorial,
+// premium counterpoint to the sans UI. Used only on hero/page-title moments.
+const display = Fraunces({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-display",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: BRAND.name,
   description: BRAND.description,
@@ -27,7 +37,7 @@ export default async function RootLayout({
 }) {
   const locale = await getServerLocale();
   return (
-    <html lang={locale} dir={isRTL(locale) ? "rtl" : "ltr"} className={sans.variable}>
+    <html lang={locale} dir={isRTL(locale) ? "rtl" : "ltr"} className={`${sans.variable} ${display.variable}`}>
       <body className="min-h-screen font-sans antialiased">
         <FirstTouch />
         <I18nProvider locale={locale}>{children}</I18nProvider>
