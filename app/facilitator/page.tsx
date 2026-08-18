@@ -97,13 +97,14 @@ async function Overview({ admin }: { admin: any }) {
         </div>
       </div>
 
-      {/* Run something live, right now — one tap, no cohort needed. */}
+      {/* Run something live, right now. */}
+      <h2 className="eyebrow mb-3">Run something live</h2>
       <div className="mb-9 grid gap-3 sm:grid-cols-2">
         <Link href="/facilitator/cloud" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-soft text-2xl">🌥️</div>
           <div className="min-w-0 flex-1">
             <div className="font-bold text-ink">Live word cloud</div>
-            <div className="text-sm text-slate2">Ask a question. Answers build into a cloud, live.</div>
+            <div className="text-sm text-slate2">Ask a question. Answers build into a cloud, live. No sign-in.</div>
           </div>
           <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
         </Link>
@@ -111,7 +112,23 @@ async function Overview({ admin }: { admin: any }) {
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sage-soft text-2xl">📷</div>
           <div className="min-w-0 flex-1">
             <div className="font-bold text-ink">Photo wall</div>
-            <div className="text-sm text-slate2">The room photographs something. AI reads each one; photos never stored.</div>
+            <div className="text-sm text-slate2">The room photographs something. AI reads each; photos never stored.</div>
+          </div>
+          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
+        </Link>
+        <Link href="/facilitator/benchmark" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-clay-soft text-2xl">⏱️</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-ink">The Benchmark</div>
+            <div className="text-sm text-slate2">A timed test. The room vs. the machine, scored live.</div>
+          </div>
+          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
+        </Link>
+        <Link href="/facilitator/network" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-soft text-2xl">🕸️</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-ink">The Network</div>
+            <div className="text-sm text-slate2">Map the room's real network, live and anonymous.</div>
           </div>
           <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
         </Link>
