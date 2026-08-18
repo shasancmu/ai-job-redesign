@@ -77,12 +77,15 @@ export default async function Dashboard({
       FREE_TIER_MODULES.has(m.slug);
   }
 
+  // Wide enough that a module's finished run never falls outside the window —
+  // otherwise "Done" would flicker back to "In progress" as newer sessions
+  // push the completed one past the limit.
   const { data: sessions } = await supabase
     .from("sessions")
     .select("*")
     .or(`host_id.eq.${user.id},guest_id.eq.${user.id}`)
     .order("created_at", { ascending: false })
-    .limit(30);
+    .limit(300);
 
   // Which modules has this person completed, and where's their last run?
   const [{ data: bench }, { data: net }] = await Promise.all([
@@ -115,17 +118,15 @@ export default async function Dashboard({
 
   // ---- "Your work" hub + momentum -----------------------------------------
   const streak = computeStreak((sessions || []).map((s: any) => s.created_at));
+  // Iterate MODULES (registry order) rather than the session list, so each
+  // card holds a FIXED position and never reshuffles when you open or re-run a
+  // module. One card per module; "Done" if any of its runs finished.
   const workItems: WorkItem[] = [];
-  const seen = new Set<string>();
-  for (const s of sessions || []) {
-    const m = MODULES.find((mm) => mm.exercise === s.exercise);
-    if (!m || m.partner === "group" || seen.has(m.slug)) continue; // group runs have no revisitable artifact
-    seen.add(m.slug);
-    // Aggregate across THIS module's sessions (already newest-first): "Done" if
-    // any run finished — link to the latest finished artifact; otherwise link to
-    // the latest run to continue. (Matches the catalog's Done badge.)
-    const mine = (sessions || []).filter((x: any) => x.exercise === m.exercise);
-    const doneRun = mine.find((x: any) => x.status === "done");
+  for (const m of MODULES) {
+    if (m.partner === "group") continue; // group runs (benchmark/network) have no revisitable artifact
+    const mine = (sessions || []).filter((x: any) => x.exercise === m.exercise); // newest-first
+    if (mine.length === 0) continue;
+    const doneRun = mine.find((x: any) => x.status === "done"); // most recent finished run
     const done = !!doneRun;
     const ref = done ? doneRun : mine[0];
     workItems.push({
@@ -137,7 +138,12 @@ export default async function Dashboard({
     });
   }
   const completedSet = new Set(MODULES.filter((m) => completed[m.slug]).map((m) => m.slug));
-  const exploredCount = new Set([...seen, ...(benchmarkDone ? ["benchmark"] : []), ...(networkDone ? ["network"] : [])]).size;
+  // Modules touched at all (any session) + the group activities completed.
+  const touched = new Set<string>();
+  for (const m of MODULES) if ((sessions || []).some((s: any) => s.exercise === m.exercise)) touched.add(m.slug);
+  if (benchmarkDone) touched.add("benchmark");
+  if (networkDone) touched.add("network");
+  const exploredCount = touched.size;
   const artifactCount = workItems.filter((w) => w.done).length;
   const nextSlug = nextStep(completedSet, recommended, validSlugs);
   const nextMod = nextSlug ? MODULES.find((m) => m.slug === nextSlug) : null;
