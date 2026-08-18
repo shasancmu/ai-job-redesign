@@ -1,59 +1,69 @@
-// A calm orbital system for the hero — glowing nodes in the brand palette
-// tracing concentric orbits around a soft core, evoking "human + AI in orbit,
-// worth more together." Pure SVG + CSS transforms: no JS, no libraries, and it
-// stops for prefers-reduced-motion.
+// A small, light hero mark for "superadditive": two thin luminous lines — one
+// sage (human), one sky (AI) — flow in from the left and merge into a single
+// brighter, warmer line that continues on, worth more than either alone. Soft
+// glints of light travel the lines and combine at the junction. Pure SVG + CSS,
+// no dark shapes; stops for prefers-reduced-motion.
+const P_SKY = "M 6 64 C 74 64 108 104 150 120";
+const P_SAGE = "M 6 176 C 74 176 108 136 150 120";
+const P_OUT = "M 150 120 C 206 120 250 116 296 102";
+
 export default function HeroVisual() {
   return (
-    <div className="hero-orbits" aria-hidden>
-      <svg viewBox="-160 -160 320 320" className="h-full w-full">
+    <div className="hero-lines" aria-hidden>
+      <svg viewBox="0 0 300 240" className="h-full w-full" fill="none">
         <defs>
-          <radialGradient id="hv-core" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="var(--sky)" stopOpacity="0.5" />
-            <stop offset="42%" stopColor="var(--sage)" stopOpacity="0.16" />
-            <stop offset="100%" stopColor="var(--sage)" stopOpacity="0" />
+          <linearGradient id="hl-sky" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="var(--sky)" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="var(--sky)" stopOpacity="0.95" />
+          </linearGradient>
+          <linearGradient id="hl-sage" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="var(--sage)" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="var(--sage)" stopOpacity="0.95" />
+          </linearGradient>
+          <linearGradient id="hl-out" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="var(--sky)" stopOpacity="0.9" />
+            <stop offset="55%" stopColor="var(--sage)" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="var(--amber)" stopOpacity="0.95" />
+          </linearGradient>
+          <radialGradient id="hl-bloom" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="var(--amber)" stopOpacity="0.5" />
+            <stop offset="55%" stopColor="var(--amber)" stopOpacity="0.12" />
+            <stop offset="100%" stopColor="var(--amber)" stopOpacity="0" />
           </radialGradient>
         </defs>
 
-        {/* soft core glow */}
-        <circle r="120" fill="url(#hv-core)" className="hv-breathe" />
+        {/* soft bloom where they combine */}
+        <circle cx="150" cy="120" r="46" fill="url(#hl-bloom)" className="hl-breathe" />
 
-        {/* orbit rings */}
-        <circle r="60" className="hv-ring" />
-        <circle r="102" className="hv-ring" strokeDasharray="1.5 7" />
-        <circle r="146" className="hv-ring" />
+        {/* the lines */}
+        <path d={P_SKY} className="hl-line hl-sky" stroke="url(#hl-sky)" />
+        <path d={P_SAGE} className="hl-line hl-sage" stroke="url(#hl-sage)" />
+        <path d={P_OUT} className="hl-line hl-out" stroke="url(#hl-out)" />
 
-        {/* center node */}
-        <circle r="7" className="hv-node hv-pulse" style={{ color: "var(--ink)" }} fill="currentColor" />
-
-        {/* orbiting nodes (each group rotates around the view-box centre) */}
-        <g className="hv-spin hv-s1"><circle cx="60" cy="0" r="5" className="hv-node" style={{ color: "var(--sage)" }} fill="currentColor" /></g>
-        <g className="hv-spin hv-s2"><circle cx="102" cy="0" r="6.5" className="hv-node" style={{ color: "var(--sky)" }} fill="currentColor" /></g>
-        <g className="hv-spin hv-s2b"><circle cx="102" cy="0" r="3.5" className="hv-node" style={{ color: "var(--amber)" }} fill="currentColor" /></g>
-        <g className="hv-spin hv-s3"><circle cx="146" cy="0" r="4.5" className="hv-node" style={{ color: "var(--clay)" }} fill="currentColor" /></g>
-        <g className="hv-spin hv-s3b"><circle cx="146" cy="0" r="3" className="hv-node" style={{ color: "var(--sage)" }} fill="currentColor" /></g>
+        {/* glints of light travelling the lines and combining */}
+        <circle r="2.6" className="hl-glint" style={{ color: "var(--sky)", offsetPath: `path("${P_SKY}")` } as any} fill="currentColor" />
+        <circle r="2.6" className="hl-glint" style={{ color: "var(--sage)", offsetPath: `path("${P_SAGE}")` } as any} fill="currentColor" />
+        <circle r="3.2" className="hl-glint hl-glint-out" style={{ color: "var(--amber)", offsetPath: `path("${P_OUT}")` } as any} fill="currentColor" />
 
         <style>{`
-          .hero-orbits {
-            position: absolute; right: -3vw; top: 52%; transform: translateY(-50%);
-            width: min(48vw, 580px); aspect-ratio: 1; pointer-events: none; z-index: 1;
+          .hero-lines {
+            position: absolute; right: 0; top: 52%; transform: translateY(-50%);
+            width: min(36vw, 440px); aspect-ratio: 300 / 240; pointer-events: none; z-index: 1;
           }
-          .hv-ring { fill: none; stroke: var(--ink); stroke-opacity: .10; stroke-width: 1; }
-          .hv-node { filter: drop-shadow(0 0 7px currentColor) drop-shadow(0 0 2px currentColor); }
-          .hv-spin { transform-box: view-box; transform-origin: center; animation: hv-spin var(--dur, 30s) linear infinite; }
-          .hv-s1  { --dur: 26s; }
-          .hv-s2  { --dur: 34s; animation-direction: reverse; }
-          .hv-s2b { --dur: 46s; }
-          .hv-s3  { --dur: 40s; }
-          .hv-s3b { --dur: 54s; animation-direction: reverse; }
-          @keyframes hv-spin { to { transform: rotate(360deg); } }
-          .hv-breathe { transform-box: view-box; transform-origin: center; animation: hv-breathe 8s ease-in-out infinite; }
-          @keyframes hv-breathe { 0%,100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.06); opacity: 1; } }
-          .hv-pulse { transform-box: view-box; transform-origin: center; animation: hv-pulse 3.4s ease-in-out infinite; }
-          @keyframes hv-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
-          @media (prefers-reduced-motion: reduce) {
-            .hv-spin, .hv-breathe, .hv-pulse { animation: none; }
-          }
-          @media (max-width: 1023px) { .hero-orbits { display: none; } }
+          .hl-line { fill: none; stroke-width: 2; stroke-linecap: round; }
+          .hl-sky  { filter: drop-shadow(0 0 5px rgba(78,121,201,.45)); }
+          .hl-sage { filter: drop-shadow(0 0 5px rgba(63,122,82,.45)); }
+          .hl-out  { stroke-width: 2.6; filter: drop-shadow(0 0 7px rgba(201,138,43,.5)); }
+
+          .hl-glint { offset-rotate: 0deg; filter: drop-shadow(0 0 6px currentColor); animation: hl-flow 4.2s cubic-bezier(.5,0,.5,1) infinite; }
+          .hl-glint-out { animation-duration: 3.4s; }
+          @keyframes hl-flow { 0% { offset-distance: 0%; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
+
+          .hl-breathe { transform-box: view-box; transform-origin: center; animation: hl-breathe 6s ease-in-out infinite; }
+          @keyframes hl-breathe { 0%,100% { opacity: .7; transform: scale(.94); } 50% { opacity: 1; transform: scale(1.06); } }
+
+          @media (prefers-reduced-motion: reduce) { .hl-glint { display: none; } .hl-breathe { animation: none; } }
+          @media (max-width: 1023px) { .hero-lines { display: none; } }
         `}</style>
       </svg>
     </div>
