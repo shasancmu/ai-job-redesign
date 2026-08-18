@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { MODULES, PARTNER_META, CATEGORIES, moduleCategory, formatPrice } from "@/lib/modules";
+import { MODULES, PARTNER_META, CATEGORIES, moduleCategory, formatPrice, PILLS, modulePills, pillLabel } from "@/lib/modules";
 import ModuleIcon from "@/components/ModuleIcon";
 import { useT } from "@/components/I18nProvider";
 
@@ -68,6 +68,13 @@ export default function Catalog({
   const cohort = fixedCohort ?? initialCohort;
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [activePills, setActivePills] = useState<Set<string>>(new Set());
+  const togglePill = (k: string) =>
+    setActivePills((s) => {
+      const n = new Set(s);
+      n.has(k) ? n.delete(k) : n.add(k);
+      return n;
+    });
   const shown = moduleSlugs
     ? (moduleSlugs.map((s) => MODULES.find((m) => m.slug === s)).filter(Boolean) as typeof MODULES)
     : MODULES;
@@ -117,7 +124,21 @@ export default function Catalog({
                 <ModuleIcon slug={m.slug} />
               </div>
               <h3 className="mt-4 text-lg font-bold text-ink">{tf("modules." + m.slug + ".name", m.name)}</h3>
-              <p className="mt-1.5 flex-1 text-sm leading-relaxed text-slate2">{tf("modules." + m.slug + ".tagline", m.tagline)}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate2">{tf("modules." + m.slug + ".tagline", m.tagline)}</p>
+              <div className="mt-2 flex flex-1 flex-wrap content-start gap-1">
+                {modulePills(m.slug).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => togglePill(p)}
+                    className={
+                      "rounded px-1.5 py-0.5 text-[10px] font-medium transition " +
+                      (activePills.has(p) ? "bg-ink text-white" : "bg-mist text-slate-500 hover:bg-slate-200")
+                    }
+                  >
+                    {pillLabel(p)}
+                  </button>
+                ))}
+              </div>
               <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-ink/45">
                 <span className={"inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium " + pm.chip}>
                   <span className="h-1.5 w-1.5 rounded-full" style={{ background: pm.dot }} />
@@ -192,28 +213,68 @@ export default function Catalog({
         <div className={grid}>{shown.map(renderCard)}</div>
       ) : (
         <div className="space-y-8">
-          {recModules.length > 0 && (
-            <div>
-              <div className="mb-3 flex items-baseline gap-2">
-                <span className="h-2 w-2 rounded-full bg-ink" />
-                <h3 className="text-sm font-bold text-ink">{t("dash.recommended")}</h3>
-              </div>
-              <div className={grid}>{recModules.map(renderCard)}</div>
-            </div>
-          )}
-          {CATEGORIES.map((cat) => {
-            const mods = shown.filter((m) => moduleCategory(m.slug) === cat.key);
-            if (mods.length === 0) return null;
-            return (
-              <div key={cat.key}>
-                <div className="mb-3 flex items-baseline gap-2">
-                  <span className="h-2 w-2 rounded-full" style={{ background: cat.dot }} />
-                  <h3 className="text-sm font-bold text-ink">{t("cat." + cat.key)}</h3>
-                </div>
+          {/* Pill filter bar */}
+          <div className="flex flex-wrap items-center gap-2">
+            {PILLS.map((p) => {
+              const on = activePills.has(p.key);
+              const count = shown.filter((m) => modulePills(m.slug).includes(p.key)).length;
+              if (count === 0) return null;
+              return (
+                <button
+                  key={p.key}
+                  onClick={() => togglePill(p.key)}
+                  className={
+                    "rounded-full px-3 py-1 text-sm font-medium transition " +
+                    (on ? "bg-ink text-white" : "border border-line bg-white text-slate2 hover:border-slate-300")
+                  }
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+            {activePills.size > 0 && (
+              <button onClick={() => setActivePills(new Set())} className="text-sm text-slate-400 hover:text-ink">
+                Clear
+              </button>
+            )}
+          </div>
+
+          {activePills.size > 0 ? (
+            // Filtered flat grid — modules matching ANY selected pill.
+            (() => {
+              const mods = shown.filter((m) => modulePills(m.slug).some((p) => activePills.has(p)));
+              return mods.length ? (
                 <div className={grid}>{mods.map(renderCard)}</div>
-              </div>
-            );
-          })}
+              ) : (
+                <p className="text-sm text-slate2">No modules match those filters.</p>
+              );
+            })()
+          ) : (
+            <>
+              {recModules.length > 0 && (
+                <div>
+                  <div className="mb-3 flex items-baseline gap-2">
+                    <span className="h-2 w-2 rounded-full bg-ink" />
+                    <h3 className="text-sm font-bold text-ink">{t("dash.recommended")}</h3>
+                  </div>
+                  <div className={grid}>{recModules.map(renderCard)}</div>
+                </div>
+              )}
+              {CATEGORIES.map((cat) => {
+                const mods = shown.filter((m) => moduleCategory(m.slug) === cat.key);
+                if (mods.length === 0) return null;
+                return (
+                  <div key={cat.key}>
+                    <div className="mb-3 flex items-baseline gap-2">
+                      <span className="h-2 w-2 rounded-full" style={{ background: cat.dot }} />
+                      <h3 className="text-sm font-bold text-ink">{t("cat." + cat.key)}</h3>
+                    </div>
+                    <div className={grid}>{mods.map(renderCard)}</div>
+                  </div>
+                );
+              })}
+            </>
+          )}
         </div>
       )}
     </div>

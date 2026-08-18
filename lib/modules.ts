@@ -410,6 +410,69 @@ export function moduleCategory(slug: string): CategoryKey {
   return CATEGORY_OF[slug] || "strategy";
 }
 
+// ---------------------------------------------------------------------------
+// Pills — a finite set of cross-cutting themes. A module can carry several; the
+// catalog shows them on each card and lets people filter by them.
+// ---------------------------------------------------------------------------
+export type PillKey =
+  | "ai"
+  | "career"
+  | "strategy"
+  | "leadership"
+  | "implementation"
+  | "entrepreneurship"
+  | "innovation"
+  | "negotiation"
+  | "live";
+
+export const PILLS: { key: PillKey; label: string }[] = [
+  { key: "ai", label: "AI" },
+  { key: "career", label: "Career" },
+  { key: "strategy", label: "Strategy" },
+  { key: "leadership", label: "Leadership" },
+  { key: "implementation", label: "Implementation" },
+  { key: "entrepreneurship", label: "Entrepreneurship" },
+  { key: "innovation", label: "Innovation" },
+  { key: "negotiation", label: "Negotiation" },
+  { key: "live", label: "Live in class" },
+];
+
+const PILLS_OF: Record<string, PillKey[]> = {
+  // Work & AI
+  "reimagine-job": ["ai", "career"],
+  "solo-ai": ["ai", "career"],
+  "reimagine-workflow": ["ai", "implementation"],
+  "workflow-solo": ["ai", "implementation"],
+  "ai-canvas": ["ai", "strategy", "implementation"],
+  // Careers
+  "career-x-ray": ["career", "ai"],
+  "jd-x-ray": ["career", "leadership"],
+  "career-roadmap": ["career"],
+  // Negotiation
+  "close-the-offer": ["negotiation", "career"],
+  "name-your-price": ["negotiation"],
+  // Strategy & management
+  "execution-4a": ["strategy", "leadership", "implementation"],
+  "balanced-scorecard": ["strategy", "leadership"],
+  "opportunity-capability": ["strategy", "leadership"],
+  "vendor-disclosure": ["strategy", "implementation"],
+  "haip-disclosure": ["strategy", "implementation", "ai"],
+  // Entrepreneurship / innovation
+  "good-business": ["entrepreneurship", "strategy"],
+  "test-the-bet": ["innovation", "entrepreneurship"],
+  "deeptech-canvas": ["innovation", "entrepreneurship"],
+  // Live
+  benchmark: ["live", "ai"],
+  network: ["live", "leadership"],
+};
+
+export function modulePills(slug: string): PillKey[] {
+  return PILLS_OF[slug] || [];
+}
+export function pillLabel(key: string): string {
+  return PILLS.find((p) => p.key === key)?.label || key;
+}
+
 export function moduleBySlug(slug: string): ModuleDef | undefined {
   return MODULES.find((m) => m.slug === slug);
 }
