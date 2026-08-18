@@ -42,7 +42,8 @@ export type ModuleDef = {
     | "jd-xray"
     | "career-roadmap"
     | "disclosure"
-    | "disclosure-haip"; // which room engine renders it
+    | "disclosure-haip"
+    | "consult"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -362,6 +363,21 @@ export const MODULES: ModuleDef[] = [
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_EXPERIMENT",
   },
+  {
+    slug: "business-consult",
+    exercise: "consult",
+    name: "The 30-Minute Consult",
+    tagline: "Free AI consulting for your business. A guided interview, a management-practices check, a photo read of the operation, and an 80/20 look add up to one clear picture: what kind of business you are, where your margin really lives, and what to fix first.",
+    description:
+      "A 30-minute guided diagnostic for a business owner. An AI advisor interviews you, you rate your management practices (Bloom, Van Reenen & Sadun), photograph the operation, and answer a quick 80/20. It returns a real consult: whether you win on cost or value, where the margin actually sits (the 'popcorn'), which lever (sell more, price higher, cut cost) has the most room, your management gaps, and a prioritized execution plan.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 30,
+    ai: true,
+    emoji: "📈",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_CONSULT",
+  },
 ];
 
 // The all-access bundle uses the existing single price env for backward compat.
@@ -401,6 +417,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "opportunity-capability": "strategy",
   "test-the-bet": "strategy",
   "good-business": "strategy",
+  "business-consult": "strategy",
   "close-the-offer": "negotiate",
   "name-your-price": "negotiate",
   benchmark: "live",
@@ -457,6 +474,7 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "opportunity-capability": ["strategy", "leadership"],
   "vendor-disclosure": ["strategy", "implementation"],
   "haip-disclosure": ["strategy", "implementation", "ai"],
+  "business-consult": ["strategy", "leadership", "implementation"],
   // Entrepreneurship / innovation
   "good-business": ["entrepreneurship", "strategy"],
   "test-the-bet": ["innovation", "entrepreneurship"],
