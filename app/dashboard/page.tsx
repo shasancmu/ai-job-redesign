@@ -160,6 +160,9 @@ export default async function Dashboard({
         </div>
         <div className="flex items-center gap-2">
           {I18N_ENABLED && <LanguagePicker me={user.id} initial={(profile as any)?.language} />}
+          <a href="/reports" className="btn-ghost text-sm">
+            Reports
+          </a>
           <a href="/profile" className="btn-ghost text-sm">
             {t("nav.profile")}
           </a>
