@@ -137,17 +137,23 @@ export default async function Dashboard({
       at: ref.created_at,
     });
   }
-  const completedSet = new Set(MODULES.filter((m) => completed[m.slug]).map((m) => m.slug));
-  // Modules touched at all (any session) + the group activities completed.
-  const touched = new Set<string>();
-  for (const m of MODULES) if ((sessions || []).some((s: any) => s.exercise === m.exercise)) touched.add(m.slug);
-  if (benchmarkDone) touched.add("benchmark");
-  if (networkDone) touched.add("network");
-  const exploredCount = touched.size;
-  const artifactCount = workItems.filter((w) => w.done).length;
-  const nextSlug = nextStep(completedSet, recommended, validSlugs);
-  const nextMod = nextSlug ? MODULES.find((m) => m.slug === nextSlug) : null;
-  const nextItem = nextMod ? { slug: nextMod.slug, name: nextMod.name, tagline: nextMod.tagline } : null;
+  const reportsCount = workItems.filter((w) => w.done).length;
+
+  // The one thing they touched most recently — "what was I working on last".
+  let recent: WorkItem | null = null;
+  for (const s of sessions || []) {
+    const m = MODULES.find((mm) => mm.exercise === s.exercise);
+    if (!m || m.partner === "group") continue; // group runs have no personal artifact/room to resume
+    const done = s.status === "done";
+    recent = {
+      slug: m.slug,
+      name: m.name,
+      done,
+      at: s.created_at,
+      href: done ? artifactHref(m.exercise, s.code) : `/room/${s.code}`,
+    };
+    break;
+  }
 
   const runsLeft = await runsLeftByModule(supabase, user.id, instructor);
 
@@ -156,7 +162,12 @@ export default async function Dashboard({
       <header className="mb-8 flex items-center justify-between gap-3">
         <div>
           <Logo />
-          <h1 className="mt-3 text-2xl">{t("dash.greeting", { name: profile?.display_name || "there" })}</h1>
+          <div className="mt-3 flex flex-wrap items-center gap-2.5">
+            <h1 className="text-2xl">{t("dash.greeting", { name: profile?.display_name || "there" })}</h1>
+            {streak.current > 0 && (
+              <span className="rounded-full bg-mist px-2.5 py-0.5 text-xs font-medium text-slate2">🔥 {streak.current}-week streak</span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {I18N_ENABLED && <LanguagePicker me={user.id} initial={(profile as any)?.language} />}
@@ -178,14 +189,7 @@ export default async function Dashboard({
       </header>
       <EnrichOnce />
 
-      <YourWork
-        streak={streak}
-        exploredCount={exploredCount}
-        total={MODULES.length}
-        artifactCount={artifactCount}
-        items={workItems}
-        next={nextItem}
-      />
+      <YourWork recent={recent} reportsCount={reportsCount} />
 
       <section>
         <h2 className="eyebrow">{t("dash.exercises")}</h2>
