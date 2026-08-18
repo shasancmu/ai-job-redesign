@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { DEFAULT_CONFIG, coerceConfig, scoreConfig, AI_NOTE } from "@/lib/benchmark";
+import { DEFAULT_CONFIG, coerceConfig, scoreConfig } from "@/lib/benchmark";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,5 +36,7 @@ export async function POST(request: Request) {
   const { error } = await admin.from("quiz_submissions").insert({ session_id: session.id, score, total });
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
-  return Response.json({ score, total, aiNote: AI_NOTE });
+  // Only the score goes back to the phone. The "vs the machine" reveal is the
+  // presenter's stage moment, never spoiled on the participant's device.
+  return Response.json({ score, total });
 }

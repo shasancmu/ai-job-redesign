@@ -14,7 +14,7 @@ export default function QuizRoom({ code }: { code: string }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [startedAt, setStartedAt] = useState(0);
   const [now, setNow] = useState(() => Date.now());
-  const [result, setResult] = useState<{ score: number; total: number; aiNote: string } | null>(null);
+  const [result, setResult] = useState<{ score: number; total: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const submitted = useRef(false);
@@ -66,7 +66,7 @@ export default function QuizRoom({ code }: { code: string }) {
         setErr(data.error || "Couldn't submit. Try again.");
         submitted.current = false;
       } else {
-        const r = { score: data.score, total: data.total, aiNote: data.aiNote };
+        const r = { score: data.score, total: data.total };
         setResult(r);
         try {
           localStorage.setItem(key, JSON.stringify(r));
@@ -108,10 +108,7 @@ export default function QuizRoom({ code }: { code: string }) {
           {result.score}<span className="text-2xl text-slate-400">/{result.total}</span>
         </div>
         <div className="mt-1 text-sm text-slate-400">{pct}%</div>
-        {result.aiNote && (
-          <div className="mt-5 rounded-2xl bg-mist p-4 text-left text-sm leading-relaxed text-slate-600">{result.aiNote}</div>
-        )}
-        <p className="mt-4 text-xs text-slate-400">Watch the screen for the room&apos;s results.</p>
+        <p className="mt-6 text-sm text-slate2">Nicely done. Look up, the room&apos;s results are on the screen.</p>
       </div>
     );
   }
