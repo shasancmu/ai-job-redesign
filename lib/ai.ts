@@ -70,20 +70,24 @@ async function complete(
   const model = opts.vision ? VISION_MODEL : MODEL;
   const apiKey = opts.vision ? VISION_API_KEY : process.env.AI_API_KEY;
   const isAnthropic = baseUrl.includes("anthropic.com");
+  // Some vision/reasoning models reject `temperature` entirely, so on vision
+  // calls we send only an explicitly-provided value and otherwise omit it.
+  const temp = opts.vision ? opts.temperature : opts.temperature ?? 0.7;
+  const payload: Record<string, any> = {
+    model,
+    messages: localize(messages),
+    // Big enough that structured plans don't get truncated into invalid JSON.
+    max_tokens: opts.maxTokens ?? 4096,
+  };
+  if (temp != null) payload.temperature = temp;
+  if (opts.json && !isAnthropic) payload.response_format = { type: "json_object" };
   const res = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({
-      model,
-      messages: localize(messages),
-      // Big enough that structured plans don't get truncated into invalid JSON.
-      max_tokens: opts.maxTokens ?? 4096,
-      temperature: opts.temperature ?? 0.7,
-      ...(opts.json && !isAnthropic ? { response_format: { type: "json_object" } } : {}),
-    }),
+    body: JSON.stringify(payload),
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
@@ -565,7 +569,7 @@ Be specific, concrete, and neutral. Do NOT name or identify real, non-public ind
       ],
     },
   ];
-  const raw = await complete(messages as any, { json: true, temperature: 0.3, maxTokens: 900, vision: true });
+  const raw = await complete(messages as any, { json: true, maxTokens: 900, vision: true });
   const p = extractJson(raw);
   const kind = p?.kind === "text" ? "text" : "photo";
   return {
