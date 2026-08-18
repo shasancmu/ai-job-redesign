@@ -115,7 +115,7 @@ function Brief({ scn }: { scn: Scenario }) {
       {scn.kind === "multi-issue" ? (
         <div className="card p-5">
           <div className="text-xs font-semibold uppercase tracking-wide text-sage">{t("nego.privatePriorities")}</div>
-          <p className="mt-1 text-sm text-slate-500">{t("nego.priorityIntro1")} <b>{yourMaxOf(scn)}</b>{t("nego.priorityIntro2")} <b>{scn.yourBatna}</b> {t("nego.priorityIntro3")}</p>
+          <p className="mt-1 text-sm text-slate-500">{t("nego.priorityIntro1")} <b>{yourMaxOf(scn)}</b>{t("nego.priorityIntro2")} <b>{scn.yourBatna}</b>{t("nego.priorityIntro3")}</p>
           <div className="mt-4 space-y-4">
             {scn.issues.map((iss) => (
               <div key={iss.key}>

@@ -56,7 +56,7 @@ export default function ExposureCohort({ rows, cohort }: { rows: XrayRow[]; coho
   return (
     <div className="card mb-6 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <div className="text-lg font-bold text-ink">Exposure — the room</div>
+        <div className="text-lg font-bold text-ink">Exposure: the room</div>
         <a href={`/facilitator/career-export?cohort=${encodeURIComponent(cohort)}`} className="text-sm font-medium text-sage hover:underline">↓ Task data (CSV, for STM)</a>
       </div>
 
@@ -95,7 +95,7 @@ export default function ExposureCohort({ rows, cohort }: { rows: XrayRow[]; coho
               </div>
             ))}
           </div>
-          <p className="mt-3 text-xs text-slate-400">Bar length = share of tasks; color = average AI exposure. Lexical buckets — a rough approximation of STM. Export the tasks to model themes rigorously.</p>
+          <p className="mt-3 text-xs text-slate-400">Bar length = share of tasks; color = average AI exposure. Lexical buckets, a rough approximation of STM. Export the tasks to model themes rigorously.</p>
         </div>
       </div>
     </div>

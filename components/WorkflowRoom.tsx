@@ -381,7 +381,7 @@ export default function WorkflowRoom({
           <div className="space-y-4">
             <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="text-sm text-slate-500">
-                {t("workflow.mapIntroPre")}{" "}<span className="font-semibold text-ink">{t("workflow.mapIntroToday")}</span>{" "}{t("workflow.mapIntroPost")}
+                {t("workflow.mapIntroPre")}{" "}<span className="font-semibold text-ink">{t("workflow.mapIntroToday")}</span>{t("workflow.mapIntroPost")}
               </div>
               <button onClick={generate} disabled={generating} className="btn-primary text-sm">
                 {generating ? t("workflow.drawing") : steps.length ? "↻ " + t("workflow.redraw") : t("workflow.drawCurrent")}

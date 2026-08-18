@@ -82,7 +82,7 @@ export default function UnitEconomics({
       </div>
       {!readOnly && r.ltvCac > 0 && (
         <p className="mt-3 text-xs text-slate-400">
-          Rule of thumb: LTV:CAC ≥ 3× and payback under ~12 months. {r.ltvCac < 3 ? "This is below the bar — the economics need work." : "These economics clear the bar."}
+          Rule of thumb: LTV:CAC ≥ 3× and payback under ~12 months. {r.ltvCac < 3 ? "This is below the bar. The economics need work." : "These economics clear the bar."}
         </p>
       )}
     </div>

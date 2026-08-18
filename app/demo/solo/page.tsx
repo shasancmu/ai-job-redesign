@@ -10,11 +10,11 @@ import GridEditor from "@/components/GridEditor";
 import Timer from "@/components/Timer";
 
 const SCRIPT = [
-  "To start — walk me through a typical week. What are you actually doing day to day?",
-  "Helpful. Of all that, what drains you most — the work you wish you didn't have to do?",
-  "Got it. Now the opposite: when are you doing your best, most valuable work — the part only you can do?",
+  "To start, walk me through a typical week. What are you actually doing day to day?",
+  "Helpful. Of all that, what drains you most, the work you wish you didn't have to do?",
+  "Got it. Now the opposite: when are you doing your best, most valuable work, the part only you can do?",
   "Last one: if that draining work were off your plate, what would you spend the reclaimed time on?",
-  "Thanks — I've got a clear picture. Head to the next step and I'll draft a redesign.",
+  "Thanks. I've got a clear picture. Head to the next step and I'll draft a redesign.",
 ];
 
 const DRAFT_GRID: Record<string, string[]> = {
@@ -48,7 +48,7 @@ export default function SoloDemo() {
   return (
     <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
       <div className="mb-4 rounded-xl bg-blue-50 px-4 py-2 text-sm text-blue-800">
-        Preview — Solo with AI (scripted). The real version uses your configured
+        Preview: Solo with AI (scripted). The real version uses your configured
         model.{" "}
         <Link href="/demo" className="font-semibold underline">
           Job exercise
@@ -100,7 +100,7 @@ export default function SoloDemo() {
           <div className="space-y-4">
             <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="text-sm text-slate-500">Let your AI partner draft a first pass, then make it yours.</div>
-              <button onClick={() => set({ grid: DRAFT_GRID, new_job_description: "In your reimagined role, you own the narrative and which bets to make, while AI scans the field, clusters the signal, and drafts every asset. Your week goes to judgment and relationships — not producing collateral." })} className="btn-primary">
+              <button onClick={() => set({ grid: DRAFT_GRID, new_job_description: "In your reimagined role, you own the narrative and which bets to make, while AI scans the field, clusters the signal, and drafts every asset. Your week goes to judgment and relationships, not producing collateral." })} className="btn-primary">
                 ✨ Draft with AI
               </button>
             </div>
@@ -114,7 +114,7 @@ export default function SoloDemo() {
 
         {step.key === "final" && (
           <div className="card p-5">
-            <label className="lbl">Your reimagined job — final version</label>
+            <label className="lbl">Your reimagined job: final version</label>
             <textarea className="field min-h-[150px]" value={doc.final_description} onChange={(e) => set({ final_description: e.target.value })} placeholder="In my reimagined role, I…" />
           </div>
         )}

@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     );
     const { _raw, ...xray } = result;
     if (!xray.summary && (xray.tasks?.length || 0) === 0) {
-      return Response.json({ error: "The analysis came back empty — try again." }, { status: 502 });
+      return Response.json({ error: "The analysis came back empty. Try again." }, { status: 502 });
     }
     return Response.json({ ok: true, xray });
   } catch (e: any) {

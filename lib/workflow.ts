@@ -18,7 +18,7 @@ export const WORKFLOW_STEPS: WFStep[] = [
     index: 0,
     title: "Name the workflow",
     subtitle:
-      "Pick one workflow worth redesigning. In a line, what is it — and what breaks if you don't fix it?",
+      "Pick one workflow worth redesigning. In a line, what is it, and what breaks if you don't fix it?",
     minutes: 4,
   },
   {
@@ -26,7 +26,7 @@ export const WORKFLOW_STEPS: WFStep[] = [
     index: 1,
     title: "Draw it as it is today",
     subtitle:
-      "The honest current state — every step a human does now. AI sketches it from your description; make it match reality.",
+      "The honest current state: every step a human does now. AI sketches it from your description; make it match reality.",
     minutes: 6,
   },
   {
@@ -34,7 +34,7 @@ export const WORKFLOW_STEPS: WFStep[] = [
     index: 2,
     title: "How AI makes it better",
     subtitle:
-      "AI finds where it genuinely helps — the outcome, how, and how to prep fast — then proposes the split. Recolor together; disagreements are the most interesting part.",
+      "AI finds where it genuinely helps (the outcome, how, and how to prep fast), then proposes the split. Recolor together; disagreements are the most interesting part.",
     minutes: 8,
   },
   {
@@ -42,7 +42,7 @@ export const WORKFLOW_STEPS: WFStep[] = [
     index: 3,
     title: "The three trade-offs",
     subtitle:
-      "AI pulls toward more, toward generality, toward chaos. Decide where each holds the line — then AI builds your plan for getting to better outcomes, accuracy where it counts, and structure that makes autonomy safe.",
+      "AI pulls toward more, toward generality, toward chaos. Decide where each holds the line. Then AI builds your plan for getting to better outcomes, accuracy where it counts, and structure that makes autonomy safe.",
     minutes: 6,
   },
   {
@@ -63,7 +63,7 @@ export const SOLO_WORKFLOW_STEPS: WFStep[] = [
     key: "name",
     index: 0,
     title: "Name the workflow",
-    subtitle: "Pick one worth redesigning. In a line, what is it — and what breaks if you don't fix it?",
+    subtitle: "Pick one worth redesigning. In a line, what is it, and what breaks if you don't fix it?",
     minutes: 3,
   },
   {
@@ -77,21 +77,21 @@ export const SOLO_WORKFLOW_STEPS: WFStep[] = [
     key: "map",
     index: 2,
     title: "Draw it as it is today",
-    subtitle: "The honest current state — every step a human does now. AI sketches it; you make it match reality.",
+    subtitle: "The honest current state: every step a human does now. AI sketches it; you make it match reality.",
     minutes: 6,
   },
   {
     key: "analyze",
     index: 3,
     title: "How AI makes it better",
-    subtitle: "AI studies your real workflow and finds where it genuinely helps — the outcome, how, and how to prep fast.",
+    subtitle: "AI studies your real workflow and finds where it genuinely helps: the outcome, how, and how to prep fast.",
     minutes: 8,
   },
   {
     key: "tradeoffs",
     index: 4,
     title: "The three trade-offs",
-    subtitle: "AI pulls toward more, toward generality, toward chaos. Decide where each holds the line — then AI builds your plan for getting to better outcomes, accuracy where it counts, and structure that makes autonomy safe.",
+    subtitle: "AI pulls toward more, toward generality, toward chaos. Decide where each holds the line. Then AI builds your plan for getting to better outcomes, accuracy where it counts, and structure that makes autonomy safe.",
     minutes: 6,
   },
   {

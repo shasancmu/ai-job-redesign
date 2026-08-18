@@ -55,7 +55,7 @@ export default function WorkflowPlanView({ doc, code }: { doc: any; code: string
       {/* The redesigned flow */}
       {flow.length > 0 && (
         <section className="mx-auto max-w-4xl px-6 pt-12">
-          <div className="eyebrow">The flow — AI + human</div>
+          <div className="eyebrow">The flow: AI + human</div>
           <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate2">
             {STEP_ROLES.map((r) => (
               <span key={r.key} className="flex items-center gap-1.5">

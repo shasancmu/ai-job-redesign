@@ -96,7 +96,7 @@ export default function BenchmarkHistogram({
 
       <div className="mt-4 rounded-xl bg-mist px-4 py-3 text-center text-sm text-slate2">
         <b className="text-ink">⚡ How cheap AI performs:</b> ≈ {aiScore}/{data.total},
-        in seconds, for pennies. The gap that matters is judgment — not speed.
+        in seconds, for pennies. The gap that matters is judgment, not speed.
       </div>
     </div>
   );

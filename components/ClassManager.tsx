@@ -69,7 +69,7 @@ export default function ClassManager() {
   async function del(k: Klass) {
     if (
       !confirm(
-        `Delete "${k.name}"? People can no longer join at /${k.code}. Their collected responses stay in the results — download them first if you need them.`
+        `Delete "${k.name}"? People can no longer join at /${k.code}. Their collected responses stay in the results. Download them first if you need them.`
       )
     )
       return;
@@ -114,7 +114,7 @@ export default function ClassManager() {
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <label className="lbl">Cohort name</label>
-            <input className="field" value={name} onChange={(e) => setName(e.target.value)} placeholder="Chief AI Officer — Sep 27" />
+            <input className="field" value={name} onChange={(e) => setName(e.target.value)} placeholder="Chief AI Officer, Sep 27" />
           </div>
           <div>
             <label className="lbl">Join code (the link)</label>
@@ -134,7 +134,7 @@ export default function ClassManager() {
           <div className="grid gap-2 sm:grid-cols-2">
             {([
               { k: "teaching", title: "Teaching / class", sub: "Open join. Selected modules free; students can buy $19 all-access." },
-              { k: "enterprise", title: "Enterprise (contract)", sub: "Invite-only by email. Comped — no online payment." },
+              { k: "enterprise", title: "Enterprise (contract)", sub: "Invite-only by email. Comped, no online payment." },
             ] as const).map((o) => (
               <button
                 key={o.k}
@@ -176,7 +176,7 @@ export default function ClassManager() {
 
         {/* Ordered module list */}
         <div className="mt-5">
-          <label className="lbl">Modules — in the order participants will do them</label>
+          <label className="lbl">Modules: in the order participants will do them</label>
           {order.length === 0 ? (
             <p className="text-sm text-slate2">Add modules below; drag order with the arrows.</p>
           ) : (

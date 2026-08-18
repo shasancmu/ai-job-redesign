@@ -400,7 +400,7 @@ function MapStep({
     <div className="space-y-4">
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
         <div className="text-sm text-slate-500">
-          {t("sworkflow.mapIntro1")} <span className="font-semibold text-ink">{t("sworkflow.mapToday")}</span> {t("sworkflow.mapIntro2")}
+          {t("sworkflow.mapIntro1")} <span className="font-semibold text-ink">{t("sworkflow.mapToday")}</span>{t("sworkflow.mapIntro2")}
         </div>
         <button onClick={draw} disabled={busy} className="btn-primary text-sm">
           {busy ? t("sworkflow.drawing") : steps.length ? <>↻ {t("sworkflow.redraw")}</> : t("sworkflow.drawCurrent")}

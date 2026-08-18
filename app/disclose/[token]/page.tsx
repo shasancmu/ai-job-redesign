@@ -47,7 +47,7 @@ export default async function DisclosePage({ params }: { params: { token: string
       <h1 className="mt-1 text-2xl font-bold text-ink">{canvas.product || canvas.vendor || "Complete this disclosure"}</h1>
       <p className="mt-2 max-w-2xl text-sm text-slate-500">
         {variant === "haip"
-          ? "You've been asked to complete the Health AI Partnership (HAIP) AI Vendor Disclosure Framework. Answer each question as completely and specifically as you can — the buyer will review your responses against the framework."
+          ? "You've been asked to complete the Health AI Partnership (HAIP) AI Vendor Disclosure Framework. Answer each question as completely and specifically as you can. The buyer will review your responses against the framework."
           : "You've been asked to complete a vendor disclosure (adapted from the Health AI Partnership framework). Answer each question as completely and specifically as you can."}
       </p>
 

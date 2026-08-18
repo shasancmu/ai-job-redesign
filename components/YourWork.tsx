@@ -33,7 +33,7 @@ export default function YourWork({
 
       {items.length === 0 ? (
         <p className="rounded-xl bg-mist px-4 py-5 text-sm text-slate2">
-          Your saved plans, roadmaps, and canvases will collect here as you go — a growing record you can return to.
+          Your saved plans, roadmaps, and canvases will collect here as you go, a growing record you can return to.
         </p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

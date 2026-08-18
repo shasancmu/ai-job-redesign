@@ -58,7 +58,7 @@ export default function AggregateView({ cohort }: { cohort: string }) {
 
       {total === 0 ? (
         <div className="card p-10 text-center text-slate-400">
-          Nothing assigned yet — this fills in as pairs work through the 2×4 grid.
+          Nothing assigned yet. This fills in as pairs work through the 2×4 grid.
         </div>
       ) : (
         <div className="space-y-5">

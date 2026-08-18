@@ -32,7 +32,7 @@ export default async function FacilitatorBenchmark({
           ← {label}
         </Link>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-3xl font-bold text-ink">The Benchmark — live</h1>
+          <h1 className="text-3xl font-bold text-ink">The Benchmark: live</h1>
           <div className="flex items-center gap-2">
             <Link href="/facilitator/benchmark/edit" className="btn-ghost text-sm">
               Edit questions

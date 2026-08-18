@@ -20,7 +20,7 @@ export default function PairWaiting({ code }: { code: string }) {
         <div className="font-mono text-5xl font-bold tracking-[0.3em] text-ink">{code}</div>
       </div>
       <p className="max-w-sm text-slate2">
-        Read this code to your partner — or drop the link in the Zoom chat and have them tap it.
+        Read this code to your partner, or drop the link in the Zoom chat and have them tap it.
       </p>
       <button
         onClick={() => {

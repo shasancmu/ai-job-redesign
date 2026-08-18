@@ -342,7 +342,7 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
         if (!rows.length) return null;
         return (
           <div key={ex} className="card mb-6 p-5">
-            <div className="text-lg font-bold text-ink">{scn.name} — the room</div>
+            <div className="text-lg font-bold text-ink">{scn.name}: the room</div>
             <div className="mt-3">
               {scn.kind === "multi-issue" ? (
                 <NegotiationScatter rows={rows} maxJoint={maxJointOf(scn)} counterpartName={scn.counterpartName} />
@@ -437,7 +437,7 @@ function ParticipantColumn({
   if (!ws) {
     return (
       <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">
-        {authorName} — no data.
+        {authorName}: no data.
       </div>
     );
   }
@@ -530,7 +530,7 @@ function SoloView({ authorName, ws, code }: { authorName: string; ws: any; code:
   if (!ws) {
     return (
       <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">
-        {authorName} — no data.
+        {authorName}: no data.
       </div>
     );
   }
@@ -595,7 +595,7 @@ function FourAHeatmap({ rows }: { rows: { name: string; ratings: Record<string, 
   return (
     <div className="card mb-6 p-5">
       <div className="flex items-baseline justify-between">
-        <div className="text-lg font-bold text-ink">4A execution — the room</div>
+        <div className="text-lg font-bold text-ink">4A execution: the room</div>
         <div className="text-sm text-slate-500">{rows.length} responses</div>
       </div>
       <div className="mt-4 overflow-x-auto">
@@ -633,7 +633,7 @@ function CareerFacilitatorView({ ws, code, authorName }: { ws: any; code: string
   const x = ws?.canvas?.xray;
   const done = x && (x.summary || (x.tasks?.length || 0) > 0);
   if (!done) {
-    return <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">{authorName} — no analysis yet.</div>;
+    return <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">{authorName}: no analysis yet.</div>;
   }
   return (
     <div className="rounded-xl border border-slate-200 p-4">
@@ -658,14 +658,14 @@ function NegotiationFacilitatorView({ exercise, ws, authorName }: { exercise: st
   const state = ws?.canvas || {};
   const hasDeal = state.terms && Object.keys(state.terms).length > 0;
   if (!scn || (!hasDeal && !state.noDeal)) {
-    return <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">{authorName} — not finished yet.</div>;
+    return <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">{authorName}: not finished yet.</div>;
   }
   const a = negAnalyze(scn, state.terms || {}, !!state.noDeal);
   return (
     <div className="grid gap-5 md:grid-cols-2">
       <div className="rounded-xl border border-slate-200 p-4">
         {a.noDeal ? (
-          <div className="text-sm text-clay">No deal — walked away.</div>
+          <div className="text-sm text-clay">No deal: walked away.</div>
         ) : scn.kind === "multi-issue" ? (
           <>
             <div className="flex flex-wrap gap-4 text-sm">
@@ -719,7 +719,7 @@ function CanvasFacilitatorView({
   if (!def || !hasContent) {
     return (
       <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">
-        {authorName} — no canvas yet.
+        {authorName}: no canvas yet.
       </div>
     );
   }

@@ -69,7 +69,7 @@ export async function POST(request: Request) {
       if (fb && fb.score > 0) anchorCodes.add(fb.code);
     }
     if (anchorCodes.size === 0) {
-      return Response.json({ error: "Couldn't match your background — add your current role and more résumé detail." }, { status: 422 });
+      return Response.json({ error: "Couldn't match your background. Add your current role and more résumé detail." }, { status: 422 });
     }
 
     const pool = new Map<string, Candidate>();
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     }
     const cands = [...pool.values()].sort((a, b) => b.sim - a.sim).slice(0, 16);
     if (cands.length === 0) {
-      return Response.json({ error: "Couldn't find enough adjacent roles — add more résumé detail." }, { status: 422 });
+      return Response.json({ error: "Couldn't find enough adjacent roles. Add more résumé detail." }, { status: 422 });
     }
     const candByCode = Object.fromEntries(cands.map((c) => [c.code, c]));
 

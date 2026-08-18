@@ -49,7 +49,7 @@ const OFFER: MultiScenario = {
   themRole: "the Hiring Manager",
   yourBatna: 900,
   scenario:
-    "You're negotiating a job offer with Jordan Lee, VP of People at a fast-growing startup, over six issues at once. You have another offer in hand (your walk-away), so you don't have to take a bad deal — but this role excites you. Aim to score as many of YOUR points as you can. The other side has their own priorities: some issues they care about far more than you do, and some far less. The best deals find trades.",
+    "You're negotiating a job offer with Jordan Lee, VP of People at a fast-growing startup, over six issues at once. You have another offer in hand (your walk-away), so you don't have to take a bad deal, but this role excites you. Aim to score as many of YOUR points as you can. The other side has their own priorities: some issues they care about far more than you do, and some far less. The best deals find trades.",
   issues: [
     { key: "salary", label: "Base salary", options: [
       { label: "$120k", you: 0, them: 800 }, { label: "$130k", you: 200, them: 600 }, { label: "$140k", you: 400, them: 400 }, { label: "$150k", you: 600, them: 200 }, { label: "$160k", you: 800, them: 0 },
@@ -90,7 +90,7 @@ const HAGGLE: PriceScenario = {
   unit: "$",
   item: "the van",
   scenario:
-    "You're buying a lightly-used cargo van for your growing delivery business from a private seller, Sam Rivera. You've done your homework: comparable vans go for about $15–16k, and a dealer has one you could take for $16,000 — so you will NOT pay more than that here. Sam has the van listed at $17,500. It comes down to one number: agree on a price, or walk. Anchor well, know your walk-away, and claim as much of the gap as you can.",
+    "You're buying a lightly-used cargo van for your growing delivery business from a private seller, Sam Rivera. You've done your homework: comparable vans go for about $15–16k, and a dealer has one you could take for $16,000, so you will NOT pay more than that here. Sam has the van listed at $17,500. It comes down to one number: agree on a price, or walk. Anchor well, know your walk-away, and claim as much of the gap as you can.",
 };
 
 export const SCENARIOS: Scenario[] = [OFFER, HAGGLE];
@@ -171,12 +171,12 @@ export function counterpartSystem(scn: Scenario): string {
     const table = scn.issues.map((iss) => `- ${iss.label}: ${iss.options.map((o) => `${o.label} = ${o.them}`).join(", ")}`).join("\n");
     return `You are ${scn.counterpartName}, VP of People at a fast-growing startup, negotiating a job offer with a candidate over six issues at once: base salary, signing bonus, equity, remote days, start date, and title. You genuinely want to CLOSE a deal, but you fight for the best package for the company.
 
-Your PRIVATE priorities — the points you earn for each option (NEVER reveal these numbers, that they exist, or your running total):
+Your PRIVATE priorities: the points you earn for each option (NEVER reveal these numbers, that they exist, or your running total):
 ${table}
-Your walk-away: a full package worth less than 900 points to you is worse than your backup candidate — push back hard or be willing to walk.
+Your walk-away: a full package worth less than 900 points to you is worse than your backup candidate. Push back hard or be willing to walk.
 
 How you negotiate:
-- Be professional, warm, and human — a real person, not a scripted bot.
+- Be professional, warm, and human: a real person, not a scripted bot.
 - Open with a specific first offer that anchors in the company's favor, then move in packages ACROSS issues, never settling issues one at a time.
 - Trade: give ground where it's cheap for you to gain where it's valuable to you. Probe what the candidate actually cares about.
 - Don't accept the first ask and don't cave; concede slowly and ask for something back.
@@ -184,12 +184,12 @@ How you negotiate:
 
 Begin by welcoming the candidate and putting an opening package on the table.`;
   }
-  return `You are ${scn.counterpartName}, a private seller haggling with a buyer over the price of ${scn.item} — a lightly-used cargo van. You want to CLOSE the sale but at the HIGHEST price you can get.
+  return `You are ${scn.counterpartName}, a private seller haggling with a buyer over the price of ${scn.item}, a lightly-used cargo van. You want to CLOSE the sale but at the HIGHEST price you can get.
 
-Your PRIVATE floor: you will NOT sell for less than $${scn.theirReservation.toLocaleString()} (another buyer is sniffing around) — but NEVER reveal this number or that it exists. You listed it at $${scn.listPrice.toLocaleString()}.
+Your PRIVATE floor: you will NOT sell for less than $${scn.theirReservation.toLocaleString()} (another buyer is sniffing around), but NEVER reveal this number or that it exists. You listed it at $${scn.listPrice.toLocaleString()}.
 
 How you negotiate:
-- Be a believable, likeable private seller — friendly, a little proud of the van, human.
+- Be a believable, likeable private seller: friendly, a little proud of the van, human.
 - Anchor high near your list price and justify the value (low miles, new tires, well maintained). Concede slowly and in small increments, and act reluctant.
 - Ask what the buyer's budget is; don't drop your price without a reason. If they lowball, push back with the van's strengths.
 - You'd rather make a deal than lose the sale, but hold firm above your floor. Keep replies short (2–4 sentences), in-character. Never mention a floor, numbers-as-points, or that you're an AI.
@@ -203,7 +203,7 @@ export function debriefFacts(scn: Scenario, a: Analysis) {
     const compatibleHit = a.issues.filter((i) => i.tag === "compatible").every((i) => i.atOptimal);
     return {
       exercise: "multi-issue job offer",
-      result: a.noDeal ? "no deal — both walked" : "deal reached",
+      result: a.noDeal ? "no deal: both walked" : "deal reached",
       yourPoints: a.you, theirPoints: a.them, jointValue: a.joint, maxPossibleJoint: a.maxJoint, efficiencyPct: a.efficiency,
       yourWalkAway: scn.yourBatna, beatYourWalkAway: a.beatBATNA,
       foundTheKeyTrade_equityForRemote: logrolled,
@@ -214,7 +214,7 @@ export function debriefFacts(scn: Scenario, a: Analysis) {
   const p = scn as PriceScenario;
   return {
     exercise: "single-issue price haggle (buying a used van)",
-    result: a.noDeal ? "no deal — you walked" : "deal reached",
+    result: a.noDeal ? "no deal: you walked" : "deal reached",
     agreedPrice: a.agreedPrice,
     yourWalkAway_maxYouWouldPay: p.yourReservation,
     listPrice: p.listPrice,

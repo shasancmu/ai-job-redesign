@@ -37,7 +37,7 @@ export default function DisclosureForm({
   if (done) {
     return (
       <div className="mt-8 rounded-xl bg-sage-soft px-5 py-6 text-center">
-        <div className="text-lg font-bold text-sage">Thank you — your disclosure was submitted.</div>
+        <div className="text-lg font-bold text-sage">Thank you. Your disclosure was submitted.</div>
         <p className="mt-1 text-sm text-slate-600">The buyer has received your responses. You can edit and re-submit from this same link if needed.</p>
         <button onClick={() => setDone(false)} className="btn-ghost mt-4 text-sm">Edit my responses</button>
       </div>

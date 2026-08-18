@@ -70,17 +70,17 @@ export default async function Paywall({
       <h1 className="text-2xl font-bold">{mod ? mod.name : "Unlock full access"}</h1>
       <p className="mt-2 text-slate-500">
         {capped
-          ? `You've used your ${PAID_RUNS} runs of ${mod!.name}. Buy again to reset — ${PAID_RUNS} runs of every module.`
+          ? `You've used your ${PAID_RUNS} runs of ${mod!.name}. Buy again to reset: ${PAID_RUNS} runs of every module.`
           : isFreeTierModule
-            ? `You've used your free runs of ${mod!.name}. Get full access to keep going — and to run every other module.`
+            ? `You've used your free runs of ${mod!.name}. Get full access to keep going, and to run every other module.`
             : mod
-              ? `${mod.name} is part of full access — every module, ${PAID_RUNS} runs each.`
+              ? `${mod.name} is part of full access: every module, ${PAID_RUNS} runs each.`
               : `Every one of the ${MODULES.length} modules, ${PAID_RUNS} runs each.`}
       </p>
 
       {searchParams.canceled && (
         <div className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          Checkout was canceled — you can try again whenever you&apos;re ready.
+          Checkout was canceled. You can try again whenever you&apos;re ready.
         </div>
       )}
 
@@ -91,7 +91,7 @@ export default async function Paywall({
             <span className="text-3xl font-bold">{cohortLabel}</span>
             <span className="text-slate-400">one-time · you were in a cohort</span>
           </div>
-          <p className="mb-3 text-sm text-slate-500">Alumni price — every module, {PAID_RUNS} runs each.</p>
+          <p className="mb-3 text-sm text-slate-500">Alumni price: every module, {PAID_RUNS} runs each.</p>
           <PayButton plan="cohort" label="Unlock all modules" />
         </div>
       )}
@@ -102,7 +102,7 @@ export default async function Paywall({
           <span className="text-3xl font-bold">{allLabel}</span>
           <span className="text-slate-400">one-time · all {MODULES.length} modules</span>
         </div>
-        <p className="mb-3 text-sm text-slate-500">Every current module — and everything added later, {PAID_RUNS} runs each.</p>
+        <p className="mb-3 text-sm text-slate-500">Every current module, and everything added later, {PAID_RUNS} runs each.</p>
         <PayButton plan="all" label="Get full access" />
       </div>
 

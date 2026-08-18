@@ -38,7 +38,7 @@ export default function DisclosureReport({
       </div>
 
       <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-        {variant === "haip" ? "Healthcare AI Vendor Disclosure — HAIP framework" : "Vendor Disclosure"}
+        {variant === "haip" ? "Healthcare AI Vendor Disclosure: HAIP framework" : "Vendor Disclosure"}
       </div>
       <h1 className="mt-1 text-2xl font-bold text-ink">{product || vendor || "Vendor disclosure"}</h1>
       <p className="mt-0.5 text-sm text-slate-500">{vendor && product ? `${vendor} · ` : ""}Submitted {dt}</p>

@@ -43,7 +43,7 @@ export default function DemoPage() {
     grid: emptyGrid(),
     new_job_description: "",
     feedback: {
-      plus: "The AI/human split feels right — I hadn't thought of handing off the first-draft synthesis.",
+      plus: "The AI/human split feels right. I hadn't thought of handing off the first-draft synthesis.",
       minus: "Worried 'Judge' is too vague. What exactly am I sanity-checking?",
       idea: "Could batch the weekly reports and review them in one focused block.",
     },
@@ -56,11 +56,11 @@ export default function DemoPage() {
     author_id: partner,
     owner_job_title: "Product Marketing Manager",
     owner_job_description:
-      "I own go-to-market for two product lines — messaging, launches, sales enablement, and competitive research.",
+      "I own go-to-market for two product lines: messaging, launches, sales enablement, and competitive research.",
     interview_notes: "",
     strategic_outcome: "",
     real_job:
-      "Their real job is judgment about which stories will land with buyers — not producing the collateral itself.",
+      "Their real job is judgment about which stories will land with buyers, not producing the collateral itself.",
     insight: "",
     grid: {
       ...emptyGrid(),
@@ -111,7 +111,7 @@ export default function DemoPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
       <div className="mb-4 rounded-xl bg-blue-50 px-4 py-2 text-sm text-blue-800">
-        Preview — the Job exercise, mock data.{" "}
+        Preview: the Job exercise, mock data.{" "}
         <Link href="/demo/workflow" className="font-semibold underline">
           Workflow exercise
         </Link>{" "}
@@ -185,7 +185,7 @@ export default function DemoPage() {
             Back
           </button>
           <div className="hidden text-sm text-slate-400 sm:block">
-            Preview — click the dots or Next to move through the steps.
+            Preview: click the dots or Next to move through the steps.
           </div>
           {phase < PHASES.length - 1 ? (
             <button onClick={() => go(phase + 1)} className="btn-primary">

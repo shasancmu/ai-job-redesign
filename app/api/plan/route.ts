@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       return Response.json(
         {
           error:
-            "The AI returned an unusable plan — please try again. If it keeps happening, the model may be down.",
+            "The AI returned an unusable plan. Please try again. If it keeps happening, the model may be down.",
         },
         { status: 502 }
       );

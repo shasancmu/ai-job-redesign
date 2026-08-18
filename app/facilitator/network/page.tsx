@@ -29,7 +29,7 @@ export default async function FacilitatorNetwork({
           ← {label}
         </Link>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-3xl font-bold text-ink">The Network — live</h1>
+          <h1 className="text-3xl font-bold text-ink">The Network: live</h1>
           <div className="flex items-center gap-2">
             <a href={`/api/network/export?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">
               ↓ CSV

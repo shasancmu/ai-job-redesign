@@ -39,7 +39,7 @@ export default function NetworkRosterEditor({
       />
       <div className="mt-1 text-sm text-slate2">{count} names</div>
       <div className="mt-3 rounded-lg bg-amber-soft px-3 py-2 text-xs text-ink">
-        Saving replaces the current roster — set it before people start the survey.
+        Saving replaces the current roster. Set it before people start the survey.
       </div>
       <div className="mt-4 flex items-center gap-3">
         <button onClick={save} disabled={busy} className="btn-primary">

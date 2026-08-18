@@ -132,7 +132,7 @@ export async function POST(request: Request) {
   // 2) The class (its code IS the cohort).
   const { data: klass } = await admin
     .from("classes")
-    .insert({ code, name: "Demo Cohort — sample data", owner_id: user.id, modules: MODULES })
+    .insert({ code, name: "Demo Cohort: sample data", owner_id: user.id, modules: MODULES })
     .select("id")
     .single();
   if (klass) {

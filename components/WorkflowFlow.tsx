@@ -109,7 +109,7 @@ export default function WorkflowFlow({
                     <IconBtn title="Move down" onClick={() => move(i, 1)} disabled={i === steps.length - 1}>
                       ↓
                     </IconBtn>
-                    <IconBtn title="Split — add a step after" onClick={() => insertAt(i + 1, s.role)}>
+                    <IconBtn title="Split: add a step after" onClick={() => insertAt(i + 1, s.role)}>
                       ⧉
                     </IconBtn>
                     <IconBtn title="Delete" onClick={() => remove(s.id)}>

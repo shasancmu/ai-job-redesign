@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     const { _raw, ...canvas } = result;
     const filled = Object.values(canvas.fields || {}).some((v: any) => (Array.isArray(v) ? v.length : v));
     if (!filled && !canvas.synthesis) {
-      return Response.json({ error: "The AI returned an empty canvas — try again." }, { status: 502 });
+      return Response.json({ error: "The AI returned an empty canvas. Try again." }, { status: 502 });
     }
     return Response.json({ ok: true, canvas });
   } catch (e: any) {

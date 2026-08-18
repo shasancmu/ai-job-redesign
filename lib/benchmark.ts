@@ -23,7 +23,7 @@ export type BenchConfig = {
 const ANSWER_KEY = ["B", "D", "A", "A", "E", "D", "A"];
 
 export const DEFAULT_CONFIG: BenchConfig = {
-  title: "Logical Reasoning — Diagnostic",
+  title: "Logical Reasoning: Diagnostic",
   timeLimitSec: 8 * 60,
   questions: ANSWER_KEY.map((answer, i) => ({
     id: i + 1,
@@ -34,7 +34,7 @@ export const DEFAULT_CONFIG: BenchConfig = {
 };
 
 export const AI_NOTE =
-  "On this kind of reasoning test, a small AI model scores around the 92nd–98th percentile — in minutes, for pennies. The question isn't whether AI can do this. It's what only you can.";
+  "On this kind of reasoning test, a small AI model scores around the 92nd–98th percentile, in minutes, for pennies. The question isn't whether AI can do this. It's what only you can.";
 
 export function configReady(c: BenchConfig): boolean {
   return (

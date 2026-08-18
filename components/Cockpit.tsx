@@ -147,7 +147,7 @@ export default function Cockpit({
               className="field"
               value={msg}
               onChange={(e) => setMsg(e.target.value)}
-              placeholder="2 minutes left — start wrapping up."
+              placeholder="2 minutes left. Start wrapping up."
               onKeyDown={(e) => {
                 if (e.key === "Enter" && msg.trim()) {
                   control({ op: "message", message: msg }, "Nudge sent");

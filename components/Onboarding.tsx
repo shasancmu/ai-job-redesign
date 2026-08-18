@@ -44,7 +44,7 @@ export default function Onboarding({ me, firstName }: { me: string; firstName?: 
       // Almost always: the onboarding columns haven't been migrated yet.
       setErr(
         /column|schema/i.test(error.message)
-          ? "Couldn't save — the profile fields aren't set up in the database yet. Run supabase/schema.sql, then try again."
+          ? "Couldn't save. The profile fields aren't set up in the database yet. Run supabase/schema.sql, then try again."
           : error.message
       );
       setSaving(false);
@@ -167,7 +167,7 @@ export default function Onboarding({ me, firstName }: { me: string; firstName?: 
           {followup === "study" && (
             <>
               <h1 className="text-2xl font-bold">What are you studying?</h1>
-              <p className="mt-1 text-slate-500">Optional — helps us tune examples.</p>
+              <p className="mt-1 text-slate-500">Optional: helps us tune examples.</p>
               <div className="mt-6 space-y-3">
                 <div>
                   <label className="lbl">Field of study</label>
@@ -181,7 +181,7 @@ export default function Onboarding({ me, firstName }: { me: string; firstName?: 
             </>
           )}
           <button onClick={finish} disabled={saving} className="btn-primary mt-6 w-full">
-            {saving ? "Setting up…" : "Done — show my modules"}
+            {saving ? "Setting up…" : "Done, show my modules"}
           </button>
         </div>
       )}

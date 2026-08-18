@@ -79,7 +79,7 @@ export default function DisclosureRoom({
         {variant === "general" && (
           <label className="flex items-center gap-2 text-sm text-slate-600">
             <input type="checkbox" checked={!!state.isAi} onChange={(e) => setCanvas({ isAi: e.target.checked })} />
-            This vendor is AI/ML-based — add the model-performance, subgroup-bias, and drift questions.
+            This vendor is AI/ML-based. Add the model-performance, subgroup-bias, and drift questions.
           </label>
         )}
       </div>

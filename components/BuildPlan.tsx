@@ -62,7 +62,7 @@ export default function BuildPlan({
       <div className="card p-6 text-center">
         <div className="text-lg font-bold text-ink">Make it real</div>
         <p className="mx-auto mt-1 max-w-md text-sm text-slate2">
-          Turn the redesign into a beautiful, specific plan — where your week should go, the value you lead,
+          Turn the redesign into a beautiful, specific plan: where your week should go, the value you lead,
           and the AI recipes (with where to look) to run this week.
         </p>
         {err && <p className="mt-3 text-sm text-clay">{err}</p>}

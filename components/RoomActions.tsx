@@ -69,7 +69,7 @@ export default function RoomActions({
         return;
       }
     }
-    setErr("Couldn't create a room — try again.");
+    setErr("Couldn't create a room. Try again.");
     setBusy(null);
   }
 
@@ -105,7 +105,7 @@ export default function RoomActions({
         .eq("id", session.id)
         .is("guest_id", null);
       if (upErr) {
-        setErr("Couldn't join — someone may have just taken the spot.");
+        setErr("Couldn't join. Someone may have just taken the spot.");
         setBusy(null);
         return;
       }

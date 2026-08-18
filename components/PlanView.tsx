@@ -95,7 +95,7 @@ export default function PlanView({ plan, embedded = false }: { plan: Plan; embed
 
           {/* AI */}
           <div>
-            <ColumnHeader color={GOLD} title="AI powers" sub="What you delegate — and how" />
+            <ColumnHeader color={GOLD} title="AI powers" sub="What you delegate, and how" />
             <div className="mt-4 space-y-4">
               {plan.ai.map((a, i) => (
                 <div key={i} className="card overflow-hidden p-0">

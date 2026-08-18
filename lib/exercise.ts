@@ -24,7 +24,7 @@ export const PHASES: Phase[] = [
     index: 0,
     title: "Your job today",
     subtitle:
-      "Write your own job in a line or two. This is what your partner will redesign — so make it real.",
+      "Write your own job in a line or two. This is what your partner will redesign, so make it real.",
     minutes: 3,
     mode: "solo",
   },
@@ -33,7 +33,7 @@ export const PHASES: Phase[] = [
     index: 1,
     title: "Interview · turn 1",
     subtitle:
-      "One partner interviews about their job; the other just shares. Take notes — what do they do, and what actually matters in it?",
+      "One partner interviews about their job; the other just shares. Take notes: what do they do, and what actually matters in it?",
     minutes: 4,
     mode: "talk",
     interviewer: "A",
@@ -54,7 +54,7 @@ export const PHASES: Phase[] = [
     index: 3,
     title: "Dig deeper · turn 1",
     subtitle:
-      "Same pairs, go deeper. What value do they create, and for whom — the customer, the org, their manager? How would you know it's working?",
+      "Same pairs, go deeper. What value do they create, and for whom: the customer, the org, their manager? How would you know it's working?",
     minutes: 3,
     mode: "talk",
     interviewer: "A",
@@ -83,7 +83,7 @@ export const PHASES: Phase[] = [
     key: "break",
     index: 6,
     title: "The 2×4 model",
-    subtitle: "Pause here — your instructor will teach the AI × Human model before you redesign.",
+    subtitle: "Pause here. Your instructor will teach the AI × Human model before you redesign.",
     minutes: 0,
     mode: "break",
   },
@@ -110,7 +110,7 @@ export const PHASES: Phase[] = [
     index: 9,
     title: "Their reimagined job",
     subtitle:
-      "Redo it with the feedback. This is the artifact your partner keeps — the reimagined version of their job.",
+      "Redo it with the feedback. This is the artifact your partner keeps: the reimagined version of their job.",
     minutes: 4,
     mode: "solo",
   },

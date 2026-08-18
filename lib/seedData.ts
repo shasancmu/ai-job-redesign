@@ -67,7 +67,7 @@ export function jobText(name: string, seed: number) {
       "Responsible for the number, the narrative, and the handful of relationships that actually move it.",
     real_job: "Decide what matters, and carry the relationships and judgment that make it happen.",
     strategic_outcome: outcomes[seed % outcomes.length],
-    insight: `${name.split(" ")[0]}'s edge is trust and taste — not throughput.`,
+    insight: `${name.split(" ")[0]}'s edge is trust and taste, not throughput.`,
     new_job_description:
       "In the reimagined role, I focus on the judgment calls and relationships that only I can hold, while AI handles the search, structuring, and first drafts underneath me.",
     final_description:
@@ -80,12 +80,12 @@ export function jobPlan(name: string, seed: number) {
   return {
     headline: headlines[seed % headlines.length],
     summary:
-      "You create value by holding the judgment, taste, and relationships the org can't automate — deciding what matters and carrying the moments that build trust. AI absorbs the search, structuring, and first drafts so your attention lands where the leverage is. Together the pair is worth more than either alone.",
+      "You create value by holding the judgment, taste, and relationships the org can't automate, deciding what matters and carrying the moments that build trust. AI absorbs the search, structuring, and first drafts so your attention lands where the leverage is. Together the pair is worth more than either alone.",
     superadditive: "AI clears the volume so your judgment compounds instead of drowning.",
     allocation:
       "Spend more of your week in the rooms and relationships only you can hold; hand the digests, formatting, and first drafts to AI to reclaim roughly a day a week.",
     human: [
-      { task: "Set the narrative", value: "A story the team rallies behind — for leadership and the market", excel: "Protect the time to think; say it in one sentence before ten slides" },
+      { task: "Set the narrative", value: "A story the team rallies behind, for leadership and the market", excel: "Protect the time to think; say it in one sentence before ten slides" },
       { task: "Own the key relationships", value: "Trust that closes deals and survives mistakes", excel: "Show up in person for the moments that matter; delegate the rest" },
     ],
     ai: [
@@ -177,7 +177,7 @@ export function workflowDoc(seed: number) {
     stop_start: k.stop_start,
     more: "when it's genuinely low-stakes formatting",
     better: "the board narrative and the judgment behind it",
-    accuracy: "the reconciled figures — no drift",
+    accuracy: "the reconciled figures, no drift",
     generality: "the boilerplate commentary",
     chaos: "auto-sending unreviewed numbers to the board",
     architect: "one human approval gate before anything ships",
@@ -187,10 +187,10 @@ export function workflowDoc(seed: number) {
 export function soloChat(name: string) {
   const first = name.split(" ")[0];
   return [
-    { role: "assistant", content: "Walk me through a typical week — where does your time actually go?" },
+    { role: "assistant", content: "Walk me through a typical week. Where does your time actually go?" },
     { role: "user", content: "Honestly, too much of it goes to pulling reports and formatting updates nobody reads closely." },
     { role: "assistant", content: "When was the last time your judgment really changed an outcome?" },
-    { role: "user", content: "Last month I caught that a 'good' deal was actually a churn risk. No dashboard would've flagged it — I just knew the customer." },
+    { role: "user", content: "Last month I caught that a 'good' deal was actually a churn risk. No dashboard would've flagged it. I just knew the customer." },
     { role: "assistant", content: `So the value isn't the reporting, it's the read on people. What would you do with a day back each week, ${first}?` },
     { role: "user", content: "Spend it with the three accounts that actually decide the quarter." },
   ];
@@ -208,27 +208,27 @@ const NEG_SEEDS = [
     terms: { salary: 3, bonus: 2, equity: 0, remote: 3, start: 0, title: 2 },
     chat: [
       { role: "assistant", content: "Welcome aboard-to-be! We'd love to bring you in as a Senior Analyst at $130k, 0.5% equity, two remote days, starting in a month. How does that land?" },
-      { role: "user", content: "Thanks — I'm excited. I have another offer, so I need this to work. Salary matters, and honestly full-remote is the big one for me. I care less about equity. Could we trade there?" },
+      { role: "user", content: "Thanks. I'm excited. I have another offer, so I need this to work. Salary matters, and honestly full-remote is the big one for me. I care less about equity. Could we trade there?" },
       { role: "assistant", content: "Equity's tight for us, so if you'll take 0.10% I can get more flexible elsewhere. But full remote is a stretch." },
-      { role: "user", content: "Deal on 0.10% equity if you can do fully remote and a Manager title — and I can start in two weeks, which I know helps you. Let's land salary at $150k with a $20k signing bonus." },
+      { role: "user", content: "Deal on 0.10% equity if you can do fully remote and a Manager title, and I can start in two weeks, which I know helps you. Let's land salary at $150k with a $20k signing bonus." },
       { role: "assistant", content: "Fast start and Manager we can do, and 0.10% works. I'll meet you at $150k but hold the bonus to $20k. Shake on it?" },
       { role: "user", content: "Done. Pleasure negotiating with you." },
     ],
     feedback:
-      "Excellent — you created essentially all the value on the table (100% of the joint pie) and cleared your walk-away comfortably. You spotted the two trades that matter: you conceded equity, which the company guards fiercely, in exchange for full remote, which you valued most, and you didn't waste time fighting over start date or title, where you both wanted the same thing. To push further next time, open with a stronger salary anchor — you split the fixed pie evenly, and a firmer first number might have claimed more of it.",
+      "Excellent. You created essentially all the value on the table (100% of the joint pie) and cleared your walk-away comfortably. You spotted the two trades that matter: you conceded equity, which the company guards fiercely, in exchange for full remote, which you valued most, and you didn't waste time fighting over start date or title, where you both wanted the same thing. To push further next time, open with a stronger salary anchor. You split the fixed pie evenly, and a firmer first number might have claimed more of it.",
   },
   {
     // Weak: fought the compatible issues, missed the logroll, under walk-away.
     terms: { salary: 1, bonus: 1, equity: 2, remote: 1, start: 3, title: 0 },
     chat: [
-      { role: "assistant", content: "We'd love to have you — $130k, 0.5% equity, two remote days, Senior Analyst, starting in a month. Thoughts?" },
+      { role: "assistant", content: "We'd love to have you: $130k, 0.5% equity, two remote days, Senior Analyst, starting in a month. Thoughts?" },
       { role: "user", content: "I'd want to start later, maybe three months, and I'm not sure about the title." },
-      { role: "assistant", content: "We actually need someone soon, so a fast start helps us a lot — and Manager is easy for us to offer. Let's keep equity where it is though." },
-      { role: "user", content: "Let's just keep it simple — $130k, the 0.5% equity, two days remote, Analyst title, and I'll start in three months." },
+      { role: "assistant", content: "We actually need someone soon, so a fast start helps us a lot, and Manager is easy for us to offer. Let's keep equity where it is though." },
+      { role: "user", content: "Let's just keep it simple: $130k, the 0.5% equity, two days remote, Analyst title, and I'll start in three months." },
       { role: "assistant", content: "If that's what you'd like, we can do that. Welcome to the team." },
     ],
     feedback:
-      "You left a lot on the table — only about half of the possible joint value, and your package came in under your walk-away, so you'd have been better off taking your other offer. Two misses drove it: you pushed for a late start and settled for Analyst even though the company was happy to give you a fast start and a Manager title (you both wanted those), and you never traded equity for remote, the one move that actually creates value here. Next time, probe which issues you truly disagree on before conceding, and always check the final package against your BATNA before you shake hands.",
+      "You left a lot on the table: only about half of the possible joint value, and your package came in under your walk-away, so you'd have been better off taking your other offer. Two misses drove it: you pushed for a late start and settled for Analyst even though the company was happy to give you a fast start and a Manager title (you both wanted those), and you never traded equity for remote, the one move that actually creates value here. Next time, probe which issues you truly disagree on before conceding, and always check the final package against your BATNA before you shake hands.",
   },
 ];
 
@@ -241,26 +241,26 @@ const HAGGLE_SEEDS = [
   {
     price: 13000,
     chat: [
-      { role: "assistant", content: "She's a great van — low miles, new tires, never let me down. I've got it at $17,500 and I've had real interest." },
+      { role: "assistant", content: "She's a great van: low miles, new tires, never let me down. I've got it at $17,500 and I've had real interest." },
       { role: "user", content: "Appreciate that, but comparable vans are going for around $14–15k, and I've seen a couple with lower miles. I could do $12,800 today, cash." },
       { role: "assistant", content: "$12,800 is a bit light for what she is. I could come to $14,500." },
-      { role: "user", content: "Let's split the difference toward a real number — $13,000, cash, I take it off your hands this week." },
+      { role: "user", content: "Let's split the difference toward a real number: $13,000, cash, I take it off your hands this week." },
       { role: "assistant", content: "You drive a hard bargain… okay, $13,000 and she's yours." },
     ],
     feedback:
-      "Strong claiming. You anchored low but credibly with comps, stayed patient, and closed at $13,000 — capturing about 86% of the bargaining zone and saving $3,000 against your walk-away. You used a cash-and-quick close as leverage, which is exactly right in a distributive deal. One refinement: your first anchor ($12,800) was close to your final price, so you had little room to concede and 'give' the seller a win — a slightly lower opener can leave room to trade small moves while still landing where you did.",
+      "Strong claiming. You anchored low but credibly with comps, stayed patient, and closed at $13,000, capturing about 86% of the bargaining zone and saving $3,000 against your walk-away. You used a cash-and-quick close as leverage, which is exactly right in a distributive deal. One refinement: your first anchor ($12,800) was close to your final price, so you had little room to concede and 'give' the seller a win. A slightly lower opener can leave room to trade small moves while still landing where you did.",
   },
   {
     price: 15500,
     chat: [
-      { role: "assistant", content: "$17,500 and honestly she's worth every penny — barely broken in." },
+      { role: "assistant", content: "$17,500 and honestly she's worth every penny, barely broken in." },
       { role: "user", content: "That's a bit high for me. Could you do $16,000?" },
       { role: "assistant", content: "I can't go that low, she's too clean. $16,500 is as far as I'd stretch." },
       { role: "user", content: "Okay, let's meet at $15,500?" },
-      { role: "assistant", content: "You know what, for a quick sale — done, $15,500." },
+      { role: "assistant", content: "You know what, for a quick sale: done, $15,500." },
     ],
     feedback:
-      "You left most of the money on the table — you landed at $15,500, saving only $500 against your walk-away and claiming about 14% of the gap. Two things hurt you: your first offer ($16,000) was already near your ceiling, so you anchored yourself high, and you moved toward the seller quickly without making them justify their price. Next time, open well below your target with a reason (comps, condition, cash), then concede slowly in small increments — let the seller do the work of closing the gap.",
+      "You left most of the money on the table: you landed at $15,500, saving only $500 against your walk-away and claiming about 14% of the gap. Two things hurt you: your first offer ($16,000) was already near your ceiling, so you anchored yourself high, and you moved toward the seller quickly without making them justify their price. Next time, open well below your target with a reason (comps, condition, cash), then concede slowly in small increments. Let the seller do the work of closing the gap.",
   },
 ];
 
@@ -275,7 +275,7 @@ export function careerSeed(): any {
       topDownSource: "published",
       headline: "Most of the production is exposed; the strategy and relationships are not.",
       summary:
-        "The routine of your role — drafting, reporting, campaign ops — is highly exposed to AI. But the parts that actually move the number (positioning, cross-functional judgment, the customer relationships) are where you're a scarce complement. The move is to hand AI the volume and reinvest the time up-market.",
+        "The routine of your role (drafting, reporting, campaign ops) is highly exposed to AI. But the parts that actually move the number (positioning, cross-functional judgment, the customer relationships) are where you're a scarce complement. The move is to hand AI the volume and reinvest the time up-market.",
       topDownExposure: 73,
       bottomUpExposure: 61,
       automateShare: 35,
@@ -322,7 +322,7 @@ export function jdSeed(): any {
       topDownSource: "published",
       headline: "The querying and reporting are highly exposed; the framing and stakeholder judgment are the hire.",
       summary:
-        "Most of this role as written — pulling data, building dashboards, writing summaries — is squarely in AI's wheelhouse. Hire for the parts that aren't: framing the right question, knowing which number to trust, and translating analysis into a decision. Rewrite the role around that.",
+        "Most of this role as written (pulling data, building dashboards, writing summaries) is squarely in AI's wheelhouse. Hire for the parts that aren't: framing the right question, knowing which number to trust, and translating analysis into a decision. Rewrite the role around that.",
       topDownExposure: 65,
       bottomUpExposure: 60,
       automateShare: 40,
@@ -381,7 +381,7 @@ const FOURA_SEEDS = [
     ratings: { alignment: 45, ability: 70, architecture: 35, agility: 60 },
     synthesis:
       "Your people can sell it, but the org isn't set up to land it: reps read the goal differently, and the comp plan quietly rewards the old behavior. Ability is real; architecture is fighting you.",
-    verdict: "Fix the comp plan first — architecture is what's actually blocking execution.",
+    verdict: "Fix the comp plan first. Architecture is what's actually blocking execution.",
     fields: {
       alignment_diag: "Leadership is aligned; front-line reps still interpret 'value pricing' as 'discount when pushed'.",
       alignment_fix: "One-page 'why this, why now' and a manager-led huddle so the goal reads the same everywhere.",
@@ -439,14 +439,14 @@ export function canvasSeed(exercise: string): any {
     return {
       subject: "A subscription meal-prep service for busy families in Austin",
       synthesis:
-        "The pain is real and the price point works, but this is a brutal, low-moat industry: food delivery is crowded, switching is easy, and margins leak to ingredients and drivers. It can work — but only as a tight local operation with high retention, not a land-grab.",
-      verdict: "Marginal — LTV:CAC is only ~2.3×. A decent local business only if retention reaches 5+ months and CAC stays under ~$110; otherwise the economics don't close.",
+        "The pain is real and the price point works, but this is a brutal, low-moat industry: food delivery is crowded, switching is easy, and margins leak to ingredients and drivers. It can work, but only as a tight local operation with high retention, not a land-grab.",
+      verdict: "Marginal. LTV:CAC is only ~2.3×. A decent local business only if retention reaches 5+ months and CAC stays under ~$110; otherwise the economics don't close.",
       ratings: { industry: 30, advantage: 40, coherence: 60, profit_pool: 45 },
       calc: { price: 85, varCost: 60, ordersPerMonth: 4, retentionMonths: 3, cac: 130, fixedMonthly: 40000 },
       fields: {
         idea: "Weekly, chef-designed meal kits for time-pressed families in Austin; today they cobble together takeout, HelloFresh, and grocery runs.",
         five_forces: "Brutal: low entry barriers, HelloFresh/Factor and every ghost kitchen competing, buyers switch in a click, and grocers are a cheap substitute. Supplier power (ingredients, drivers) squeezes margin.",
-        advantage: "Thin. 'Local & fresh' is valuable but easy to copy. The only durable edge would be a beloved local brand + tight delivery density in Austin — rare and hard to imitate only if you dominate one city first.",
+        advantage: "Thin. 'Local & fresh' is valuable but easy to copy. The only durable edge would be a beloved local brand + tight delivery density in Austin, rare and hard to imitate only if you dominate one city first.",
         activity_system: "Wins only if the pieces reinforce: local sourcing → fresher product → higher retention → denser routes → lower delivery cost. That density flywheel is the real moat, if achieved.",
         profit_pool: "Most profit leaks to ingredients (~35%) and last-mile delivery (~20%). You capture the middle only at scale/density; nationally, platforms and drivers keep the money.",
         market: [
@@ -516,14 +516,14 @@ export function canvasSeed(exercise: string): any {
       fields: {
         strategic_outcome: "Cut first-response time from hours to minutes and free agents for the cases that actually retain customers.",
         required_accuracy: "High on routing (wrong queue is costly) and on anything touching billing; a rough draft is fine for the reply itself since a human reviews it.",
-        required_generality: "Narrow — a defined set of ticket types; escalate anything it hasn't seen.",
-        frontier_position: "Mid-risk copilot: AI over-produces draft replies, the agent curates — automate only the low-stakes routing.",
+        required_generality: "Narrow: a defined set of ticket types; escalate anything it hasn't seen.",
+        frontier_position: "Mid-risk copilot: AI over-produces draft replies, the agent curates. Automate only the low-stakes routing.",
         human_tasks: ["Handle escalations and at-risk accounts", "Approve any reply touching money or policy"],
         humanai_tasks: ["Review and send AI-drafted replies", "Correct mis-routed tickets so the model learns"],
         ai_tasks: ["Classify and route incoming tickets", "Draft first replies for known issue types"],
-        user_simplicity: "Agents, not engineers — it must live inside the existing helpdesk with one-click send/edit.",
-        distributed_complexity: "The complexity relocates to RAG plumbing over the help center, a routing model, and a QA reviewer role — it doesn't vanish.",
-        risks: ["Overtrust — agents rubber-stamp a wrong draft", "A confident reply on a case it misread", "Tone-deaf reply to an upset customer"],
+        user_simplicity: "Agents, not engineers. It must live inside the existing helpdesk with one-click send/edit.",
+        distributed_complexity: "The complexity relocates to RAG plumbing over the help center, a routing model, and a QA reviewer role. It doesn't vanish.",
+        risks: ["Overtrust: agents rubber-stamp a wrong draft", "A confident reply on a case it misread", "Tone-deaf reply to an upset customer"],
         complements: ["Agent judgment on angry/at-risk customers", "Clean, current help-center content", "A QA loop that catches drift"],
         deployment: "Human-in-the-loop (end-user check): off-the-shelf LLM + RAG over the help center and past tickets; no fine-tuning to start.",
       },
@@ -534,14 +534,14 @@ export function canvasSeed(exercise: string): any {
       subject: "Launch a self-serve product for small businesses",
       synthesis:
         "The opportunity is real, but your organization is built for high-touch enterprise sales. Product and brand transfer well; the go-to-market motion, pricing systems, and a sales-led culture are the parts that would strain.",
-      verdict: "Attractive bet, but don't run it inside the enterprise engine — it needs its own motion.",
+      verdict: "Attractive bet, but don't run it inside the enterprise engine. It needs its own motion.",
       score: 55,
       fields: {
-        tasks: "Self-serve needs onboarding, docs, and product-led growth — different work from the current solution-selling.",
+        tasks: "Self-serve needs onboarding, docs, and product-led growth, different work from the current solution-selling.",
         people: "Strong product talent; thin on growth marketing and lifecycle/PLG skills.",
         systems: "Billing and CRM are built for annual enterprise contracts, not low-touch monthly self-serve.",
-        culture: "Sales-led, relationship-driven — a self-serve motion cuts against how people are rewarded here.",
-        biggest_gap: "The go-to-market system and incentives — a PLG motion can't run on an enterprise sales engine.",
+        culture: "Sales-led, relationship-driven. A self-serve motion cuts against how people are rewarded here.",
+        biggest_gap: "The go-to-market system and incentives: a PLG motion can't run on an enterprise sales engine.",
         to_build: ["A self-serve billing + onboarding stack", "A small growth team with PLG incentives", "A separate P&L so it isn't judged on enterprise metrics"],
       },
     };
@@ -554,7 +554,7 @@ export function canvasSeed(exercise: string): any {
     verdict: "Run live chat on half of new trials for three weeks; ship it only if paid conversion beats control by 15%+.",
     fields: {
       hypothesis: "Offering live chat to trial users increases trial-to-paid conversion, because unanswered setup questions are what stall them.",
-      condition_a: "Business as usual — email support only during trial.",
+      condition_a: "Business as usual: email support only during trial.",
       condition_b: "Live chat widget available to trial users during business hours.",
       metric: "Trial-to-paid conversion rate within 30 days (the single decision metric).",
       design: ["Randomly assign new trials 50/50 for 3 weeks", "Keep everything else identical", "Pre-register the target lift before starting"],

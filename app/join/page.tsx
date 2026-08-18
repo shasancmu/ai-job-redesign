@@ -53,10 +53,10 @@ function JoinInner() {
             <span className="font-mono font-semibold text-slate-700">
               {cohort}
             </span>
-            . No account needed — just your name.
+            . No account needed, just your name.
           </>
         ) : (
-          "No account needed — just your name."
+          "No account needed, just your name."
         )}
       </p>
 

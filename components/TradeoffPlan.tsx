@@ -18,7 +18,7 @@ export default function TradeoffPlan({ plan }: { plan?: Record<string, Aim> | nu
   return (
     <div className="space-y-3">
       <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-        Your plan — how to actually get there
+        Your plan: how to actually get there
       </div>
       {CARDS.map((c) => {
         const p = plan[c.key];

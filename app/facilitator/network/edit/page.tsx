@@ -41,7 +41,7 @@ export default async function EditRoster({
       </Link>
       <h1 className="mt-1 text-2xl font-bold text-ink">Class roster</h1>
       <p className="mb-6 text-slate2">
-        Optional — paste your class list, one name per line, so people can find each other fast.
+        Optional: paste your class list, one name per line, so people can find each other fast.
         You can also skip this: anyone not listed just adds their own name when they take the survey.
       </p>
       <NetworkRosterEditor cohort={cohort} initialNames={names} />

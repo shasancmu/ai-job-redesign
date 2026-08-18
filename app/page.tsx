@@ -40,7 +40,7 @@ export default async function Home() {
               Everyone&apos;s asking how to use AI. The sharper question is how to
               use <span className="text-ink">humans</span>. Superadditive turns the
               frameworks of strategy, execution, and negotiation into hands-on
-              exercises — AI runs the interview, plays your partner, argues the
+              exercises. AI runs the interview, plays your partner, argues the
               other side, and coaches the debrief. You bring the judgment.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -63,13 +63,13 @@ export default async function Home() {
       {/* Thesis */}
       <section className="mx-auto mt-4 max-w-4xl px-6 text-center sm:mt-10">
         <p className="text-2xl font-semibold leading-snug tracking-tight text-ink sm:text-[1.9rem]">
-          AI is far more capable than we&apos;re treating it — we&apos;re using a{" "}
+          AI is far more capable than we&apos;re treating it. We&apos;re using a{" "}
           <span className="text-amber">Ferrari for grocery runs</span>. Humans are
-          far more valuable than we deploy them — we&apos;re using{" "}
+          far more valuable than we deploy them. We&apos;re using{" "}
           <span className="text-sage">architects to lay bricks</span>.
         </p>
         <p className="mt-4 text-slate2">
-          Companies that gain from AI rethink the work — they don&apos;t patch it.
+          Companies that gain from AI rethink the work. They don&apos;t patch it.
           Every exercise helps you do exactly that.
         </p>
       </section>
@@ -81,7 +81,7 @@ export default async function Home() {
           A library of exercises, each run by AI.
         </h2>
         <p className="mt-2 max-w-2xl text-slate2">
-          Every one is grounded in a real framework, run by an AI interviewer, partner, counterpart, or coach — and
+          Every one is grounded in a real framework, run by an AI interviewer, partner, counterpart, or coach, and
           ends in something you keep. Do them on your own, with a partner, or live with a cohort. Filter by theme to
           find your starting point.
         </p>
@@ -95,7 +95,7 @@ export default async function Home() {
           <div>
             <h2 className="text-xl font-bold text-ink">Ready to reimagine the work?</h2>
             <p className="mt-1 text-slate2">
-              Create an account and start an exercise in minutes — or{" "}
+              Create an account and start an exercise in minutes, or{" "}
               <a
                 href="mailto:shasanx@gmail.com?subject=Running%20Superadditive%20for%20a%20team"
                 className="font-medium text-ink underline underline-offset-4 hover:text-sage"

@@ -89,7 +89,7 @@ export default function AdminCosts({
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-slate-400">Estimates are seeds — tune the calls and token counts per module to match your real logs.</p>
+      <p className="text-xs text-slate-400">Estimates are seeds. Tune the calls and token counts per module to match your real logs.</p>
     </div>
   );
 }

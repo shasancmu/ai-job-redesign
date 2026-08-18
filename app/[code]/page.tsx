@@ -90,7 +90,7 @@ export default async function ClassPage({ params }: { params: { code: string } }
           <Logo />
           <h1 className="mt-8 text-2xl font-bold text-ink">This cohort is invite-only</h1>
           <p className="mt-2 text-slate2">
-            {klass.name} is limited to invited members. Your account ({user.email}) isn&apos;t on the list — ask your organizer to add it.
+            {klass.name} is limited to invited members. Your account ({user.email}) isn&apos;t on the list. Ask your organizer to add it.
           </p>
           <Link href="/dashboard" className="btn-primary mt-6">← Dashboard</Link>
         </main>

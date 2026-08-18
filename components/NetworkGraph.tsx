@@ -182,7 +182,7 @@ export default function NetworkGraph({ cohort, big = false }: { cohort: string; 
         </svg>
       </div>
       <div className="mt-1 text-center text-xs text-slate2">
-        Anonymous — bigger dots are named by more people.
+        Anonymous: bigger dots are named by more people.
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">

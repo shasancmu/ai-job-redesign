@@ -85,7 +85,7 @@ export default function Catalog({
     // In-class activities (benchmark, network) are cohort-scoped — without a
     // cohort they'd aggregate into one unbounded, global bucket.
     if ((exercise === "network" || exercise === "benchmark") && !cohort) {
-      setErr("This runs in a cohort — open your facilitator's cohort link to take part.");
+      setErr("This runs in a cohort. Open your facilitator's cohort link to take part.");
       return;
     }
     setBusy(slug);
@@ -106,7 +106,7 @@ export default function Catalog({
         return;
       }
     }
-    setErr("Couldn't start — try again.");
+    setErr("Couldn't start. Try again.");
     setBusy(null);
   }
 

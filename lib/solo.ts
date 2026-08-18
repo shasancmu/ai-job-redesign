@@ -19,7 +19,7 @@ export const SOLO_STEPS: SoloStep[] = [
     key: "interview",
     index: 1,
     title: "Talk to your AI partner",
-    subtitle: "Answer its questions. It's trying to understand what only you can do — and what drains you.",
+    subtitle: "Answer its questions. It's trying to understand what only you can do, and what drains you.",
     minutes: 8,
   },
   {
@@ -34,7 +34,7 @@ export const SOLO_STEPS: SoloStep[] = [
     index: 3,
     title: "Make it real",
     subtitle:
-      "Where your week should go, the value you lead, and the AI recipes — with where to look — to start this week.",
+      "Where your week should go, the value you lead, and the AI recipes, with where to look, to start this week.",
     minutes: 4,
   },
 ];

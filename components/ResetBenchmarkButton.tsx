@@ -19,7 +19,7 @@ export default function ResetBenchmarkButton({ cohort }: { cohort: string }) {
       setDone(true);
       setTimeout(() => window.location.reload(), 600);
     } else {
-      alert("Couldn't reset — try again.");
+      alert("Couldn't reset. Try again.");
     }
   }
 

@@ -32,17 +32,17 @@ export default function CareerXrayView({ xray, mode = "resume", code, embedded =
 
       {/* Dual benchmark */}
       <section className="mx-auto max-w-4xl px-6 pt-10">
-        <div className="eyebrow mb-3">Exposure — the two views</div>
+        <div className="eyebrow mb-3">Exposure: the two views</div>
         <div className="card p-6">
           <Bar
             label={`Top-down · ${xray.occupation || "occupation"}${xray.occupationCode ? ` (SOC ${xray.occupationCode})` : ""}`}
-            sub={xray.topDownSource === "published" ? "published occupation exposure (Eloundou et al.)" : "occupation estimate — rubric-based"}
+            sub={xray.topDownSource === "published" ? "published occupation exposure (Eloundou et al.)" : "occupation estimate, rubric-based"}
             value={xray.topDownExposure}
             color={GOLD}
           />
           <div className="mt-4"><Bar label="Bottom-up · your actual tasks" sub="from the tasks below" value={xray.bottomUpExposure} color={SAGE} /></div>
           <p className="mt-4 text-xs text-slate-400">
-            The gap is the point: what the models predict for the occupation vs. what {isJD ? "this role" : "you"} actually does. Exposure ≠ replacement — high exposure means AI can help with the task, and your complements rise in value.
+            The gap is the point: what the models predict for the occupation vs. what {isJD ? "this role" : "you"} actually does. Exposure ≠ replacement. High exposure means AI can help with the task, and your complements rise in value.
           </p>
         </div>
       </section>
@@ -77,7 +77,7 @@ export default function CareerXrayView({ xray, mode = "resume", code, embedded =
                   <div key={i} className="flex flex-wrap items-center justify-between gap-2 border-b border-line/60 pb-2.5 text-sm">
                     <div className="min-w-0 flex-1">
                       <span className="text-ink">{t.task}</span>
-                      {t.note && <span className="ml-1.5 text-xs text-slate-400">— {t.note}</span>}
+                      {t.note && <span className="ml-1.5 text-xs text-slate-400">{t.note}</span>}
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5">
                       <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold text-white" style={{ background: e.color }}>{t.exposure}</span>
@@ -131,7 +131,7 @@ export default function CareerXrayView({ xray, mode = "resume", code, embedded =
               <div className="eyebrow mb-2">{isJD ? "Where this person comes from" : "Where you can go"}</div>
               <ul className="space-y-2">
                 {xray.careerVectors.map((v: any, i: number) => (
-                  <li key={i} className="text-sm"><span className="font-semibold text-ink">{v.role}</span> <span className="text-slate-500">— {v.why}</span></li>
+                  <li key={i} className="text-sm"><span className="font-semibold text-ink">{v.role}:</span> <span className="text-slate-500">{v.why}</span></li>
                 ))}
               </ul>
             </div>
@@ -157,7 +157,7 @@ export default function CareerXrayView({ xray, mode = "resume", code, embedded =
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">The research behind this</div>
           <ul className="mt-2 space-y-1.5 text-sm text-slate-600">
             {CITATIONS.map((c) => (
-              <li key={c.authors}><span className="font-semibold text-ink">{c.authors}</span>, <span className="italic">{c.work}</span> — {c.used}</li>
+              <li key={c.authors}><span className="font-semibold text-ink">{c.authors}</span>, <span className="italic">{c.work}</span>: {c.used}</li>
             ))}
           </ul>
           <p className="mt-2 text-xs text-slate-400">Occupation exposure is a rubric-based estimate (Eloundou et al.) over O*NET-style tasks; treat it as a benchmark, not a verdict.</p>

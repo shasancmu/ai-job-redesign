@@ -96,7 +96,7 @@ export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
                 {target.skillsToBuild.map((s: any, i: number) => (
                   <div key={i} className="text-xs">
                     <span className="font-semibold text-ink">{s.skill}</span>
-                    <span className="text-slate2"> — {s.how}</span>
+                    <span className="text-slate2">: {s.how}</span>
                   </div>
                 ))}
               </div>

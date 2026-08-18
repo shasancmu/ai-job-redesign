@@ -57,7 +57,7 @@ export default function PairUp({
         return;
       }
     }
-    setErr("Couldn't create a team — try again.");
+    setErr("Couldn't create a team. Try again.");
     setBusy(false);
   }
 
@@ -89,7 +89,7 @@ export default function PairUp({
       <h1 className="mt-2 text-2xl font-bold text-ink">{moduleName}</h1>
       <p className="mt-2 text-slate2">
         You&apos;ll do this with your breakout partner. <b className="text-ink">Only one of you</b>{" "}
-        creates the team — the other joins.
+        creates the team. The other joins.
       </p>
 
       {mode === "choose" ? (
