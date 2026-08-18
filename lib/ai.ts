@@ -117,6 +117,11 @@ function extractJson(raw: string): any {
   const last = s.lastIndexOf("}");
   if (first >= 0 && last > first) candidates.push(s.slice(first, last + 1));
 
+  // 5) sanitized variants: raw control chars (literal newlines/tabs) inside a
+  //    string value are invalid JSON and a common model slip (e.g. a multi-line
+  //    transcript). Collapsing them to spaces keeps the structure parseable.
+  for (const c of [...candidates]) candidates.push(c.replace(/[\u0000-\u001F]+/g, " "));
+
   for (const c of candidates) {
     try {
       return JSON.parse(c);
@@ -555,10 +560,10 @@ export async function photoDescribeAI(
 {
   "kind": "photo" | "text",
   "title": "a 2 to 5 word title",
-  "transcript": "if kind is text, the text transcribed as faithfully as you can, preserving line breaks; otherwise an empty string",
+  "transcript": "if kind is text, the transcription; otherwise an empty string. Write any line breaks as the two characters backslash-n, never as a real newline.",
   "description": "2 to 4 sentences describing the image. For a photo, describe the subject, setting, and notable details. For text, say what it is and note anything notable about the content."
 }
-Be specific, concrete, and neutral. Do NOT name or identify real, non-public individuals. If the image is blank, unreadable, or clearly off-topic, say so plainly in the description.${ctx}`;
+Return ONE JSON object on a single line (minified), with no markdown fences and no text before or after it. Be specific, concrete, and neutral. Do NOT name or identify real, non-public individuals. If the image is blank, unreadable, or clearly off-topic, say so plainly in the description.${ctx}`;
   const messages = [
     { role: "system", content: system },
     {
@@ -569,8 +574,15 @@ Be specific, concrete, and neutral. Do NOT name or identify real, non-public ind
       ],
     },
   ];
-  const raw = await complete(messages as any, { json: true, maxTokens: 900, vision: true });
-  const p = extractJson(raw);
+  const raw = await complete(messages as any, { json: true, maxTokens: 1500, vision: true });
+  let p: any = null;
+  try {
+    p = extractJson(raw);
+  } catch {
+    // Never hard-fail the room: fall back to the raw reply as a plain description.
+    const text = String(raw || "").replace(/```/g, "").trim().slice(0, 1600);
+    return { kind: "photo", title: "Photo", transcript: "", description: text || "Couldn't read that photo clearly. Try another." };
+  }
   const kind = p?.kind === "text" ? "text" : "photo";
   return {
     kind,
