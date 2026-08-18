@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { aggregate, type CloudWord } from "@/lib/cloud";
@@ -45,6 +45,13 @@ export default function CloudPresenter({
   const closed = status === "closed";
   const displayTotal = useCountUp(total);
 
+  // One ripple ring per NEW response (staggered), plus a one-off particle burst
+  // at the moment the cloud is revealed.
+  const [ripples, setRipples] = useState<{ id: number; delay: number }[]>([]);
+  const [burst, setBurst] = useState(0);
+  const ridRef = useRef(0);
+  const prevTotalRef = useRef(0);
+
   // Poll submissions. RLS scopes cloud_entries to the host's own session.
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -70,6 +77,23 @@ export default function CloudPresenter({
     document.addEventListener("fullscreenchange", onFs);
     return () => document.removeEventListener("fullscreenchange", onFs);
   }, []);
+
+  // Emit a ripple for each new response as it lands (capped per poll so a big
+  // batch stays elegant), and retire each after it finishes expanding.
+  useEffect(() => {
+    const delta = total - prevTotalRef.current;
+    prevTotalRef.current = total;
+    if (delta <= 0 || phase !== "collecting") return;
+    const n = Math.min(delta, 6);
+    const items = Array.from({ length: n }).map((_, i) => ({ id: ++ridRef.current, delay: i * 120 }));
+    setRipples((r) => [...r, ...items]);
+    items.forEach((it, i) => setTimeout(() => setRipples((r) => r.filter((x) => x.id !== it.id)), 1300 + i * 120));
+  }, [total, phase]);
+
+  function revealCloud() {
+    setPhase("cloud");
+    setBurst((b) => b + 1);
+  }
 
   // Persist the question (debounced) so participants and reloads see it.
   const qTimer = useRef<any>(null);
@@ -167,12 +191,13 @@ export default function CloudPresenter({
       {/* Stage */}
       <div className="relative z-10 flex-1">
         {phase === "collecting" ? (
-          <JoinSplash qrSvg={qrSvg} code={code} joinHost={joinHost} count={displayTotal} raw={total} closed={closed} />
+          <JoinSplash qrSvg={qrSvg} code={code} joinHost={joinHost} count={displayTotal} raw={total} ripples={ripples} closed={closed} />
         ) : (
           <>
             <div className={"absolute inset-0 p-4 transition-all duration-700 " + (phase === "summary" ? "scale-[0.92] blur-md opacity-20" : "opacity-100")}>
               <WordCloud words={words} />
             </div>
+            {phase === "cloud" && burst > 0 && <RevealBurst key={burst} />}
             {phase === "summary" && (
               <div className="absolute inset-0 flex items-center justify-center p-6">
                 <SummaryReveal summary={summary} loading={summarizing} onRetry={summarize} />
@@ -187,7 +212,7 @@ export default function CloudPresenter({
         {phase === "collecting" ? (
           <div className="flex flex-col items-center gap-2">
             <button
-              onClick={() => setPhase("cloud")}
+              onClick={revealCloud}
               disabled={total === 0}
               className={"cloud-cta rounded-full px-8 py-3.5 text-lg font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-40 " + (total > 0 ? "cloud-cta-glow" : "")}
             >
@@ -219,13 +244,15 @@ function JoinSplash({
   joinHost,
   count,
   raw,
+  ripples,
   closed,
 }: {
   qrSvg: string;
   code: string;
   joinHost: string;
   count: number; // smoothed, for the headline figure
-  raw: number; // true count, for the dot swarm + ripple
+  raw: number; // true count, for the dot swarm
+  ripples: { id: number; delay: number }[]; // one ring per incoming response
   closed: boolean;
 }) {
   const dots = Math.min(raw, DOT_CAP);
@@ -256,7 +283,9 @@ function JoinSplash({
           {/* Pulse core: heartbeat halo, a ripple per incoming batch, gradient count */}
           <div className="relative flex h-40 w-full items-center justify-center">
             <span className="cloud-halo" aria-hidden />
-            {raw > 0 && <span key={raw} className="cloud-ripple" aria-hidden />}
+            {ripples.map((r) => (
+              <span key={r.id} className="cloud-ripple" style={{ animationDelay: `${r.delay}ms` }} aria-hidden />
+            ))}
             <div key={raw} className="cloud-countpop relative">
               <span className="cloud-ai-text text-[7rem] font-extrabold leading-none tabular-nums sm:text-[8.5rem]">{count}</span>
             </div>
@@ -340,6 +369,54 @@ function SummaryReveal({ summary, loading, onRetry }: { summary: Summary; loadin
   );
 }
 
+// -- A restrained particle burst at the moment the cloud is revealed ----------
+function RevealBurst() {
+  const [gone, setGone] = useState(false);
+  const parts = useMemo(() => {
+    const cols = ["var(--sage)", "var(--sky)", "var(--amber)", "var(--clay)", "var(--ink)"];
+    return Array.from({ length: 40 }).map((_, i) => {
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 130 + Math.random() * 300;
+      return {
+        tx: Math.cos(ang) * dist,
+        ty: Math.sin(ang) * dist - (70 + Math.random() * 90), // bias upward, like it lifts
+        col: cols[i % cols.length],
+        delay: Math.random() * 90,
+        w: 5 + Math.random() * 7,
+        h: 8 + Math.random() * 9,
+        rot: (Math.random() * 2 - 1) * 220,
+        dur: 950 + Math.random() * 550,
+      };
+    });
+  }, []);
+  useEffect(() => {
+    const t = setTimeout(() => setGone(true), 1700);
+    return () => clearTimeout(t);
+  }, []);
+  if (gone) return null;
+  return (
+    <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center" aria-hidden>
+      <span className="cloud-flash" />
+      {parts.map((p, i) => (
+        <span
+          key={i}
+          className="cloud-part"
+          style={{
+            width: p.w,
+            height: p.h,
+            background: p.col,
+            ["--tx" as any]: `${p.tx}px`,
+            ["--ty" as any]: `${p.ty}px`,
+            ["--rot" as any]: `${p.rot}deg`,
+            animationDelay: `${p.delay}ms`,
+            animationDuration: `${p.dur}ms`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 // -- Ambient drifting aurora backdrop -----------------------------------------
 function Aurora() {
   return (
@@ -415,6 +492,12 @@ function StyleBlock() {
       .cloud-dot { width: 10px; height: 10px; border-radius: 9999px; animation: cloud-dot-in .5s cubic-bezier(.2,.8,.2,1) both; }
       @keyframes cloud-dot-in { 0% { opacity: 0; transform: translateY(10px) scale(0); } 60% { transform: translateY(0) scale(1.35); } 100% { opacity: .9; transform: scale(1); } }
 
+      /* Reveal burst */
+      .cloud-part { position: absolute; border-radius: 2px; opacity: 0; will-change: transform, opacity; animation-name: cloud-part; animation-timing-function: cubic-bezier(.15,.7,.3,1); animation-fill-mode: both; }
+      @keyframes cloud-part { 0% { opacity: 0; transform: translate(0,0) scale(.5) rotate(0deg); } 12% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(1) rotate(var(--rot)); } }
+      .cloud-flash { position: absolute; width: 120px; height: 120px; border-radius: 9999px; border: 3px solid color-mix(in srgb, var(--sage) 60%, transparent); animation: cloud-flash .7s cubic-bezier(.2,.7,.25,1) forwards; }
+      @keyframes cloud-flash { 0% { opacity: .8; transform: scale(.3); } 100% { opacity: 0; transform: scale(4.6); } }
+
       /* Summary reveal */
       .cloud-rise { animation: cloud-rise .6s cubic-bezier(.2,.7,.25,1) both; }
       @keyframes cloud-rise { from { opacity: 0; transform: translateY(26px) scale(.96); } to { opacity: 1; transform: none; } }
@@ -434,7 +517,7 @@ function StyleBlock() {
         .cloud-blob, .cloud-cta-glow, .cloud-qr, .cloud-rise, .cloud-sum-border,
         .cloud-ai-text, .cloud-ai-dot, .cloud-theme, .cloud-answer, .cloud-shimmer,
         .cloud-livedot, .cloud-livepill, .cloud-halo, .cloud-ripple, .cloud-countpop,
-        .cloud-dot { animation: none !important; }
+        .cloud-dot, .cloud-part, .cloud-flash { animation: none !important; }
         .cloud-elly::after { content: "…"; animation: none !important; }
       }
     `}</style>
