@@ -167,7 +167,7 @@ export default function CloudPresenter({
       {/* Stage */}
       <div className="relative z-10 flex-1">
         {phase === "collecting" ? (
-          <JoinSplash qrSvg={qrSvg} code={code} joinHost={joinHost} total={displayTotal} closed={closed} />
+          <JoinSplash qrSvg={qrSvg} code={code} joinHost={joinHost} count={displayTotal} raw={total} closed={closed} />
         ) : (
           <>
             <div className={"absolute inset-0 p-4 transition-all duration-700 " + (phase === "summary" ? "scale-[0.92] blur-md opacity-20" : "opacity-100")}>
@@ -209,25 +209,31 @@ export default function CloudPresenter({
   );
 }
 
-// -- Collecting: big join + an anticipation counter ---------------------------
+// -- Collecting: big join + a live, tension-building response core -------------
+const DOT_COLORS = ["var(--sage)", "var(--sky)", "var(--amber)", "var(--clay)", "var(--ink)"];
+const DOT_CAP = 300;
+
 function JoinSplash({
   qrSvg,
   code,
   joinHost,
-  total,
+  count,
+  raw,
   closed,
 }: {
   qrSvg: string;
   code: string;
   joinHost: string;
-  total: number;
+  count: number; // smoothed, for the headline figure
+  raw: number; // true count, for the dot swarm + ripple
   closed: boolean;
 }) {
+  const dots = Math.min(raw, DOT_CAP);
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-10 px-6 text-center">
-      <div className="flex flex-col items-center gap-7 sm:flex-row sm:gap-14">
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-7 px-6 text-center">
+      <div className="flex flex-col items-center gap-6 sm:flex-row sm:gap-14">
         {qrSvg ? (
-          <div className="cloud-qr h-56 w-56 rounded-3xl bg-white p-4 shadow-lift [&_svg]:h-full [&_svg]:w-full" dangerouslySetInnerHTML={{ __html: qrSvg }} />
+          <div className="cloud-qr h-52 w-52 rounded-3xl bg-white p-4 shadow-lift [&_svg]:h-full [&_svg]:w-full" dangerouslySetInnerHTML={{ __html: qrSvg }} />
         ) : null}
         <div className="text-left">
           <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Join from your phone</div>
@@ -239,10 +245,42 @@ function JoinSplash({
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-1">
-        <div key={total} className="cloud-count text-6xl font-extrabold text-sage">{total}</div>
-        <div className="text-lg text-slate-400">{closed ? "this cloud is closed" : total === 1 ? "response in" : "responses in"}</div>
-      </div>
+      {closed ? (
+        <div className="text-lg text-slate-400">this cloud is closed</div>
+      ) : (
+        <div className="flex flex-col items-center gap-3">
+          <div className="cloud-livepill inline-flex items-center gap-2 rounded-full border border-line bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 backdrop-blur">
+            <span className="cloud-livedot" /> Live · collecting
+          </div>
+
+          {/* Pulse core: heartbeat halo, a ripple per incoming batch, gradient count */}
+          <div className="relative flex h-40 w-full items-center justify-center">
+            <span className="cloud-halo" aria-hidden />
+            {raw > 0 && <span key={raw} className="cloud-ripple" aria-hidden />}
+            <div key={raw} className="cloud-countpop relative">
+              <span className="cloud-ai-text text-[7rem] font-extrabold leading-none tabular-nums sm:text-[8.5rem]">{count}</span>
+            </div>
+          </div>
+
+          <div className="-mt-2 text-lg text-slate-400">
+            {raw === 1 ? "response" : "responses"} and counting<span className="cloud-elly" />
+          </div>
+
+          {/* The room filling in: one dot per response, popping in as they land */}
+          {dots > 0 && (
+            <div className="mt-1 flex max-w-2xl flex-wrap items-center justify-center gap-1.5">
+              {Array.from({ length: dots }).map((_, i) => (
+                <span
+                  key={i}
+                  className="cloud-dot"
+                  style={{ background: DOT_COLORS[i % DOT_COLORS.length], animationDelay: `${(i % 10) * 30}ms` }}
+                />
+              ))}
+              {raw > DOT_CAP && <span className="ml-1 text-sm font-semibold text-slate-400">+{raw - DOT_CAP}</span>}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -355,11 +393,27 @@ function StyleBlock() {
         50%     { box-shadow: 0 12px 34px -12px rgba(20,40,58,.5), 0 0 34px 3px rgba(63,122,82,.28); }
       }
 
-      /* Anticipation counter + QR */
-      .cloud-count { animation: cloud-count-pop .5s cubic-bezier(.2,.8,.2,1); }
-      @keyframes cloud-count-pop { 0% { transform: scale(.6); opacity: .2; } 60% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }
+      /* Anticipation: live pill, heartbeat halo, ripple, count pop, dot swarm */
       .cloud-qr { animation: cloud-qr-in .6s ease both; }
       @keyframes cloud-qr-in { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: none; } }
+
+      .cloud-livedot { width: 8px; height: 8px; border-radius: 9999px; background: #e0483b; box-shadow: 0 0 0 0 rgba(224,72,59,.5); animation: cloud-livedot 1.6s ease-in-out infinite; }
+      @keyframes cloud-livedot { 0% { box-shadow: 0 0 0 0 rgba(224,72,59,.5); } 70% { box-shadow: 0 0 0 7px rgba(224,72,59,0); } 100% { box-shadow: 0 0 0 0 rgba(224,72,59,0); } }
+      .cloud-livepill { animation: cloud-fade-in .5s ease both; }
+      @keyframes cloud-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+      .cloud-halo { position: absolute; width: 340px; height: 340px; border-radius: 9999px; background: radial-gradient(circle, color-mix(in srgb, var(--sage) 30%, transparent), transparent 62%); filter: blur(6px); animation: cloud-halo 2.4s ease-in-out infinite; }
+      @keyframes cloud-halo { 0%,100% { transform: scale(.9); opacity: .5; } 50% { transform: scale(1.06); opacity: .85; } }
+      .cloud-ripple { position: absolute; width: 150px; height: 150px; border-radius: 9999px; border: 2px solid color-mix(in srgb, var(--sky) 55%, transparent); animation: cloud-ripple 1.1s cubic-bezier(.2,.7,.25,1) forwards; }
+      @keyframes cloud-ripple { 0% { transform: scale(.5); opacity: .7; } 100% { transform: scale(2.6); opacity: 0; } }
+      .cloud-countpop { animation: cloud-count-pop .45s cubic-bezier(.2,.8,.2,1); }
+      @keyframes cloud-count-pop { 0% { transform: scale(.86); } 55% { transform: scale(1.09); } 100% { transform: scale(1); } }
+
+      .cloud-elly::after { content: "…"; animation: cloud-elly 1.4s steps(4, end) infinite; }
+      @keyframes cloud-elly { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "…"; } }
+
+      .cloud-dot { width: 10px; height: 10px; border-radius: 9999px; animation: cloud-dot-in .5s cubic-bezier(.2,.8,.2,1) both; }
+      @keyframes cloud-dot-in { 0% { opacity: 0; transform: translateY(10px) scale(0); } 60% { transform: translateY(0) scale(1.35); } 100% { opacity: .9; transform: scale(1); } }
 
       /* Summary reveal */
       .cloud-rise { animation: cloud-rise .6s cubic-bezier(.2,.7,.25,1) both; }
@@ -377,8 +431,11 @@ function StyleBlock() {
       @keyframes cloud-shimmer { to { background-position: -200% 0; } }
 
       @media (prefers-reduced-motion: reduce) {
-        .cloud-blob, .cloud-cta-glow, .cloud-count, .cloud-qr, .cloud-rise, .cloud-sum-border,
-        .cloud-ai-text, .cloud-ai-dot, .cloud-theme, .cloud-answer, .cloud-shimmer { animation: none !important; }
+        .cloud-blob, .cloud-cta-glow, .cloud-qr, .cloud-rise, .cloud-sum-border,
+        .cloud-ai-text, .cloud-ai-dot, .cloud-theme, .cloud-answer, .cloud-shimmer,
+        .cloud-livedot, .cloud-livepill, .cloud-halo, .cloud-ripple, .cloud-countpop,
+        .cloud-dot { animation: none !important; }
+        .cloud-elly::after { content: "…"; animation: none !important; }
       }
     `}</style>
   );
