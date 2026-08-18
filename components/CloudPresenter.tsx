@@ -7,10 +7,11 @@ import { aggregate, type CloudWord } from "@/lib/cloud";
 import WordCloud from "@/components/WordCloud";
 
 type Summary = { themes: string[]; answer: string } | null;
+type Phase = "collecting" | "cloud" | "summary";
 
-// Mentimeter-style presenter: the join code + QR stay on screen the whole time
-// (top bar), the cloud builds up LIVE as people submit, and a big join splash
-// fills the screen only until the first response lands.
+// The presentation. Three deliberate acts: collect (responses hidden, only the
+// count climbs), reveal the cloud (words materialize), reveal the AI summary
+// (the cloud recedes behind an arresting synthesis). Built to make a room go ooh.
 export default function CloudPresenter({
   sessionId,
   code,
@@ -34,15 +35,15 @@ export default function CloudPresenter({
 
   const [q, setQ] = useState(question);
   const [status, setStatus] = useState(initialStatus);
+  const [phase, setPhase] = useState<Phase>("collecting");
   const [words, setWords] = useState<CloudWord[]>([]);
   const [total, setTotal] = useState(0);
-  const [hideResults, setHideResults] = useState(false); // presenter-only "collect first, reveal later"
   const [summary, setSummary] = useState<Summary>(initialSummary);
   const [summarizing, setSummarizing] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [isFull, setIsFull] = useState(false);
   const closed = status === "closed";
-  const empty = total === 0;
+  const displayTotal = useCountUp(total);
 
   // Poll submissions. RLS scopes cloud_entries to the host's own session.
   const load = useCallback(async () => {
@@ -90,7 +91,7 @@ export default function CloudPresenter({
     else stageRef.current?.requestFullscreen?.();
   }
 
-  async function summarize() {
+  const summarize = useCallback(async () => {
     setSummarizing(true);
     setErr(null);
     try {
@@ -107,56 +108,51 @@ export default function CloudPresenter({
     } finally {
       setSummarizing(false);
     }
+  }, [code]);
+
+  function revealSummary() {
+    setPhase("summary");
+    if (!summary && !summarizing) summarize();
   }
 
   const joinPill = (
-    <div className="flex shrink-0 items-center gap-3 rounded-2xl border border-line bg-white px-3 py-2 shadow-soft">
-      {qrSvg ? (
-        <div className="h-14 w-14 [&_svg]:h-full [&_svg]:w-full" dangerouslySetInnerHTML={{ __html: qrSvg }} />
-      ) : null}
+    <div className="flex shrink-0 items-center gap-3 rounded-2xl border border-line bg-white/80 px-3 py-2 shadow-soft backdrop-blur">
+      {qrSvg ? <div className="h-12 w-12 [&_svg]:h-full [&_svg]:w-full" dangerouslySetInnerHTML={{ __html: qrSvg }} /> : null}
       <div className="leading-tight">
-        <div className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{joinHost}</div>
-        <div className="font-mono text-2xl font-bold tracking-widest text-ink">{code}</div>
+        <div className="text-[10px] font-medium uppercase tracking-wide text-slate-400">{joinHost}</div>
+        <div className="font-mono text-xl font-bold tracking-widest text-ink">{code}</div>
       </div>
     </div>
   );
 
   return (
-    <div ref={stageRef} className="flex min-h-screen flex-col bg-paper">
-      {/* Top bar: response tally + persistent join code + controls */}
-      <header className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-line bg-white/85 px-6 py-3 backdrop-blur">
+    <div ref={stageRef} className="relative flex min-h-screen flex-col overflow-hidden bg-paper">
+      <Aurora />
+
+      {/* Top bar: unobtrusive, brightens on hover so it stays out of the way. */}
+      <header className="relative z-20 flex flex-wrap items-center justify-between gap-3 px-6 py-3 opacity-70 transition hover:opacity-100">
         <div className="text-sm text-slate-500">
           <span className="font-semibold text-ink">{total}</span> response{total === 1 ? "" : "s"}
-          {words.length > 0 && <> · <span className="font-semibold text-ink">{words.length}</span> unique</>}
+          {phase !== "collecting" && words.length > 0 && <> · <span className="font-semibold text-ink">{words.length}</span> unique</>}
           {closed && <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">closed</span>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {!empty && joinPill}
-          {!closed && !empty && (
-            <button onClick={() => setHideResults((h) => !h)} className="btn-ghost text-sm">
-              {hideResults ? "Show results" : "Hide results"}
-            </button>
-          )}
-          <button onClick={summarize} disabled={summarizing || total === 0} className="btn-dark text-sm" title="Summarize the responses with AI">
-            {summarizing ? "Summarizing…" : "AI summary"}
-          </button>
-          <button onClick={toggleFull} className="btn-ghost text-sm" title="Fullscreen">
-            {isFull ? "Exit full" : "⤢ Full"}
-          </button>
+          {phase !== "collecting" && joinPill}
+          <button onClick={toggleFull} className="btn-ghost text-sm" title="Fullscreen">{isFull ? "Exit full" : "⤢ Full"}</button>
           {!isFull && <Link href="/facilitator/cloud" className="btn-ghost text-sm">Done</Link>}
-          {!closed ? (
+          {!closed && (
             <button
               onClick={() => window.confirm("Close this word cloud? No new responses will be accepted.") && setStatusPersist("closed")}
               className="text-sm text-slate-400 hover:text-ink"
             >
               Close
             </button>
-          ) : null}
+          )}
         </div>
       </header>
 
       {/* Question */}
-      <div className="px-6 pt-6 text-center">
+      <div className="relative z-10 px-6 pt-4 text-center">
         <textarea
           value={q}
           onChange={(e) => editQuestion(e.target.value)}
@@ -166,61 +162,72 @@ export default function CloudPresenter({
         />
       </div>
 
-      {err && <div className="mx-6 mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
+      {err && <div className="relative z-20 mx-auto mt-3 max-w-lg rounded-lg bg-red-50 px-3 py-2 text-center text-sm text-red-700">{err}</div>}
 
-      {/* Stage: live cloud (default), or the big join splash until the first response */}
-      <div className="relative flex-1">
-        {empty ? (
-          <JoinSplash qrSvg={qrSvg} code={code} joinHost={joinHost} closed={closed} />
-        ) : hideResults ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center">
-            <div className="text-6xl font-extrabold text-sage">{total}</div>
-            <div className="text-lg text-slate-500">response{total === 1 ? "" : "s"} in. Results hidden.</div>
-            <button onClick={() => setHideResults(false)} className="btn-primary mt-2">Show results</button>
-          </div>
+      {/* Stage */}
+      <div className="relative z-10 flex-1">
+        {phase === "collecting" ? (
+          <JoinSplash qrSvg={qrSvg} code={code} joinHost={joinHost} total={displayTotal} closed={closed} />
         ) : (
-          <div className="absolute inset-0 p-6 pt-2">
-            <WordCloud words={words} />
-          </div>
+          <>
+            <div className={"absolute inset-0 p-4 transition-all duration-700 " + (phase === "summary" ? "scale-[0.92] blur-md opacity-20" : "opacity-100")}>
+              <WordCloud words={words} />
+            </div>
+            {phase === "summary" && (
+              <div className="absolute inset-0 flex items-center justify-center p-6">
+                <SummaryReveal summary={summary} loading={summarizing} onRetry={summarize} />
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {/* AI summary */}
-      {summary && (
-        <section className="border-t border-line bg-mist px-6 py-5">
-          <div className="mx-auto max-w-4xl">
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">What the room said</div>
-            {summary.themes?.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {summary.themes.map((t, i) => (
-                  <span key={i} className="rounded-full bg-white px-3 py-1 text-sm font-medium text-ink shadow-soft">{t}</span>
-                ))}
-              </div>
-            )}
-            {summary.answer && <p className="mt-3 max-w-3xl leading-relaxed text-ink">{summary.answer}</p>}
+      {/* Staged primary action, centered at the foot like a presenter remote. */}
+      <div className="relative z-20 flex items-center justify-center gap-3 px-6 pb-7 pt-2">
+        {phase === "collecting" ? (
+          <div className="flex flex-col items-center gap-2">
+            <button
+              onClick={() => setPhase("cloud")}
+              disabled={total === 0}
+              className={"cloud-cta rounded-full px-8 py-3.5 text-lg font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-40 " + (total > 0 ? "cloud-cta-glow" : "")}
+            >
+              Reveal the cloud →
+            </button>
+            <span className="text-xs text-slate-400">{total === 0 ? "Waiting for the first response…" : "Reveal when everyone's in"}</span>
           </div>
-        </section>
-      )}
+        ) : phase === "cloud" ? (
+          <button onClick={revealSummary} className="cloud-cta cloud-cta-glow rounded-full px-8 py-3.5 text-lg font-semibold text-white transition">
+            Reveal the AI summary →
+          </button>
+        ) : (
+          <button onClick={() => setPhase("cloud")} className="btn-ghost text-sm">← Back to the cloud</button>
+        )}
+      </div>
+
+      <StyleBlock />
     </div>
   );
 }
 
+// -- Collecting: big join + an anticipation counter ---------------------------
 function JoinSplash({
   qrSvg,
   code,
   joinHost,
+  total,
   closed,
 }: {
   qrSvg: string;
   code: string;
   joinHost: string;
+  total: number;
   closed: boolean;
 }) {
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-8 px-6 text-center">
-      <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-12">
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-10 px-6 text-center">
+      <div className="flex flex-col items-center gap-7 sm:flex-row sm:gap-14">
         {qrSvg ? (
-          <div className="h-56 w-56 rounded-2xl bg-white p-4 shadow-lift [&_svg]:h-full [&_svg]:w-full" dangerouslySetInnerHTML={{ __html: qrSvg }} />
+          <div className="cloud-qr h-56 w-56 rounded-3xl bg-white p-4 shadow-lift [&_svg]:h-full [&_svg]:w-full" dangerouslySetInnerHTML={{ __html: qrSvg }} />
         ) : null}
         <div className="text-left">
           <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Join from your phone</div>
@@ -231,9 +238,148 @@ function JoinSplash({
           <div className="font-mono text-7xl font-extrabold tracking-[0.15em] text-ink">{code}</div>
         </div>
       </div>
-      <div className="text-lg text-slate-400">
-        {closed ? "This cloud is closed." : "Waiting for the first response…"}
+
+      <div className="flex flex-col items-center gap-1">
+        <div key={total} className="cloud-count text-6xl font-extrabold text-sage">{total}</div>
+        <div className="text-lg text-slate-400">{closed ? "this cloud is closed" : total === 1 ? "response in" : "responses in"}</div>
       </div>
     </div>
+  );
+}
+
+// -- The arresting AI summary -------------------------------------------------
+function SummaryReveal({ summary, loading, onRetry }: { summary: Summary; loading: boolean; onRetry: () => void }) {
+  return (
+    <div className="cloud-rise w-full max-w-3xl">
+      <div className="cloud-sum-border rounded-[26px]">
+        <div className="rounded-[24px] bg-white/85 px-8 py-8 backdrop-blur-xl">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <span className="cloud-ai-dot" />
+            <span className="cloud-ai-text">Synthesized live by AI</span>
+          </div>
+
+          {loading ? (
+            <div className="mt-6 space-y-3">
+              <div className="cloud-shimmer h-6 w-2/3 rounded-full" />
+              <div className="cloud-shimmer h-4 w-full rounded-full" />
+              <div className="cloud-shimmer h-4 w-11/12 rounded-full" />
+              <div className="cloud-shimmer h-4 w-4/5 rounded-full" />
+              <div className="mt-4 text-sm text-slate-400">Reading the room…</div>
+            </div>
+          ) : !summary ? (
+            <div className="mt-6 text-slate-500">
+              Couldn&apos;t build a summary yet.{" "}
+              <button onClick={onRetry} className="font-medium text-ink underline">Try again</button>
+            </div>
+          ) : (
+            <>
+              {summary.themes?.length > 0 && (
+                <div className="mt-5 flex flex-wrap gap-2.5">
+                  {summary.themes.map((t, i) => (
+                    <span
+                      key={i}
+                      className="cloud-theme rounded-full border border-line bg-white px-4 py-1.5 text-base font-semibold text-ink shadow-soft"
+                      style={{ animationDelay: `${240 + i * 110}ms` }}
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {summary.answer && (
+                <p
+                  className="cloud-answer mt-6 text-xl leading-relaxed text-ink"
+                  style={{ animationDelay: `${300 + (summary.themes?.length || 0) * 110}ms` }}
+                >
+                  {summary.answer}
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// -- Ambient drifting aurora backdrop -----------------------------------------
+function Aurora() {
+  return (
+    <div className="cloud-aurora" aria-hidden>
+      <span className="cloud-blob b1" />
+      <span className="cloud-blob b2" />
+      <span className="cloud-blob b3" />
+    </div>
+  );
+}
+
+// Smoothly tween a displayed number toward a target (for the climbing counter).
+function useCountUp(target: number, ms = 650): number {
+  const [val, setVal] = useState(target);
+  const from = useRef(target);
+  useEffect(() => {
+    from.current = val;
+    const start = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / ms);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setVal(Math.round(from.current + (target - from.current) * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target]);
+  return val;
+}
+
+function StyleBlock() {
+  return (
+    <style>{`
+      /* Ambient aurora */
+      .cloud-aurora { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+      .cloud-blob { position: absolute; border-radius: 9999px; filter: blur(90px); opacity: .13; will-change: transform; }
+      .cloud-blob.b1 { width: 46vw; height: 46vw; left: -10vw; top: -12vw; background: radial-gradient(circle at 40% 40%, var(--sage), transparent 68%); animation: cloud-drift1 30s ease-in-out infinite; }
+      .cloud-blob.b2 { width: 42vw; height: 42vw; right: -12vw; top: 6vh; background: radial-gradient(circle at 50% 50%, var(--sky), transparent 68%); animation: cloud-drift2 34s ease-in-out infinite; }
+      .cloud-blob.b3 { width: 40vw; height: 40vw; left: 22vw; bottom: -16vw; background: radial-gradient(circle at 50% 50%, var(--amber), transparent 68%); animation: cloud-drift3 38s ease-in-out infinite; }
+      @keyframes cloud-drift1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(6vw,4vh) scale(1.08); } }
+      @keyframes cloud-drift2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-5vw,6vh) scale(1.1); } }
+      @keyframes cloud-drift3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(4vw,-5vh) scale(1.06); } }
+
+      /* Primary CTA */
+      .cloud-cta { background: var(--ink); }
+      .cloud-cta-glow { animation: cloud-cta-glow 2.6s ease-in-out infinite; }
+      @keyframes cloud-cta-glow {
+        0%,100% { box-shadow: 0 12px 34px -12px rgba(20,40,58,.5), 0 0 0 0 rgba(63,122,82,0); }
+        50%     { box-shadow: 0 12px 34px -12px rgba(20,40,58,.5), 0 0 34px 3px rgba(63,122,82,.28); }
+      }
+
+      /* Anticipation counter + QR */
+      .cloud-count { animation: cloud-count-pop .5s cubic-bezier(.2,.8,.2,1); }
+      @keyframes cloud-count-pop { 0% { transform: scale(.6); opacity: .2; } 60% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }
+      .cloud-qr { animation: cloud-qr-in .6s ease both; }
+      @keyframes cloud-qr-in { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: none; } }
+
+      /* Summary reveal */
+      .cloud-rise { animation: cloud-rise .6s cubic-bezier(.2,.7,.25,1) both; }
+      @keyframes cloud-rise { from { opacity: 0; transform: translateY(26px) scale(.96); } to { opacity: 1; transform: none; } }
+      .cloud-sum-border { padding: 1.5px; background: linear-gradient(120deg, var(--sage), var(--sky), var(--amber), var(--sage)); background-size: 300% 100%; animation: cloud-grad 7s linear infinite; box-shadow: 0 30px 80px -30px rgba(20,40,58,.5); }
+      @keyframes cloud-grad { to { background-position: 300% 0; } }
+      .cloud-ai-text { background: linear-gradient(90deg, var(--sage), var(--sky), var(--amber), var(--sage)); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: cloud-grad 6s linear infinite; }
+      .cloud-ai-dot { width: 9px; height: 9px; border-radius: 9999px; background: linear-gradient(120deg, var(--sage), var(--sky)); box-shadow: 0 0 10px 1px color-mix(in srgb, var(--sky) 55%, transparent); animation: cloud-pulse 1.8s ease-in-out infinite; }
+      @keyframes cloud-pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.35); opacity: .7; } }
+      .cloud-theme { animation: cloud-pop .5s cubic-bezier(.2,.7,.25,1) both; }
+      @keyframes cloud-pop { from { opacity: 0; transform: translateY(14px) scale(.9); } to { opacity: 1; transform: none; } }
+      .cloud-answer { animation: cloud-fade-up .7s ease both; }
+      @keyframes cloud-fade-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+      .cloud-shimmer { background: linear-gradient(90deg, #eef2f7 25%, #e2e8f0 50%, #eef2f7 75%); background-size: 200% 100%; animation: cloud-shimmer 1.3s linear infinite; }
+      @keyframes cloud-shimmer { to { background-position: -200% 0; } }
+
+      @media (prefers-reduced-motion: reduce) {
+        .cloud-blob, .cloud-cta-glow, .cloud-count, .cloud-qr, .cloud-rise, .cloud-sum-border,
+        .cloud-ai-text, .cloud-ai-dot, .cloud-theme, .cloud-answer, .cloud-shimmer { animation: none !important; }
+      }
+    `}</style>
   );
 }
