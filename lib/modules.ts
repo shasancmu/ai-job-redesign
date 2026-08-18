@@ -62,7 +62,7 @@ export const MODULES: ModuleDef[] = [
     slug: "reimagine-job",
     exercise: "job",
     name: "Reimagine Your Job",
-    tagline: "Redesign a partner's job around what only a human can do.",
+    tagline: "Interview a partner, then redesign each other's jobs with the 2×4 model — learn what only a human can lead, own, and judge, and what AI can take off your plate.",
     description:
       "You and a partner interview each other, then redesign each other's jobs with the 2×4 model — what AI can Search, Structure, Think, and Translate, and what only you can Lead, Own, Judge, and Integrate.",
     partner: "human",
@@ -77,7 +77,7 @@ export const MODULES: ModuleDef[] = [
     slug: "reimagine-workflow",
     exercise: "workflow",
     name: "Reimagine a Workflow",
-    tagline: "Rethink a workflow with a partner — don't patch it.",
+    tagline: "Pick a real workflow and redraw it with a partner — learn to weigh AI's tradeoffs and put people and AI in the right seats, instead of just patching what you have.",
     description:
       "On a shared canvas, you and a partner pick a workflow worth redesigning and weigh AI's three pulls — more vs. better, accuracy vs. generality, chaos vs. architect — then redraw it with AI and humans in the right seats.",
     partner: "human",
@@ -92,7 +92,7 @@ export const MODULES: ModuleDef[] = [
     slug: "benchmark",
     exercise: "benchmark",
     name: "The Benchmark",
-    tagline: "Test yourself against the machine — then see the room.",
+    tagline: "Take a timed reasoning test, then see your score against the whole room — and against AI on the same questions. An honest read on where humans still have the edge.",
     description:
       "A timed set of reasoning questions. Take it, get your score, and watch a live histogram of how the whole room did — next to how AI does the same test.",
     partner: "group",
@@ -109,7 +109,7 @@ export const MODULES: ModuleDef[] = [
     slug: "workflow-solo",
     exercise: "workflow-solo",
     name: "Reimagine a Workflow with AI",
-    tagline: "AI interviews you, then redraws your workflow with AI + humans in the right seats.",
+    tagline: "Describe a workflow and let AI interview you, then watch it redraw the flow — learn who should do what once AI and humans share the work, and leave with a redesign.",
     description:
       "No partner needed — an AI plays your partner. Describe a workflow, let AI interview you to understand it, then watch it draw the flow — recolor and refine who does what, and end with a redesigned AI+Human workflow.",
     partner: "ai",
@@ -124,7 +124,7 @@ export const MODULES: ModuleDef[] = [
     slug: "network",
     exercise: "network",
     name: "The Network",
-    tagline: "Map the room's real network — live, and anonymous.",
+    tagline: "Map the room's real advice and friendship networks — live and anonymous — then see who's actually most central. A vivid lesson in how influence really flows.",
     description:
       "Everyone names who they go to for advice and who they call a friend. Watch the advice and friendship networks draw themselves live — then reveal who's most central.",
     partner: "group",
@@ -141,7 +141,7 @@ export const MODULES: ModuleDef[] = [
     slug: "jd-x-ray",
     exercise: "jd-xray",
     name: "Job Description X-ray",
-    tagline: "Paste a role — see its AI exposure, and exactly who to hire.",
+    tagline: "Paste a job description and see which tasks AI can do — then learn to rewrite the role as a human+AI job, and exactly who to hire for it.",
     description:
       "The recruiter's cut: AI decomposes a job description into tasks, scores each for AI exposure (Eloundou et al.), benchmarks the role against its occupation, rewrites it as a superadditive human+AI role, and tells you how to find the person — sourcing keywords, where they are, and what to screen for.",
     partner: "ai",
@@ -156,7 +156,7 @@ export const MODULES: ModuleDef[] = [
     slug: "career-x-ray",
     exercise: "career-xray",
     name: "Career X-ray",
-    tagline: "Paste your resume — see what AI can do, and what to lean into.",
+    tagline: "Paste your résumé and see which parts of your work AI can do — then learn the higher-value work to lean into, and where your career can go next.",
     description:
       "A research-grounded exposure analysis: AI decomposes your role into tasks (Autor), scores each for AI exposure (Eloundou et al.), benchmarks you bottom-up vs. your occupation top-down (Brynjolfsson–Rock), then names the new higher-value work to own (Acemoglu–Restrepo) and where your career can go — with a job-search plan.",
     partner: "ai",
@@ -171,7 +171,7 @@ export const MODULES: ModuleDef[] = [
     slug: "vendor-disclosure",
     exercise: "disclosure",
     name: "Vendor Disclosure",
-    tagline: "Send a vendor one open link; get a rigorous, framework-based disclosure back.",
+    tagline: "Send a vendor one open link and get a structured disclosure back — then let AI score it against a proven framework and flag the gaps and red flags before you buy.",
     description:
       "A procurement tool. Name a vendor/product, get a shareable link, and send it to the vendor — no account needed on their side. They complete a structured disclosure adapted from the Health AI Partnership (HAIP) framework across five domains: capabilities & intended use, performance & compliance, data stewardship, integration & cost, and lifecycle & support. Mark the vendor as AI/ML to add the model-performance, subgroup-bias, and drift questions. When it comes back, AI reviews it against the framework — scoring completeness per domain and flagging gaps and red flags.",
     partner: "ai",
@@ -186,7 +186,7 @@ export const MODULES: ModuleDef[] = [
     slug: "haip-disclosure",
     exercise: "disclosure-haip",
     name: "Healthcare AI Vendor Disclosure (HAIP)",
-    tagline: "The Health AI Partnership framework — sent to your healthcare AI vendor as an open link.",
+    tagline: "Send a healthcare AI vendor one open link and get a full Health AI Partnership disclosure back — model performance, bias, HIPAA — with AI flagging what needs local validation.",
     description:
       "The Health AI Partnership (HAIP) AI Vendor Disclosure Framework in its native healthcare context, delivered as a shareable link for a healthcare delivery organization (HDO). Send it to an AI vendor and they complete the full disclosure across the five domains — system capabilities & intended use (care setting, essential-intervention alignment, maturity), performance & compliance (model metrics + external validation, subgroup bias per Section 1557, known risks, FDA/regulatory status), data stewardship (HIPAA, secondary-use/IP, exit and business-discontinuation), integration (EHR interoperability, total cost of ownership), and lifecycle management (drift monitoring, adverse-event reporting, HEDIS/QI value, SLAs). AI then reviews it against the framework's minimum-transparency bar and flags gaps for local validation.",
     partner: "ai",
@@ -201,7 +201,7 @@ export const MODULES: ModuleDef[] = [
     slug: "career-roadmap",
     exercise: "career-roadmap",
     name: "Career Roadmap",
-    tagline: "See your next career moves — and the skills to get there.",
+    tagline: "See your skill-adjacent next career moves — lateral, step-up, and stretch — and learn exactly which skills to build to get there, on a sequenced 0–24 month roadmap.",
     description:
       "Reuses your résumé (or paste one), matches you to your O*NET occupation, and uses real O*NET skill data to map your skill-adjacent next steps — lateral pivots, step-ups, and stretch moves. For any target it shows a skills radar (you vs. the role), the specific gaps to close, and a sequenced 0–24 month roadmap. AI fills what the résumé can't show via a short interview.",
     partner: "ai",
@@ -216,7 +216,7 @@ export const MODULES: ModuleDef[] = [
     slug: "solo-ai",
     exercise: "solo",
     name: "Reimagine Your Job with AI",
-    tagline: "Lean into the human part of your job.",
+    tagline: "Let AI interview you to find your real job, then get a redesign that hands AI the busywork and keeps the judgment with you — and learn where you're most valuable.",
     description:
       "No partner needed — an AI plays your partner. It interviews you to find your real job, then drafts a redesign that hands AI the busywork and keeps the judgment with you.",
     partner: "ai",
@@ -231,7 +231,7 @@ export const MODULES: ModuleDef[] = [
     slug: "execution-4a",
     exercise: "four-a",
     name: "4A Execution Diagnostic",
-    tagline: "Is this initiative actually set up to execute?",
+    tagline: "Pressure-test a real initiative against the 4 A's — Alignment, Ability, Architecture, Agility — and learn the single highest-leverage fix keeping it from executing.",
     description:
       "An AI partner interviews you about a real initiative, then scores it across the 4 A's — Alignment, Ability, Architecture, Agility — with a diagnosis and the single highest-leverage fix for each. In a cohort, the room's scores roll up into a live heatmap.",
     partner: "ai",
@@ -246,7 +246,7 @@ export const MODULES: ModuleDef[] = [
     slug: "close-the-offer",
     exercise: "negotiation",
     name: "Close the Offer",
-    tagline: "Negotiate a job offer against an AI counterpart — then get scored.",
+    tagline: "Negotiate a multi-issue job offer live against an AI hiring manager, then get scored on the value you claimed and created — and learn where you left money on the table.",
     description:
       "A live, multi-issue negotiation: you're the candidate, AI plays the hiring manager. Six issues, hidden priorities on both sides. Haggle across salary, equity, remote, and more — then see your score, the joint value you created, and a coach's debrief on what you claimed and what you left on the table.",
     partner: "ai",
@@ -261,7 +261,7 @@ export const MODULES: ModuleDef[] = [
     slug: "name-your-price",
     exercise: "haggle",
     name: "Name Your Price",
-    tagline: "A pure price haggle — anchor, find the ZOPA, and claim the gap.",
+    tagline: "Haggle over a single price against an AI seller with a hidden floor — learn to anchor, hold your walk-away, and claim your share of the bargaining zone.",
     description:
       "A single-issue distributive negotiation: you're buying a used van from an AI seller with a hidden floor. No trades to find — just anchoring, patience, and your walk-away. Then see how much of the bargaining zone you claimed, on a ZOPA bar, with a coach's debrief.",
     partner: "ai",
@@ -276,7 +276,7 @@ export const MODULES: ModuleDef[] = [
     slug: "good-business",
     exercise: "venture",
     name: "Is This a Good Business?",
-    tagline: "Pressure-test a business idea with real strategy and real numbers.",
+    tagline: "Pressure-test a business idea against real frameworks and real unit economics — learn whether the market is attractive, where your edge is durable, and what would have to be true to win.",
     description:
       "An AI partner interviews you about a business you're considering — naturally, but guided by Five Forces, VRIN, activity systems, and profit pools — then delivers a rigorous analysis: industry attractiveness, your durable edge, the unit economics (CAC, LTV, payback, break-even), and the few things that would need to be true for it to work.",
     partner: "ai",
@@ -291,7 +291,7 @@ export const MODULES: ModuleDef[] = [
     slug: "balanced-scorecard",
     exercise: "scorecard",
     name: "Balanced Scorecard",
-    tagline: "Turn a strategy into OKRs + initiatives across four linked perspectives.",
+    tagline: "Turn a strategy into objectives, measurable results, and initiatives across the four Balanced Scorecard perspectives — and learn how they link as one cause-and-effect chain.",
     description:
       "An AI partner interviews you about a strategy, then builds the Balanced Scorecard (Kaplan & Norton): an Objective, measurable Key Results, and Initiatives for each of Financial, Customer, Internal Process, and Learning & Growth — linked as a cause-and-effect chain.",
     partner: "ai",
@@ -306,7 +306,7 @@ export const MODULES: ModuleDef[] = [
     slug: "deeptech-canvas",
     exercise: "deeptech",
     name: "Dual Uncertainty Canvas",
-    tagline: "Navigate deep tech's two uncertainties — and design the experiment that resolves the biggest.",
+    tagline: "Separate a deep-tech venture's technical and market uncertainty, then design the one experiment that resolves the biggest — and learn the path from lab capability to real strategy.",
     description:
       "For deep-tech ventures (novel physical, material, chemical, or biological capabilities). An AI partner interviews you, then fills Duke's Dual Uncertainty Canvas: it separates technical uncertainty (can we make it work?) from market uncertainty (will anyone buy it?), picks a priority application, designs the minimum viable experiment to resolve the dominant uncertainty, makes the path dependencies explicit, and matches you to realistic funders — ending in a one-sentence strategy.",
     partner: "ai",
@@ -321,7 +321,7 @@ export const MODULES: ModuleDef[] = [
     slug: "ai-canvas",
     exercise: "gas",
     name: "AI Opportunity Canvas",
-    tagline: "Where should AI actually go — and how do you deploy it well?",
+    tagline: "Map one workflow to find where AI actually belongs — the human/AI split, the risks, and how to deploy it. You leave with an implementation-grade plan.",
     description:
       "An AI partner interviews you about one workflow, then drafts the GAS canvas: the outcome, the accuracy and generality it needs, the human/AI split, where complexity lives, the risks, and how to deploy. You leave with an implementation-grade plan.",
     partner: "ai",
@@ -336,7 +336,7 @@ export const MODULES: ModuleDef[] = [
     slug: "opportunity-capability",
     exercise: "ocfit",
     name: "Opportunity–Capability Fit",
-    tagline: "Should you make this bet? Test it against what you can actually do.",
+    tagline: "Test an opportunity against what you can actually do — your Tasks, People, Systems, and Culture — and learn the one capability gap most likely to break the bet.",
     description:
       "Name an opportunity; an AI partner interviews you, then scores how well it fits your Tasks, People, Systems, and Culture — and names the one capability gap most likely to break the bet, plus what to build first.",
     partner: "ai",
@@ -351,7 +351,7 @@ export const MODULES: ModuleDef[] = [
     slug: "test-the-bet",
     exercise: "experiment",
     name: "Test-the-Bet",
-    tagline: "Before you commit, design a clean experiment to test it.",
+    tagline: "Turn a strategic belief into a clean, runnable experiment — the hypothesis, the one metric that matters, and the decision rule — and learn to test a bet before you commit.",
     description:
       "Turn a strategic belief into a runnable business experiment. An AI partner helps you sharpen the hypothesis, the control vs. change, the one metric that matters, and the decision rule — a test you could start this week.",
     partner: "ai",

@@ -38,67 +38,67 @@
   "modules": {
     "reimagine-job": {
       "name": "Reimagine Your Job",
-      "tagline": "Redesign a partner's job around what only a human can do."
+      "tagline": "Interview a partner, then redesign each other's jobs with the 2×4 model — learn what only a human can lead, own, and judge, and what AI can take off your plate."
     },
     "reimagine-workflow": {
       "name": "Reimagine a Workflow",
-      "tagline": "Rethink a workflow with a partner — don't patch it."
+      "tagline": "Pick a real workflow and redraw it with a partner — learn to weigh AI's tradeoffs and put people and AI in the right seats, instead of just patching what you have."
     },
     "benchmark": {
       "name": "The Benchmark",
-      "tagline": "Test yourself against the machine — then see the room."
+      "tagline": "Take a timed reasoning test, then see your score against the whole room — and against AI on the same questions. An honest read on where humans still have the edge."
     },
     "workflow-solo": {
       "name": "Reimagine a Workflow with AI",
-      "tagline": "AI interviews you, then redraws your workflow with AI + humans in the right seats."
+      "tagline": "Describe a workflow and let AI interview you, then watch it redraw the flow — learn who should do what once AI and humans share the work, and leave with a redesign."
     },
     "network": {
       "name": "The Network",
-      "tagline": "Map the room's real network — live, and anonymous."
+      "tagline": "Map the room's real advice and friendship networks — live and anonymous — then see who's actually most central. A vivid lesson in how influence really flows."
     },
     "jd-x-ray": {
       "name": "Job Description X-ray",
-      "tagline": "Paste a role — see its AI exposure, and exactly who to hire."
+      "tagline": "Paste a job description and see which tasks AI can do — then learn to rewrite the role as a human+AI job, and exactly who to hire for it."
     },
     "career-x-ray": {
       "name": "Career X-ray",
-      "tagline": "Paste your resume — see what AI can do, and what to lean into."
+      "tagline": "Paste your résumé and see which parts of your work AI can do — then learn the higher-value work to lean into, and where your career can go next."
     },
     "solo-ai": {
       "name": "Reimagine Your Job with AI",
-      "tagline": "Lean into the human part of your job."
+      "tagline": "Let AI interview you to find your real job, then get a redesign that hands AI the busywork and keeps the judgment with you — and learn where you're most valuable."
     },
     "execution-4a": {
       "name": "4A Execution Diagnostic",
-      "tagline": "Is this initiative actually set up to execute?"
+      "tagline": "Pressure-test a real initiative against the 4 A's — Alignment, Ability, Architecture, Agility — and learn the single highest-leverage fix keeping it from executing."
     },
     "close-the-offer": {
       "name": "Close the Offer",
-      "tagline": "Negotiate a job offer against an AI counterpart — then get scored."
+      "tagline": "Negotiate a multi-issue job offer live against an AI hiring manager, then get scored on the value you claimed and created — and learn where you left money on the table."
     },
     "name-your-price": {
       "name": "Name Your Price",
-      "tagline": "A pure price haggle — anchor, find the ZOPA, and claim the gap."
+      "tagline": "Haggle over a single price against an AI seller with a hidden floor — learn to anchor, hold your walk-away, and claim your share of the bargaining zone."
     },
     "good-business": {
       "name": "Is This a Good Business?",
-      "tagline": "Pressure-test a business idea with real strategy and real numbers."
+      "tagline": "Pressure-test a business idea against real frameworks and real unit economics — learn whether the market is attractive, where your edge is durable, and what would have to be true to win."
     },
     "balanced-scorecard": {
       "name": "Balanced Scorecard",
-      "tagline": "Turn a strategy into OKRs + initiatives across four linked perspectives."
+      "tagline": "Turn a strategy into objectives, measurable results, and initiatives across the four Balanced Scorecard perspectives — and learn how they link as one cause-and-effect chain."
     },
     "ai-canvas": {
       "name": "AI Opportunity Canvas",
-      "tagline": "Where should AI actually go — and how do you deploy it well?"
+      "tagline": "Map one workflow to find where AI actually belongs — the human/AI split, the risks, and how to deploy it. You leave with an implementation-grade plan."
     },
     "opportunity-capability": {
       "name": "Opportunity–Capability Fit",
-      "tagline": "Should you make this bet? Test it against what you can actually do."
+      "tagline": "Test an opportunity against what you can actually do — your Tasks, People, Systems, and Culture — and learn the one capability gap most likely to break the bet."
     },
     "test-the-bet": {
       "name": "Test-the-Bet",
-      "tagline": "Before you commit, design a clean experiment to test it."
+      "tagline": "Turn a strategic belief into a clean, runnable experiment — the hypothesis, the one metric that matters, and the decision rule — and learn to test a bet before you commit."
     }
   },
   "sessions": {
