@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { MYOPIA_DOMAINS, type MyopiaDomain } from "@/lib/myopia";
 import MyopiaReport from "@/components/MyopiaReport";
-import ShareReport from "@/components/ShareReport";
-
-type Msg = { role: "user" | "assistant"; content: string };
+import ChatInterview from "@/components/ChatInterview";
 
 export default function MyopiaRoom({ session, initialWorkspace, domain }: { session: any; initialWorkspace: any; domain: MyopiaDomain }) {
   const supabase = createClient();
@@ -15,82 +13,17 @@ export default function MyopiaRoom({ session, initialWorkspace, domain }: { sess
   const [ws] = useState<any>({ canvas: {}, ...initialWorkspace });
   const [subject, setSubject] = useState<string>(ws.canvas?.subject || "");
   const [started, setStarted] = useState<boolean>(!!ws.canvas?.subject);
-  const [messages, setMessages] = useState<Msg[]>(ws.canvas?.interview_chat || []);
-  const [report, setReport] = useState<any>(ws.canvas?.report || null);
-  const [input, setInput] = useState("");
-  const [waiting, setWaiting] = useState(false);
-  const [building, setBuilding] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const scroller = useRef<HTMLDivElement>(null);
-
-  const phase: "intake" | "chat" | "report" = report ? "report" : started ? "chat" : "intake";
-  const answered = messages.filter((m) => m.role === "user").length;
-
-  useEffect(() => { scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" }); }, [messages, waiting]);
-
-  async function saveCanvas(patch: Record<string, any>) {
-    const canvas = { ...(ws.canvas || {}), ...patch };
-    ws.canvas = canvas;
-    await supabase.from("workspaces").update({ canvas, updated_at: new Date().toISOString() }).eq("id", ws.id);
-  }
-
-  async function ask(history: Msg[]) {
-    setWaiting(true); setErr(null);
-    try {
-      const res = await fetch("/api/myopia", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", domain, subject, messages: history, sessionId: session.id }) });
-      const dj = await res.json();
-      if (res.ok && dj.reply) { const next = [...history, { role: "assistant" as const, content: dj.reply }]; setMessages(next); saveCanvas({ interview_chat: next }); }
-      else setErr(dj.error || "The advisor is unavailable. Try again.");
-    } catch { setErr("Connection hiccup. Try again."); }
-    setWaiting(false);
-  }
+  const label = domain === "career" ? "Career" : "Business";
 
   async function begin() {
     if (subject.trim().length < 3) return;
+    const canvas = { ...(ws.canvas || {}), subject: subject.trim() };
+    ws.canvas = canvas;
+    await supabase.from("workspaces").update({ canvas, updated_at: new Date().toISOString() }).eq("id", ws.id);
     setStarted(true);
-    await saveCanvas({ subject: subject.trim() });
-    ask([]);
   }
 
-  function send() {
-    const text = input.trim();
-    if (!text || waiting) return;
-    setInput("");
-    const next = [...messages, { role: "user" as const, content: text }];
-    setMessages(next);
-    ask(next);
-  }
-
-  async function build() {
-    setBuilding(true); setErr(null);
-    try {
-      const res = await fetch("/api/myopia", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "report", domain, subject, interview: messages, sessionId: session.id }) });
-      const dj = await res.json();
-      if (res.ok && dj.report) { setReport(dj.report); await saveCanvas({ report: dj.report }); await supabase.from("sessions").update({ status: "done" }).eq("id", session.id); }
-      else setErr(dj.error || "Couldn't build the diagnosis. Try again.");
-    } catch { setErr("Couldn't build the diagnosis. Try again."); }
-    setBuilding(false);
-  }
-
-  // ---- Report ----
-  if (phase === "report" && report) {
-    return (
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <header className="mb-6 flex items-center justify-between">
-          <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">Your blind spots</span>
-          <div className="flex items-center gap-2">
-            <ShareReport code={session.code} title={`${domain === "career" ? "Career" : "Business"} blind spots`} text={`Here are the blind spots in ${d.subject}, from Superadditive:`} />
-            <Link href="/dashboard" className="btn-ghost text-sm">Done</Link>
-          </div>
-        </header>
-        <MyopiaReport report={report} subjectWord={domain} />
-        <Link href={`/myopia/${session.code}`} className="btn-primary mt-6 block text-center">Open the full write-up →</Link>
-      </main>
-    );
-  }
-
-  // ---- Intake ----
-  if (phase === "intake") {
+  if (!started) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
         <div className="mb-6 flex items-center justify-between">
@@ -108,32 +41,20 @@ export default function MyopiaRoom({ session, initialWorkspace, domain }: { sess
     );
   }
 
-  // ---- Chat ----
   return (
-    <div className="mx-auto flex h-[100dvh] max-w-2xl flex-col">
-      <header className="flex items-center justify-between border-b border-line px-4 py-3">
-        <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Exit</Link>
-        <span className="text-sm font-semibold text-ink">{domain === "career" ? "Career" : "Business"} blind spots</span>
-        <button onClick={build} disabled={answered < 3 || building} className="btn-dark px-3 py-1.5 text-xs disabled:opacity-40">{building ? "Diagnosing…" : answered < 3 ? "Keep going" : "See my blind spots →"}</button>
-      </header>
-
-      <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto px-4 py-5">
-        {messages.map((m, i) => (
-          <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
-            <div className={"max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed " + (m.role === "user" ? "rounded-br-sm bg-ink text-white" : "rounded-bl-sm bg-mist text-ink")}>{m.content}</div>
-          </div>
-        ))}
-        {waiting && <div className="flex justify-start"><div className="rounded-2xl rounded-bl-sm bg-mist px-4 py-3 text-slate-400">…</div></div>}
-        {err && <div className="mx-auto max-w-sm rounded-lg bg-red-50 px-3 py-2 text-center text-sm text-red-700">{err}</div>}
-      </div>
-
-      <div className="border-t border-line px-3 py-3">
-        <div className="flex items-end gap-2">
-          <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} rows={1} placeholder="Type your answer…" className="field max-h-32 flex-1 resize-none py-2.5" disabled={waiting} />
-          <button onClick={send} disabled={waiting || !input.trim()} className="btn-primary shrink-0 px-4 py-2.5 disabled:opacity-40">Send</button>
-        </div>
-        {answered >= 3 && <p className="mt-2 text-center text-[11px] text-slate-400">Covered the main areas? Tap &ldquo;See my blind spots&rdquo; up top.</p>}
-      </div>
-    </div>
+    <ChatInterview
+      session={session}
+      ws={ws}
+      apiPath="/api/myopia"
+      extraBody={{ domain, subject }}
+      renderReport={(r) => <MyopiaReport report={r} subjectWord={domain} />}
+      reportHref={(c) => `/myopia/${c}`}
+      share={{ title: `${label} blind spots`, text: `Here are the blind spots in ${d.subject}, from Superadditive:` }}
+      reportPill="Your blind spots"
+      chatTitle={`${label} blind spots`}
+      buildLabel="See my blind spots →"
+      buildingLabel="Diagnosing…"
+      bottomHint="Covered the main areas? Tap “See my blind spots” up top."
+    />
   );
 }
