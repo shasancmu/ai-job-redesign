@@ -73,6 +73,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
   const MAX_TURN_MS = 30000; // never let one answer run longer than this
   const silenceRef = useRef<any>(null);
   const maxTurnRef = useRef<any>(null);
+  const deadRef = useRef(false); // set on unmount so nothing can restart the mic
   const clearTurnTimers = () => { clearTimeout(silenceRef.current); clearTimeout(maxTurnRef.current); };
 
   async function saveCanvas(patch: Record<string, any>) {
@@ -82,6 +83,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
   }
 
   const speak = useCallback((text: string, onEnd?: () => void) => {
+    if (deadRef.current) return;
     setCaption(text);
     setPhase("speaking");
     const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
@@ -108,7 +110,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
 
   const startListening = useCallback(() => {
     const rec = recRef.current;
-    if (!rec) return;
+    if (!rec || deadRef.current) return;
     finalRef.current = "";
     interimRef.current = "";
     turnDoneRef.current = false;
@@ -202,6 +204,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR || !window.speechSynthesis) { setPhase("unsupported"); return; }
     supported.current = true;
+    deadRef.current = false;
     // warm the voices list
     window.speechSynthesis.getVoices();
     const rec = new SR();
@@ -229,7 +232,17 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
       if (e?.error === "not-allowed" || e?.error === "service-not-allowed") setErr("Microphone access is blocked. Allow the mic and reload.");
     };
     recRef.current = rec;
-    return () => { clearTurnTimers(); try { rec.abort(); } catch {} window.speechSynthesis?.cancel(); };
+    return () => {
+      // Leaving the page: kill the mic for good. Detach handlers first so
+      // abort()'s onend can't fire finishTurn and restart the loop.
+      deadRef.current = true;
+      turnDoneRef.current = true;
+      clearTurnTimers();
+      try { rec.onresult = null; rec.onend = null; rec.onerror = null; } catch {}
+      try { rec.stop(); } catch {}
+      try { rec.abort(); } catch {}
+      try { window.speechSynthesis?.cancel(); } catch {}
+    };
   }, []);
 
   function start() {
