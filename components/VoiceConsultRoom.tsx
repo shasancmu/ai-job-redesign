@@ -45,6 +45,8 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
     setPhase("speaking");
     const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
     if (mutedRef.current || !synth) { onEnd?.(); return; }
+    let done = false;
+    const finish = () => { if (done) return; done = true; onEnd?.(); };
     try {
       synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -53,11 +55,15 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
       const vs = synth.getVoices();
       const pref = ["Samantha", "Google US English", "Microsoft Aria Online (Natural) - English (United States)", "Google UK English Female"];
       u.voice = pref.map((n) => vs.find((v) => v.name === n)).find(Boolean) || vs.find((v) => v.lang?.startsWith("en")) || null;
-      u.onend = () => onEnd?.();
-      u.onerror = () => onEnd?.();
+      // Watchdog: browsers frequently fail to fire onend. If it hasn't ended by
+      // the estimated speaking time (+buffer), stop and move on so we never hang.
+      const est = Math.min(3500 + text.length * 65, 24000);
+      const wd = setTimeout(() => { try { synth.cancel(); } catch {} finish(); }, est);
+      u.onend = () => { clearTimeout(wd); finish(); };
+      u.onerror = () => { clearTimeout(wd); finish(); };
       synth.speak(u);
     } catch {
-      onEnd?.();
+      finish();
     }
   }, []);
 
