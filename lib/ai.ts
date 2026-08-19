@@ -742,6 +742,65 @@ Return STRICT JSON only, no prose outside it:
   return extractJson(raw);
 }
 
+// Your AI Board: a round of live debate among four distinct advisors.
+const BOARD_ROSTER = `The board:
+- optimist (Mara), Growth optimist: sees the upside, the ambition, the prize if it works. Concrete, never naive.
+- skeptic (Dev), Skeptic: the devil's advocate; names what breaks, the downside, the hidden assumptions.
+- customer (Priya), The customer: only cares whether real customers want this and will pay; speaks from the buyer's chair.
+- operator (Sam), Operator & CFO: cost, cash, capacity, and whether it can actually be executed.`;
+
+export async function boardRoundAI(input: {
+  decision: string;
+  context?: string;
+  transcript: { who: string; text: string }[];
+}): Promise<{ member: string; text: string }[]> {
+  const convo = (input.transcript || [])
+    .map((e) => `${e.who === "you" ? "YOU (the person deciding)" : e.who.toUpperCase()}: ${e.text}`)
+    .join("\n")
+    .slice(0, 9000);
+
+  const system = `You are simulating a four-person advisory board debating one person's decision. ${BOARD_ROSTER}
+
+Produce the NEXT round of debate. Each of the four members speaks once, 1 to 2 punchy sentences, in a distinct voice true to their role. They must react to the conversation so far and to EACH OTHER by name (agree, build, or push back), and advance the argument, do not repeat points already made. Stay specific to THIS decision, never generic. If the person just said something, respond to it directly.
+
+Return STRICT JSON only, one line, no markdown: {"round":[{"member":"optimist|skeptic|customer|operator","text":"..."}]} with all four members, ordered so the exchange feels alive (not always the same order).`;
+
+  const raw = await complete([
+    { role: "system", content: system },
+    { role: "user", content: `DECISION: ${input.decision}\nCONTEXT: ${input.context || "(none)"}\n\nDEBATE SO FAR:\n${convo || "(none yet, this is the opening round)"}` },
+  ], { json: true, temperature: 0.8, maxTokens: 900 });
+
+  const p = extractJson(raw);
+  const round = Array.isArray(p?.round) ? p.round : [];
+  const valid = new Set(["optimist", "skeptic", "customer", "operator"]);
+  return round
+    .filter((r: any) => r && valid.has(r.member) && r.text)
+    .map((r: any) => ({ member: String(r.member), text: String(r.text).slice(0, 600) }));
+}
+
+export async function boardVerdictAI(input: {
+  decision: string;
+  context?: string;
+  transcript: { who: string; text: string }[];
+}): Promise<any> {
+  const convo = (input.transcript || [])
+    .map((e) => `${e.who === "you" ? "YOU" : e.who.toUpperCase()}: ${e.text}`)
+    .join("\n")
+    .slice(0, 9000);
+  const system = `You just moderated a four-person advisory board (${BOARD_ROSTER}) debating a decision. Synthesize the board's verdict, honestly weighing what was said. Return STRICT JSON only, no markdown:
+{
+  "verdict": "the board's overall read in 2 to 3 sentences",
+  "tension": "the core disagreement or tradeoff that has to be resolved",
+  "recommendation": "one clear recommended next move",
+  "conditions": ["what would have to be true, or the things to watch"]
+}`;
+  const raw = await complete([
+    { role: "system", content: system },
+    { role: "user", content: `DECISION: ${input.decision}\nCONTEXT: ${input.context || "(none)"}\n\nDEBATE:\n${convo || "(none)"}` },
+  ], { json: true, temperature: 0.5, maxTokens: 900 });
+  return extractJson(raw);
+}
+
 const AI_LABELS = "search, structure, think, translate";
 const HUMAN_LABELS = "lead, own, judge, integrate";
 

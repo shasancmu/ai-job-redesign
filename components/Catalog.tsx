@@ -34,6 +34,7 @@ function resultHref(exercise: string, code: string) {
   if (exercise === "career-roadmap") return `/roadmap/${code}`;
   if (exercise === "consult") return `/consult/${code}`;
   if (exercise === "superpower") return `/superpower/${code}`;
+  if (exercise === "board") return `/board/${code}`;
   return `/room/${code}`;
 }
 

@@ -44,7 +44,8 @@ export type ModuleDef = {
     | "disclosure"
     | "disclosure-haip"
     | "consult"
-    | "superpower"; // which room engine renders it
+    | "superpower"
+    | "board"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -396,6 +397,21 @@ export const MODULES: ModuleDef[] = [
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_SUPERPOWER",
   },
+  {
+    slug: "ai-board",
+    exercise: "board",
+    name: "Convene Your AI Board",
+    tagline: "Bring a decision. Four AI advisors debate it live, a growth optimist, a skeptic, your customer, and your operator, reacting to each other and to you. You moderate, then call the vote for a verdict.",
+    description:
+      "A live advisory board on demand. Describe a decision you're weighing and four distinct AI personas debate it in front of you, each holding a real stance and pushing back on each other. Interject anytime, steer the argument, then call the vote for the board's verdict: the core tension, a recommended move, and what would have to be true.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 15,
+    ai: true,
+    emoji: "⚖️",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_BOARD",
+  },
 ];
 
 // The all-access bundle uses the existing single price env for backward compat.
@@ -437,6 +453,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "test-the-bet": "strategy",
   "good-business": "strategy",
   "business-consult": "strategy",
+  "ai-board": "strategy",
   "close-the-offer": "negotiate",
   "name-your-price": "negotiate",
   benchmark: "live",
@@ -495,6 +512,7 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "vendor-disclosure": ["strategy", "implementation"],
   "haip-disclosure": ["strategy", "implementation", "ai"],
   "business-consult": ["strategy", "leadership", "implementation"],
+  "ai-board": ["strategy", "leadership"],
   // Entrepreneurship / innovation
   "good-business": ["entrepreneurship", "strategy"],
   "test-the-bet": ["innovation", "entrepreneurship"],
