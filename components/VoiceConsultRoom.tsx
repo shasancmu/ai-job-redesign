@@ -28,6 +28,10 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
 
   const recRef = useRef<any>(null);
   const finalRef = useRef("");
+  const interimRef = useRef("");
+  const turnDoneRef = useRef(false);
+  const handleUserRef = useRef<(t: string) => void>(() => {});
+  const startListenRef = useRef<() => void>(() => {});
   const supported = useRef(false);
 
   async function saveCanvas(patch: Record<string, any>) {
@@ -61,9 +65,24 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
     const rec = recRef.current;
     if (!rec) return;
     finalRef.current = "";
+    interimRef.current = "";
+    turnDoneRef.current = false;
     setInterim("");
     setPhase("listening");
     try { rec.start(); } catch { /* already started */ }
+  }, []);
+
+  // Finish the current answer: stop the mic and submit whatever was heard.
+  // Idempotent, so tapping + the browser's own onend can't double-fire.
+  const finishTurn = useCallback(() => {
+    if (turnDoneRef.current) return;
+    turnDoneRef.current = true;
+    try { recRef.current?.stop(); } catch {}
+    const said = `${finalRef.current} ${interimRef.current}`.trim();
+    interimRef.current = "";
+    setInterim("");
+    if (said) handleUserRef.current(said);
+    else startListenRef.current();
   }, []);
 
   const fetchChat = useCallback(async (history: Msg[]): Promise<string | null> => {
@@ -91,6 +110,10 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
     advisorTurn(next);
   }, [advisorTurn]);
 
+  // Keep the recognition handlers pointing at the latest callbacks.
+  useEffect(() => { handleUserRef.current = handleUser; }, [handleUser]);
+  useEffect(() => { startListenRef.current = startListening; }, [startListening]);
+
   // Set up speech recognition once.
   useEffect(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -101,26 +124,25 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
     const rec = new SR();
     rec.lang = "en-US";
     rec.interimResults = true;
-    rec.continuous = false;
+    rec.continuous = true; // stays on until we stop it, so tap-to-finish is deterministic
     rec.maxAlternatives = 1;
     rec.onresult = (e: any) => {
       let itm = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const r = e.results[i];
-        if (r.isFinal) finalRef.current += r[0].transcript;
+        if (r.isFinal) finalRef.current += r[0].transcript + " ";
         else itm += r[0].transcript;
       }
+      interimRef.current = itm;
       setInterim(itm);
     };
-    rec.onend = () => {
-      const said = finalRef.current.trim();
-      setInterim("");
-      if (said) handleUser(said);
+    rec.onend = () => { finishTurn(); };
+    rec.onerror = (e: any) => {
+      if (e?.error === "not-allowed" || e?.error === "service-not-allowed") setErr("Microphone access is blocked. Allow the mic and reload.");
     };
-    rec.onerror = () => {};
     recRef.current = rec;
     return () => { try { rec.abort(); } catch {} window.speechSynthesis?.cancel(); };
-  }, [handleUser]);
+  }, [finishTurn]);
 
   function start() {
     setErr(null);
@@ -136,7 +158,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
 
   function tapStatus() {
     if (phase === "speaking") { window.speechSynthesis?.cancel(); startListening(); }
-    else if (phase === "listening") { try { recRef.current?.stop(); } catch {} }
+    else if (phase === "listening") { finishTurn(); }
   }
 
   function toggleMute() {
@@ -147,6 +169,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
   }
 
   async function buildConsult() {
+    turnDoneRef.current = true; // stop the mic loop from re-listening after we abort
     try { recRef.current?.abort(); } catch {}
     window.speechSynthesis?.cancel();
     setPhase("thinking");
@@ -228,7 +251,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
           <div className="w-full max-w-2xl">
             <button onClick={tapStatus} className={`voice-orb mx-auto ${orbState}`} aria-label="microphone" />
             <div className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-              {phase === "speaking" ? "Advisor speaking · tap to answer" : phase === "listening" ? "Listening · tap when done" : "Thinking…"}
+              {phase === "speaking" ? "Advisor speaking · tap to answer" : phase === "listening" ? "Listening · tap the circle when you're done" : "Thinking…"}
             </div>
             {caption && <p className="mx-auto mt-4 max-w-xl text-xl leading-relaxed text-ink">{caption}</p>}
             {interim && <p className="mx-auto mt-3 max-w-xl text-lg italic text-slate-400">{interim}</p>}
