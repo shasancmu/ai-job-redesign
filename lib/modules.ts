@@ -47,6 +47,8 @@ export type ModuleDef = {
     | "superpower"
     | "board"
     | "empathy"
+    | "resume"
+    | "resume-voice"
     | "voice-consult"; // which room engine renders it
   name: string;
   tagline: string;
@@ -444,6 +446,36 @@ export const MODULES: ModuleDef[] = [
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_EMPATHY",
   },
+  {
+    slug: "refresh-resume",
+    exercise: "resume",
+    name: "Refresh Your Résumé",
+    tagline: "Paste your résumé or LinkedIn, and an AI coach interviews you about what you've actually accomplished this year. You leave with the exact changes to make: stronger, quantified bullets, a sharper summary, and the skills to feature, all grounded in résumé research.",
+    description:
+      "Most résumés go stale because the last year's real wins never make it on. Paste your current résumé or LinkedIn profile (if we already have it from a prior exercise, it's prefilled) and an AI coach interviews you to surface your major accomplishments, the scope you owned, and the value you created, laddering every answer toward a concrete, quantified result. It returns a prioritized set of changes: new accomplishment bullets in the proven X-Y-Z form, weak duty-lines rewritten as outcomes, a stronger summary to adapt, skills to add or retire, and structure fixes, all grounded in research on what makes a résumé detailed and compelling. You rewrite them in your own voice; the point is authenticity, not copy-paste.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "📄",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_RESUME",
+  },
+  {
+    slug: "refresh-resume-voice",
+    exercise: "resume-voice",
+    name: "Talk Through Your Résumé",
+    tagline: "The résumé refresh as a hands-free voice conversation. Paste your résumé, then just talk about your year while an AI coach draws out the wins. You leave with the exact changes to make, in your own words to rewrite.",
+    description:
+      "Refresh Your Résumé as a spoken conversation. Paste your current résumé or LinkedIn profile, then an AI coach interviews you out loud about what you've accomplished this year, laddering toward the real results and numbers. At the end it produces the same concrete set of changes: new accomplishment bullets in X-Y-Z form, rewritten duty-lines, a stronger summary, skills to feature, and structure fixes. Uses your browser's built-in speech (Chrome or desktop); nothing is recorded, only the transcript is kept. You rewrite the drafts in your own voice.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "🎙️",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_RESUME",
+  },
 ];
 
 // The all-access bundle uses the existing single price env for backward compat.
@@ -474,6 +506,8 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "career-x-ray": "redesign",
   "career-roadmap": "redesign",
   "find-superpower": "redesign",
+  "refresh-resume": "redesign",
+  "refresh-resume-voice": "redesign",
   "jd-x-ray": "redesign",
   "execution-4a": "strategy",
   "balanced-scorecard": "strategy",
@@ -536,6 +570,8 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "jd-x-ray": ["career", "leadership"],
   "career-roadmap": ["career"],
   "find-superpower": ["career", "leadership"],
+  "refresh-resume": ["career", "ai"],
+  "refresh-resume-voice": ["career", "ai"],
   // Negotiation
   "close-the-offer": ["negotiation", "career"],
   "name-your-price": ["negotiation"],

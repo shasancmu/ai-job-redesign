@@ -4,6 +4,7 @@ import { boardMember, type BoardEntry } from "@/lib/board";
 import { canvasByExercise } from "@/lib/canvases";
 import ConsultReport from "@/components/ConsultReport";
 import SuperpowerReport from "@/components/SuperpowerReport";
+import ResumeReport from "@/components/ResumeReport";
 import BoardVerdict from "@/components/BoardVerdict";
 import CareerXrayView from "@/components/CareerXrayView";
 import CareerRoadmapView from "@/components/CareerRoadmapView";
@@ -115,6 +116,16 @@ async function renderSession(admin: any, s: any) {
       <>
         <Head eyebrow="Find Your Superpower" title="A superpower profile" />
         <SuperpowerReport report={canvas.report} />
+      </>
+    );
+  }
+
+  if (ex === "resume" || ex === "resume-voice") {
+    if (!canvas.report) return null;
+    return (
+      <>
+        <Head eyebrow="Refresh Your Résumé" title="Résumé changes" />
+        <ResumeReport report={canvas.report} />
       </>
     );
   }

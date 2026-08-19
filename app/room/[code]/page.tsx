@@ -19,6 +19,8 @@ import BoardRoom from "@/components/BoardRoom";
 import VoiceConsultRoom from "@/components/VoiceConsultRoom";
 import DisclosureRoom from "@/components/DisclosureRoom";
 import EmpathyRoom from "@/components/EmpathyRoom";
+import ResumeRoom from "@/components/ResumeRoom";
+import VoiceResumeRoom from "@/components/VoiceResumeRoom";
 import { variantForExercise } from "@/lib/disclosure";
 import { canvasByExercise } from "@/lib/canvases";
 import { scenarioByExercise } from "@/lib/negotiation";
@@ -240,6 +242,55 @@ export default async function RoomPage({
         initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
         variant={variantForExercise(session.exercise)}
       />
+    );
+  }
+
+  // Refresh Your Résumé (text or voice): solo, host only. Prefill the résumé
+  // from a prior Career X-ray or an earlier refresh so they don't re-paste.
+  if (session.exercise === "resume" || session.exercise === "resume-voice") {
+    if (!amHost) redirect("/dashboard");
+    await supabase
+      .from("workspaces")
+      .upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
+
+    let prefill = "";
+    let prefillFrom = "";
+    if (!(workspace?.canvas as any)?.source?.text) {
+      const { data: sess } = await supabase
+        .from("sessions")
+        .select("id, exercise, created_at")
+        .eq("host_id", user.id)
+        .in("exercise", ["career-xray", "resume", "resume-voice"])
+        .neq("id", session.id)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      const ids = (sess || []).map((s: any) => s.id);
+      if (ids.length) {
+        const { data: wss } = await supabase.from("workspaces").select("session_id, canvas").in("session_id", ids).eq("author_id", user.id);
+        const byId = new Map((wss || []).map((w: any) => [w.session_id, w.canvas]));
+        for (const s of sess || []) {
+          const c = (byId.get(s.id) as any) || {};
+          const text = s.exercise === "career-xray" ? c.text || "" : c.source?.text || "";
+          if (text && text.trim().length > 80) {
+            prefill = text;
+            prefillFrom = s.exercise === "career-xray" ? "your Career X-ray" : "a previous résumé refresh";
+            break;
+          }
+        }
+      }
+    }
+
+    const initialWorkspace = workspace || { session_id: session.id, author_id: user.id };
+    return session.exercise === "resume-voice" ? (
+      <VoiceResumeRoom session={session} initialWorkspace={initialWorkspace} prefill={prefill} prefillFrom={prefillFrom} />
+    ) : (
+      <ResumeRoom session={session} initialWorkspace={initialWorkspace} prefill={prefill} prefillFrom={prefillFrom} />
     );
   }
 
