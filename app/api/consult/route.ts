@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { AI_ENABLED, VISION_ENABLED, businessInterviewReply, businessReportAI, photoDescribeAI } from "@/lib/ai";
+import { AI_ENABLED, VISION_ENABLED, businessInterviewReply, businessVoiceInterviewReply, businessReportAI, photoDescribeAI } from "@/lib/ai";
 import { wmsScore } from "@/lib/business";
 
 export const runtime = "nodejs";
@@ -29,7 +29,9 @@ export async function POST(request: Request) {
 
   try {
     if (mode === "chat") {
-      const reply = await businessInterviewReply(body.messages || [], body.ctx || {});
+      const reply = body.voice
+        ? await businessVoiceInterviewReply(body.messages || [], body.ctx || {})
+        : await businessInterviewReply(body.messages || [], body.ctx || {});
       return Response.json({ reply });
     }
 

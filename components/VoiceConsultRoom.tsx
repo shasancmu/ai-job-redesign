@@ -32,7 +32,16 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
   const turnDoneRef = useRef(false);
   const handleUserRef = useRef<(t: string) => void>(() => {});
   const startListenRef = useRef<() => void>(() => {});
+  const finishTurnRef = useRef<() => void>(() => {});
   const supported = useRef(false);
+
+  // Auto-endpointing (no tapping): once the person has spoken, a pause ends the
+  // turn on its own; a hard cap guarantees the conversation always moves forward.
+  const SILENCE_MS = 2300; // pause after speech that ends the turn
+  const MAX_TURN_MS = 30000; // never let one answer run longer than this
+  const silenceRef = useRef<any>(null);
+  const maxTurnRef = useRef<any>(null);
+  const clearTurnTimers = () => { clearTimeout(silenceRef.current); clearTimeout(maxTurnRef.current); };
 
   async function saveCanvas(patch: Record<string, any>) {
     const canvas = { ...(ws.canvas || {}), interview_chat: mref.current, ...patch };
@@ -73,16 +82,20 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
     finalRef.current = "";
     interimRef.current = "";
     turnDoneRef.current = false;
+    clearTurnTimers();
     setInterim("");
     setPhase("listening");
     try { rec.start(); } catch { /* already started */ }
+    // Hard cap: even if they ramble or the mic never goes quiet, move on.
+    maxTurnRef.current = setTimeout(() => finishTurnRef.current(), MAX_TURN_MS);
   }, []);
 
   // Finish the current answer: stop the mic and submit whatever was heard.
-  // Idempotent, so tapping + the browser's own onend can't double-fire.
+  // Idempotent, so a pause, a tap, and the browser's own onend can't double-fire.
   const finishTurn = useCallback(() => {
     if (turnDoneRef.current) return;
     turnDoneRef.current = true;
+    clearTurnTimers();
     try { recRef.current?.stop(); } catch {}
     const said = `${finalRef.current} ${interimRef.current}`.trim();
     interimRef.current = "";
@@ -93,7 +106,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
 
   const fetchChat = useCallback(async (history: Msg[]): Promise<string | null> => {
     try {
-      const res = await fetch("/api/consult", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", messages: history, ctx: {} }) });
+      const res = await fetch("/api/consult", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", voice: true, messages: history, ctx: {} }) });
       const d = await res.json();
       if (!res.ok) { setErr(d.error || "The advisor is unavailable."); return null; }
       return d.reply as string;
@@ -119,6 +132,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
   // Keep the recognition handlers pointing at the latest callbacks.
   useEffect(() => { handleUserRef.current = handleUser; }, [handleUser]);
   useEffect(() => { startListenRef.current = startListening; }, [startListening]);
+  useEffect(() => { finishTurnRef.current = finishTurn; }, [finishTurn]);
 
   // Set up speech recognition once.
   useEffect(() => {
@@ -141,14 +155,19 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
       }
       interimRef.current = itm;
       setInterim(itm);
+      // Auto-endpoint: once they've actually said something, a short pause ends
+      // the turn on its own, so there's nothing to tap.
+      const heard = (finalRef.current + itm).trim().length > 0;
+      clearTimeout(silenceRef.current);
+      if (heard) silenceRef.current = setTimeout(() => finishTurnRef.current(), SILENCE_MS);
     };
-    rec.onend = () => { finishTurn(); };
+    rec.onend = () => { finishTurnRef.current(); };
     rec.onerror = (e: any) => {
       if (e?.error === "not-allowed" || e?.error === "service-not-allowed") setErr("Microphone access is blocked. Allow the mic and reload.");
     };
     recRef.current = rec;
-    return () => { try { rec.abort(); } catch {} window.speechSynthesis?.cancel(); };
-  }, [finishTurn]);
+    return () => { clearTurnTimers(); try { rec.abort(); } catch {} window.speechSynthesis?.cancel(); };
+  }, []);
 
   function start() {
     setErr(null);
@@ -249,7 +268,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
           <div className="max-w-md">
             <div className={`voice-orb mx-auto ${orbState}`} />
             <h1 className="mt-8 text-2xl font-bold text-ink">A spoken interview about your business</h1>
-            <p className="mt-2 text-slate2">An advisor will ask you questions out loud. Just talk back, naturally. Find a quiet spot, and it works best in Chrome or Safari.</p>
+            <p className="mt-2 text-slate2">An advisor talks with you out loud, like a real conversation. Just answer naturally and pause when you&apos;re done, it moves on by itself. No tapping needed. Find a quiet spot; works best in Chrome, or on Android and desktop.</p>
             <button onClick={start} className="btn-primary mt-6 px-8 py-3 text-base">{messages.length ? "Resume the interview" : "Start the interview"} →</button>
             <p className="mt-3 text-xs text-slate-400">Your mic is used only while you&apos;re answering.</p>
           </div>
@@ -257,7 +276,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
           <div className="w-full max-w-2xl">
             <button onClick={tapStatus} className={`voice-orb mx-auto ${orbState}`} aria-label="microphone" />
             <div className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-              {phase === "speaking" ? "Advisor speaking · tap to answer" : phase === "listening" ? "Listening · tap the circle when you're done" : "Thinking…"}
+              {phase === "speaking" ? "Advisor speaking · tap to jump in" : phase === "listening" ? "Listening · just pause when you're done" : "Thinking…"}
             </div>
             {caption && <p className="mx-auto mt-4 max-w-xl text-xl leading-relaxed text-ink">{caption}</p>}
             {interim && <p className="mx-auto mt-3 max-w-xl text-lg italic text-slate-400">{interim}</p>}
