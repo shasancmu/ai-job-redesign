@@ -21,7 +21,7 @@ import Tour, { TourButton } from "@/components/Tour";
 
 const DASHBOARD_TOUR = [
   { sel: '[data-tour="your-work"]', title: "Jump back in", body: "Your recent exercises and reports live here, so you can pick up right where you left off." },
-  { sel: '[data-tour="catalog"]', title: "The library", body: "Every exercise is run by an AI interviewer, partner, or coach, and ends in something you keep. Each card says what it does and how long it takes." },
+  { sel: '[data-tour="catalog"]', title: "The library", body: "Every exercise is run by an AI interviewer, partner, or coach, and ends in something you keep. Tap the ⓘ on any card to see what it's about before you start." },
   { sel: '[data-tour="filters"]', title: "Find your starting point", body: "Filter by theme, like AI, Strategy, or Career, to narrow the library to what fits what you need right now." },
   { sel: '[data-tour="reports"]', title: "Your reports", body: "Everything you generate is saved here, ready to reopen or share anytime." },
 ];
