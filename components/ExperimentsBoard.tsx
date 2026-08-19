@@ -47,12 +47,12 @@ export default function ExperimentsBoard() {
   }
 
   function exportCsv() {
-    const head = ["name", "flow", "metric", "status", "hypothesis", "arm", "n", "successes", "rate", "p_value", "conclusive"];
+    const head = ["experiment_id", "name", "flow", "target", "mode", "metric", "status", "hypothesis", "arm", "variant_key", "n", "successes", "rate", "p_value", "conclusive"];
     const lines = [head.join(",")];
     for (const e of exps) {
       const a = e.analysis;
       for (const arm of a?.arms || [{}]) {
-        lines.push([e.name, e.flow, e.metric, e.status, e.hypothesis, arm.label || "", arm.n ?? "", arm.successes ?? "", arm.rate != null ? arm.rate.toFixed(3) : "", a?.pValue != null ? a.pValue.toFixed(3) : "", a?.conclusive ?? ""].map(csv).join(","));
+        lines.push([e.id, e.name, e.flow, e.target, e.mode, e.metric, e.status, e.hypothesis, arm.label || "", arm.key || "", arm.n ?? "", arm.successes ?? "", arm.rate != null ? arm.rate.toFixed(3) : "", a?.pValue != null ? a.pValue.toFixed(3) : "", a?.conclusive ?? ""].map(csv).join(","));
       }
     }
     const blob = new Blob([lines.join("\n")], { type: "text/csv" });
