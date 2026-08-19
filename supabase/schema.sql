@@ -555,3 +555,34 @@ create policy "quiz submissions host read" on public.quiz_submissions
       where s.id = quiz_submissions.session_id and s.host_id = auth.uid()
     )
   );
+
+-- ===========================================================================
+-- Understand Your Customer: the owner opens an "empathy" session (in the main
+-- sessions table, with a public_token like Vendor Disclosure) and shares one
+-- link. Each potential customer opens it (NO sign-in) and has an AI-run empathy
+-- interview; on finish, the service role stores the transcript + the AI profile
+-- as one row here. Many customers -> many rows per session.
+-- ===========================================================================
+create table if not exists public.empathy_interviews (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.sessions (id) on delete cascade,
+  respondent text not null default '',      -- optional name/label the customer gives
+  transcript jsonb not null default '[]',   -- [{role, content}, ...]
+  profile jsonb,                            -- the AI empathy profile for this person
+  created_at timestamptz not null default now()
+);
+create index if not exists empathy_interviews_session_idx on public.empathy_interviews (session_id);
+
+alter table public.empathy_interviews enable row level security;
+
+-- The host reads the interviews for their own sessions. Public submissions are
+-- written by the service role in /api/empathy/finish (which bypasses RLS), so
+-- no anon insert policy is needed here.
+drop policy if exists "empathy interviews host read" on public.empathy_interviews;
+create policy "empathy interviews host read" on public.empathy_interviews
+  for select using (
+    exists (
+      select 1 from public.sessions s
+      where s.id = empathy_interviews.session_id and s.host_id = auth.uid()
+    )
+  );

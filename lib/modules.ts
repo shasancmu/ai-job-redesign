@@ -46,6 +46,7 @@ export type ModuleDef = {
     | "consult"
     | "superpower"
     | "board"
+    | "empathy"
     | "voice-consult"; // which room engine renders it
   name: string;
   tagline: string;
@@ -428,6 +429,21 @@ export const MODULES: ModuleDef[] = [
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_CONSULT",
   },
+  {
+    slug: "customer-empathy",
+    exercise: "empathy",
+    name: "Understand Your Customer",
+    tagline: "Send a potential customer one link. An AI runs a warm, design-thinking empathy interview for you, then hands back who they are, the job they're hiring you to do, their real pains and gains, and an empathy map you can act on. Do it with many customers and it finds the pattern.",
+    description:
+      "A customer-research tool. Name your business, what you offer, and who you want to understand, and get one shareable link. Send it to any potential customer: they open it with no account and have a natural chat with an AI interviewer trained in the design-thinking empathy method and Jobs-to-be-Done. It draws out their stories, workarounds, frustrations, and what they truly value, never pitching. Each conversation comes back to you as an empathy profile (an empathy map of what they say, think, do, and feel, their core job to be done, pains, gains, and verbatim quotes). Collect several and one click synthesizes the patterns across them: the themes, the distinct customer types, the biggest unmet needs, and where the opportunities are.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 15,
+    ai: true,
+    emoji: "💬",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_EMPATHY",
+  },
 ];
 
 // The all-access bundle uses the existing single price env for backward compat.
@@ -471,6 +487,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "business-consult": "strategy",
   "voice-consult": "strategy",
   "ai-board": "strategy",
+  "customer-empathy": "strategy",
   "close-the-offer": "negotiate",
   "name-your-price": "negotiate",
   benchmark: "live",
@@ -531,6 +548,7 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "business-consult": ["strategy", "leadership", "implementation"],
   "voice-consult": ["strategy", "leadership"],
   "ai-board": ["strategy", "leadership"],
+  "customer-empathy": ["innovation", "entrepreneurship", "strategy"],
   // Entrepreneurship / innovation
   "good-business": ["entrepreneurship", "strategy"],
   "test-the-bet": ["innovation", "entrepreneurship"],

@@ -18,6 +18,7 @@ import SuperpowerRoom from "@/components/SuperpowerRoom";
 import BoardRoom from "@/components/BoardRoom";
 import VoiceConsultRoom from "@/components/VoiceConsultRoom";
 import DisclosureRoom from "@/components/DisclosureRoom";
+import EmpathyRoom from "@/components/EmpathyRoom";
 import { variantForExercise } from "@/lib/disclosure";
 import { canvasByExercise } from "@/lib/canvases";
 import { scenarioByExercise } from "@/lib/negotiation";
@@ -238,6 +239,33 @@ export default async function RoomPage({
         token={token}
         initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
         variant={variantForExercise(session.exercise)}
+      />
+    );
+  }
+
+  // Understand Your Customer: the owner-side room. Potential customers do the
+  // AI empathy interview via the shared public link; only the owner sees this.
+  if (session.exercise === "empathy") {
+    if (!amHost) redirect("/dashboard");
+    let token: string = session.public_token;
+    if (!token) {
+      token = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, "");
+      await supabase.from("sessions").update({ public_token: token }).eq("id", session.id);
+    }
+    await supabase
+      .from("workspaces")
+      .upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
+    return (
+      <EmpathyRoom
+        session={session}
+        token={token}
+        initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
       />
     );
   }
