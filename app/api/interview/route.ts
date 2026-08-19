@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, interviewReply, proposeRedesign, ChatMsg } from "@/lib/ai";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { experimentNudgeAuto } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,7 +46,9 @@ export async function POST(request: Request) {
       const result = await withLanguage(language, () => proposeRedesign(context, job));
       return Response.json(result);
     }
-    const reply = await withLanguage(language, () => interviewReply(history, job));
+    let nudge = "";
+    try { nudge = await experimentNudgeAuto(createAdminClient(), String(body.sessionId || "")); } catch {}
+    const reply = await withLanguage(language, () => interviewReply(history, job, nudge));
     return Response.json({ reply });
   } catch (e: any) {
     return Response.json(

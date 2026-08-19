@@ -128,7 +128,7 @@ export default function SoloRoom({
         )}
 
         {step.key === "interview" && (
-          <Interview ws={ws} update={update} />
+          <Interview ws={ws} update={update} sessionId={session.id} />
         )}
 
         {step.key === "redesign" && (
@@ -179,7 +179,7 @@ export default function SoloRoom({
   );
 }
 
-function Interview({ ws, update }: { ws: any; update: (p: any) => void }) {
+function Interview({ ws, update, sessionId }: { ws: any; update: (p: any) => void; sessionId: string }) {
   const t = useT();
   const messages: Msg[] = ws.interview_chat || [];
   const [input, setInput] = useState("");
@@ -198,7 +198,7 @@ function Interview({ ws, update }: { ws: any; update: (p: any) => void }) {
         const res = await fetch("/api/interview", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mode: "chat", messages: history, ...job }),
+          body: JSON.stringify({ mode: "chat", messages: history, ...job, sessionId }),
         });
         const data = await res.json();
         if (!res.ok) {

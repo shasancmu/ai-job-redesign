@@ -32,6 +32,8 @@ export const EXPERIMENT_FLOWS: { key: string; label: string }[] = [
   { key: "empathy", label: "Understand Your Customer" },
   { key: "superpower", label: "Find Your Superpower" },
   { key: "board", label: "AI Board" },
+  { key: "solo", label: "Redesign Your Job with AI" },
+  { key: "workflow-solo", label: "Redesign a Workflow with AI" },
 ];
 
 export const METRICS: { key: "completion" | "depth" | "shared"; label: string; help: string }[] = [
@@ -197,6 +199,19 @@ export async function experimentNudge(admin: any, sessionId: string, flow: strin
     }
     const v = (exp.variants || []).find((x: Variant) => x.key === key);
     return (v?.nudge || "").slice(0, 600);
+  } catch {
+    return "";
+  }
+}
+
+// For routes shared across exercises (e.g. /api/interview serves both the solo
+// and paired flows): resolve the session's own exercise and match on that.
+export async function experimentNudgeAuto(admin: any, sessionId: string): Promise<string> {
+  if (!sessionId || !admin) return "";
+  try {
+    const { data: s } = await admin.from("sessions").select("exercise").eq("id", sessionId).maybeSingle();
+    if (!s?.exercise) return "";
+    return experimentNudge(admin, sessionId, s.exercise);
   } catch {
     return "";
   }

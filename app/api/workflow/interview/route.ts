@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, workflowInterviewReply, ChatMsg } from "@/lib/ai";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { experimentNudgeAuto } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,11 +30,13 @@ export async function POST(request: Request) {
     : [];
 
   try {
+    let nudge = "";
+    try { nudge = await experimentNudgeAuto(createAdminClient(), String(body.sessionId || "")); } catch {}
     const reply = await withLanguage(await getUserLanguage(supabase, user.id), () =>
       workflowInterviewReply(history, {
         name: String(body.name || "").slice(0, 200),
         description: String(body.description || "").slice(0, 1500),
-      })
+      }, nudge)
     );
     return Response.json({ reply });
   } catch (e: any) {

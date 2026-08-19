@@ -237,7 +237,8 @@ After roughly 6 exchanges, briefly reflect the throughline you heard, ask if the
 
 export async function interviewReply(
   history: ChatMsg[],
-  job: { title?: string; description?: string }
+  job: { title?: string; description?: string },
+  nudge?: string
 ): Promise<string> {
   const context =
     job.title || job.description
@@ -249,7 +250,7 @@ export async function interviewReply(
     ? history
     : [{ role: "user", content: "Please begin the interview with your first question." }];
   const messages: ChatMsg[] = [
-    { role: "system", content: `${INTERVIEWER_SYSTEM}\n\n${context}` },
+    { role: "system", content: `${INTERVIEWER_SYSTEM}\n\n${context}${expNudge(nudge)}` },
     ...conversation,
   ];
   return complete(messages, { temperature: 0.7 });
@@ -265,7 +266,8 @@ After about 5 exchanges, reflect the shape of the workflow back, ask if you miss
 
 export async function workflowInterviewReply(
   history: ChatMsg[],
-  wf: { name?: string; description?: string }
+  wf: { name?: string; description?: string },
+  nudge?: string
 ): Promise<string> {
   const ctx =
     wf.name || wf.description
@@ -275,7 +277,7 @@ export async function workflowInterviewReply(
     ? history
     : [{ role: "user", content: "Please begin, ask your first question about the workflow." }];
   return complete(
-    [{ role: "system", content: `${WORKFLOW_INTERVIEWER_SYSTEM}\n\n${ctx}` }, ...conversation],
+    [{ role: "system", content: `${WORKFLOW_INTERVIEWER_SYSTEM}\n\n${ctx}${expNudge(nudge)}` }, ...conversation],
     { temperature: 0.7 }
   );
 }

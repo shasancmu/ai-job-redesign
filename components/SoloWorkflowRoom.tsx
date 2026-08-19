@@ -161,7 +161,7 @@ export default function SoloWorkflowRoom({
         )}
 
         {step.key === "interview" && (
-          <WorkflowInterview name={doc.name} why={doc.why} chat={chat} setChat={setChat} />
+          <WorkflowInterview name={doc.name} why={doc.why} chat={chat} setChat={setChat} sessionId={session.id} />
         )}
 
         {step.key === "map" && (
@@ -261,11 +261,13 @@ function WorkflowInterview({
   why,
   chat,
   setChat,
+  sessionId,
 }: {
   name?: string;
   why?: string;
   chat: Msg[];
   setChat: (m: Msg[]) => void;
+  sessionId: string;
 }) {
   const t = useT();
   const [input, setInput] = useState("");
@@ -282,7 +284,7 @@ function WorkflowInterview({
         const res = await fetch("/api/workflow/interview", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: history, name, description: why }),
+          body: JSON.stringify({ messages: history, name, description: why, sessionId }),
         });
         const d = await res.json();
         if (!res.ok) {
