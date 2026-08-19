@@ -15,8 +15,20 @@ export default function EmpathyRoom({ session, token, initialWorkspace }: { sess
 
   const [origin, setOrigin] = useState("");
   const [copied, setCopied] = useState(false);
-  useEffect(() => setOrigin(window.location.origin), []);
+  const [canShare, setCanShare] = useState(false);
+  useEffect(() => {
+    setOrigin(window.location.origin);
+    setCanShare(typeof navigator !== "undefined" && !!(navigator as any).share);
+  }, []);
   const link = origin ? `${origin}/empathy/${token}` : "";
+
+  const study = (state.offer || state.business || "").trim();
+  const inviteSubject = study ? `A quick 5-minute chat about ${study}` : "A quick 5-minute chat, I'd love your take";
+  const inviteBody = `Hi,\n\nI'm trying to understand what people really need${study ? ` around ${study}` : ""}, and your perspective would mean a lot. It's a short, casual chat (about 5 minutes) with no wrong answers, nothing is being sold.\n\nHere's the link:\n${link}\n\nThank you!`;
+  const mailto = `mailto:?subject=${encodeURIComponent(inviteSubject)}&body=${encodeURIComponent(inviteBody)}`;
+  async function share() {
+    try { await (navigator as any).share({ title: inviteSubject, text: inviteBody, url: link }); } catch {}
+  }
 
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,6 +64,18 @@ export default function EmpathyRoom({ session, token, initialWorkspace }: { sess
   }, [supabase, session.id]);
   useEffect(() => { loadInterviews(); }, [loadInterviews]);
 
+  // All of this owner's empathy studies, so they can switch between products/ideas.
+  const [studies, setStudies] = useState<{ code: string; label: string }[]>([]);
+  const loadStudies = useCallback(async () => {
+    const { data: sess } = await supabase.from("sessions").select("id, code, created_at").eq("exercise", "empathy").order("created_at", { ascending: false });
+    if (!sess || sess.length === 0) return;
+    const ids = sess.map((s: any) => s.id);
+    const { data: wss } = await supabase.from("workspaces").select("session_id, canvas").in("session_id", ids);
+    const labelBy = new Map((wss || []).map((w: any) => [w.session_id, ((w.canvas?.offer || w.canvas?.business || "") as string).trim()]));
+    setStudies(sess.map((s: any) => ({ code: s.code, label: labelBy.get(s.id) || "Untitled study" })));
+  }, [supabase]);
+  useEffect(() => { loadStudies(); }, [loadStudies]);
+
   async function synthesize() {
     setSynth(true); setErr(null);
     try {
@@ -71,26 +95,49 @@ export default function EmpathyRoom({ session, token, initialWorkspace }: { sess
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Exit</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">Understand Your Customer</span>
+          {study && <span className="text-sm text-slate-400">· {study}</span>}
         </div>
-        <button onClick={loadInterviews} className="btn-ghost text-sm">↻ Refresh</button>
+        <div className="flex items-center gap-2">
+          <Link href="/start/customer-empathy" className="btn-ghost text-sm" title="Run a separate study for another product or idea">+ New study</Link>
+          <button onClick={loadInterviews} className="btn-ghost text-sm">↻ Refresh</button>
+        </div>
       </div>
+
+      {/* Study switcher — one study per product/idea */}
+      {studies.length > 1 && (
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Your studies</span>
+          {studies.map((s) => (
+            <Link
+              key={s.code}
+              href={`/room/${s.code}`}
+              className={"max-w-[220px] truncate rounded-full px-3 py-1 text-sm " + (s.code === session.code ? "bg-ink text-white" : "bg-mist text-slate2 hover:text-ink")}
+            >
+              {s.label}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {/* Setup */}
       <div className="card space-y-4 p-5">
-        <div className="text-sm font-bold text-ink">Tell the interviewer who to understand</div>
+        <div>
+          <div className="text-sm font-bold text-ink">What are you exploring?</div>
+          <p className="text-xs text-slate-400">One study = one product or idea. Use <b>+ New study</b> above to start a separate link for a different one.</p>
+        </div>
+        <div>
+          <label className="lbl">The product or idea you want to understand</label>
+          <input className="field" placeholder="e.g. a weekly sourdough subscription" value={state.offer || ""} onChange={(e) => setCanvas({ offer: e.target.value })} />
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="lbl">Your business</label>
+            <label className="lbl">Your business (optional context)</label>
             <input className="field" placeholder="e.g. Maple & Oak, a neighborhood bakery" value={state.business || ""} onChange={(e) => setCanvas({ business: e.target.value })} />
           </div>
           <div>
-            <label className="lbl">What you offer (or are considering)</label>
-            <input className="field" placeholder="e.g. fresh sourdough + a coffee subscription" value={state.offer || ""} onChange={(e) => setCanvas({ offer: e.target.value })} />
+            <label className="lbl">Who is this customer?</label>
+            <input className="field" placeholder="e.g. busy parents who buy bread every week" value={state.audience || ""} onChange={(e) => setCanvas({ audience: e.target.value })} />
           </div>
-        </div>
-        <div>
-          <label className="lbl">Who is this customer?</label>
-          <input className="field" placeholder="e.g. busy parents who buy bread every week" value={state.audience || ""} onChange={(e) => setCanvas({ audience: e.target.value })} />
         </div>
         <div>
           <label className="lbl">What do you most want to learn?</label>
@@ -104,10 +151,15 @@ export default function EmpathyRoom({ session, token, initialWorkspace }: { sess
         <p className="mt-1 text-xs text-slate-400">Anyone with the link can do the interview, no account needed. Send it to as many people as you like; each conversation comes back here.</p>
         <div className="mt-3 flex items-center gap-2">
           <input readOnly value={link} className="field flex-1 font-mono text-xs" onFocus={(e) => e.currentTarget.select()} />
-          <button onClick={() => { navigator.clipboard?.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 1500); }} className="btn-primary shrink-0 text-sm">
-            {copied ? "Copied" : "Copy"}
+          <button onClick={() => { navigator.clipboard?.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 1500); }} className="btn-ghost shrink-0 text-sm">
+            {copied ? "Copied ✓" : "Copy"}
           </button>
         </div>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <a href={mailto} className="btn-primary text-sm">✉️ Email the link</a>
+          {canShare && <button onClick={share} className="btn-ghost text-sm">↗ Share…</button>}
+        </div>
+        <p className="mt-2 text-xs text-slate-400">Email opens your own mail app with a friendly note already written, so the invite comes from you.</p>
       </div>
 
       {/* Aggregate */}
