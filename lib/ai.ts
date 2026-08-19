@@ -726,6 +726,7 @@ export async function businessReportAI(input: {
   wms: { overall: number; byArea: Record<string, number>; answers: Record<string, number> };
   eighty: any;
   photos: { title: string; description: string }[];
+  nudge?: string;
 }): Promise<any> {
   const transcript = (input.interview || [])
     .map((m) => `${m.role === "user" ? "OWNER" : "ADVISOR"}: ${m.content}`)
@@ -757,7 +758,7 @@ Return STRICT JSON only, no prose outside it:
   "upstream": ["the specific bottleneck(s) limiting the business, most binding first"],
   "plan": [ { "title": "prioritized move", "why": "the leverage", "firstStep": "what to do this week" } ]
 }
-Keep gaps to the 2-3 that matter, and the plan to 3-5 moves ordered by leverage.`;
+Keep gaps to the 2-3 that matter, and the plan to 3-5 moves ordered by leverage.${expNudge(input.nudge)}`;
 
   const user = `INTAKE: ${JSON.stringify(input.intake || {})}
 
@@ -799,6 +800,7 @@ export async function superpowerInterviewReply(
 export async function superpowerReportAI(input: {
   seeds?: string;
   interview: { role: string; content: string }[];
+  nudge?: string;
 }): Promise<any> {
   const transcript = (input.interview || [])
     .map((m) => `${m.role === "user" ? "PERSON" : "INTERVIEWER"}: ${m.content}`)
@@ -829,7 +831,7 @@ Return STRICT JSON only, no prose outside it:
   "moatStrength": "narrow" | "solid" | "formidable",
   "organize": ["how to position and build a career/role/moat around it", "..."],
   "watchout": "the shadow side, where this superpower misfires or costs them"
-}`;
+}${expNudge(input.nudge)}`;
 
   const raw = await complete([
     { role: "system", content: system },
@@ -907,6 +909,7 @@ export async function boardVerdictAI(input: {
   context?: string;
   materials?: { label: string; text: string }[];
   transcript: { who: string; text: string }[];
+  nudge?: string;
 }): Promise<any> {
   const convo = (input.transcript || [])
     .map((e) => `${e.who === "you" ? "YOU" : e.who.toUpperCase()}: ${e.text}`)
@@ -924,7 +927,7 @@ Return STRICT JSON only, no markdown:
   "cheapestTest": "the smallest, fastest experiment that would resolve that uncertainty before betting big",
   "recommendation": "one clear recommended next move",
   "conditions": ["what would have to be true, or the things to watch"]
-}`;
+}${expNudge(input.nudge)}`;
   const raw = await complete([
     { role: "system", content: system },
     { role: "user", content: `DECISION: ${input.decision}\nCONTEXT: ${input.context || "(none)"}${boardMaterialsBlock(input.materials)}\n\nDEBATE:\n${convo || "(none)"}` },
@@ -1433,7 +1436,7 @@ ${transcript || "(none)"}`;
 }
 
 // Synthesize ACROSS many interview profiles into themes, segments, opportunities.
-export async function empathyAggregateAI(input: { profiles: any[]; ctx: EmpathyContext }): Promise<any> {
+export async function empathyAggregateAI(input: { profiles: any[]; ctx: EmpathyContext; nudge?: string }): Promise<any> {
   const digest = (input.profiles || [])
     .map((p, i) => `--- Customer ${i + 1} ---\nSnapshot: ${p?.snapshot || ""}\nJob: ${p?.jobToBeDone || ""}\nPains: ${(p?.pains || []).join("; ")}\nGains: ${(p?.gains || []).join("; ")}\nHow to serve: ${(p?.howToServe || []).join("; ")}`)
     .join("\n\n")
@@ -1453,7 +1456,7 @@ Return STRICT JSON only:
   "opportunities": [ { "move": "a specific thing the business could do", "why": "the evidence and leverage behind it" } ],
   "quotes": ["2-4 memorable verbatim customer lines"]
 }
-Keep it tight: the 3-5 items per array that matter most. If there is only one interview, still produce a clean single-person read.`;
+Keep it tight: the 3-5 items per array that matter most. If there is only one interview, still produce a clean single-person read.${expNudge(input.nudge)}`;
   const user = `${empathyContextBlock(input.ctx)}
 
 ${(input.profiles || []).length} INTERVIEW(S):
@@ -1521,6 +1524,7 @@ export async function resumeVoiceInterviewReply(
 export async function resumeReportAI(input: {
   source?: { kind: string; text: string };
   interview: { role: string; content: string }[];
+  nudge?: string;
 }): Promise<any> {
   const transcript = (input.interview || [])
     .map((m) => `${m.role === "user" ? "PERSON" : "COACH"}: ${m.content}`)
@@ -1546,7 +1550,7 @@ Write every suggested bullet in their own factual terms from the interview, neve
   "skills": { "add": ["current, in-demand skills they demonstrated but don't list"], "emphasize": ["skills to move up or feature"], "retire": ["dated tools or stale framing to cut"] },
   "structure": ["section, ordering, formatting, or length changes, most impactful first"]
 }
-Give 4-7 accomplishments and 3-6 rewrites, the ones that matter most. Be specific to THIS person.`;
+Give 4-7 accomplishments and 3-6 rewrites, the ones that matter most. Be specific to THIS person.${expNudge(input.nudge)}`;
 
   const user = `EXISTING ${kind.toUpperCase()}:\n${resume || "(not provided)"}\n\nINTERVIEW:\n${transcript || "(none)"}`;
   const raw = await complete([{ role: "system", content: system }, { role: "user", content: user }], { json: true, temperature: 0.4, maxTokens: 3000 });
@@ -1590,4 +1594,33 @@ export async function experimentNarrateAI(input: { name: string; metric: string;
   const facts = `Metric: ${input.metric}. Arms: ${arms}. Lift (best vs control): ${a.liftAbs != null ? (a.liftAbs * 100).toFixed(1) + " pts" : "n/a"}. p-value: ${a.pValue != null ? a.pValue.toFixed(3) : "n/a"}. Reached required sample: ${a.reachedSample}. Statistically significant: ${a.significant}. CONCLUSIVE (code's verdict): ${a.conclusive}.`;
   const system = `You explain an A/B experiment's results to a busy facilitator in 2-4 short sentences of plain English. You are given the statistics, which are AUTHORITATIVE, computed in code. NEVER contradict them: if it is not conclusive, do not claim a winner, say what is trending and how much more data is needed. If it is conclusive, state the result and give a clear recommendation (adopt or reject the treatment). No hype, no jargon, no fake certainty.`;
   return complete([{ role: "system", content: system }, { role: "user", content: `Experiment: ${input.name}.\n${facts}` }], { temperature: 0.4, maxTokens: 260 });
+}
+
+// ===========================================================================
+// Synthetic experiments. AI personas act as simulated subjects so a variant can
+// be pre-tested in minutes. DIRECTIONAL ONLY: a persona + judge share the
+// model's biases and don't perfectly predict real people. Use it to screen many
+// variants fast, then run the winner on real humans. Simulate and judge are
+// SEPARATE calls, and the judge answers in the persona's own voice.
+// ===========================================================================
+
+export async function syntheticSimulateAI(input: { flowLabel: string; target: "interview" | "report"; nudge: string; persona: string }): Promise<string> {
+  const what = input.target === "report"
+    ? `a short version of the FINAL WRITE-UP's key takeaway and opening that this subject would receive at the end of "${input.flowLabel}"`
+    : `a brief, realistic 3 to 4 message snippet of the AI interviewer for "${input.flowLabel}" talking with this subject, showing how the subject reacts`;
+  const system = `You generate a short, realistic artifact to test one design variant of an AI experience. Produce ${what}. The experimental variant is a STYLE NOTE, apply it faithfully:${input.nudge ? ` "${input.nudge}"` : " (no change, this is the control)"}. Keep it under 170 words, concrete and true to how it would really read. Plain text only, no preamble.`;
+  return complete([{ role: "system", content: system }, { role: "user", content: `Subject persona: ${input.persona}` }], { temperature: 0.9, maxTokens: 320 });
+}
+
+export async function syntheticJudgeAI(input: { flowLabel: string; target: "interview" | "report"; metric: string; persona: string; artifact: string }): Promise<{ success: boolean; reason: string }> {
+  const behavior = input.metric === "shared"
+    ? "you would share this with someone, or act on it"
+    : input.metric === "depth"
+    ? "you would open up and answer generously rather than hold back"
+    : "you would stay engaged and see this all the way through to the end";
+  const system = `You ARE the subject persona described below, reacting honestly and in character to what you just experienced. Be realistic and a little demanding, not a pushover. Decide one thing: whether ${behavior}. Output STRICT JSON only: {"success": true or false, "reason": "one short first-person sentence"}.`;
+  const user = `You are: ${input.persona}\n\nWhat you experienced (from "${input.flowLabel}"):\n${input.artifact}`;
+  const raw = await complete([{ role: "system", content: system }, { role: "user", content: user }], { json: true, temperature: 0.6, maxTokens: 120 });
+  const p = extractJson(raw) || {};
+  return { success: !!p.success, reason: String(p.reason || "").slice(0, 200) };
 }

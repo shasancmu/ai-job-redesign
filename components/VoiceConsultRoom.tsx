@@ -302,7 +302,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
       const res = await fetch("/api/consult", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "report", intake: {}, interview: mref.current, wms: { answers: {} }, eighty: {}, photos: [] }),
+        body: JSON.stringify({ mode: "report", intake: {}, interview: mref.current, wms: { answers: {} }, eighty: {}, photos: [], sessionId: session.id }),
         signal: ctl.signal,
       });
       const d = await res.json().catch(() => ({}));

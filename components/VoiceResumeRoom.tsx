@@ -282,7 +282,7 @@ export default function VoiceResumeRoom({ session, initialWorkspace, prefill, pr
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), 75000);
     try {
-      const res = await fetch("/api/resume", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "report", source, interview: mref.current }), signal: ctl.signal });
+      const res = await fetch("/api/resume", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "report", source, interview: mref.current, sessionId: session.id }), signal: ctl.signal });
       const d = await res.json().catch(() => ({}));
       if (res.ok && d.report) {
         setReport(d.report);

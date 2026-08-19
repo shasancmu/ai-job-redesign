@@ -74,7 +74,7 @@ export default function SuperpowerRoom({
       <div className="pb-24">
         {step.key === "prime" && <Prime seeds={state.seeds || ""} setSeeds={(v) => setState({ seeds: v })} />}
         {step.key === "interview" && <Interview state={state} setState={setState} seeds={state.seeds} sessionId={session.id} onSkip={() => go(2)} />}
-        {step.key === "report" && <ReportStep state={state} setState={setState} code={session.code} />}
+        {step.key === "report" && <ReportStep state={state} setState={setState} code={session.code} sessionId={session.id} />}
       </div>
 
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
@@ -165,7 +165,7 @@ function Interview({ state, setState, seeds, sessionId, onSkip }: { state: any; 
   );
 }
 
-function ReportStep({ state, setState, code }: { state: any; setState: (p: any) => void; code: string }) {
+function ReportStep({ state, setState, code, sessionId }: { state: any; setState: (p: any) => void; code: string; sessionId: string }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const report = state.report;
@@ -177,7 +177,7 @@ function ReportStep({ state, setState, code }: { state: any; setState: (p: any) 
       const res = await fetch("/api/superpower", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "report", seeds: state.seeds || "", interview: state.interview_chat || [] }),
+        body: JSON.stringify({ mode: "report", seeds: state.seeds || "", interview: state.interview_chat || [], sessionId }),
       });
       const d = await res.json();
       if (res.ok && d.report) setState({ report: d.report });

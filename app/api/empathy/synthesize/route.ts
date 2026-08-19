@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, empathyAggregateAI, type EmpathyContext } from "@/lib/ai";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { experimentNudge } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,7 +54,9 @@ export async function POST(request: Request) {
   const ctx: EmpathyContext = { business: canvas.business, offer: canvas.offer, audience: canvas.audience, goals: canvas.goals };
 
   try {
-    const aggregate = await empathyAggregateAI({ profiles, ctx });
+    let nudge = "";
+    try { nudge = await experimentNudge(createAdminClient(), session.id, "empathy", "report"); } catch {}
+    const aggregate = await empathyAggregateAI({ profiles, ctx, nudge });
     if (!aggregate) return Response.json({ error: "Couldn't synthesize. Try again." }, { status: 502 });
     if (ws?.id) {
       await supabase

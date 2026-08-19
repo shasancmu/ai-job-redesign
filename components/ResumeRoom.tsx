@@ -77,7 +77,7 @@ export default function ResumeRoom({
   async function build() {
     setBuilding(true); setErr(null);
     try {
-      const res = await fetch("/api/resume", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "report", source, interview: messages }) });
+      const res = await fetch("/api/resume", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "report", source, interview: messages, sessionId: session.id }) });
       const d = await res.json();
       if (res.ok && d.report) {
         setReport(d.report);

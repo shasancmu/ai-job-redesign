@@ -40,7 +40,9 @@ export async function POST(request: Request) {
       return Response.json({ reply });
     }
     if (mode === "report") {
-      const report = await resumeReportAI({ source, interview: body.interview || [] });
+      let nudge = "";
+      try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "resume", "report"); } catch {}
+      const report = await resumeReportAI({ source, interview: body.interview || [], nudge });
       if (!report) return Response.json({ error: "Couldn't build the changes. Try again." }, { status: 502 });
       return Response.json({ report });
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { EXPERIMENT_FLOWS, METRICS, flowLabel } from "@/lib/experiments";
+import { EXPERIMENT_FLOWS, METRICS, TARGETS, flowLabel } from "@/lib/experiments";
 
 async function api(action: string, extra: any = {}) {
   const res = await fetch("/api/experiments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, ...extra }) });
@@ -26,7 +26,7 @@ export default function ExperimentsBoard() {
   async function propose() {
     setBusy("propose"); setErr(null); setDraft(null);
     const d = await api("propose", { flow: proposeFlow });
-    if (d.draft) setDraft({ ...d.draft, flow: proposeFlow });
+    if (d.draft) setDraft({ ...d.draft, flow: proposeFlow, target: "interview", mode: "human" });
     else setErr(d.error || "Couldn't propose.");
     setBusy("");
   }
@@ -41,7 +41,7 @@ export default function ExperimentsBoard() {
     setBusy(id + action); setErr(null);
     const d = await api(action, { id });
     if (d.error) setErr(d.error);
-    else if (action === "analyze") setExps((xs) => xs.map((e) => (e.id === id ? { ...e, analysis: d.analysis, _narrative: d.narrative } : e)));
+    else if (action === "analyze" || action === "simulate") setExps((xs) => xs.map((e) => (e.id === id ? { ...e, analysis: d.analysis, _narrative: d.narrative } : e)));
     else await load();
     setBusy("");
   }
@@ -86,6 +86,19 @@ export default function ExperimentsBoard() {
             <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Draft · {flowLabel(draft.flow)}</div>
             <input className="field mt-1 font-semibold" value={draft.name || ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
             <textarea className="field mt-2 min-h-[52px] text-sm" value={draft.hypothesis || ""} onChange={(e) => setDraft({ ...draft, hypothesis: e.target.value })} />
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <label className="text-xs text-slate-500">What it changes
+                <select className="field mt-1 text-sm" value={draft.target} onChange={(e) => setDraft({ ...draft, target: e.target.value })}>
+                  {TARGETS.map((t) => <option key={t.key} value={t.key}>{t.label} ({t.help})</option>)}
+                </select>
+              </label>
+              <label className="text-xs text-slate-500">Subjects
+                <select className="field mt-1 text-sm" value={draft.mode} onChange={(e) => setDraft({ ...draft, mode: e.target.value })}>
+                  <option value="human">Real people (live A/B)</option>
+                  <option value="synthetic">AI personas (synthetic, directional)</option>
+                </select>
+              </label>
+            </div>
             <div className="mt-2 grid gap-2 sm:grid-cols-3">
               <label className="text-xs text-slate-500">Metric
                 <select className="field mt-1 text-sm" value={draft.metric} onChange={(e) => setDraft({ ...draft, metric: e.target.value })}>
@@ -160,7 +173,10 @@ function Card({ e, busy, act }: { e: any; busy: string; act: (id: string, action
           </div>
           <p className="mt-1 text-sm text-slate2">{e.hypothesis}</p>
         </div>
-        <div className="shrink-0 text-right text-[11px] text-slate-400">{metricLabel}</div>
+        <div className="shrink-0 text-right text-[11px] text-slate-400">
+          <div>{metricLabel}</div>
+          <div>{e.target === "report" ? "report copy" : "interview"}{e.mode === "synthetic" ? " · synthetic" : ""}</div>
+        </div>
       </div>
 
       {treatment?.nudge && (
@@ -187,16 +203,29 @@ function Card({ e, busy, act }: { e: any; busy: string; act: (id: string, action
             <span className={a.conclusive ? "font-semibold text-sage" : ""}>{a.conclusive ? "Conclusive" : a.reachedSample ? "No significant difference" : "Collecting data"}</span>
           </div>
           {e._narrative && <p className="mt-2 rounded-lg bg-sky-soft/40 px-3 py-2 text-sm text-slate-700">{e._narrative}</p>}
+          {e.mode === "synthetic" && <p className="mt-1 text-[11px] text-amber">Synthetic estimate from AI personas, directional only. Promote to a live test to confirm on real people.</p>}
         </div>
       )}
 
       <div className="mt-3 flex flex-wrap gap-2">
-        {e.status === "proposed" && <button onClick={() => act(e.id, "launch")} disabled={!!busy} className="btn-primary text-sm">🚀 Launch</button>}
-        {e.status === "running" && <>
-          <button onClick={() => act(e.id, "analyze")} disabled={!!busy} className="btn-ghost text-sm">{busy === e.id + "analyze" ? "Analyzing…" : "↻ Analyze"}</button>
-          <button onClick={() => act(e.id, "adopt")} disabled={!!busy} className="btn-primary text-sm">Adopt</button>
-          <button onClick={() => act(e.id, "reject")} disabled={!!busy} className="btn-ghost text-sm">Reject</button>
-        </>}
+        {e.mode === "synthetic" ? (
+          <>
+            <button onClick={() => act(e.id, "simulate")} disabled={!!busy} className="btn-primary text-sm">{busy === e.id + "simulate" ? "Simulating…" : a ? "↻ Re-run simulation" : "🧪 Run simulation"}</button>
+            {["proposed", "running"].includes(e.status) && <>
+              <button onClick={() => act(e.id, "adopt")} disabled={!!busy} className="btn-ghost text-sm">Adopt</button>
+              <button onClick={() => act(e.id, "reject")} disabled={!!busy} className="btn-ghost text-sm">Reject</button>
+            </>}
+          </>
+        ) : (
+          <>
+            {e.status === "proposed" && <button onClick={() => act(e.id, "launch")} disabled={!!busy} className="btn-primary text-sm">🚀 Launch</button>}
+            {e.status === "running" && <>
+              <button onClick={() => act(e.id, "analyze")} disabled={!!busy} className="btn-ghost text-sm">{busy === e.id + "analyze" ? "Analyzing…" : "↻ Analyze"}</button>
+              <button onClick={() => act(e.id, "adopt")} disabled={!!busy} className="btn-primary text-sm">Adopt</button>
+              <button onClick={() => act(e.id, "reject")} disabled={!!busy} className="btn-ghost text-sm">Reject</button>
+            </>}
+          </>
+        )}
       </div>
     </div>
   );

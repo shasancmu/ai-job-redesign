@@ -42,7 +42,9 @@ export async function POST(request: Request) {
       return Response.json({ round, replies });
     }
     if (mode === "verdict") {
-      const verdict = await boardVerdictAI({ decision, context: body.context, materials, transcript: body.transcript || [] });
+      let nudge = "";
+      try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "board", "report"); } catch {}
+      const verdict = await boardVerdictAI({ decision, context: body.context, materials, transcript: body.transcript || [], nudge });
       if (!verdict) return Response.json({ error: "Couldn't reach a verdict. Try again." }, { status: 502 });
       return Response.json({ verdict });
     }

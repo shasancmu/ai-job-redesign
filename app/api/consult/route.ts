@@ -52,12 +52,15 @@ export async function POST(request: Request) {
 
     if (mode === "report") {
       const wms = wmsScore(body.wms?.answers || {});
+      let nudge = "";
+      try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "consult", "report"); } catch {}
       const report = await businessReportAI({
         intake: body.intake || {},
         interview: body.interview || [],
         wms: { ...wms, answers: body.wms?.answers || {} },
         eighty: body.eighty || {},
         photos: body.photos || [],
+        nudge,
       });
       if (!report) return Response.json({ error: "Couldn't build the report. Try again." }, { status: 502 });
       return Response.json({ report, wms });

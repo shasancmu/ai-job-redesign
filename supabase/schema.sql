@@ -629,5 +629,9 @@ create index if not exists experiment_assignments_session_idx on public.experime
 
 -- Locked down: only the service role touches these (facilitator routes are
 -- gated by isAdmin, and the runtime assignment writes use the admin client).
+-- What the variant nudge modifies, and whether subjects are real or simulated.
+alter table public.experiments add column if not exists target text not null default 'interview'; -- interview | report
+alter table public.experiments add column if not exists mode text not null default 'human';       -- human | synthetic
+
 alter table public.experiments enable row level security;
 alter table public.experiment_assignments enable row level security;

@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
-import { AI_ENABLED, experimentProposeAI, experimentNarrateAI } from "@/lib/ai";
-import { analyze, successForSession, flowLabel, type Experiment, type Variant } from "@/lib/experiments";
+import { AI_ENABLED, experimentProposeAI, experimentNarrateAI, syntheticSimulateAI, syntheticJudgeAI } from "@/lib/ai";
+import { analyze, successForSession, flowLabel, PERSONAS, type Experiment, type Variant } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,7 +35,12 @@ export async function POST(request: Request) {
   try {
     if (action === "list") {
       const { data: exps } = await admin.from("experiments").select("*").order("created_at", { ascending: false });
-      const withStats = await Promise.all((exps || []).map(async (e: any) => ({ ...e, analysis: await computeAnalysis(admin, e) })));
+      const withStats = await Promise.all((exps || []).map(async (e: any) => ({
+        // Synthetic experiments have no real sessions; their stats live in result.
+        ...e,
+        analysis: e.mode === "synthetic" ? e.result?.analysis || null : await computeAnalysis(admin, e),
+        _narrative: e.result?.narrative || "",
+      })));
       return Response.json({ experiments: withStats });
     }
 
@@ -68,6 +73,8 @@ export async function POST(request: Request) {
         variants,
         min_per_arm: Math.max(20, Math.min(2000, Number(body.min_per_arm) || 100)),
         status: "proposed",
+        target: body.target === "report" ? "report" : "interview",
+        mode: body.mode === "synthetic" ? "synthetic" : "human",
         created_by: body.created_by === "human" ? "human" : "agent",
       }).select().single();
       if (error) return Response.json({ error: error.message }, { status: 500 });
@@ -88,6 +95,37 @@ export async function POST(request: Request) {
       if (AI_ENABLED) { try { narrative = await experimentNarrateAI({ name: exp.name, metric: exp.metric, analysis }); } catch {} }
       await admin.from("experiments").update({ result: { analysis, narrative, at: new Date().toISOString() } }).eq("id", exp.id);
       return Response.json({ analysis, narrative });
+    }
+
+    if (action === "simulate") {
+      if (!AI_ENABLED) return Response.json({ error: "AI is not configured." }, { status: 503 });
+      const { data: exp } = await admin.from("experiments").select("*").eq("id", body.id).maybeSingle();
+      if (!exp) return Response.json({ error: "Not found." }, { status: 404 });
+      const reps = Math.max(1, Math.min(4, Number(body.reps) || 2));
+      const label = flowLabel(exp.flow);
+
+      // One job per persona x rep x variant.
+      const jobs: { variant_key: string; nudge: string; persona: string }[] = [];
+      for (const p of PERSONAS) for (let r = 0; r < reps; r++) for (const v of exp.variants || []) jobs.push({ variant_key: v.key, nudge: v.nudge, persona: p.persona });
+
+      const rows: { variant_key: string; success: boolean }[] = [];
+      const run = async (j: any) => {
+        try {
+          const artifact = await syntheticSimulateAI({ flowLabel: label, target: exp.target, nudge: j.nudge, persona: j.persona });
+          const verdict = await syntheticJudgeAI({ flowLabel: label, target: exp.target, metric: exp.metric, persona: j.persona, artifact });
+          rows.push({ variant_key: j.variant_key, success: verdict.success });
+        } catch { /* skip a failed job */ }
+      };
+      // Bounded concurrency so we stay under the request timeout.
+      const CONC = 8;
+      for (let i = 0; i < jobs.length; i += CONC) await Promise.all(jobs.slice(i, i + CONC).map(run));
+
+      const analysis = analyze(exp, exp.variants || [], rows);
+      let narrative = "";
+      try { narrative = await experimentNarrateAI({ name: exp.name + " (synthetic)", metric: exp.metric, analysis }); } catch {}
+      const result = { analysis, narrative, kind: "synthetic", reps, at: new Date().toISOString() };
+      await admin.from("experiments").update({ result }).eq("id", exp.id);
+      return Response.json({ analysis, narrative, kind: "synthetic" });
     }
 
     if (action === "adopt" || action === "reject") {

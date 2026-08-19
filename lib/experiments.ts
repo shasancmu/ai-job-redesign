@@ -17,12 +17,30 @@ export type Experiment = {
   variants: Variant[];
   min_per_arm: number;
   status: "proposed" | "running" | "concluded" | "adopted" | "rejected";
+  target: "interview" | "report"; // does the nudge change the interview or the final report?
+  mode: "human" | "synthetic"; // real subjects, or AI-persona simulated subjects
   created_by: string;
   result: any;
   created_at: string;
   launched_at: string | null;
   concluded_at: string | null;
 };
+
+export const TARGETS: { key: "interview" | "report"; label: string; help: string }[] = [
+  { key: "interview", label: "The interview", help: "how the AI asks questions" },
+  { key: "report", label: "The report", help: "how the final write-up is worded" },
+];
+
+// A small, diverse library of simulated subjects for synthetic experiments.
+// Deliberately varied in temperament and verbosity so a nudge's effect shows up.
+export const PERSONAS: { key: string; persona: string }[] = [
+  { key: "terse-skeptic", persona: "A busy, skeptical small-business owner in their 50s. Terse, a little guarded, answers in short sentences, needs to feel it's worth their time or they disengage." },
+  { key: "eager-novice", persona: "An eager first-time founder in their 20s. Enthusiastic, verbose, over-shares, easily excited but also easily overwhelmed." },
+  { key: "guarded-pro", persona: "A guarded mid-career professional. Polished, careful with what they reveal, warms up only when they feel genuinely understood." },
+  { key: "pragmatic-operator", persona: "A no-nonsense operations manager. Wants specifics and numbers, impatient with fluff, values being taken seriously." },
+  { key: "anxious-switcher", persona: "Someone anxious about a career or business change. Uncertain, seeks reassurance, prone to second-guessing, responds well to warmth." },
+  { key: "confident-veteran", persona: "A confident industry veteran. Opinionated, has seen it all, tests whether the AI actually adds value before engaging fully." },
+];
 
 // Flows that can be experimented on (the AI conversation surfaces). A subtle
 // "nudge" is appended to that flow's interview system prompt.
@@ -167,7 +185,7 @@ export function successForSession(metric: string, depthThreshold: number, sessio
 // --- Runtime: assign a session to a variant and return the prompt nudge ------
 // Uses whatever supabase client is passed (the admin client at call sites).
 // Lazily records the assignment the first time a session hits the flow.
-export async function experimentNudge(admin: any, sessionId: string, flow: string): Promise<string> {
+export async function experimentNudge(admin: any, sessionId: string, flow: string, target: "interview" | "report" = "interview"): Promise<string> {
   if (!sessionId || !admin) return "";
   try {
     const { data: exps } = await admin
@@ -175,6 +193,8 @@ export async function experimentNudge(admin: any, sessionId: string, flow: strin
       .select("id, variants")
       .in("flow", [flow, "all"])
       .eq("status", "running")
+      .eq("mode", "human")
+      .eq("target", target)
       .order("launched_at", { ascending: true })
       .limit(1);
     const exp = exps?.[0];

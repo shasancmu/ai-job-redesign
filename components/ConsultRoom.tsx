@@ -80,7 +80,7 @@ export default function ConsultRoom({
         {step.key === "practices" && <Practices answers={state.wms?.answers || {}} setAnswers={(a) => setState({ wms: { answers: a } })} />}
         {step.key === "eighty" && <Eighty data={state.eighty || {}} setData={(p) => setState({ eighty: { ...(state.eighty || {}), ...p } })} />}
         {step.key === "photos" && <Photos state={state} setState={setState} sells={intake.sells} />}
-        {step.key === "report" && <ReportStep state={state} setState={setState} code={session.code} />}
+        {step.key === "report" && <ReportStep state={state} setState={setState} code={session.code} sessionId={session.id} />}
       </div>
 
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
@@ -304,7 +304,7 @@ function Photos({ state, setState, sells }: { state: any; setState: (p: any) => 
   );
 }
 
-function ReportStep({ state, setState, code }: { state: any; setState: (p: any) => void; code: string }) {
+function ReportStep({ state, setState, code, sessionId }: { state: any; setState: (p: any) => void; code: string; sessionId: string }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const report = state.report;
@@ -323,6 +323,7 @@ function ReportStep({ state, setState, code }: { state: any; setState: (p: any) 
           wms: { answers: state.wms?.answers || {} },
           eighty: state.eighty || {},
           photos: state.photos || [],
+          sessionId,
         }),
       });
       const d = await res.json();
