@@ -217,7 +217,7 @@ export default function Catalog({
       ) : (
         <div className="space-y-8">
           {/* Pill filter bar */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div data-tour="filters" className="flex flex-wrap items-center gap-2">
             {PILLS.map((p) => {
               const on = activePills.has(p.key);
               const count = shown.filter((m) => modulePills(m.slug).includes(p.key)).length;

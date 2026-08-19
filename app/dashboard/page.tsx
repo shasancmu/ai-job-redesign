@@ -17,6 +17,14 @@ import { getServerLocale } from "@/lib/i18n-server";
 import { makeT } from "@/lib/i18n";
 import Footer from "@/components/Footer";
 import Logo from "@/components/Logo";
+import Tour, { TourButton } from "@/components/Tour";
+
+const DASHBOARD_TOUR = [
+  { sel: '[data-tour="your-work"]', title: "Jump back in", body: "Your recent exercises and reports live here, so you can pick up right where you left off." },
+  { sel: '[data-tour="catalog"]', title: "The library", body: "Every exercise is run by an AI interviewer, partner, or coach, and ends in something you keep. Each card says what it does and how long it takes." },
+  { sel: '[data-tour="filters"]', title: "Find your starting point", body: "Filter by theme, like AI, Strategy, or Career, to narrow the library to what fits what you need right now." },
+  { sel: '[data-tour="reports"]', title: "Your reports", body: "Everything you generate is saved here, ready to reopen or share anytime." },
+];
 
 export default async function Dashboard({
   searchParams,
@@ -157,7 +165,8 @@ export default async function Dashboard({
         </div>
         <div className="flex items-center gap-2">
           {I18N_ENABLED && <LanguagePicker me={user.id} initial={(profile as any)?.language} />}
-          <a href="/reports" className="btn-ghost text-sm">
+          <TourButton />
+          <a href="/reports" data-tour="reports" className="btn-ghost text-sm">
             Reports
           </a>
           <a href="/profile" className="btn-ghost text-sm">
@@ -175,9 +184,11 @@ export default async function Dashboard({
       </header>
       <EnrichOnce />
 
-      <YourWork recents={recents} reportsCount={reportsCount} />
+      <div data-tour="your-work">
+        <YourWork recents={recents} reportsCount={reportsCount} />
+      </div>
 
-      <section>
+      <section data-tour="catalog">
         <h2 className="eyebrow">{t("dash.exercises")}</h2>
         <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">{t("dash.framing")}</p>
         <Catalog
@@ -197,6 +208,7 @@ export default async function Dashboard({
       </section>
 
       <Footer />
+      <Tour steps={DASHBOARD_TOUR} storageKey="tour-dash-1" welcomeTitle="Welcome to Superadditive" welcomeBody="AI-run exercises for your strategy, your career, and your business. Here's a 30-second tour so you know where everything is. You can replay it anytime from “Take a tour.”" />
     </main>
   );
 }
