@@ -29,6 +29,7 @@ export default function BoardRoom({
   const [typing, setTyping] = useState<string | null>(null);
   const [showAttach, setShowAttach] = useState(false);
   const [verdictOpen, setVerdictOpen] = useState(false);
+  const [replies, setReplies] = useState<string[]>(ws.canvas?.replies || []);
   const [err, setErr] = useState<string | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -57,17 +58,6 @@ export default function BoardRoom({
   const aiTranscript = () => tref.current.filter((e) => e.who === "you" || boardMember(e.who));
   const mats = () => materials.map((m) => ({ label: m.label, text: m.text }));
 
-  async function fetchRound(): Promise<{ member: string; text: string }[]> {
-    const res = await fetch("/api/board", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mode: "round", decision, context, materials: mats(), transcript: aiTranscript() }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "The board is unavailable.");
-    return data.round || [];
-  }
-
   async function playRound(round: { member: string; text: string }[]) {
     for (const r of round) {
       setTyping(r.member);
@@ -81,17 +71,35 @@ export default function BoardRoom({
   async function runRound() {
     setBusy(true);
     setErr(null);
+    setReplies([]);
     try {
-      const round = await fetchRound();
+      const res = await fetch("/api/board", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "round", decision, context, materials: mats(), transcript: aiTranscript() }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setErr(data.error || "The board is unavailable."); return; }
+      const round = data.round || [];
       if (!round.length) { setErr("The board went quiet. Try again."); return; }
       await playRound(round);
-      await saveCanvas();
-    } catch (e: any) {
-      setErr(e?.message || "The board is unavailable.");
+      const reps: string[] = data.replies || [];
+      setReplies(reps);
+      await saveCanvas({ replies: reps });
+    } catch {
+      setErr("The board is unavailable.");
     } finally {
       setTyping(null);
       setBusy(false);
     }
+  }
+
+  async function sendReply(text: string) {
+    if (busy || !text.trim()) return;
+    setReplies([]);
+    setT((t) => [...t, { who: "you", text }]);
+    await saveCanvas({});
+    await runRound();
   }
 
   async function convene() {
@@ -112,6 +120,7 @@ export default function BoardRoom({
     const text = input.trim();
     if (!text || busy) return;
     setInput("");
+    setReplies([]);
     setT((t) => [...t, { who: "you", text }]);
     await saveCanvas();
     await runRound();
@@ -252,6 +261,18 @@ export default function BoardRoom({
         <div className="border-t border-line bg-white px-4 py-3">
           <div className="mx-auto max-w-2xl">
             <BoardMaterials materials={materials} onChange={updateMaterials} />
+          </div>
+        </div>
+      )}
+
+      {/* Quick replies — tap instead of typing */}
+      {replies.length > 0 && !busy && !typing && (
+        <div className="border-t border-line bg-white/70 px-4 pt-2.5">
+          <div className="mx-auto flex max-w-2xl flex-wrap gap-2">
+            {replies.map((r, i) => (
+              <button key={i} onClick={() => sendReply(r)} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-sm text-ink transition hover:border-slate-300 hover:shadow-soft">{r}</button>
+            ))}
+            <button onClick={() => { setReplies([]); inputRef.current?.focus(); }} className="rounded-full bg-mist px-3.5 py-1.5 text-sm font-medium text-slate2 hover:text-ink">✍️ Other…</button>
           </div>
         </div>
       )}

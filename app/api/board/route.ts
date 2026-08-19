@@ -33,9 +33,9 @@ export async function POST(request: Request) {
     const materials = sanitizeMaterials(body.materials);
 
     if (mode === "round") {
-      const round = await boardRoundAI({ decision, context: body.context, materials, transcript: body.transcript || [] });
+      const { round, replies } = await boardRoundAI({ decision, context: body.context, materials, transcript: body.transcript || [] });
       if (!round.length) return Response.json({ error: "The board went quiet. Try again." }, { status: 502 });
-      return Response.json({ round });
+      return Response.json({ round, replies });
     }
     if (mode === "verdict") {
       const verdict = await boardVerdictAI({ decision, context: body.context, materials, transcript: body.transcript || [] });

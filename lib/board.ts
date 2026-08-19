@@ -59,8 +59,13 @@ export function boardMember(key: string): BoardMember | undefined {
 export type BoardEntry = { who: string; text: string }; // who = member key or "you"
 
 export type BoardVerdict = {
+  frame?: string;
   verdict: string;
-  tension: string;
+  economics?: string;
+  reversibility?: { door: "one-way" | "two-way" | string; note: string };
+  keyUncertainty?: string;
+  cheapestTest?: string;
   recommendation: string;
   conditions: string[];
+  tension?: string; // legacy
 };
