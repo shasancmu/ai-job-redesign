@@ -62,5 +62,5 @@ export default async function PlanPage({ params }: { params: { code: string } })
     );
   }
 
-  return <PlanView plan={plan} />;
+  return <PlanView plan={plan} code={code} />;
 }

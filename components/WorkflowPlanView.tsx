@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import ShareReport from "@/components/ShareReport";
 import WorkflowFlow from "@/components/WorkflowFlow";
 import TradeoffPlan from "@/components/TradeoffPlan";
 import { STEP_ROLES } from "@/lib/workflow";
@@ -9,15 +10,15 @@ import { STEP_ROLES } from "@/lib/workflow";
 const SAGE = "#3F7A52";
 const GOLD = "#CE8F2C";
 
-export default function WorkflowPlanView({ doc, code }: { doc: any; code: string }) {
+export default function WorkflowPlanView({ doc, code, embedded = false }: { doc: any; code?: string; embedded?: boolean }) {
   const analysis: any = doc.analysis || {};
   const flow: any[] = analysis.flow?.length ? analysis.flow : doc.steps || [];
   const opps: any[] = analysis.opportunities || [];
 
   return (
-    <main className="min-h-screen">
+    <main className={embedded ? "" : "min-h-screen"}>
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-line">
+      <section className={"relative overflow-hidden " + (embedded ? "rounded-2xl border border-line" : "border-b border-line")}>
         <div
           className="pointer-events-none absolute -right-24 -top-24 h-[380px] w-[380px] rounded-full opacity-60"
           style={{ background: "radial-gradient(circle at 50% 50%, rgba(206,143,44,.35), transparent 70%)" }}
@@ -26,14 +27,19 @@ export default function WorkflowPlanView({ doc, code }: { doc: any; code: string
           className="pointer-events-none absolute -bottom-24 -left-20 h-[320px] w-[320px] rounded-full opacity-50"
           style={{ background: "radial-gradient(circle at 50% 50%, rgba(63,122,82,.30), transparent 70%)" }}
         />
-        <div className="relative mx-auto max-w-4xl px-6 py-14">
-          <div className="flex items-center justify-between">
-            <Logo />
-            <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
-              ← Done
-            </Link>
-          </div>
-          <div className="mt-10">
+        <div className={"relative mx-auto max-w-4xl px-6 " + (embedded ? "py-10" : "py-14")}>
+          {!embedded && (
+            <div className="flex items-center justify-between">
+              <Logo />
+              <div className="flex items-center gap-2">
+                {code && <ShareReport code={code} title="A redesigned workflow" text="Here's my redesigned workflow from Superadditive:" />}
+                <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
+                  ← Done
+                </Link>
+              </div>
+            </div>
+          )}
+          <div className={embedded ? "" : "mt-10"}>
             <div className="eyebrow">Your workflow, redesigned</div>
             <h1 className="display mt-3 text-4xl text-ink sm:text-5xl">{doc.name || "Redesigned workflow"}</h1>
             {analysis.summary && (
@@ -98,16 +104,20 @@ export default function WorkflowPlanView({ doc, code }: { doc: any; code: string
         </section>
       )}
 
-      <section className="mx-auto max-w-4xl px-6 py-14 text-center text-sm text-slate2">
-        <button onClick={() => window.print()} className="btn-ghost">
-          ↧ Save as PDF / print
-        </button>
-        <div className="mt-3">
-          <Link href={`/room/${code}`} className="text-slate2 hover:text-ink">
-            ← Back to the exercise
-          </Link>
-        </div>
-      </section>
+      {!embedded && (
+        <section className="mx-auto max-w-4xl px-6 py-14 text-center text-sm text-slate2">
+          <button onClick={() => window.print()} className="btn-ghost">
+            ↧ Save as PDF / print
+          </button>
+          {code && (
+            <div className="mt-3">
+              <Link href={`/room/${code}`} className="text-slate2 hover:text-ink">
+                ← Back to the exercise
+              </Link>
+            </div>
+          )}
+        </section>
+      )}
     </main>
   );
 }

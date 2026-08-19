@@ -24,14 +24,32 @@ export async function POST(request: Request) {
 
   const { data: session } = await supabase
     .from("sessions")
-    .select("id, host_id, public_token")
+    .select("id, host_id, exercise, public_token")
     .eq("code", code)
     .maybeSingle();
   if (!session || session.host_id !== user.id) return Response.json({ error: "Not found." }, { status: 404 });
 
+  const newToken = () => (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, "");
+
+  // Empathy sessions already use public_token for the customer INTERVIEW link, so
+  // the shareable report (the aggregate) gets its own separate token, stored on
+  // the owner's workspace canvas, so sharing the report never exposes the intake.
+  if (session.exercise === "empathy") {
+    const { data: ws } = await supabase.from("workspaces").select("id, canvas").eq("session_id", session.id).eq("author_id", user.id).maybeSingle();
+    if (!ws) return Response.json({ error: "Nothing to share yet." }, { status: 409 });
+    const canvas = (ws.canvas as any) || {};
+    let token: string = canvas.reportToken;
+    if (!token) {
+      token = newToken();
+      const { error } = await supabase.from("workspaces").update({ canvas: { ...canvas, reportToken: token }, updated_at: new Date().toISOString() }).eq("id", ws.id);
+      if (error) return Response.json({ error: error.message }, { status: 500 });
+    }
+    return Response.json({ url: `/r/${token}` });
+  }
+
   let token: string = session.public_token;
   if (!token) {
-    token = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, "");
+    token = newToken();
     const { error } = await supabase.from("sessions").update({ public_token: token }).eq("id", session.id);
     if (error) return Response.json({ error: error.message }, { status: 500 });
   }

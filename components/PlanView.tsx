@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import ShareReport from "@/components/ShareReport";
 
 type Human = { task: string; value: string; excel: string };
 type AI = { task: string; how: string; look?: string; prompt: string; cadence: string; check: string };
@@ -18,7 +19,7 @@ type Plan = {
 const SAGE = "#3F7A52";
 const GOLD = "#CE8F2C";
 
-export default function PlanView({ plan, embedded = false }: { plan: Plan; embedded?: boolean }) {
+export default function PlanView({ plan, code, embedded = false }: { plan: Plan; code?: string; embedded?: boolean }) {
   return (
     <main className={embedded ? "" : "min-h-screen"}>
       {/* Hero */}
@@ -35,9 +36,12 @@ export default function PlanView({ plan, embedded = false }: { plan: Plan; embed
           {!embedded && (
             <div className="flex items-center justify-between">
               <Logo />
-              <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
-                ← Done
-              </Link>
+              <div className="flex items-center gap-2">
+                {code && <ShareReport code={code} title="A reimagined role" text="Here's my reimagined role from Superadditive:" />}
+                <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
+                  ← Done
+                </Link>
+              </div>
             </div>
           )}
           <div className={embedded ? "" : "mt-10"}>

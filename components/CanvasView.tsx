@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import ShareReport from "@/components/ShareReport";
 import { accentColor, scoreColor, type CanvasDef } from "@/lib/canvases";
 import FrontierPlot, { complexityLevel, QuadrantPlot } from "@/components/FrontierPlot";
 import UnitEconomics from "@/components/UnitEconomics";
@@ -34,7 +35,10 @@ export default function CanvasView({
           {!embedded && (
             <div className="flex items-center justify-between">
               <Logo />
-              <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Done</Link>
+              <div className="flex items-center gap-2">
+                {code && <ShareReport code={code} title={def?.name || "A strategy canvas"} text={`Here's my ${def?.name || "canvas"} from Superadditive:`} />}
+                <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Done</Link>
+              </div>
             </div>
           )}
           <div className={embedded ? "" : "mt-8"}>

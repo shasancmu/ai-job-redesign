@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import ShareReport from "@/components/ShareReport";
 import { EXPOSURE_META, MODE_META, CITATIONS } from "@/lib/careerXray";
 
 const SAGE = "#3F7A52";
@@ -19,7 +20,10 @@ export default function CareerXrayView({ xray, mode = "resume", code, embedded =
           {!embedded && (
             <div className="flex items-center justify-between">
               <Logo />
-              <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Done</Link>
+              <div className="flex items-center gap-2">
+                {code && <ShareReport code={code} title="A Job & AI X-ray" text="Here's my Job & AI X-ray from Superadditive:" />}
+                <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Done</Link>
+              </div>
             </div>
           )}
           <div className={embedded ? "" : "mt-8"}>

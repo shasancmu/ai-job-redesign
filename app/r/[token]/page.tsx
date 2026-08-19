@@ -1,35 +1,56 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { boardMember, type BoardEntry } from "@/lib/board";
+import { canvasByExercise } from "@/lib/canvases";
 import ConsultReport from "@/components/ConsultReport";
 import SuperpowerReport from "@/components/SuperpowerReport";
 import BoardVerdict from "@/components/BoardVerdict";
+import CareerXrayView from "@/components/CareerXrayView";
+import CareerRoadmapView from "@/components/CareerRoadmapView";
+import PlanView from "@/components/PlanView";
+import CanvasView from "@/components/CanvasView";
+import WorkflowPlanView from "@/components/WorkflowPlanView";
+import EmpathyAggregate from "@/components/EmpathyAggregate";
 import Logo from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
 
 // PUBLIC, no-auth: a read-only view of a report the owner chose to share. Looked
-// up by the session's unguessable public_token via the service-role client.
-// Sharing is opt-in (the token is only minted when the owner taps Share).
+// up by an unguessable token via the service-role client. Sharing is opt-in (the
+// token is only minted when the owner taps Share). Intake links (empathy
+// interview, vendor disclosure) use public_token for a different purpose, so
+// those never render here; the empathy REPORT uses its own canvas reportToken.
 export default async function SharedReport({ params }: { params: { token: string } }) {
   const token = params.token;
-  let session: any = null;
-  let canvas: any = {};
+  let node: any = null;
+
   try {
     const admin = createAdminClient();
-    const { data: s } = await admin.from("sessions").select("id, exercise, host_id").eq("public_token", token).maybeSingle();
-    session = s;
-    if (session) {
-      const { data: w } = await admin.from("workspaces").select("canvas").eq("session_id", session.id).eq("author_id", session.host_id).maybeSingle();
-      canvas = (w?.canvas as any) || {};
+
+    // 1) Empathy aggregate: its own token, stored on the owner's workspace canvas.
+    const { data: ews } = await admin.from("workspaces").select("canvas").eq("canvas->>reportToken", token).limit(1).maybeSingle();
+    const eCanvas = (ews?.canvas as any) || {};
+    if (eCanvas.aggregate) {
+      node = (
+        <>
+          <Head eyebrow="Customer research" title="What customers told us" />
+          <EmpathyAggregate a={eCanvas.aggregate} />
+        </>
+      );
+    }
+
+    // 2) Otherwise a session report by public_token (never an intake-link exercise).
+    if (!node) {
+      const { data: s } = await admin.from("sessions").select("id, exercise, host_id").eq("public_token", token).maybeSingle();
+      const ex = s?.exercise || "";
+      const INTAKE = ex === "empathy" || ex === "disclosure" || ex === "disclosure-haip";
+      if (s && !INTAKE) node = await renderSession(admin, s);
     }
   } catch {
-    /* service role not set */
+    /* service role not set, or bad token */
   }
 
-  const body = session ? renderReport(session.exercise, canvas) : null;
-
-  if (!body) {
+  if (!node) {
     return (
       <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 text-center">
         <Logo />
@@ -46,7 +67,7 @@ export default async function SharedReport({ params }: { params: { token: string
         <Logo />
         <span className="rounded-full bg-mist px-3 py-1 text-xs font-semibold text-slate2">Shared with you</span>
       </header>
-      {body}
+      {node}
       <div className="mt-12 border-t border-line pt-6 text-center">
         <p className="text-sm text-slate-400">Made with Superadditive, AI for business strategy and innovation.</p>
         <Link href="/" className="btn-ghost mt-2 inline-block text-sm">Try it yourself →</Link>
@@ -64,8 +85,21 @@ function Head({ eyebrow, title }: { eyebrow: string; title: string }) {
   );
 }
 
-function renderReport(exercise: string, canvas: any) {
-  if (exercise === "consult" || exercise === "voice-consult") {
+async function renderSession(admin: any, s: any) {
+  const ex: string = s.exercise;
+
+  // Workflow plan lives in its own table.
+  if (ex === "workflow" || ex === "workflow-solo") {
+    const { data: doc } = await admin.from("workflow_docs").select("*").eq("session_id", s.id).maybeSingle();
+    const analysis = (doc?.analysis as any) || {};
+    if (!doc || !(analysis.summary || analysis.flow?.length || (doc.steps || []).length)) return null;
+    return <WorkflowPlanView doc={doc} embedded />;
+  }
+
+  const { data: ws } = await admin.from("workspaces").select("canvas, plan").eq("session_id", s.id).eq("author_id", s.host_id).maybeSingle();
+  const canvas = (ws?.canvas as any) || {};
+
+  if (ex === "consult" || ex === "voice-consult") {
     if (!canvas.report) return null;
     return (
       <>
@@ -75,7 +109,7 @@ function renderReport(exercise: string, canvas: any) {
     );
   }
 
-  if (exercise === "superpower") {
+  if (ex === "superpower") {
     if (!canvas.report) return null;
     return (
       <>
@@ -85,7 +119,7 @@ function renderReport(exercise: string, canvas: any) {
     );
   }
 
-  if (exercise === "board") {
+  if (ex === "board") {
     if (!canvas.verdict) return null;
     const transcript: BoardEntry[] = canvas.transcript || [];
     return (
@@ -122,6 +156,35 @@ function renderReport(exercise: string, canvas: any) {
         )}
       </>
     );
+  }
+
+  if (ex === "career-xray" || ex === "jd-xray") {
+    if (!canvas.xray) return null;
+    return <CareerXrayView xray={canvas.xray} mode={canvas.mode || (ex === "jd-xray" ? "jd" : "resume")} embedded />;
+  }
+
+  if (ex === "career-roadmap") {
+    const roadmap = canvas.roadmap;
+    if (!roadmap || !Array.isArray(roadmap.targets) || roadmap.targets.length === 0) return null;
+    return (
+      <>
+        <Head eyebrow="Career roadmap" title="A path for the next moves" />
+        <CareerRoadmapView roadmap={roadmap} />
+      </>
+    );
+  }
+
+  if (ex === "solo") {
+    const plan = (ws as any)?.plan;
+    if (!plan || !(plan.headline || plan.summary || (plan.human?.length || 0) + (plan.ai?.length || 0) > 0)) return null;
+    return <PlanView plan={plan} embedded />;
+  }
+
+  const def = canvasByExercise(ex);
+  if (def) {
+    const hasContent = canvas.synthesis || canvas.verdict || Object.values(canvas.fields || {}).some((v: any) => (Array.isArray(v) ? v.length : v));
+    if (!hasContent) return null;
+    return <CanvasView def={def} canvas={canvas} embedded />;
   }
 
   return null;
