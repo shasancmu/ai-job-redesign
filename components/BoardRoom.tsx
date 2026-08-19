@@ -28,6 +28,7 @@ export default function BoardRoom({
   const [busy, setBusy] = useState(false);
   const [typing, setTyping] = useState<string | null>(null);
   const [showAttach, setShowAttach] = useState(false);
+  const [verdictOpen, setVerdictOpen] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -101,6 +102,11 @@ export default function BoardRoom({
     await runRound();
   }
 
+  function mention(name: string) {
+    setInput((prev) => `${prev}${prev && !prev.endsWith(" ") ? " " : ""}@${name} `);
+    inputRef.current?.focus();
+  }
+
   async function interject(e: React.FormEvent) {
     e.preventDefault();
     const text = input.trim();
@@ -135,6 +141,7 @@ export default function BoardRoom({
       const data = await res.json();
       if (!res.ok) { setErr(data.error || "Couldn't reach a verdict."); return; }
       setVerdict(data.verdict);
+      setVerdictOpen(true);
       await saveCanvas({ verdict: data.verdict });
       await supabase.from("sessions").update({ status: "done" }).eq("id", session.id);
     } catch {
@@ -191,7 +198,7 @@ export default function BoardRoom({
         <Link href="/dashboard" className="text-slate-400 hover:text-ink">←</Link>
         <div className="flex -space-x-2">
           {BOARD_MEMBERS.map((m) => (
-            <span key={m.key} className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-[11px] font-bold text-white" style={{ background: m.dot }}>{m.name[0]}</span>
+            <button key={m.key} onClick={() => mention(m.name)} title={`Ask ${m.name}`} className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-[11px] font-bold text-white transition hover:-translate-y-0.5" style={{ background: m.dot }}>{m.name[0]}</button>
           ))}
         </div>
         <div className="min-w-0 flex-1">
@@ -201,22 +208,37 @@ export default function BoardRoom({
         <button onClick={callVote} disabled={busy} className="shrink-0 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50">Call the vote</button>
       </header>
 
+      {/* Pinned verdict */}
+      {verdict && (
+        <div className="border-b border-line bg-white">
+          <button onClick={() => setVerdictOpen((o) => !o)} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left">
+            <span className="text-base">📌</span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">The board&apos;s verdict</div>
+              <div className="truncate text-sm font-medium text-ink">{verdict.verdict}</div>
+            </div>
+            <span className="shrink-0 text-xs text-slate-400">{verdictOpen ? "Hide ▲" : "Open ▼"}</span>
+          </button>
+          {verdictOpen && (
+            <div className="max-h-[52vh] overflow-y-auto border-t border-line px-4 py-4">
+              <div className="mx-auto max-w-2xl">
+                <BoardVerdict verdict={verdict} />
+                <Link href={`/board/${session.code}`} className="mt-3 block text-center text-sm font-medium text-ink hover:underline">Open the full write-up →</Link>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Feed */}
       <div ref={scroller} className="flex-1 overflow-y-auto px-4 py-4">
         <div className="mx-auto max-w-2xl space-y-3">
-          {verdict && (
-            <div className="mb-4 rounded-2xl border border-line bg-white p-4 shadow-soft">
-              <BoardVerdict verdict={verdict} />
-              <Link href={`/board/${session.code}`} className="mt-3 block text-center text-sm font-medium text-ink hover:underline">Open the full write-up →</Link>
-            </div>
-          )}
-
           {transcript.map((e, i) => {
-            if (e.who === "you") return <Bubble key={i} mine>{e.text}</Bubble>;
+            if (e.who === "you") return <Bubble key={i} mine>{highlightNames(e.text)}</Bubble>;
             if (e.who === "attach") return <Attach key={i} label={e.text} />;
             const m = boardMember(e.who);
             if (!m) return null;
-            return <MemberBubble key={i} member={m} text={e.text} />;
+            return <MemberBubble key={i} member={m} text={e.text} onMention={mention} />;
           })}
 
           {typing && <TypingBubble memberKey={typing} />}
@@ -254,19 +276,39 @@ export default function BoardRoom({
   );
 }
 
-function Avatar({ memberKey }: { memberKey: string }) {
-  const m = boardMember(memberKey);
-  if (!m) return null;
-  return <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white" style={{ background: m.dot }}>{m.name[0]}</span>;
+// Highlight advisor names (and @mentions) in their own color.
+const NAMES = BOARD_MEMBERS.map((m) => m.name).join("|");
+function highlightNames(text: string) {
+  const re = new RegExp(`(@?(?:${NAMES}))\\b`, "g");
+  const out: any[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) {
+    if (m.index > last) out.push(text.slice(last, m.index));
+    const name = m[1].replace("@", "");
+    const mem = BOARD_MEMBERS.find((x) => x.name === name);
+    out.push(<span key={m.index} style={{ color: mem?.dot, fontWeight: 600 }}>{m[1]}</span>);
+    last = m.index + m[1].length;
+  }
+  if (last < text.length) out.push(text.slice(last));
+  return out;
 }
 
-function MemberBubble({ member, text }: { member: any; text: string }) {
+function Avatar({ memberKey, onMention }: { memberKey: string; onMention?: (name: string) => void }) {
+  const m = boardMember(memberKey);
+  if (!m) return null;
+  const cls = "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white";
+  if (onMention) return <button onClick={() => onMention(m.name)} title={`Ask ${m.name}`} className={cls + " transition hover:-translate-y-0.5"} style={{ background: m.dot }}>{m.name[0]}</button>;
+  return <span className={cls} style={{ background: m.dot }}>{m.name[0]}</span>;
+}
+
+function MemberBubble({ member, text, onMention }: { member: any; text: string; onMention?: (name: string) => void }) {
   return (
     <div className="flex items-end gap-2">
-      <Avatar memberKey={member.key} />
+      <Avatar memberKey={member.key} onMention={onMention} />
       <div className="min-w-0">
         <div className="mb-0.5 ml-1 text-[11px] font-semibold" style={{ color: member.dot }}>{member.name} · {member.role}</div>
-        <div className="bub-in max-w-[85%] rounded-2xl rounded-bl-md border border-line bg-white px-3.5 py-2.5 text-sm leading-relaxed text-slate-800 shadow-soft">{text}</div>
+        <div className="bub-in max-w-[85%] rounded-2xl rounded-bl-md border border-line bg-white px-3.5 py-2.5 text-sm leading-relaxed text-slate-800 shadow-soft">{highlightNames(text)}</div>
       </div>
     </div>
   );

@@ -769,7 +769,7 @@ export async function boardRoundAI(input: {
 
   const system = `You are simulating a four-person advisory board debating one person's decision. ${BOARD_ROSTER}
 
-Produce the NEXT round of debate. Each of the four members speaks once, 1 to 2 punchy sentences, in a distinct voice true to their role. They must react to the conversation so far and to EACH OTHER by name (agree, build, or push back), and advance the argument, do not repeat points already made. Stay specific to THIS decision, and draw on the reference materials where they help, never generic. If the person just said something, respond to it directly.
+Produce the NEXT round of debate. Each of the four members speaks once, 1 to 2 punchy sentences, in a distinct voice true to their role. They must react to the conversation so far and to EACH OTHER by name (agree, build, or push back), and advance the argument, do not repeat points already made. Stay specific to THIS decision, and draw on the reference materials where they help, never generic. If the person just said something, respond to it directly. If their latest message @mentions specific members by name (e.g. "@Priya"), those members answer the question directly and go first; the others may add a brief take or stay short.
 
 Return STRICT JSON only, one line, no markdown: {"round":[{"member":"optimist|skeptic|customer|operator","text":"..."}]} with all four members, ordered so the exchange feels alive (not always the same order).`;
 
