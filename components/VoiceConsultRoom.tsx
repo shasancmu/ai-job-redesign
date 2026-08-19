@@ -4,37 +4,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import ConsultReport from "@/components/ConsultReport";
+import { pickBestVoice } from "@/lib/voices";
+import { useVoices } from "@/components/useVoices";
+import VoicePicker from "@/components/VoicePicker";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Phase = "intro" | "speaking" | "listening" | "thinking" | "report" | "unsupported";
-
-// Most devices ship high-quality neural voices; the trick is picking one instead
-// of the robotic default. Score names/langs so the best available wins.
-const TOP_TIER = /(enhanced|premium|neural|natural|siri)/i;
-const GOOD_NAME = /(enhanced|premium|neural|natural|siri|ava|zoe|serena|samantha|allison|nicky|evan|nathan|jenny|aria|guy|sonia|libby|ryan|google us english|google uk english female)/i;
-const BAD_NAME = /(compact|eloquence|espeak|zira|david|mark|hazel|novelty|whisper|bells|bad news|good news|bubbles|deranged|hysterical|trinoids|albert|junior|ralph|fred|organ|cellos|zarvox|wobble|boing|superstar|bahh|jester|rocko|shelley|grandma|grandpa|reed|flo|sandy|rishi)/i;
-
-function scoreVoice(v: SpeechSynthesisVoice): number {
-  let s = 0;
-  const lang = (v.lang || "").toLowerCase();
-  if (lang.startsWith("en-us")) s += 3;
-  else if (lang.startsWith("en-gb") || lang.startsWith("en-au")) s += 2;
-  else if (lang.startsWith("en")) s += 1;
-  if (TOP_TIER.test(v.name)) s += 6;
-  else if (GOOD_NAME.test(v.name)) s += 4;
-  if (v.localService === false) s += 1; // online neural voices usually sound better
-  if (BAD_NAME.test(v.name)) s -= 8;
-  return s;
-}
-
-function englishVoices(list: SpeechSynthesisVoice[]): SpeechSynthesisVoice[] {
-  const en = list.filter((v) => (v.lang || "").toLowerCase().startsWith("en"));
-  return (en.length ? en : list).slice().sort((a, b) => scoreVoice(b) - scoreVoice(a));
-}
-
-function pickBestVoice(list: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
-  return englishVoices(list)[0] || null;
-}
 
 // Narration for the report build, so a longer wait reads as real work.
 const BUILD_STEPS = [
@@ -66,9 +41,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
   const [build, setBuild] = useState<"idle" | "working" | "failed">("idle");
   const [buildStep, setBuildStep] = useState(0);
 
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [voiceName, setVoiceName] = useState<string>("");
-  const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
+  const { voices, voiceName, voiceRef, chooseVoice } = useVoices(mutedRef);
 
   const recRef = useRef<any>(null);
   const finalRef = useRef("");
@@ -185,39 +158,6 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
     const id = setInterval(() => setBuildStep((s) => Math.min(s + 1, BUILD_STEPS.length - 1)), 6000);
     return () => clearInterval(id);
   }, [build]);
-
-  // Load the device's voices (they populate asynchronously in most browsers) and
-  // settle on the best one, or a saved preference.
-  useEffect(() => {
-    const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
-    if (!synth) return;
-    const load = () => {
-      const list = synth.getVoices();
-      if (!list.length) return;
-      setVoices(list);
-      const saved = typeof localStorage !== "undefined" ? localStorage.getItem("voice-consult-voice") : "";
-      const chosen = (saved && list.find((v) => v.name === saved)) || pickBestVoice(list);
-      if (chosen) { voiceRef.current = chosen; setVoiceName(chosen.name); }
-    };
-    load();
-    synth.addEventListener?.("voiceschanged", load);
-    return () => synth.removeEventListener?.("voiceschanged", load);
-  }, []);
-
-  function chooseVoice(name: string) {
-    const v = voices.find((x) => x.name === name) || null;
-    voiceRef.current = v;
-    setVoiceName(name);
-    try { localStorage.setItem("voice-consult-voice", name); } catch {}
-    // Let them hear it immediately.
-    const synth = window.speechSynthesis;
-    if (v && synth && !mutedRef.current) {
-      synth.cancel();
-      const u = new SpeechSynthesisUtterance("Great, this is the voice I'll use.");
-      u.voice = v; u.rate = 0.98;
-      synth.speak(u);
-    }
-  }
 
   // Set up speech recognition once.
   useEffect(() => {
@@ -415,22 +355,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
             <div className={`voice-orb mx-auto ${orbState}`} />
             <h1 className="mt-8 text-2xl font-bold text-ink">A spoken interview about your business</h1>
             <p className="mt-2 text-slate2">An advisor talks with you out loud, like a real conversation. Just answer naturally and pause when you&apos;re done, it moves on by itself. No tapping needed. Find a quiet spot; works best in Chrome, or on Android and desktop.</p>
-            {voices.length > 1 && (
-              <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 text-sm">
-                <span className="text-slate-400">🔊 Voice</span>
-                <select
-                  value={voiceName}
-                  onChange={(e) => chooseVoice(e.target.value)}
-                  className="max-w-[200px] bg-transparent font-medium text-ink focus:outline-none"
-                >
-                  {englishVoices(voices).map((v) => (
-                    <option key={v.name} value={v.name}>
-                      {TOP_TIER.test(v.name) ? "★ " : ""}{v.name.replace(/\s*\((Enhanced|Premium)\)/i, " $1").replace(/ - .*/, "")}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+            <VoicePicker voices={voices} voiceName={voiceName} onChoose={chooseVoice} />
             <div>
               <button onClick={start} className="btn-primary mt-6 px-8 py-3 text-base">{messages.length ? "Resume the interview" : "Start the interview"} →</button>
             </div>

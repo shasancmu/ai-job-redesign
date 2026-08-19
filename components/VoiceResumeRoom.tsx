@@ -7,6 +7,9 @@ import type { ResumeSource } from "@/lib/resume";
 import ResumeIntake from "@/components/ResumeIntake";
 import ResumeReport from "@/components/ResumeReport";
 import ShareReport from "@/components/ShareReport";
+import { pickBestVoice } from "@/lib/voices";
+import { useVoices } from "@/components/useVoices";
+import VoicePicker from "@/components/VoicePicker";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Phase = "intake" | "intro" | "speaking" | "listening" | "thinking" | "report" | "unsupported";
@@ -14,30 +17,6 @@ type Phase = "intake" | "intro" | "speaking" | "listening" | "thinking" | "repor
 // Voice résumé interview. Same browser-speech engine as the voice consult
 // (silence endpointing so there's no tapping, a TTS watchdog so it can't hang,
 // and the mic is released on exit), wired to /api/resume and the résumé report.
-const TOP_TIER = /(enhanced|premium|neural|natural|siri)/i;
-const GOOD_NAME = /(enhanced|premium|neural|natural|siri|ava|zoe|serena|samantha|allison|nicky|evan|nathan|jenny|aria|guy|sonia|libby|ryan|google us english|google uk english female)/i;
-const BAD_NAME = /(compact|eloquence|espeak|zira|david|mark|hazel|novelty|whisper|bells|bad news|good news|bubbles|deranged|hysterical|trinoids|albert|junior|ralph|fred|organ|cellos|zarvox|wobble|boing|superstar|bahh|jester|rocko|shelley|grandma|grandpa|reed|flo|sandy|rishi)/i;
-
-function scoreVoice(v: SpeechSynthesisVoice): number {
-  let s = 0;
-  const lang = (v.lang || "").toLowerCase();
-  if (lang.startsWith("en-us")) s += 3;
-  else if (lang.startsWith("en-gb") || lang.startsWith("en-au")) s += 2;
-  else if (lang.startsWith("en")) s += 1;
-  if (TOP_TIER.test(v.name)) s += 6;
-  else if (GOOD_NAME.test(v.name)) s += 4;
-  if (v.localService === false) s += 1;
-  if (BAD_NAME.test(v.name)) s -= 8;
-  return s;
-}
-function englishVoices(list: SpeechSynthesisVoice[]): SpeechSynthesisVoice[] {
-  const en = list.filter((v) => (v.lang || "").toLowerCase().startsWith("en"));
-  return (en.length ? en : list).slice().sort((a, b) => scoreVoice(b) - scoreVoice(a));
-}
-function pickBestVoice(list: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
-  return englishVoices(list)[0] || null;
-}
-
 const BUILD_STEPS = [
   "Reading your résumé and everything you told me…",
   "Finding the wins that are under-sold…",
@@ -63,9 +42,7 @@ export default function VoiceResumeRoom({ session, initialWorkspace, prefill, pr
   const [build, setBuild] = useState<"idle" | "working" | "failed">("idle");
   const [buildStep, setBuildStep] = useState(0);
 
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [voiceName, setVoiceName] = useState("");
-  const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
+  const { voices, voiceName, voiceRef, chooseVoice } = useVoices(mutedRef);
 
   const recRef = useRef<any>(null);
   const finalRef = useRef("");
@@ -170,36 +147,6 @@ export default function VoiceResumeRoom({ session, initialWorkspace, prefill, pr
     const id = setInterval(() => setBuildStep((s) => Math.min(s + 1, BUILD_STEPS.length - 1)), 6000);
     return () => clearInterval(id);
   }, [build]);
-
-  useEffect(() => {
-    const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
-    if (!synth) return;
-    const load = () => {
-      const list = synth.getVoices();
-      if (!list.length) return;
-      setVoices(list);
-      const saved = typeof localStorage !== "undefined" ? localStorage.getItem("voice-consult-voice") : "";
-      const chosen = (saved && list.find((v) => v.name === saved)) || pickBestVoice(list);
-      if (chosen) { voiceRef.current = chosen; setVoiceName(chosen.name); }
-    };
-    load();
-    synth.addEventListener?.("voiceschanged", load);
-    return () => synth.removeEventListener?.("voiceschanged", load);
-  }, []);
-
-  function chooseVoice(name: string) {
-    const v = voices.find((x) => x.name === name) || null;
-    voiceRef.current = v;
-    setVoiceName(name);
-    try { localStorage.setItem("voice-consult-voice", name); } catch {}
-    const synth = window.speechSynthesis;
-    if (v && synth && !mutedRef.current) {
-      synth.cancel();
-      const u = new SpeechSynthesisUtterance("Great, this is the voice I'll use.");
-      u.voice = v; u.rate = 0.98;
-      synth.speak(u);
-    }
-  }
 
   // Set up recognition once we're past intake.
   useEffect(() => {
@@ -392,16 +339,7 @@ export default function VoiceResumeRoom({ session, initialWorkspace, prefill, pr
             <div className={`voice-orb mx-auto ${orbState}`} />
             <h1 className="mt-8 text-2xl font-bold text-ink">A spoken interview about your year</h1>
             <p className="mt-2 text-slate2">A career coach talks with you out loud about what you&apos;ve accomplished. Just answer naturally and pause when you&apos;re done, it moves on by itself. No tapping needed. Works best in Chrome, or on desktop.</p>
-            {voices.length > 1 && (
-              <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 text-sm">
-                <span className="text-slate-400">🔊 Voice</span>
-                <select value={voiceName} onChange={(e) => chooseVoice(e.target.value)} className="max-w-[200px] bg-transparent font-medium text-ink focus:outline-none">
-                  {englishVoices(voices).map((v) => (
-                    <option key={v.name} value={v.name}>{TOP_TIER.test(v.name) ? "★ " : ""}{v.name.replace(/\s*\((Enhanced|Premium)\)/i, " $1").replace(/ - .*/, "")}</option>
-                  ))}
-                </select>
-              </div>
-            )}
+            <VoicePicker voices={voices} voiceName={voiceName} onChoose={chooseVoice} />
             <div><button onClick={start} className="btn-primary mt-6 px-8 py-3 text-base">{messages.length ? "Resume the interview" : "Start the interview"} →</button></div>
             <p className="mt-3 text-xs text-slate-400">Voices marked ★ are the highest quality. Your mic is used only while you&apos;re answering.</p>
           </div>
