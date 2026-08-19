@@ -210,11 +210,9 @@ function Card({ e, busy, act }: { e: any; busy: string; act: (id: string, action
       <div className="mt-3 flex flex-wrap gap-2">
         {e.mode === "synthetic" ? (
           <>
-            <button onClick={() => act(e.id, "simulate")} disabled={!!busy} className="btn-primary text-sm">{busy === e.id + "simulate" ? "Simulating…" : a ? "↻ Re-run simulation" : "🧪 Run simulation"}</button>
-            {["proposed", "running"].includes(e.status) && <>
-              <button onClick={() => act(e.id, "adopt")} disabled={!!busy} className="btn-ghost text-sm">Adopt</button>
-              <button onClick={() => act(e.id, "reject")} disabled={!!busy} className="btn-ghost text-sm">Reject</button>
-            </>}
+            <button onClick={() => act(e.id, "simulate")} disabled={!!busy} className="btn-ghost text-sm">{busy === e.id + "simulate" ? "Simulating…" : a ? "↻ Re-run simulation" : "🧪 Run simulation"}</button>
+            {a && <button onClick={() => act(e.id, "promote")} disabled={!!busy} className="btn-primary text-sm" title="Clone this as a live A/B test on real people">{busy === e.id + "promote" ? "Promoting…" : "→ Promote to live test"}</button>}
+            {["proposed", "running"].includes(e.status) && <button onClick={() => act(e.id, "reject")} disabled={!!busy} className="btn-ghost text-sm">Discard</button>}
           </>
         ) : (
           <>

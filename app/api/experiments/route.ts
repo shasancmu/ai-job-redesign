@@ -128,6 +128,26 @@ export async function POST(request: Request) {
       return Response.json({ analysis, narrative, kind: "synthetic" });
     }
 
+    if (action === "promote") {
+      const { data: exp } = await admin.from("experiments").select("*").eq("id", body.id).maybeSingle();
+      if (!exp) return Response.json({ error: "Not found." }, { status: 404 });
+      const { data, error } = await admin.from("experiments").insert({
+        flow: exp.flow,
+        name: (exp.name || "Experiment").replace(/\s*\(synthetic\)\s*$/i, "").slice(0, 108) + " (live)",
+        hypothesis: exp.hypothesis,
+        metric: exp.metric,
+        depth_threshold: exp.depth_threshold,
+        variants: exp.variants,
+        min_per_arm: exp.min_per_arm,
+        target: exp.target,
+        mode: "human",
+        status: "proposed",
+        created_by: "human",
+      }).select().single();
+      if (error) return Response.json({ error: error.message }, { status: 500 });
+      return Response.json({ experiment: data });
+    }
+
     if (action === "adopt" || action === "reject") {
       const status = action === "adopt" ? "adopted" : "rejected";
       const { error } = await admin.from("experiments").update({ status, concluded_at: new Date().toISOString() }).eq("id", body.id);
