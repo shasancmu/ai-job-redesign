@@ -167,7 +167,12 @@ function extractJson(raw: string): any {
   const last = s.lastIndexOf("}");
   if (first >= 0 && last > first) candidates.push(s.slice(first, last + 1));
 
-  // 5) sanitized variants: raw control chars (literal newlines/tabs) inside a
+  // 5) truncation repair: a report cut off at max_tokens is mid-JSON. Trim to
+  //    the last complete field and close open brackets to salvage the rest.
+  const repaired = closeTruncated(balanced || (first >= 0 ? s.slice(first) : ""));
+  if (repaired) candidates.push(repaired);
+
+  // 6) sanitized variants: raw control chars (literal newlines/tabs) inside a
   //    string value are invalid JSON and a common model slip (e.g. a multi-line
   //    transcript). Collapsing them to spaces keeps the structure parseable.
   for (const c of [...candidates]) candidates.push(c.replace(/[\u0000-\u001F]+/g, " "));
@@ -180,6 +185,35 @@ function extractJson(raw: string): any {
     }
   }
   throw new Error("no parseable JSON in model reply");
+}
+
+// Close a JSON object cut off mid-stream (truncated at max_tokens): trim to the
+// last complete field, drop a dangling comma, then close still-open brackets.
+function closeTruncated(input: string): string | null {
+  if (!input) return null;
+  const start = input.indexOf("{");
+  if (start < 0) return null;
+  const str = input.slice(start);
+  let inStr = false, esc = false, lastSafe = -1;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+    if (inStr) { if (esc) esc = false; else if (ch === "\\") esc = true; else if (ch === '"') inStr = false; continue; }
+    if (ch === '"') inStr = true;
+    else if (ch === "," || ch === "}" || ch === "]") lastSafe = i;
+  }
+  if (lastSafe < 0) return null;
+  let cut = str.slice(0, lastSafe + 1).replace(/,\s*$/, "");
+  const stack: string[] = [];
+  let s2 = false, e2 = false;
+  for (const ch of cut) {
+    if (s2) { if (e2) e2 = false; else if (ch === "\\") e2 = true; else if (ch === '"') s2 = false; continue; }
+    if (ch === '"') s2 = true;
+    else if (ch === "{") stack.push("}");
+    else if (ch === "[") stack.push("]");
+    else if (ch === "}" || ch === "]") stack.pop();
+  }
+  for (let i = stack.length - 1; i >= 0; i--) cut += stack[i];
+  return cut;
 }
 
 // Scan for the first top-level {…} object, tracking string literals so braces
@@ -776,7 +810,7 @@ ${transcript || "(none)"}`;
   const raw = await complete([
     { role: "system", content: system },
     { role: "user", content: user },
-  ], { json: true, temperature: 0.5, maxTokens: 2600 });
+  ], { json: true, temperature: 0.5, maxTokens: 3200 });
   return extractJson(raw);
 }
 
@@ -837,7 +871,7 @@ Return STRICT JSON only, no prose outside it:
   const raw = await complete([
     { role: "system", content: system },
     { role: "user", content: `SEED NOTES: ${input.seeds || "(none)"}\n\nINTERVIEW:\n${transcript || "(none)"}` },
-  ], { json: true, temperature: 0.5, maxTokens: 2400 });
+  ], { json: true, temperature: 0.5, maxTokens: 3600 });
   return extractJson(raw);
 }
 
@@ -1462,7 +1496,7 @@ Keep it tight: the 3-5 items per array that matter most. If there is only one in
 
 ${(input.profiles || []).length} INTERVIEW(S):
 ${digest || "(none)"}`;
-  const raw = await complete([{ role: "system", content: system }, { role: "user", content: user }], { json: true, temperature: 0.4, maxTokens: 2200 });
+  const raw = await complete([{ role: "system", content: system }, { role: "user", content: user }], { json: true, temperature: 0.4, maxTokens: 2800 });
   return extractJson(raw);
 }
 
