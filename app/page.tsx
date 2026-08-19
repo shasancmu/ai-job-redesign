@@ -34,16 +34,15 @@ export default async function Home() {
           </nav>
 
           <div className="relative z-10 max-w-2xl pb-28 pt-16 sm:pb-36 sm:pt-24">
-            <span className="eyebrow">Hands-on business exercises, run by AI</span>
+            <span className="eyebrow">AI for business strategy and innovation</span>
             <h1 className="display mt-4 text-[2.75rem] text-ink sm:text-[4rem]">
-              You + AI, better than either alone.
+              Better strategy, with AI as your partner.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate2">
-              AI won&apos;t replace you. Used well, it makes you better, and you
-              make it better. Superadditive turns real business frameworks into
-              hands-on exercises where AI runs the interview, plays your partner,
-              argues the other side, and coaches the debrief. You bring the
-              judgment.
+              Superadditive puts real business frameworks to work on your
+              strategy, your innovation bets, your negotiations, and your own
+              job. AI runs the interview, plays your counterpart, and coaches the
+              debrief. You bring the judgment.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/login" className="btn-primary">
