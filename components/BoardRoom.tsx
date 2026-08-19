@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { boardMember, type BoardEntry } from "@/lib/board";
 import BoardVerdict from "@/components/BoardVerdict";
+import BoardMaterials, { type Material } from "@/components/BoardMaterials";
 
 export default function BoardRoom({
   me,
@@ -20,6 +21,7 @@ export default function BoardRoom({
   const [decision, setDecision] = useState<string>(ws.canvas?.decision || "");
   const [context, setContext] = useState<string>(ws.canvas?.context || "");
   const [transcript, setTranscript] = useState<BoardEntry[]>(ws.canvas?.transcript || []);
+  const [materials, setMaterials] = useState<Material[]>(ws.canvas?.materials || []);
   const [verdict, setVerdict] = useState<any>(ws.canvas?.verdict || null);
   const convened = !!ws.canvas?.decision;
   const [started, setStarted] = useState<boolean>(convened);
@@ -29,9 +31,15 @@ export default function BoardRoom({
   const scroller = useRef<HTMLDivElement>(null);
 
   async function saveCanvas(patch: Record<string, any>) {
-    const canvas = { ...(ws.canvas || {}), decision, context, transcript, verdict, ...patch };
+    const canvas = { ...(ws.canvas || {}), decision, context, transcript, materials, verdict, ...patch };
     ws.canvas = canvas;
     await supabase.from("workspaces").update({ canvas, updated_at: new Date().toISOString() }).eq("id", ws.id);
+  }
+
+  const mats = () => materials.map((m) => ({ label: m.label, text: m.text }));
+  function updateMaterials(next: Material[]) {
+    setMaterials(next);
+    saveCanvas({ materials: next });
   }
 
   async function markDone() {
@@ -49,7 +57,7 @@ export default function BoardRoom({
       const res = await fetch("/api/board", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "round", decision, context, transcript: t }),
+        body: JSON.stringify({ mode: "round", decision, context, materials: mats(), transcript: t }),
       });
       const data = await res.json();
       if (!res.ok) { setErr(data.error || "The board is unavailable."); return; }
@@ -88,7 +96,7 @@ export default function BoardRoom({
       const res = await fetch("/api/board", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "verdict", decision, context, transcript }),
+        body: JSON.stringify({ mode: "verdict", decision, context, materials: mats(), transcript }),
       });
       const data = await res.json();
       if (!res.ok) { setErr(data.error || "Couldn't reach a verdict."); return; }
@@ -122,6 +130,11 @@ export default function BoardRoom({
             <label className="lbl">Any context? (optional)</label>
             <textarea className="field mt-1 min-h-[70px]" value={context} onChange={(e) => setContext(e.target.value)} placeholder="What matters, constraints, what you're worried about." />
           </div>
+          <div>
+            <label className="lbl">Give the board materials (optional)</label>
+            <div className="mb-1 text-xs text-slate-400">Paste notes, drop in a website link, or upload a document or a photo of a page. The board reads it all.</div>
+            <BoardMaterials materials={materials} onChange={updateMaterials} />
+          </div>
           <button onClick={convene} disabled={!decision.trim() || busy} className="btn-primary w-full">{busy ? "Convening the board…" : "Convene the board →"}</button>
           {err && <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
         </div>
@@ -131,6 +144,15 @@ export default function BoardRoom({
             <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">On the table</div>
             <div className="mt-0.5 font-medium text-ink">{decision}</div>
           </div>
+
+          <details className="mb-4 rounded-2xl border border-line bg-white p-4">
+            <summary className="cursor-pointer text-sm font-medium text-slate2">
+              Materials{materials.length ? ` (${materials.length})` : ""} — add a note, link, or document
+            </summary>
+            <div className="mt-3">
+              <BoardMaterials materials={materials} onChange={updateMaterials} />
+            </div>
+          </details>
 
           <div ref={scroller} className="space-y-4">
             {transcript.map((e, i) => (e.who === "you" ? <YouMsg key={i} text={e.text} /> : <MemberMsg key={i} entry={e} />))}
