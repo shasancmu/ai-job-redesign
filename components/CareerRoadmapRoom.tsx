@@ -116,6 +116,19 @@ export default function CareerRoadmapRoom({
               {t("roadmap.intro")}
               <div className="mt-1.5 text-xs text-slate-400">{t("career.privateNote")}</div>
             </div>
+            <div className="card p-5">
+              <label className="lbl">What kind of next move?</label>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                <button type="button" onClick={() => setState({ intent: "pivot" })} className={"rounded-xl border p-3 text-left transition " + ((state.intent || "pivot") === "pivot" ? "border-ink bg-mist" : "border-line hover:border-slate-300")}>
+                  <div className="text-sm font-semibold text-ink">Pivot to a new role</div>
+                  <div className="mt-0.5 text-xs text-slate-500">A different title, function, or field, matched to skill-adjacent roles.</div>
+                </button>
+                <button type="button" onClick={() => setState({ intent: "growth" })} className={"rounded-xl border p-3 text-left transition " + (state.intent === "growth" ? "border-ink bg-mist" : "border-line hover:border-slate-300")}>
+                  <div className="text-sm font-semibold text-ink">Grow where you are</div>
+                  <div className="mt-0.5 text-xs text-slate-500">Advance in place: more scope, seniority, or leadership, not a new field.</div>
+                </button>
+              </div>
+            </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div><label className="lbl">{t("career.currentRole")}</label><input className="field" placeholder={t("solo.jobTitlePh")} value={state.role || ""} onChange={(e) => setState({ role: e.target.value })} /></div>
               <div><label className="lbl">{t("career.levelOptional")}</label><input className="field" placeholder={t("career.levelPh")} value={state.level || ""} onChange={(e) => setState({ level: e.target.value })} /></div>
@@ -130,9 +143,9 @@ export default function CareerRoadmapRoom({
           </div>
         )}
 
-        {step.key === "interview" && <Interview state={state} setState={setState} role={state.role} onSkip={() => go(2)} />}
+        {step.key === "interview" && <Interview state={state} setState={setState} role={state.role} intent={state.intent || "pivot"} onSkip={() => go(2)} />}
 
-        {step.key === "roadmap" && <Roadmap state={state} setState={setState} code={session.code} />}
+        {step.key === "roadmap" && <Roadmap state={state} setState={setState} code={session.code} intent={state.intent || "pivot"} />}
       </div>
 
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
@@ -151,7 +164,7 @@ export default function CareerRoadmapRoom({
   );
 }
 
-function Interview({ state, setState, role, onSkip }: { state: any; setState: (p: any) => void; role?: string; onSkip: () => void }) {
+function Interview({ state, setState, role, intent, onSkip }: { state: any; setState: (p: any) => void; role?: string; intent: string; onSkip: () => void }) {
   const t = useT();
   const messages: Msg[] = state.interview_chat || [];
   const [input, setInput] = useState("");
@@ -163,7 +176,7 @@ function Interview({ state, setState, role, onSkip }: { state: any; setState: (p
   const call = useCallback(async (history: Msg[]) => {
     setErr(null); setBusy(true);
     try {
-      const res = await fetch("/api/career-roadmap", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", messages: history, role }) });
+      const res = await fetch("/api/career-roadmap", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", messages: history, role, intent }) });
       const data = await res.json();
       if (!res.ok) { setErr(data.error || t("roadmap.coachUnavailable")); return null; }
       return data.reply as string;
@@ -211,7 +224,7 @@ function Interview({ state, setState, role, onSkip }: { state: any; setState: (p
   );
 }
 
-function Roadmap({ state, setState, code }: { state: any; setState: (p: any) => void; code: string }) {
+function Roadmap({ state, setState, code, intent }: { state: any; setState: (p: any) => void; code: string; intent: string }) {
   const t = useT();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -220,7 +233,7 @@ function Roadmap({ state, setState, code }: { state: any; setState: (p: any) => 
   async function run() {
     setBusy(true); setErr(null);
     try {
-      const res = await fetch("/api/career-roadmap", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "analyze", text: state.text || "", role: state.role || "", level: state.level || "", messages: state.interview_chat || [] }) });
+      const res = await fetch("/api/career-roadmap", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "analyze", text: state.text || "", role: state.role || "", level: state.level || "", messages: state.interview_chat || [], intent }) });
       const d = await res.json();
       if (res.ok && d.roadmap) setState({ roadmap: d.roadmap });
       else setErr(d.error || t("roadmap.cantBuild"));

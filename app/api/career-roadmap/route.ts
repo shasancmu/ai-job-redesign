@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { AI_ENABLED, careerRoadmapAI, careerRoadmapProfileAI, careerRoadmapInterview } from "@/lib/ai";
+import { AI_ENABLED, careerRoadmapAI, careerRoadmapProfileAI, careerRoadmapInterview, careerGrowthAI } from "@/lib/ai";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 import {
   matchOccupation,
@@ -32,11 +32,12 @@ export async function POST(request: Request) {
   }
 
   const lang = await getUserLanguage(supabase, user.id);
+  const intent: "pivot" | "growth" = body.intent === "growth" ? "growth" : "pivot";
 
   // ---- interview turn ------------------------------------------------------
   if (body.mode === "chat") {
     const reply = await withLanguage(lang, () =>
-      careerRoadmapInterview(body.messages || [], { role: String(body.role || "") })
+      careerRoadmapInterview(body.messages || [], { role: String(body.role || "") }, intent)
     );
     return Response.json({ reply });
   }
@@ -47,6 +48,33 @@ export async function POST(request: Request) {
   const role = String(body.role || "").slice(0, 200);
   const level = String(body.level || "").slice(0, 60);
   const transcript = body.messages || [];
+
+  // GROWTH: advance in place. No occupation matching, a plan reasoned from the
+  // résumé + interview.
+  if (intent === "growth") {
+    try {
+      const result = await withLanguage(lang, () => careerGrowthAI({ text, level, role, transcript }));
+      if (!result) return Response.json({ error: "Couldn't build the plan. Try again." }, { status: 502 });
+      const roadmap = {
+        mode: "growth",
+        bottomLine: result.bottomLine || null,
+        strengths: Array.isArray(result.strengths) ? result.strengths.slice(0, 6) : [],
+        targets: (Array.isArray(result.targets) ? result.targets : []).slice(0, 6).map((t: any) => ({
+          title: String(t?.title || ""),
+          kind: String(t?.kind || ""),
+          why: String(t?.why || ""),
+          skillsToBuild: Array.isArray(t?.skillsToBuild) ? t.skillsToBuild.slice(0, 4) : [],
+        })),
+        plan: result.roadmap && typeof result.roadmap === "object"
+          ? { near: result.roadmap.near || [], mid: result.roadmap.mid || [], move: result.roadmap.move || [] }
+          : { near: [], mid: [], move: [] },
+        note: String(result.note || ""),
+      };
+      return Response.json({ ok: true, roadmap });
+    } catch (e: any) {
+      return Response.json({ error: e?.message || "Couldn't build the plan." }, { status: 502 });
+    }
+  }
 
   try {
     // Pass 1: the AI reads the résumé — skills, strengths, and the anchor

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useT } from "@/components/I18nProvider";
+import BottomLine from "@/components/BottomLine";
 
 const TIER = {
   close: { c: "#3B7FB5", key: "roadmap.tierClose", soft: "#E6F0F8" },
@@ -13,6 +14,8 @@ const tierOf = (t: string): Tier => (t in TIER ? (t as Tier) : "adjacent");
 
 export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
   const t = useT();
+  // Growth (advance-in-place) has a different, non-occupation shape.
+  if (roadmap?.mode === "growth") return <GrowthReport roadmap={roadmap} />;
   const targets: any[] = roadmap?.targets || [];
   const [sel, setSel] = useState<string>(targets[0]?.code || "");
   const target = targets.find((x) => x.code === sel) || targets[0];
@@ -131,6 +134,80 @@ export default function CareerRoadmapView({ roadmap }: { roadmap: any }) {
           <div className="mt-4 rounded-lg bg-mist px-3 py-2 text-sm text-slate-600">
             <span className="font-semibold">{t("roadmap.lever")}</span> {roadmap.note}
           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---- Growth report (advance in place) --------------------------------------
+const KIND: Record<string, { label: string; c: string }> = {
+  "step-up": { label: "Step up", c: "text-sky" },
+  broaden: { label: "Broaden", c: "text-sage" },
+  lead: { label: "Lead", c: "text-clay" },
+  deepen: { label: "Deepen", c: "text-amber" },
+};
+
+function GrowthReport({ roadmap }: { roadmap: any }) {
+  const targets: any[] = roadmap?.targets || [];
+  return (
+    <div className="space-y-6">
+      {roadmap.bottomLine && <BottomLine b={roadmap.bottomLine} />}
+
+      {roadmap.strengths?.length > 0 && (
+        <div>
+          <div className="eyebrow mb-2">Your strengths</div>
+          <div className="flex flex-wrap gap-1.5">
+            {roadmap.strengths.map((s: string, i: number) => (
+              <span key={i} className="rounded-full bg-mist px-2.5 py-0.5 text-xs text-slate-600">{s}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <div className="eyebrow mb-2">Ways to grow</div>
+        <div className="space-y-3">
+          {targets.map((tg, i) => (
+            <div key={i} className="card p-5">
+              <div className="flex flex-wrap items-baseline gap-2">
+                <h3 className="text-lg font-bold text-ink">{tg.title}</h3>
+                {KIND[tg.kind] && <span className={"rounded-full bg-mist px-2 py-0.5 text-[11px] font-medium " + KIND[tg.kind].c}>{KIND[tg.kind].label}</span>}
+              </div>
+              {tg.why && <p className="mt-1.5 text-sm leading-relaxed text-slate2">{tg.why}</p>}
+              {tg.skillsToBuild?.length > 0 && (
+                <div className="mt-3 space-y-1.5 border-t border-line pt-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">To get there</div>
+                  {tg.skillsToBuild.map((s: any, j: number) => (
+                    <div key={j} className="text-sm"><span className="font-semibold text-ink">{s.skill}</span><span className="text-slate2">: {s.how}</span></div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="card p-5">
+        <div className="mb-3 text-sm font-bold text-ink">Your roadmap</div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[
+            { k: "near", label: "Now – 3 months", dot: "#3B7FB5" },
+            { k: "mid", label: "3 – 12 months", dot: "#3F7A52" },
+            { k: "move", label: "12 – 24 months", dot: "#CE8F2C" },
+          ].map((col) => (
+            <div key={col.k}>
+              <div className="mb-2 flex items-center gap-2"><span className="h-2 w-2 rounded-full" style={{ background: col.dot }} /><span className="text-xs font-semibold text-ink">{col.label}</span></div>
+              <ul className="space-y-1.5">
+                {(roadmap.plan?.[col.k] || []).map((item: string, i: number) => (
+                  <li key={i} className="text-sm leading-relaxed text-slate2">• {item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        {roadmap.note && (
+          <div className="mt-4 rounded-lg bg-mist px-3 py-2 text-sm text-slate-600"><span className="font-semibold">The lever:</span> {roadmap.note}</div>
         )}
       </div>
     </div>
