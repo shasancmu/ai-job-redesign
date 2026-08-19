@@ -16,6 +16,7 @@ import CareerRoadmapRoom from "@/components/CareerRoadmapRoom";
 import ConsultRoom from "@/components/ConsultRoom";
 import SuperpowerRoom from "@/components/SuperpowerRoom";
 import BoardRoom from "@/components/BoardRoom";
+import VoiceConsultRoom from "@/components/VoiceConsultRoom";
 import DisclosureRoom from "@/components/DisclosureRoom";
 import { variantForExercise } from "@/lib/disclosure";
 import { canvasByExercise } from "@/lib/canvases";
@@ -194,6 +195,21 @@ export default async function RoomPage({
       .eq("author_id", user.id)
       .maybeSingle();
     return <BoardRoom me={user.id} session={session} initialWorkspace={workspace || { session_id: session.id, author_id: user.id }} />;
+  }
+
+  // Talk Through Your Business: spoken voice interview, host only.
+  if (session.exercise === "voice-consult") {
+    if (!amHost) redirect("/dashboard");
+    await supabase
+      .from("workspaces")
+      .upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
+    return <VoiceConsultRoom me={user.id} session={session} initialWorkspace={workspace || { session_id: session.id, author_id: user.id }} />;
   }
 
   // Vendor Disclosure (general or HAIP healthcare): buyer-side room. The vendor

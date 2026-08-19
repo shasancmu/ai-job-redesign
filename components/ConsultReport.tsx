@@ -52,7 +52,7 @@ export default function ConsultReport({ report, wms }: { report: Report; wms?: {
 
       {/* Management practices */}
       <Section title="How the business is run">
-        {wms && (
+        {wms && wms.overall > 0 && (
           <div className="mb-4 space-y-2">
             {WMS_AREAS.map((a) => {
               const v = wms.byArea?.[a.key] || 0;

@@ -32,7 +32,7 @@ function resultHref(exercise: string, code: string) {
   if (["gas", "ocfit", "experiment", "four-a", "scorecard", "venture", "deeptech"].includes(exercise)) return `/canvas/${code}`;
   if (exercise === "career-xray" || exercise === "jd-xray") return `/career/${code}`;
   if (exercise === "career-roadmap") return `/roadmap/${code}`;
-  if (exercise === "consult") return `/consult/${code}`;
+  if (exercise === "consult" || exercise === "voice-consult") return `/consult/${code}`;
   if (exercise === "superpower") return `/superpower/${code}`;
   if (exercise === "board") return `/board/${code}`;
   return `/room/${code}`;

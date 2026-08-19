@@ -45,7 +45,8 @@ export type ModuleDef = {
     | "disclosure-haip"
     | "consult"
     | "superpower"
-    | "board"; // which room engine renders it
+    | "board"
+    | "voice-consult"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -412,6 +413,21 @@ export const MODULES: ModuleDef[] = [
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_BOARD",
   },
+  {
+    slug: "voice-consult",
+    exercise: "voice-consult",
+    name: "Talk Through Your Business",
+    tagline: "A spoken interview about your business. An AI advisor asks you questions out loud, you just talk back, and it turns the conversation into a real consult: what kind of business you are, where your margin lives, and what to fix first.",
+    description:
+      "The 30-Minute Consult as a hands-free voice conversation. An AI advisor interviews you out loud about how your business really works, you answer by speaking, and at the end it produces the full consult: cost-led vs value-led, where the margin sits (the 'popcorn'), which lever has the most room, and a prioritized plan. Uses your browser's built-in speech (Chrome or Safari); nothing is recorded, only the transcript is kept.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "🎙️",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_CONSULT",
+  },
 ];
 
 // The all-access bundle uses the existing single price env for backward compat.
@@ -453,6 +469,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "test-the-bet": "strategy",
   "good-business": "strategy",
   "business-consult": "strategy",
+  "voice-consult": "strategy",
   "ai-board": "strategy",
   "close-the-offer": "negotiate",
   "name-your-price": "negotiate",
@@ -512,6 +529,7 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "vendor-disclosure": ["strategy", "implementation"],
   "haip-disclosure": ["strategy", "implementation", "ai"],
   "business-consult": ["strategy", "leadership", "implementation"],
+  "voice-consult": ["strategy", "leadership"],
   "ai-board": ["strategy", "leadership"],
   // Entrepreneurship / innovation
   "good-business": ["entrepreneurship", "strategy"],
