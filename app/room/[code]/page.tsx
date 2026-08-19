@@ -21,6 +21,7 @@ import DisclosureRoom from "@/components/DisclosureRoom";
 import EmpathyRoom from "@/components/EmpathyRoom";
 import ResumeRoom from "@/components/ResumeRoom";
 import VoiceResumeRoom from "@/components/VoiceResumeRoom";
+import MyopiaRoom from "@/components/MyopiaRoom";
 import { variantForExercise } from "@/lib/disclosure";
 import { canvasByExercise } from "@/lib/canvases";
 import { scenarioByExercise } from "@/lib/negotiation";
@@ -241,6 +242,28 @@ export default async function RoomPage({
         token={token}
         initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
         variant={variantForExercise(session.exercise)}
+      />
+    );
+  }
+
+  // Overcoming Myopia (business or career): solo, host only. Same engine, domain
+  // decided by the exercise.
+  if (session.exercise === "myopia-business" || session.exercise === "myopia-career") {
+    if (!amHost) redirect("/dashboard");
+    await supabase
+      .from("workspaces")
+      .upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
+    return (
+      <MyopiaRoom
+        session={session}
+        initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
+        domain={session.exercise === "myopia-career" ? "career" : "business"}
       />
     );
   }

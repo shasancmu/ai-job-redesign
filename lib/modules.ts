@@ -49,6 +49,8 @@ export type ModuleDef = {
     | "empathy"
     | "resume"
     | "resume-voice"
+    | "myopia-business"
+    | "myopia-career"
     | "voice-consult"; // which room engine renders it
   name: string;
   tagline: string;
@@ -476,6 +478,36 @@ export const MODULES: ModuleDef[] = [
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_RESUME",
   },
+  {
+    slug: "business-myopia",
+    exercise: "myopia-business",
+    name: "Find Your Business's Blind Spots",
+    tagline: "The success that got you here quietly narrows what you notice. An AI advisor maps your business as a bundle of choices, then names the blind spots you can't see, distant markets, coming shifts, and the bets you're not taking, and hands you a plan to explore before you're forced to.",
+    description:
+      "Grounded in the organizational-myopia framework (why dominant firms like BlackBerry and Kodak get disrupted). Success leads a business to simplify and specialize, drawing a boundary around what it pays attention to, the competency trap. An AI advisor interviews you to map your bundle of choices across product, organization, innovation, and marketing, then diagnoses three compounding blind spots: spatial (distant places and markets), temporal (distant times and coming shifts), and failure (the bold, could-fail bets you avoid). It shows where you're stuck on a local peak, the gap between where you are and where you could be, and a prioritized exploration plan, decentralize, experiment, learn, engage the edges, place deliberate bets, to build the ability to see and adapt before you have to.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "🔭",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_MYOPIA",
+  },
+  {
+    slug: "career-myopia",
+    exercise: "myopia-career",
+    name: "Find Your Career's Blind Spots",
+    tagline: "The skills that made you successful can quietly trap you. An AI advisor maps your career as a bundle of choices, then names what you're not seeing, adjacent moves, coming shifts in your field, and the experiments you're avoiding, and a plan to explore before your peak erodes.",
+    description:
+      "The organizational-myopia framework applied to a career. The very specialization that made you valuable narrows what you notice and keeps you optimizing a local peak. An AI advisor interviews you to map your career as a bundle of choices across your skills and craft, role and positioning, network, and the bets you make, then diagnoses three blind spots: spatial (adjacent fields, skills, and arenas you dismiss), temporal (how your field will change, including AI, and the future you're not preparing for), and failure (the bold, could-fail moves you avoid, a suspicious lack of risk). It shows where you're stuck, the gap between where you are and where you could be, and a concrete exploration plan, deliberate experiments, learning, network moves, and bets outside your comfort zone, so you build range before you need it.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "🔦",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_MYOPIA",
+  },
 ];
 
 // The all-access bundle uses the existing single price env for backward compat.
@@ -522,6 +554,8 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "voice-consult": "strategy",
   "ai-board": "strategy",
   "customer-empathy": "strategy",
+  "business-myopia": "strategy",
+  "career-myopia": "redesign",
   "close-the-offer": "negotiate",
   "name-your-price": "negotiate",
   benchmark: "live",
@@ -572,6 +606,8 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "find-superpower": ["career", "leadership"],
   "refresh-resume": ["career", "ai"],
   "refresh-resume-voice": ["career", "ai"],
+  "career-myopia": ["career", "strategy"],
+  "business-myopia": ["strategy", "innovation", "leadership"],
   // Negotiation
   "close-the-offer": ["negotiation", "career"],
   "name-your-price": ["negotiation"],

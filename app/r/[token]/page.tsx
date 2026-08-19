@@ -5,6 +5,7 @@ import { canvasByExercise } from "@/lib/canvases";
 import ConsultReport from "@/components/ConsultReport";
 import SuperpowerReport from "@/components/SuperpowerReport";
 import ResumeReport from "@/components/ResumeReport";
+import MyopiaReport from "@/components/MyopiaReport";
 import BoardVerdict from "@/components/BoardVerdict";
 import CareerXrayView from "@/components/CareerXrayView";
 import CareerRoadmapView from "@/components/CareerRoadmapView";
@@ -126,6 +127,16 @@ async function renderSession(admin: any, s: any) {
       <>
         <Head eyebrow="Refresh Your Résumé" title="Résumé changes" />
         <ResumeReport report={canvas.report} />
+      </>
+    );
+  }
+
+  if (ex === "myopia-business" || ex === "myopia-career") {
+    if (!canvas.report) return null;
+    return (
+      <>
+        <Head eyebrow="Overcoming Myopia" title={ex === "myopia-career" ? "Career blind spots" : "Business blind spots"} />
+        <MyopiaReport report={canvas.report} subjectWord={ex === "myopia-career" ? "career" : "business"} />
       </>
     );
   }
