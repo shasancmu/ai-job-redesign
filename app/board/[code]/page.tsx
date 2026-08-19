@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { boardMember, type BoardEntry } from "@/lib/board";
+import { loadOwnerReport } from "@/lib/reportPage";
 import BoardVerdict from "@/components/BoardVerdict";
 import ShareReport from "@/components/ShareReport";
 import Logo from "@/components/Logo";
@@ -9,23 +8,7 @@ import Logo from "@/components/Logo";
 export const dynamic = "force-dynamic";
 
 export default async function BoardView({ params }: { params: { code: string } }) {
-  const code = String(params.code || "").toUpperCase();
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: session } = await supabase.from("sessions").select("id, host_id").eq("code", code).maybeSingle();
-  if (!session || session.host_id !== user.id) redirect("/dashboard");
-
-  const { data: ws } = await supabase
-    .from("workspaces")
-    .select("canvas")
-    .eq("session_id", session.id)
-    .eq("author_id", user.id)
-    .maybeSingle();
-  const canvas = (ws?.canvas as any) || {};
+  const { code, canvas } = await loadOwnerReport(params.code);
   const decision: string = canvas.decision || "";
   const transcript: BoardEntry[] = canvas.transcript || [];
   const verdict = canvas.verdict;
