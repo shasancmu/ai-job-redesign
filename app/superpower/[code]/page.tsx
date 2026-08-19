@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SuperpowerReport from "@/components/SuperpowerReport";
+import ShareReport from "@/components/ShareReport";
 import Logo from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +30,10 @@ export default async function SuperpowerView({ params }: { params: { code: strin
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <header className="mb-6 flex items-center justify-between">
         <Logo />
-        <Link href={`/room/${code}`} className="btn-ghost text-sm">← Back to the interview</Link>
+        <div className="flex items-center gap-2">
+          {report && <ShareReport code={code} title="A superpower profile" text="Here's my Superpower profile from Superadditive:" />}
+          <Link href={`/room/${code}`} className="btn-ghost text-sm">← Back to the interview</Link>
+        </div>
       </header>
 
       <div className="mb-6">

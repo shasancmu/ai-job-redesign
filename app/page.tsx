@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import Logo from "@/components/Logo";
 import HeroVisual from "@/components/HeroVisual";
 import LandingLibrary from "@/components/LandingLibrary";
+import ShareApp from "@/components/ShareApp";
 import Footer from "@/components/Footer";
 
 export default async function Home() {
@@ -99,9 +100,12 @@ export default async function Home() {
               .
             </p>
           </div>
-          <Link href="/login?mode=signup" className="btn-primary">
-            Create an account
-          </Link>
+          <div className="flex items-center gap-3">
+            <ShareApp />
+            <Link href="/login?mode=signup" className="btn-primary">
+              Create an account
+            </Link>
+          </div>
         </div>
       </section>
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ConsultReport from "@/components/ConsultReport";
+import ShareReport from "@/components/ShareReport";
 import Logo from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +33,10 @@ export default async function ConsultView({ params }: { params: { code: string }
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <header className="mb-6 flex items-center justify-between">
         <Logo />
-        <Link href={`/room/${code}`} className="btn-ghost text-sm">← Back to the consult</Link>
+        <div className="flex items-center gap-2">
+          {report && <ShareReport code={code} title="A business consult" text="Here's my 30-Minute Consult from Superadditive:" />}
+          <Link href={`/room/${code}`} className="btn-ghost text-sm">← Back to the consult</Link>
+        </div>
       </header>
 
       <div className="mb-6">

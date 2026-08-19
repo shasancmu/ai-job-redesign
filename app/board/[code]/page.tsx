@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { boardMember, type BoardEntry } from "@/lib/board";
 import BoardVerdict from "@/components/BoardVerdict";
+import ShareReport from "@/components/ShareReport";
 import Logo from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +34,10 @@ export default async function BoardView({ params }: { params: { code: string } }
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <header className="mb-6 flex items-center justify-between">
         <Logo />
-        <Link href={`/room/${code}`} className="btn-ghost text-sm">← Back to the board</Link>
+        <div className="flex items-center gap-2">
+          {verdict && <ShareReport code={code} title="An AI Board verdict" text="Here's what my AI Board decided, on Superadditive:" />}
+          <Link href={`/room/${code}`} className="btn-ghost text-sm">← Back to the board</Link>
+        </div>
       </header>
 
       <div className="mb-6">
