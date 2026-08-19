@@ -63,15 +63,8 @@ export default async function Home() {
 
       {/* Thesis */}
       <section className="mx-auto mt-4 max-w-4xl px-6 text-center sm:mt-10">
-        <p className="text-2xl font-semibold leading-snug tracking-tight text-ink sm:text-[1.9rem]">
-          AI is far more capable than we&apos;re treating it. We&apos;re using a{" "}
-          <span className="text-amber">Ferrari for grocery runs</span>. Humans are
-          far more valuable than we deploy them. We&apos;re using{" "}
-          <span className="text-sage">architects to lay bricks</span>.
-        </p>
-        <p className="mt-4 text-slate2">
-          Companies that gain from AI rethink the work. They don&apos;t patch it.
-          Every exercise helps you do exactly that.
+        <p className="text-2xl font-semibold leading-snug tracking-tight text-ink sm:text-[2.1rem]">
+          Companies that gain from AI <span className="text-sage">reimagine the work</span>. They don&apos;t patch it. Every exercise helps you do exactly that.
         </p>
       </section>
 
