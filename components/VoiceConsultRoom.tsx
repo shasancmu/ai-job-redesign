@@ -53,6 +53,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
   const [muted, setMuted] = useState(false);
   const mutedRef = useRef(false);
   const [err, setErr] = useState<string | null>(null);
+  const [build, setBuild] = useState<"idle" | "working" | "failed">("idle");
 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceName, setVoiceName] = useState<string>("");
@@ -271,34 +272,81 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
 
   async function buildConsult() {
     turnDoneRef.current = true; // stop the mic loop from re-listening after we abort
+    clearTurnTimers();
     try { recRef.current?.abort(); } catch {}
     window.speechSynthesis?.cancel();
-    setPhase("thinking");
     setErr(null);
+    setBuild("working");
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 75000);
     try {
       const res = await fetch("/api/consult", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode: "report", intake: {}, interview: mref.current, wms: { answers: {} }, eighty: {}, photos: [] }),
+        signal: ctl.signal,
       });
-      const d = await res.json();
+      const d = await res.json().catch(() => ({}));
       if (res.ok && d.report) {
         setReport(d.report);
         setWms(d.wms);
         await saveCanvas({ report: d.report, wmsScore: d.wms });
         await supabase.from("sessions").update({ status: "done" }).eq("id", session.id);
+        setBuild("idle");
         setPhase("report");
       } else {
-        setErr(d.error || "Couldn't build the consult.");
-        setPhase("listening");
+        setErr(d.error || "Couldn't build the consult. Your answers are saved, try again.");
+        setBuild("failed");
       }
-    } catch {
-      setErr("Couldn't build the consult.");
-      setPhase("listening");
+    } catch (e: any) {
+      setErr(e?.name === "AbortError" ? "That took too long. Your answers are saved, try building again." : "Couldn't reach the advisor. Your answers are saved, try again.");
+      setBuild("failed");
+    } finally {
+      clearTimeout(t);
     }
   }
 
+  // Go back to the conversation after a failed build.
+  function keepTalking() {
+    setBuild("idle");
+    setErr(null);
+    startListening();
+  }
+
   const exchanges = messages.filter((m) => m.role === "user").length;
+
+  // ---- Building the consult ----
+  if (build === "working") {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 text-center">
+        <div className="voice-orb thinking" />
+        <h1 className="mt-8 text-2xl font-bold text-ink">Building your consult</h1>
+        <p className="mt-2 text-slate2">Reading everything you said and writing it up. This usually takes up to a minute, hang tight.</p>
+        <div className="mt-6 h-1 w-40 overflow-hidden rounded-full bg-mist">
+          <div className="build-bar h-full w-1/3 rounded-full bg-sky" />
+        </div>
+        <style>{`
+          .voice-orb { width: 132px; height: 132px; border-radius: 9999px; background: radial-gradient(circle at 40% 38%, color-mix(in srgb, var(--sky) 60%, white), color-mix(in srgb, var(--sage) 55%, white)); animation: vo-breathe 1.4s ease-in-out infinite; opacity: .8; }
+          @keyframes vo-breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+          .build-bar { animation: bb 1.3s ease-in-out infinite; }
+          @keyframes bb { 0% { transform: translateX(-120%); } 100% { transform: translateX(320%); } }
+        `}</style>
+      </main>
+    );
+  }
+
+  if (build === "failed") {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 text-center">
+        <div className="text-3xl">😕</div>
+        <h1 className="mt-3 text-xl font-bold text-ink">That didn&apos;t go through</h1>
+        <p className="mt-2 text-sm text-slate2">{err || "Couldn't build the consult."}</p>
+        <button onClick={buildConsult} className="btn-primary mt-5 px-6 py-2.5 text-sm">Try building again →</button>
+        <button onClick={keepTalking} className="btn-ghost mt-2 text-sm">Keep talking instead</button>
+        <Link href="/dashboard" className="mt-4 text-xs text-slate-400 hover:text-ink">← Exit</Link>
+      </main>
+    );
+  }
 
   // ---- Report ----
   if (phase === "report" && report) {

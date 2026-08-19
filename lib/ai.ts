@@ -81,14 +81,26 @@ async function complete(
   };
   if (temp != null) payload.temperature = temp;
   if (opts.json && !isAnthropic) payload.response_format = { type: "json_object" };
-  const res = await fetch(`${baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  // Hard timeout so a stalled provider can never hang the request forever.
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 55000);
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(payload),
+      signal: ctl.signal,
+    });
+  } catch (e: any) {
+    if (e?.name === "AbortError") throw new Error("AI request timed out. Try again.");
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`AI request failed (${res.status}): ${text.slice(0, 300)}`);
