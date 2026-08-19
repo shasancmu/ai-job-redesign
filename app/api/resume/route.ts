@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, resumeInterviewReply, resumeVoiceInterviewReply, resumeReportAI } from "@/lib/ai";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { experimentNudge } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,9 +32,11 @@ export async function POST(request: Request) {
 
   try {
     if (mode === "chat") {
+      let nudge = "";
+      try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "resume"); } catch {}
       const reply = body.voice
-        ? await resumeVoiceInterviewReply(body.messages || [], { source })
-        : await resumeInterviewReply(body.messages || [], { source });
+        ? await resumeVoiceInterviewReply(body.messages || [], { source }, nudge)
+        : await resumeInterviewReply(body.messages || [], { source }, nudge);
       return Response.json({ reply });
     }
     if (mode === "report") {

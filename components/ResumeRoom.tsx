@@ -48,7 +48,7 @@ export default function ResumeRoom({
   async function ask(history: Msg[]) {
     setWaiting(true); setErr(null);
     try {
-      const res = await fetch("/api/resume", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", messages: history, source }) });
+      const res = await fetch("/api/resume", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", messages: history, source, sessionId: session.id }) });
       const d = await res.json();
       if (res.ok && d.reply) {
         const next = [...history, { role: "assistant" as const, content: d.reply }];

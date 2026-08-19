@@ -76,7 +76,7 @@ export default function BoardRoom({
       const res = await fetch("/api/board", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "round", decision, context, materials: mats(), transcript: aiTranscript() }),
+        body: JSON.stringify({ mode: "round", decision, context, materials: mats(), transcript: aiTranscript(), sessionId: session.id }),
       });
       const data = await res.json();
       if (!res.ok) { setErr(data.error || "The board is unavailable."); return; }

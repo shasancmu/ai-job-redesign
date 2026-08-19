@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, VISION_ENABLED, boardRoundAI, boardVerdictAI, photoDescribeAI } from "@/lib/ai";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { experimentNudge } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,7 +35,9 @@ export async function POST(request: Request) {
     const materials = sanitizeMaterials(body.materials);
 
     if (mode === "round") {
-      const { round, replies } = await boardRoundAI({ decision, context: body.context, materials, transcript: body.transcript || [] });
+      let nudge = "";
+      try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "board"); } catch {}
+      const { round, replies } = await boardRoundAI({ decision, context: body.context, materials, transcript: body.transcript || [], nudge });
       if (!round.length) return Response.json({ error: "The board went quiet. Try again." }, { status: 502 });
       return Response.json({ round, replies });
     }

@@ -73,7 +73,7 @@ export default function SuperpowerRoom({
 
       <div className="pb-24">
         {step.key === "prime" && <Prime seeds={state.seeds || ""} setSeeds={(v) => setState({ seeds: v })} />}
-        {step.key === "interview" && <Interview state={state} setState={setState} seeds={state.seeds} onSkip={() => go(2)} />}
+        {step.key === "interview" && <Interview state={state} setState={setState} seeds={state.seeds} sessionId={session.id} onSkip={() => go(2)} />}
         {step.key === "report" && <ReportStep state={state} setState={setState} code={session.code} />}
       </div>
 
@@ -106,7 +106,7 @@ function Prime({ seeds, setSeeds }: { seeds: string; setSeeds: (v: string) => vo
   );
 }
 
-function Interview({ state, setState, seeds, onSkip }: { state: any; setState: (p: any) => void; seeds?: string; onSkip: () => void }) {
+function Interview({ state, setState, seeds, sessionId, onSkip }: { state: any; setState: (p: any) => void; seeds?: string; sessionId: string; onSkip: () => void }) {
   const messages: Msg[] = state.interview_chat || [];
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -117,7 +117,7 @@ function Interview({ state, setState, seeds, onSkip }: { state: any; setState: (
   const call = useCallback(async (history: Msg[]) => {
     setErr(null); setBusy(true);
     try {
-      const res = await fetch("/api/superpower", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", messages: history, seeds }) });
+      const res = await fetch("/api/superpower", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", messages: history, seeds, sessionId }) });
       const data = await res.json();
       if (!res.ok) { setErr(data.error || "The interviewer is unavailable."); return null; }
       return data.reply as string;

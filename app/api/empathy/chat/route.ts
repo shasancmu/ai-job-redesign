@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AI_ENABLED, empathyInterviewReply, type EmpathyContext } from "@/lib/ai";
+import { experimentNudge } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,7 +42,9 @@ export async function POST(request: Request) {
   const ctx: EmpathyContext = { business: canvas.business, offer: canvas.offer, audience: canvas.audience, goals: canvas.goals };
 
   try {
-    const reply = await empathyInterviewReply(history, ctx);
+    let nudge = "";
+    try { nudge = await experimentNudge(admin, session.id, "empathy"); } catch {}
+    const reply = await empathyInterviewReply(history, ctx, nudge);
     return Response.json({ reply });
   } catch (e: any) {
     return Response.json({ error: e?.message || "The interviewer is unavailable." }, { status: 500 });

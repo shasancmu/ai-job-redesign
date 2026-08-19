@@ -76,7 +76,7 @@ export default function ConsultRoom({
 
       <div className="pb-24">
         {step.key === "intake" && <Intake intake={intake} setIntake={(p) => setState({ intake: { ...intake, ...p } })} />}
-        {step.key === "interview" && <Interview state={state} setState={setState} ctx={{ name: intake.name, sells: intake.sells }} onSkip={() => go(2)} />}
+        {step.key === "interview" && <Interview state={state} setState={setState} ctx={{ name: intake.name, sells: intake.sells }} sessionId={session.id} onSkip={() => go(2)} />}
         {step.key === "practices" && <Practices answers={state.wms?.answers || {}} setAnswers={(a) => setState({ wms: { answers: a } })} />}
         {step.key === "eighty" && <Eighty data={state.eighty || {}} setData={(p) => setState({ eighty: { ...(state.eighty || {}), ...p } })} />}
         {step.key === "photos" && <Photos state={state} setState={setState} sells={intake.sells} />}
@@ -127,7 +127,7 @@ function Intake({ intake, setIntake }: { intake: any; setIntake: (p: any) => voi
   );
 }
 
-function Interview({ state, setState, ctx, onSkip }: { state: any; setState: (p: any) => void; ctx: any; onSkip: () => void }) {
+function Interview({ state, setState, ctx, sessionId, onSkip }: { state: any; setState: (p: any) => void; ctx: any; sessionId: string; onSkip: () => void }) {
   const messages: Msg[] = state.interview_chat || [];
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -138,7 +138,7 @@ function Interview({ state, setState, ctx, onSkip }: { state: any; setState: (p:
   const call = useCallback(async (history: Msg[]) => {
     setErr(null); setBusy(true);
     try {
-      const res = await fetch("/api/consult", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", messages: history, ctx }) });
+      const res = await fetch("/api/consult", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", messages: history, ctx, sessionId }) });
       const data = await res.json();
       if (!res.ok) { setErr(data.error || "The advisor is unavailable."); return null; }
       return data.reply as string;

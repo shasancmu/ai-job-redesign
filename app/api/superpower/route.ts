@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, superpowerInterviewReply, superpowerReportAI } from "@/lib/ai";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { experimentNudge } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,7 +26,9 @@ export async function POST(request: Request) {
 
   try {
     if (mode === "chat") {
-      const reply = await superpowerInterviewReply(body.messages || [], { seeds: body.seeds });
+      let nudge = "";
+      try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "superpower"); } catch {}
+      const reply = await superpowerInterviewReply(body.messages || [], { seeds: body.seeds }, nudge);
       return Response.json({ reply });
     }
     if (mode === "report") {

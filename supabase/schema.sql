@@ -586,3 +586,48 @@ create policy "empathy interviews host read" on public.empathy_interviews
       where s.id = empathy_interviews.session_id and s.host_id = auth.uid()
     )
   );
+
+-- ===========================================================================
+-- Continuous experimentation. A facilitator (admin) runs A/B experiments that
+-- apply a SUBTLE variant (a small nudge appended to an interview's prompt) to a
+-- flow. Each session is bucketed into one variant; engagement outcomes are
+-- DERIVED at analysis time from the session's own state (completed / depth /
+-- shared), so there's no per-turn outcome logging. Statistics are computed in
+-- code (never by the LLM); the LLM only proposes variants and narrates results.
+-- All access is via the service role, gated behind isAdmin at the route level.
+-- ===========================================================================
+create table if not exists public.experiments (
+  id uuid primary key default gen_random_uuid(),
+  flow text not null,                       -- 'consult' | 'resume' | 'empathy' | 'superpower' | 'board' | 'all'
+  name text not null default '',
+  hypothesis text not null default '',
+  metric text not null default 'completion',-- completion | depth | shared
+  depth_threshold int not null default 4,   -- for the 'depth' metric: answers >= this counts as success
+  variants jsonb not null default '[]',     -- [{ key, label, nudge }]
+  min_per_arm int not null default 100,     -- required sample size per variant before concluding
+  status text not null default 'proposed',  -- proposed | running | concluded | adopted | rejected
+  created_by text not null default 'agent', -- agent | human
+  result jsonb,                             -- cached analysis snapshot
+  created_at timestamptz not null default now(),
+  launched_at timestamptz,
+  concluded_at timestamptz
+);
+create index if not exists experiments_flow_status_idx on public.experiments (flow, status);
+
+-- One row per session per experiment. No outcome columns: outcomes are derived
+-- by joining to the session's current state when we analyze.
+create table if not exists public.experiment_assignments (
+  id uuid primary key default gen_random_uuid(),
+  experiment_id uuid not null references public.experiments (id) on delete cascade,
+  session_id uuid not null,
+  variant_key text not null,
+  assigned_at timestamptz not null default now(),
+  unique (experiment_id, session_id)
+);
+create index if not exists experiment_assignments_exp_idx on public.experiment_assignments (experiment_id);
+create index if not exists experiment_assignments_session_idx on public.experiment_assignments (session_id);
+
+-- Locked down: only the service role touches these (facilitator routes are
+-- gated by isAdmin, and the runtime assignment writes use the admin client).
+alter table public.experiments enable row level security;
+alter table public.experiment_assignments enable row level security;

@@ -76,6 +76,9 @@ export default function FacilitatorMenu({ code = "DEMOCOHORT" }: { code?: string
       </button>
       {open && (
         <div className="absolute right-0 z-30 mt-2 w-60 overflow-hidden rounded-xl border border-line bg-white py-1 shadow-lift">
+          <Link href="/facilitator/experiments" className={item} onClick={() => setOpen(false)}>
+            <span aria-hidden>🧪</span> Experiments
+          </Link>
           <Link href="/admin/costs" className={item} onClick={() => setOpen(false)}>
             <span aria-hidden>📊</span> Costs
           </Link>

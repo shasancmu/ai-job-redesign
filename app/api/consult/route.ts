@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, VISION_ENABLED, businessInterviewReply, businessVoiceInterviewReply, businessReportAI, photoDescribeAI } from "@/lib/ai";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { experimentNudge } from "@/lib/experiments";
 import { wmsScore } from "@/lib/business";
 
 export const runtime = "nodejs";
@@ -29,9 +31,11 @@ export async function POST(request: Request) {
 
   try {
     if (mode === "chat") {
+      let nudge = "";
+      try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "consult"); } catch {}
       const reply = body.voice
-        ? await businessVoiceInterviewReply(body.messages || [], body.ctx || {})
-        : await businessInterviewReply(body.messages || [], body.ctx || {});
+        ? await businessVoiceInterviewReply(body.messages || [], body.ctx || {}, nudge)
+        : await businessInterviewReply(body.messages || [], body.ctx || {}, nudge);
       return Response.json({ reply });
     }
 

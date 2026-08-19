@@ -150,7 +150,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
 
   const fetchChat = useCallback(async (history: Msg[]): Promise<string | null> => {
     try {
-      const res = await fetch("/api/consult", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", voice: true, messages: history, ctx: {} }) });
+      const res = await fetch("/api/consult", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", voice: true, messages: history, ctx: {}, sessionId: session.id }) });
       const d = await res.json();
       if (!res.ok) { setErr(d.error || "The advisor is unavailable."); return null; }
       return d.reply as string;

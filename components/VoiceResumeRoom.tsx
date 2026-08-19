@@ -138,7 +138,7 @@ export default function VoiceResumeRoom({ session, initialWorkspace, prefill, pr
 
   const fetchChat = useCallback(async (history: Msg[]): Promise<string | null> => {
     try {
-      const res = await fetch("/api/resume", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", voice: true, messages: history, source }) });
+      const res = await fetch("/api/resume", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", voice: true, messages: history, source, sessionId: session.id }) });
       const d = await res.json();
       if (!res.ok) { setErr(d.error || "The coach is unavailable."); return null; }
       return d.reply as string;
