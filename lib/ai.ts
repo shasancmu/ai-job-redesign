@@ -1566,13 +1566,20 @@ Give 4-7 accomplishments and 3-6 rewrites, the ones that matter most. Be specifi
 export async function experimentProposeAI(input: {
   flow: string;
   flowLabel: string;
+  target?: "interview" | "report";
   goal?: string;
   past?: { hypothesis: string; outcome: string }[];
 }): Promise<any> {
   const past = (input.past || []).map((p, i) => `${i + 1}. Tried: ${p.hypothesis} -> ${p.outcome}`).join("\n").slice(0, 3000);
-  const system = `You design ONE small, careful A/B experiment to improve engagement in an AI interview flow. The treatment is a SUBTLE adjustment to how the AI interviewer talks, expressed as a short instruction ("nudge") that will be appended to its prompt, NEVER a drastic redesign. Think: a touch warmer opener, reflecting the person's words back a bit more, one more concrete follow-up, a slightly shorter arc. It must be reversible and low-risk, and it must NOT change what the flow does or its integrity.
+  const isReport = input.target === "report";
+  const knob = isReport
+    ? `The treatment is a SUBTLE change to how the FINAL REPORT (the write-up the person receives at the end) is WORDED, expressed as a short instruction ("nudge") appended to the report-generation prompt. Think: make the bottom-line more direct, lead with the single biggest takeaway, warmer or more confident phrasing, one vivid concrete detail, a punchier headline. It must NEVER change the substance, the analysis, or add any claim, only the framing and wording. The natural metric here is "shared" (they share or act on the report).`
+    : `The treatment is a SUBTLE adjustment to how the AI INTERVIEWER talks, expressed as a short instruction ("nudge") appended to its prompt. Think: a touch warmer opener, reflecting the person's words back a bit more, one more concrete follow-up, a slightly shorter arc. It must NOT change what the flow does or its integrity. Good metrics here are "completion" or "depth".`;
+  const system = `You design ONE small, careful A/B experiment to improve engagement in "${input.flowLabel}", NEVER a drastic redesign, always reversible and low-risk.
 
-The metric is one of: "completion" (they reach a finished report), "depth" (they answer more questions), "shared" (they share the result).
+${knob}
+
+The metric is one of: "completion" (they reach a finished report), "depth" (they answer more questions), "shared" (they share the result). Pick the one that best fits this change.
 
 Return STRICT JSON only:
 {
@@ -1580,10 +1587,10 @@ Return STRICT JSON only:
   "hypothesis": "one sentence: the change, and why it might lift the metric",
   "metric": "completion" | "depth" | "shared",
   "min_per_arm": integer (a sensible required sample size per arm, 80-300),
-  "treatmentNudge": "the subtle instruction appended to the interviewer's prompt (1-2 sentences, specific, gentle)",
+  "treatmentNudge": "the subtle instruction appended to the ${isReport ? "report" : "interviewer"}'s prompt (1-2 sentences, specific, gentle)",
   "treatmentLabel": "a 2-4 word label for the treatment"
 }`;
-  const user = `Flow: ${input.flowLabel} (${input.flow}). Goal: ${input.goal || "increase engagement without degrading quality"}.\n\nPast experiments on this flow:\n${past || "(none yet)"}`;
+  const user = `Flow: ${input.flowLabel} (${input.flow}). Experimenting on: ${isReport ? "the final report's wording" : "the interview"}. Goal: ${input.goal || "increase engagement without degrading quality"}.\n\nPast experiments on this flow:\n${past || "(none yet)"}`;
   const raw = await complete([{ role: "system", content: system }, { role: "user", content: user }], { json: true, temperature: 0.8, maxTokens: 700 });
   return extractJson(raw);
 }

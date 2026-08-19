@@ -12,6 +12,8 @@ export default function ExperimentsBoard() {
   const [exps, setExps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [proposeFlow, setProposeFlow] = useState<string>(EXPERIMENT_FLOWS[0].key);
+  const [proposeTarget, setProposeTarget] = useState<"interview" | "report">("interview");
+  const [proposeMode, setProposeMode] = useState<"human" | "synthetic">("human");
   const [draft, setDraft] = useState<any>(null);
   const [busy, setBusy] = useState<string>("");
   const [err, setErr] = useState<string | null>(null);
@@ -25,8 +27,8 @@ export default function ExperimentsBoard() {
 
   async function propose() {
     setBusy("propose"); setErr(null); setDraft(null);
-    const d = await api("propose", { flow: proposeFlow });
-    if (d.draft) setDraft({ ...d.draft, flow: proposeFlow, target: "interview", mode: "human" });
+    const d = await api("propose", { flow: proposeFlow, target: proposeTarget });
+    if (d.draft) setDraft({ ...d.draft, flow: proposeFlow, target: proposeTarget, mode: proposeMode });
     else setErr(d.error || "Couldn't propose.");
     setBusy("");
   }
@@ -72,12 +74,25 @@ export default function ExperimentsBoard() {
       {/* Propose */}
       <div className="card p-5">
         <div className="text-sm font-bold text-ink">Ask the agent for an experiment</div>
-        <p className="mt-1 text-xs text-slate-400">It proposes one subtle change to an interview and how to measure it. Nothing goes live until you launch it.</p>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <select value={proposeFlow} onChange={(e) => setProposeFlow(e.target.value)} className="field w-auto text-sm">
-            {EXPERIMENT_FLOWS.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
-          </select>
-          <button onClick={propose} disabled={busy === "propose"} className="btn-primary text-sm">{busy === "propose" ? "Thinking…" : "✨ Propose an experiment"}</button>
+        <p className="mt-1 text-xs text-slate-400">Pick a module, whether to tweak the interview or the final report, and whether to test on real people or AI personas. The agent drafts a subtle change; nothing goes live until you launch it.</p>
+        <div className="mt-3 flex flex-wrap items-end gap-2">
+          <label className="text-xs text-slate-500">Module
+            <select value={proposeFlow} onChange={(e) => setProposeFlow(e.target.value)} className="field mt-1 w-auto text-sm">
+              {EXPERIMENT_FLOWS.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
+            </select>
+          </label>
+          <label className="text-xs text-slate-500">Experiment on
+            <select value={proposeTarget} onChange={(e) => setProposeTarget(e.target.value as any)} className="field mt-1 w-auto text-sm">
+              {TARGETS.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
+            </select>
+          </label>
+          <label className="text-xs text-slate-500">Subjects
+            <select value={proposeMode} onChange={(e) => setProposeMode(e.target.value as any)} className="field mt-1 w-auto text-sm">
+              <option value="human">Real people</option>
+              <option value="synthetic">AI personas</option>
+            </select>
+          </label>
+          <button onClick={propose} disabled={busy === "propose"} className="btn-primary text-sm">{busy === "propose" ? "Thinking…" : "✨ Propose"}</button>
         </div>
         {err && <p className="mt-2 text-sm text-clay">{err}</p>}
 

@@ -51,6 +51,7 @@ export async function POST(request: Request) {
       const draft = await experimentProposeAI({
         flow,
         flowLabel: flowLabel(flow),
+        target: body.target === "report" ? "report" : "interview",
         goal: body.goal,
         past: (past || []).map((p: any) => ({ hypothesis: p.hypothesis, outcome: p.status })),
       });
