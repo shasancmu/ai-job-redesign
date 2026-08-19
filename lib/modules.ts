@@ -57,6 +57,7 @@ export type ModuleDef = {
   priceEnv: string; // env var holding this module's Stripe price id
   forSale?: boolean; // false = free, instructor-run, hidden from the sales page
   instructorTool?: boolean; // shown with an "instructor tool" tag
+  hidden?: boolean; // keep it functional, but omit from the catalog + landing
 };
 
 export const MODULES: ModuleDef[] = [
@@ -198,6 +199,7 @@ export const MODULES: ModuleDef[] = [
     emoji: "🩺",
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_DISCLOSURE_HAIP",
+    hidden: true,
   },
   {
     slug: "career-roadmap",

@@ -15,6 +15,8 @@ import ModuleIcon from "@/components/ModuleIcon";
 // The marketing-page mirror of the dashboard catalog: same finite pill set,
 // same category grouping — but cards are read-only (no start buttons) and the
 // icon takes its category color so the palette matches the section header.
+const VISIBLE = MODULES.filter((m) => !m.hidden);
+
 export default function LandingLibrary() {
   const [activePills, setActivePills] = useState<Set<string>>(new Set());
   const togglePill = (k: string) =>
@@ -70,7 +72,7 @@ export default function LandingLibrary() {
       <div className="flex flex-wrap items-center gap-2">
         {PILLS.map((p) => {
           const on = activePills.has(p.key);
-          const count = MODULES.filter((m) => modulePills(m.slug).includes(p.key)).length;
+          const count = VISIBLE.filter((m) => modulePills(m.slug).includes(p.key)).length;
           if (count === 0) return null;
           return (
             <button
@@ -95,7 +97,7 @@ export default function LandingLibrary() {
       {activePills.size > 0 ? (
         // Filtered flat grid — modules matching ANY selected pill.
         (() => {
-          const mods = MODULES.filter((m) => modulePills(m.slug).some((p) => activePills.has(p)));
+          const mods = VISIBLE.filter((m) => modulePills(m.slug).some((p) => activePills.has(p)));
           return mods.length ? (
             <div className={grid}>{mods.map((m) => card(m, CATEGORIES.find((c) => c.key === moduleCategory(m.slug))?.chip || "bg-sage-soft text-sage"))}</div>
           ) : (
@@ -105,7 +107,7 @@ export default function LandingLibrary() {
       ) : (
         <div className="space-y-12">
           {CATEGORIES.map((cat) => {
-            const mods = MODULES.filter((m) => moduleCategory(m.slug) === cat.key);
+            const mods = VISIBLE.filter((m) => moduleCategory(m.slug) === cat.key);
             if (mods.length === 0) return null;
             return (
               <div key={cat.key}>

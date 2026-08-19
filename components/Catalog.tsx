@@ -79,7 +79,7 @@ export default function Catalog({
     });
   const shown = moduleSlugs
     ? (moduleSlugs.map((s) => MODULES.find((m) => m.slug === s)).filter(Boolean) as typeof MODULES)
-    : MODULES;
+    : MODULES.filter((m) => !m.hidden);
 
   // Single-user modules (solo, benchmark, network) start immediately.
   async function startSolo(slug: string, exercise: string) {
@@ -204,7 +204,7 @@ export default function Catalog({
 
   // "Recommended for you" — resolve the segment/goal slugs to modules, in order.
   const recModules = grouped
-    ? (recommended.map((s) => MODULES.find((m) => m.slug === s)).filter(Boolean) as typeof MODULES)
+    ? (recommended.map((s) => MODULES.find((m) => m.slug === s)).filter((m) => m && !m.hidden) as typeof MODULES)
     : [];
 
   return (
