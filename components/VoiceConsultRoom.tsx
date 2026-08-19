@@ -36,6 +36,16 @@ function pickBestVoice(list: SpeechSynthesisVoice[]): SpeechSynthesisVoice | nul
   return englishVoices(list)[0] || null;
 }
 
+// Narration for the report build, so a longer wait reads as real work.
+const BUILD_STEPS = [
+  "Reading everything you told me…",
+  "Working out where your margin really lives…",
+  "Finding your 80/20 in products and customers…",
+  "Reading your management practices…",
+  "Writing your prioritized plan…",
+  "Putting your consult together…",
+];
+
 // A spoken business interview. The advisor asks out loud (TTS), you answer out
 // loud (STT), turn by turn, then it builds the consult. Browser Web Speech API,
 // so no new backend, reuses /api/consult for the questions and the report.
@@ -54,6 +64,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
   const mutedRef = useRef(false);
   const [err, setErr] = useState<string | null>(null);
   const [build, setBuild] = useState<"idle" | "working" | "failed">("idle");
+  const [buildStep, setBuildStep] = useState(0);
 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceName, setVoiceName] = useState<string>("");
@@ -166,6 +177,14 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
   useEffect(() => { handleUserRef.current = handleUser; }, [handleUser]);
   useEffect(() => { startListenRef.current = startListening; }, [startListening]);
   useEffect(() => { finishTurnRef.current = finishTurn; }, [finishTurn]);
+
+  // While the report builds, narrate the steps so a longer wait feels like work
+  // being done, not a stall. Advances on a timer, holds on the last line.
+  useEffect(() => {
+    if (build !== "working") { setBuildStep(0); return; }
+    const id = setInterval(() => setBuildStep((s) => Math.min(s + 1, BUILD_STEPS.length - 1)), 6000);
+    return () => clearInterval(id);
+  }, [build]);
 
   // Load the device's voices (they populate asynchronously in most browsers) and
   // settle on the best one, or a saved preference.
@@ -321,15 +340,18 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me: st
       <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 text-center">
         <div className="voice-orb thinking" />
         <h1 className="mt-8 text-2xl font-bold text-ink">Building your consult</h1>
-        <p className="mt-2 text-slate2">Reading everything you said and writing it up. This usually takes up to a minute, hang tight.</p>
-        <div className="mt-6 h-1 w-40 overflow-hidden rounded-full bg-mist">
+        <p key={buildStep} className="build-line mt-2 min-h-[1.5rem] text-slate2">{BUILD_STEPS[buildStep]}</p>
+        <div className="mt-5 h-1 w-40 overflow-hidden rounded-full bg-mist">
           <div className="build-bar h-full w-1/3 rounded-full bg-sky" />
         </div>
+        <p className="mt-4 text-xs text-slate-400">This usually takes up to a minute. Your answers are saved.</p>
         <style>{`
           .voice-orb { width: 132px; height: 132px; border-radius: 9999px; background: radial-gradient(circle at 40% 38%, color-mix(in srgb, var(--sky) 60%, white), color-mix(in srgb, var(--sage) 55%, white)); animation: vo-breathe 1.4s ease-in-out infinite; opacity: .8; }
           @keyframes vo-breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
           .build-bar { animation: bb 1.3s ease-in-out infinite; }
           @keyframes bb { 0% { transform: translateX(-120%); } 100% { transform: translateX(320%); } }
+          .build-line { animation: bl .5s ease-out; }
+          @keyframes bl { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
         `}</style>
       </main>
     );
