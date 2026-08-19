@@ -1,8 +1,12 @@
+import BottomLine from "@/components/BottomLine";
+
 // The cross-interview synthesis for Understand Your Customer. Shared by the
 // owner's room and the public shared-report view.
 export default function EmpathyAggregate({ a }: { a: any }) {
   return (
-    <div className="card mt-3 space-y-5 p-5">
+    <div className="mt-3 space-y-4">
+      {a.bottomLine && <BottomLine b={a.bottomLine} />}
+      <div className="card space-y-5 p-5">
       {a.headline && <p className="text-lg font-semibold leading-snug text-ink">{a.headline}</p>}
 
       {Array.isArray(a.themes) && a.themes.length > 0 && (
@@ -66,6 +70,7 @@ export default function EmpathyAggregate({ a }: { a: any }) {
           {a.quotes.map((q: string, i: number) => <p key={i} className="border-l-2 border-line pl-3 text-sm italic text-slate2">&ldquo;{q}&rdquo;</p>)}
         </div>
       )}
+      </div>
     </div>
   );
 }

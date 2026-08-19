@@ -116,6 +116,7 @@ export function wmsScore(answers: Record<string, number>): {
 
 // The report shape the AI returns.
 export type ConsultReport = {
+  bottomLine?: import("./advice").BottomLine;
   headline: string;
   businessType: { axis: "cost" | "value" | "mixed"; label: string; why: string };
   marginEngine: { summary: string; drivers: { lever: "volume" | "price" | "cost"; note: string }[] };

@@ -2,6 +2,7 @@
 
 import type { ConsultReport as Report } from "@/lib/business";
 import { WMS_AREAS } from "@/lib/business";
+import BottomLine from "@/components/BottomLine";
 
 const LEVER_LABEL: Record<string, string> = { volume: "Sell more", price: "Price higher", cost: "Cut cost" };
 
@@ -9,11 +10,18 @@ export default function ConsultReport({ report, wms }: { report: Report; wms?: {
   const axisPos = report.businessType?.axis === "cost" ? 12 : report.businessType?.axis === "value" ? 88 : 50;
   return (
     <div className="space-y-6">
-      {/* Headline */}
-      <div className="rounded-3xl border border-line bg-gradient-to-br from-white to-mist p-6">
-        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">The one thing</div>
-        <p className="mt-1 text-xl font-bold leading-snug text-ink">{report.headline}</p>
-      </div>
+      {/* The bottom line: what should shift, up top */}
+      {report.bottomLine ? (
+        <BottomLine b={report.bottomLine} />
+      ) : (
+        <div className="rounded-3xl border border-line bg-gradient-to-br from-white to-mist p-6">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">The one thing</div>
+          <p className="mt-1 text-xl font-bold leading-snug text-ink">{report.headline}</p>
+        </div>
+      )}
+
+      {/* The full diagnosis */}
+      <div className="eyebrow pt-1">The full picture</div>
 
       {/* What kind of business */}
       <Section title="What kind of business you are">

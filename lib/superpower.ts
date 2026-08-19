@@ -27,6 +27,7 @@ export type Superpower = {
 };
 
 export type SuperpowerReport = {
+  bottomLine?: import("./advice").BottomLine;
   headline: string;
   stack: Superpower[]; // 2-3, ranked
   combination: string; // how the stack combines into something rarer than any one alone

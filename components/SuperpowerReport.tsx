@@ -1,6 +1,7 @@
 "use client";
 
 import type { SuperpowerReport as Report } from "@/lib/superpower";
+import BottomLine from "@/components/BottomLine";
 
 const MOAT: Record<string, { label: string; chip: string }> = {
   narrow: { label: "Narrow moat", chip: "bg-clay-soft text-clay" },
@@ -20,11 +21,14 @@ export default function SuperpowerReport({ report }: { report: Report }) {
   const moat = MOAT[report.moatStrength] || MOAT.solid;
   return (
     <div className="space-y-6">
-      {/* Headline */}
-      <div className="rounded-3xl border border-line bg-gradient-to-br from-white to-mist p-6">
-        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Your superpower</div>
-        <p className="mt-1 text-2xl font-bold leading-snug text-ink">{report.headline}</p>
-      </div>
+      {report.bottomLine ? (
+        <BottomLine b={report.bottomLine} />
+      ) : (
+        <div className="rounded-3xl border border-line bg-gradient-to-br from-white to-mist p-6">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Your superpower</div>
+          <p className="mt-1 text-2xl font-bold leading-snug text-ink">{report.headline}</p>
+        </div>
+      )}
 
       {/* The stack */}
       <div>
