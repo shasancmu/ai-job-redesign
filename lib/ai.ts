@@ -63,40 +63,13 @@ function localize(messages: ChatMsg[]): ChatMsg[] {
       ];
 }
 
-async function complete(
-  messages: ChatMsg[],
-  opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean } = {}
-): Promise<string> {
-  // Vision requests route to the (optional) dedicated vision model/endpoint/key.
-  const baseUrl = opts.vision ? VISION_BASE_URL : BASE_URL;
-  const model = opts.vision ? VISION_MODEL : MODEL;
-  const apiKey = opts.vision ? VISION_API_KEY : process.env.AI_API_KEY;
-  const isAnthropic = baseUrl.includes("anthropic.com");
-  // Some vision/reasoning models reject `temperature` entirely, so on vision
-  // calls we send only an explicitly-provided value and otherwise omit it.
-  const temp = opts.vision ? opts.temperature : opts.temperature ?? 0.7;
-  const payload: Record<string, any> = {
-    model,
-    messages: localize(messages),
-    // Big enough that structured plans don't get truncated into invalid JSON.
-    max_tokens: opts.maxTokens ?? 4096,
-  };
-  if (temp != null) payload.temperature = temp;
-  if (opts.json && !isAnthropic) payload.response_format = { type: "json_object" };
-  // Hard timeout so a stalled provider can never hang the request forever.
+// One POST with a hard timeout so a stalled provider can never hang forever.
+async function postJSON(url: string, headers: Record<string, string>, payload: any): Promise<any> {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 55000);
   let res: Response;
   try {
-    res = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(payload),
-      signal: ctl.signal,
-    });
+    res = await fetch(url, { method: "POST", headers, body: JSON.stringify(payload), signal: ctl.signal });
   } catch (e: any) {
     if (e?.name === "AbortError") throw new Error("AI request timed out. Try again.");
     throw e;
@@ -107,7 +80,70 @@ async function complete(
     const text = await res.text().catch(() => "");
     throw new Error(`AI request failed (${res.status}): ${text.slice(0, 300)}`);
   }
-  const data = await res.json();
+  return res.json();
+}
+
+async function complete(
+  messages: ChatMsg[],
+  opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean } = {}
+): Promise<string> {
+  // Vision requests route to the (optional) dedicated vision model/endpoint/key.
+  const baseUrl = (opts.vision ? VISION_BASE_URL : BASE_URL).replace(/\/$/, "");
+  const model = opts.vision ? VISION_MODEL : MODEL;
+  const apiKey = opts.vision ? VISION_API_KEY : process.env.AI_API_KEY;
+  const isAnthropic = baseUrl.includes("anthropic.com");
+  // Some vision/reasoning models reject `temperature` entirely, so on vision
+  // calls we send only an explicitly-provided value and otherwise omit it.
+  const temp = opts.vision ? opts.temperature : opts.temperature ?? 0.7;
+  const localized = localize(messages);
+
+  // On Anthropic, text calls go through the NATIVE Messages API so we can use
+  // prompt caching (the OpenAI-compat layer strips it). Caching the stable
+  // prefix (the interview system prompt + any pasted résumé/context, re-sent
+  // every turn) is lossless, identical output, and cuts input cost sharply.
+  // Any failure or empty result falls back to the proven compat path below, so
+  // this can never break generation. Vision stays on the compat path (its image
+  // blocks use the OpenAI image_url shape).
+  if (isAnthropic && !opts.vision) {
+    try {
+      const sys = localized.filter((m) => m.role === "system").map((m) => m.content).join("\n");
+      const convo: any[] = localized.filter((m) => m.role !== "system").map((m) => ({ role: m.role, content: m.content as any }));
+      // Anthropic requires the first message to be `user`; our interviews open
+      // with the assistant's question, so restore the implicit opening turn.
+      if (convo.length && convo[0].role === "assistant") convo.unshift({ role: "user", content: "(Begin.)" });
+      // Cache breakpoint on the last turn so the whole prior transcript is
+      // read from cache on the next turn, plus one on the system prefix.
+      if (convo.length) {
+        const last = convo[convo.length - 1];
+        last.content = [{ type: "text", text: String(last.content), cache_control: { type: "ephemeral" } }];
+      }
+      const payload: Record<string, any> = { model, max_tokens: opts.maxTokens ?? 4096, messages: convo };
+      if (sys) payload.system = [{ type: "text", text: sys, cache_control: { type: "ephemeral" } }];
+      if (temp != null) payload.temperature = Math.min(Math.max(temp, 0), 1);
+      const data = await postJSON(`${baseUrl}/messages`, {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey || "",
+        "anthropic-version": "2023-06-01",
+      }, payload);
+      const out = (data?.content || []).filter((b: any) => b?.type === "text").map((b: any) => b.text).join("");
+      if (out && out.trim()) return out;
+    } catch {
+      /* fall through to the OpenAI-compatible path */
+    }
+  }
+
+  const payload: Record<string, any> = {
+    model,
+    messages: localized,
+    // Big enough that structured plans don't get truncated into invalid JSON.
+    max_tokens: opts.maxTokens ?? 4096,
+  };
+  if (temp != null) payload.temperature = temp;
+  if (opts.json && !isAnthropic) payload.response_format = { type: "json_object" };
+  const data = await postJSON(`${baseUrl}/chat/completions`, {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${apiKey}`,
+  }, payload);
   return data.choices?.[0]?.message?.content ?? "";
 }
 
