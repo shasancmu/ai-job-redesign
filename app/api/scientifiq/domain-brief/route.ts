@@ -11,6 +11,8 @@ import {
   type SciField,
 } from "@/lib/scientifiq";
 import { buildDomainBriefData, NC_UNIVERSITIES } from "@/lib/domainBrief";
+import { BIGQUERY_ENABLED, normalizeDoi } from "@/lib/bigquery";
+import { firmsBuildingOnScience } from "@/lib/citingFirms";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -126,9 +128,15 @@ export async function POST(request: Request) {
       subFields: fields,
     });
 
-    // 4) Narrative on top of the numbers.
-    const brief = await domainBriefAI({ domain, scopeLabel, purpose, data });
+    // 4) Narrative + the firms-building-on-this-science lookup, in parallel so
+    // the (slower) BigQuery + patent-assignee resolution hides behind the AI.
+    const dois = papersRes.papers.map((p) => normalizeDoi(p.url)).filter(Boolean) as string[];
+    const [brief, firms] = await Promise.all([
+      domainBriefAI({ domain, scopeLabel, purpose, data }),
+      BIGQUERY_ENABLED && dois.length ? firmsBuildingOnScience(dois).catch(() => null) : Promise.resolve(null),
+    ]);
     if (!brief) return Response.json({ error: "Built the data but couldn't write the brief. Try again." }, { status: 502 });
+    if (firms) (data as any).firms = firms;
 
     return Response.json({ data, brief });
   } catch (e: any) {

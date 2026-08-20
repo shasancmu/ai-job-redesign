@@ -206,7 +206,7 @@ export async function searchPapers(q: PaperQuery): Promise<{ total: number; pape
   return { total: Number(data?.total || 0), papers: (data?.papers || []) as SciPaper[] };
 }
 
-export async function searchPatents(q: { search?: string; assignees?: (string | number)[]; mainFields?: (string | number)[]; order?: string; limit?: number }): Promise<{ total: number; patents: SciPatent[] }> {
+export async function searchPatents(q: { search?: string; assignees?: (string | number)[]; patentIDs?: (string | number)[]; mainFields?: (string | number)[]; order?: string; limit?: number }): Promise<{ total: number; patents: SciPatent[] }> {
   const data = await sciRequest("GET", "/patents", { params: q as Query });
   return { total: Number(data?.total || 0), patents: (data?.patents || []) as SciPatent[] };
 }

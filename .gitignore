@@ -13,3 +13,6 @@ scratchpad/
 node-v*-darwin-arm64/
 node.tar.gz
 data/onet/
+
+# Large local reference data (Reliance on Science, etc.) — never commit
+canonical/

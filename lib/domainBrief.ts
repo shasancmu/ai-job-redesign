@@ -79,6 +79,11 @@ export type DomainBriefData = {
   yearTrend: { year: number; count: number }[];
   patents: { title: string; year?: number; assignees: string; url?: string }[];
   collab: CollabGraph;
+  firms?: {
+    firms: { name: string; patents: number; latestYear?: number }[];
+    citingPatentCount: number;
+    resolvedPatentCount: number;
+  };
 };
 
 const num = (v: any): number => {

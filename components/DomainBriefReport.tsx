@@ -130,6 +130,19 @@ export default function DomainBriefReport({ brief, data }: { brief: Brief; data:
         </div>
       )}
 
+      {/* Firms building on this science (patent citations, via Reliance on Science) */}
+      {data.firms && data.firms.firms.length > 0 && (
+        <div>
+          <h2 className="eyebrow mb-1">Firms building on this science</h2>
+          <p className="mb-2 text-xs text-slate-400">
+            Companies and institutions whose patents cite this body of work, from {data.firms.citingPatentCount.toLocaleString()} citing patents (front-page citations, Reliance on Science). Bar = distinct citing patents held.
+          </p>
+          <div className="card p-4">
+            <BarList rows={data.firms.firms.slice(0, 12).map((f) => ({ label: f.name, value: f.patents }))} />
+          </div>
+        </div>
+      )}
+
       {/* LAYER 3 — evidence, collapsed */}
       <div className="space-y-2.5">
         {(brief.themes || []).length > 0 && (
