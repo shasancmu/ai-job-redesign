@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import BottomLine from "@/components/BottomLine";
+import { sciLink, SciLink } from "@/lib/scientifiqLinks";
 
 type Match = {
   index: number;
   name: string;
+  sciId?: string;
   org?: string;
   subfields?: string;
   bio?: string;
@@ -66,7 +68,10 @@ export default function CollaboratorsReport({ report, scopeLabel }: { report: Re
                   <Pot label="Com" value={m.compot} />
                 </div>
               </div>
-              {(m.org || m.subfields) && <div className="mt-0.5 pl-8 text-xs text-slate-400">{[m.org, m.subfields].filter(Boolean).join(" · ")}</div>}
+              <div className="mt-0.5 flex flex-wrap items-center gap-x-2 pl-8 text-xs text-slate-400">
+                {(m.org || m.subfields) && <span>{[m.org, m.subfields].filter(Boolean).join(" · ")}</span>}
+                {m.sciId && <SciLink href={sciLink.researcher(m.sciId)}>Profile</SciLink>}
+              </div>
               <div className="mt-2 pl-8">
                 <p className="text-sm leading-relaxed text-slate-700"><span className="font-semibold text-ink">Why them:</span> {m.why}</p>
                 {m.propose && <p className="mt-1.5 text-sm leading-relaxed text-slate-700"><span className="font-semibold text-ink">Propose:</span> {m.propose}</p>}

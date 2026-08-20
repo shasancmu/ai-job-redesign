@@ -39,12 +39,14 @@ export async function POST(request: Request) {
 
     const num = (v: any) => (Number.isFinite(+v) ? +v : 0);
     const comparables = papersRes.papers.map((p) => ({
+      id: p.id,
       title: p.title,
       year: p.year,
       comm: num(p.compot),
       authors: (p.researcherNames || []).map((a) => a.res_name).filter(Boolean).slice(0, 3).join(", "),
     }));
     const patents = patentsRes.patents.map((p) => ({
+      id: p.id,
       title: p.title,
       year: p.year,
       assignees: (p.assigneeNames || []).slice(0, 3).join(", "),

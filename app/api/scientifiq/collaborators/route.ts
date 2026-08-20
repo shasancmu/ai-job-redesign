@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 
     const candidates = researchers.map((r, i) => {
       const e = summarizeExpert(r);
-      return { index: i, name: e.name, org: e.org, subfields: e.subfields, bio: e.bio, scipot: e.scipot, compot: e.compot, titles: (e.representative || []).join("; ") };
+      return { index: i, id: e.id, name: e.name, org: e.org, subfields: e.subfields, bio: e.bio, scipot: e.scipot, compot: e.compot, titles: (e.representative || []).join("; ") };
     });
 
     const report = await collaboratorsAI({ focus, connectionKinds, scopeLabel, candidates });
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
       .map((m: any) => {
         const c = candidates[m.index];
         if (!c) return null;
-        return { ...m, org: c.org, subfields: c.subfields, bio: c.bio, scipot: c.scipot, compot: c.compot };
+        return { ...m, sciId: c.id, org: c.org, subfields: c.subfields, bio: c.bio, scipot: c.scipot, compot: c.compot };
       })
       .filter(Boolean);
 

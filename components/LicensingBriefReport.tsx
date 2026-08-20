@@ -1,6 +1,7 @@
 "use client";
 
 import BottomLine from "@/components/BottomLine";
+import { sciLink, SciLink } from "@/lib/scientifiqLinks";
 
 type Score = { raw: number; stars: number };
 type Scores = { commercial: Score; scientific: Score; social: Score };
@@ -47,8 +48,8 @@ export default function LicensingBriefReport({
 }: {
   brief: Brief;
   scores?: Scores;
-  comparables?: { title: string; year?: number; comm: number; authors?: string }[];
-  patents?: { title: string; year?: number; assignees: string }[];
+  comparables?: { id?: string; title: string; year?: number; comm: number; authors?: string }[];
+  patents?: { id?: string; title: string; year?: number; assignees: string }[];
   title?: string;
 }) {
   return (
@@ -71,7 +72,10 @@ export default function LicensingBriefReport({
             <ScoreCard label="Scientific" s={scores.scientific} />
             <ScoreCard label="Social" s={scores.social} />
           </div>
-          <p className="mt-2 text-xs text-slate-400">Scientifiq&apos;s forward-looking scores for this abstract (predicted at publish, not citation-based).</p>
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs text-slate-400">Scientifiq&apos;s forward-looking scores for this abstract (predicted at publish, not citation-based).</p>
+            {title && <SciLink href={sciLink.search(title)}>Explore this space on Scientifiq</SciLink>}
+          </div>
         </div>
       )}
 
@@ -106,7 +110,10 @@ export default function LicensingBriefReport({
               {patents.map((p, i) => (
                 <div key={i} className="p-4">
                   <div className="text-sm font-medium text-ink">{p.title}</div>
-                  <div className="mt-0.5 text-xs text-slate-400">{[p.year, p.assignees].filter(Boolean).join(" · ")}</div>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-slate-400">
+                    <span>{[p.year, p.assignees].filter(Boolean).join(" · ")}</span>
+                    {p.id && <SciLink href={sciLink.patent(p.id)}>Scientifiq</SciLink>}
+                  </div>
                 </div>
               ))}
             </div>
@@ -123,7 +130,10 @@ export default function LicensingBriefReport({
               <div key={i} className="flex items-start justify-between gap-3 p-4">
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium text-ink">{c.title}</div>
-                  <div className="mt-0.5 text-xs text-slate-400">{[c.year, c.authors].filter(Boolean).join(" · ")}</div>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-slate-400">
+                    <span>{[c.year, c.authors].filter(Boolean).join(" · ")}</span>
+                    {c.id && <SciLink href={sciLink.paper(c.id)}>Scientifiq</SciLink>}
+                  </div>
                 </div>
                 <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-mist px-2 py-0.5 text-[11px] font-medium text-slate2">Com<span className="font-bold text-ink">{Math.round(c.comm)}</span></span>
               </div>

@@ -2,6 +2,7 @@
 
 import BottomLine from "@/components/BottomLine";
 import { Meter, StatTile, Sparkline, BarList, Drill, RankRow, PotChip } from "@/components/ReportKit";
+import { sciLink, SciLink } from "@/lib/scientifiqLinks";
 import type { DomainBriefData, ExpertSummary } from "@/lib/domainBrief";
 
 type Theme = { title: string; detail: string };
@@ -32,6 +33,7 @@ function ExpertRow({ e, rank }: { e: ExpertSummary; rank: number }) {
           {e.representative.map((t, i) => <li key={i} className="text-xs text-slate-500">· {t}</li>)}
         </ul>
       )}
+      <div className="mt-2"><SciLink href={sciLink.researcher(e.id)}>Full profile on Scientifiq</SciLink></div>
     </RankRow>
   );
 }
@@ -63,6 +65,11 @@ export default function DomainBriefReport({ brief, data }: { brief: Brief; data:
         {trend.length > 1 ? <Sparkline label="Trajectory" points={trend} hint={trend[trend.length - 1] >= trend[0] ? "rising" : "steady"} /> : <Meter label="Social" value={data.avgSocPot} hint="avg potential" />}
       </div>
       <p className="-mt-2 text-[11px] text-slate-400">Potential is Scientifiq&apos;s forward-looking score (predicted at publish, not citations). Counts are the most-relevant sample.</p>
+
+      {/* Explore the whole domain on Scientifiq */}
+      <div className="flex justify-end">
+        <SciLink href={sciLink.search(data.domain)}>Explore &ldquo;{data.domain}&rdquo; on Scientifiq</SciLink>
+      </div>
 
       {/* Top experts — scan the leaders, drill for detail */}
       {experts.length > 0 && (
@@ -105,7 +112,10 @@ export default function DomainBriefReport({ brief, data }: { brief: Brief; data:
                 <div key={p.id} className="flex items-start justify-between gap-3 py-2.5">
                   <div className="min-w-0 flex-1">
                     {p.url ? <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-ink hover:underline">{p.title}</a> : <span className="text-sm font-medium text-ink">{p.title}</span>}
-                    <div className="mt-0.5 text-xs text-slate-400">{[p.year, p.authors, p.journal].filter(Boolean).join(" · ")}</div>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-slate-400">
+                      <span>{[p.year, p.authors, p.journal].filter(Boolean).join(" · ")}</span>
+                      <SciLink href={sciLink.paper(p.id)}>Scientifiq</SciLink>
+                    </div>
                   </div>
                   <span className="flex shrink-0 flex-col items-end gap-1"><PotChip label="Com" value={p.compot} /><PotChip label="Sci" value={p.scipot} /></span>
                 </div>
