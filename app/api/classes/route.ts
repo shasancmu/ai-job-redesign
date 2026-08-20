@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isAdmin } from "@/lib/admin";
+import { facilitatorAccess } from "@/lib/orgs";
 import { normalizeCode } from "@/lib/classes";
 import { MODULES } from "@/lib/modules";
 
@@ -16,7 +16,7 @@ export async function GET() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return new Response("Unauthorized", { status: 401 });
-  if (!isAdmin(user.email)) return new Response("Forbidden", { status: 403 });
+  if (!(await facilitatorAccess(user)).ok) return new Response("Forbidden", { status: 403 });
 
   let admin;
   try {
@@ -49,7 +49,8 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return new Response("Unauthorized", { status: 401 });
-  if (!isAdmin(user.email)) return new Response("Forbidden", { status: 403 });
+  const access = await facilitatorAccess(user);
+  if (!access.ok) return new Response("Forbidden", { status: 403 });
 
   let body: any;
   try {
@@ -87,9 +88,12 @@ export async function POST(request: Request) {
     return Response.json({ error: "That code is taken." }, { status: 409 });
   }
 
+  // Stamp the org so it's scoped to the facilitator's white label (their first
+  // org; superadmin-created classes stay unscoped unless they belong to an org).
+  const org_id = access.orgIds[0] || null;
   const { error } = await admin
     .from("classes")
-    .upsert({ code, name, owner_id: user.id, modules, language, kind, allowed_emails }, { onConflict: "code" });
+    .upsert({ code, name, owner_id: user.id, modules, language, kind, allowed_emails, ...(org_id ? { org_id } : {}) }, { onConflict: "code" });
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
   return Response.json({ ok: true, code });
@@ -103,7 +107,7 @@ export async function DELETE(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return new Response("Unauthorized", { status: 401 });
-  if (!isAdmin(user.email)) return new Response("Forbidden", { status: 403 });
+  if (!(await facilitatorAccess(user)).ok) return new Response("Forbidden", { status: 403 });
 
   const code = normalizeCode(new URL(request.url).searchParams.get("code") || "");
   if (!code) return Response.json({ error: "code required" }, { status: 400 });

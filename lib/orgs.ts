@@ -89,6 +89,15 @@ export async function isSuperadmin(user: { id: string; email?: string | null } |
   return (await roleFor(user)).superadmin;
 }
 
+// Can this user reach the facilitator console, and scoped to which orgs?
+// Superadmin sees everything; a facilitator sees only their org(s).
+export async function facilitatorAccess(
+  user: { id: string; email?: string | null } | null
+): Promise<{ ok: boolean; superadmin: boolean; orgIds: string[] }> {
+  const r = await roleFor(user);
+  return { ok: r.superadmin || r.facilitatorOrgIds.length > 0, superadmin: r.superadmin, orgIds: r.facilitatorOrgIds };
+}
+
 // Resolve the branding/scope org for a request. Priority: an explicit slug (from
 // a /{slug} URL) the user may access, else the cookie, else their first org.
 export async function getActiveOrg(

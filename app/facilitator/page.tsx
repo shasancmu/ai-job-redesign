@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin, UNTAGGED } from "@/lib/admin";
+import { facilitatorAccess } from "@/lib/orgs";
 import { MODULES, moduleByExercise } from "@/lib/modules";
 import { ROLE_META } from "@/lib/workflow";
 import { canvasByExercise, scoreColor } from "@/lib/canvases";
@@ -26,7 +27,8 @@ export default async function Facilitator({
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  if (!isAdmin(user.email)) redirect("/dashboard");
+  const access = await facilitatorAccess(user);
+  if (!access.ok) redirect("/dashboard");
 
   // The facilitator view reads across all users, so it needs the service role.
   let admin;
@@ -45,23 +47,36 @@ export default async function Facilitator({
     );
   }
 
+  // Non-superadmin facilitators are scoped to the cohorts of classes they own or
+  // that belong to their org(s). Superadmin (allowedCohorts = null) sees all.
+  let allowedCohorts: string[] | null = null;
+  if (!access.superadmin) {
+    const orgFilter = access.orgIds.length ? `,org_id.in.(${access.orgIds.join(",")})` : "";
+    const { data: myClasses } = await admin.from("classes").select("code").or(`owner_id.eq.${user.id}${orgFilter}`);
+    allowedCohorts = (myClasses || []).map((c: any) => c.code);
+  }
+
   const cohort = searchParams.cohort;
+  if (cohort && allowedCohorts && !allowedCohorts.includes(cohort)) redirect("/facilitator");
   return cohort ? (
     <CohortDetail admin={admin} cohort={cohort} />
   ) : (
-    <Overview admin={admin} />
+    <Overview admin={admin} allowedCohorts={allowedCohorts} />
   );
 }
 
 // ---------------------------------------------------------------- Overview ---
-async function Overview({ admin }: { admin: any }) {
+async function Overview({ admin, allowedCohorts }: { admin: any; allowedCohorts: string[] | null }) {
   const { data: sessions } = await admin
     .from("sessions")
     .select("id, cohort, status, host_id, guest_id, created_at")
     .order("created_at", { ascending: false });
 
+  const allow = allowedCohorts ? new Set(allowedCohorts) : null;
   const groups = new Map<string, any[]>();
   for (const s of sessions || []) {
+    // Facilitators only see their own cohorts; untagged sessions are superadmin-only.
+    if (allow && !(s.cohort && allow.has(s.cohort))) continue;
     const key = s.cohort || UNTAGGED;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(s);
@@ -74,10 +89,10 @@ async function Overview({ admin }: { admin: any }) {
   });
 
   const totalPeople = new Set<string>();
-  (sessions || []).forEach((s: any) => {
+  for (const arr of groups.values()) for (const s of arr) {
     if (s.host_id) totalPeople.add(s.host_id);
     if (s.guest_id) totalPeople.add(s.guest_id);
-  });
+  }
 
   return (
     <Shell>
