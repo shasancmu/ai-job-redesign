@@ -22,6 +22,7 @@ import EmpathyRoom from "@/components/EmpathyRoom";
 import ResumeRoom from "@/components/ResumeRoom";
 import VoiceResumeRoom from "@/components/VoiceResumeRoom";
 import MyopiaRoom from "@/components/MyopiaRoom";
+import PersonalNetworkRoom from "@/components/PersonalNetworkRoom";
 import { variantForExercise } from "@/lib/disclosure";
 import { canvasByExercise } from "@/lib/canvases";
 import { scenarioByExercise } from "@/lib/negotiation";
@@ -169,6 +170,21 @@ export default async function RoomPage({
       .eq("author_id", user.id)
       .maybeSingle();
     return <ConsultRoom me={user.id} session={session} initialWorkspace={workspace || { session_id: session.id, author_id: user.id }} />;
+  }
+
+  // Map Your Personal Network: single-user, host only.
+  if (session.exercise === "personal-network") {
+    if (!amHost) redirect("/dashboard");
+    await supabase
+      .from("workspaces")
+      .upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
+    return <PersonalNetworkRoom me={user.id} session={session} initialWorkspace={workspace || { session_id: session.id, author_id: user.id }} />;
   }
 
   // Find Your Superpower: single-user, host only.

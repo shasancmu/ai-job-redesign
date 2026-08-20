@@ -54,6 +54,7 @@ export const EXPERIMENT_FLOWS: { key: string; label: string }[] = [
   { key: "workflow-solo", label: "Redesign a Workflow with AI" },
   { key: "myopia-business", label: "Business Blind Spots" },
   { key: "myopia-career", label: "Career Blind Spots" },
+  { key: "personal-network", label: "Map Your Personal Network" },
 ];
 
 export const METRICS: { key: "completion" | "depth" | "shared"; label: string; help: string }[] = [

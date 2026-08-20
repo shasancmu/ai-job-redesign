@@ -58,6 +58,17 @@ export default function ModuleIcon({
           <path d="M7.6 8.2 10.6 10.6M16.4 7.2 13.4 10.6M15.6 15.6 13.4 13.4M8.4 15.6 10.6 13.4" />
         </svg>
       );
+    case "personal-network": // ego at center with contacts around
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="2.4" />
+          <circle cx="5" cy="6" r="1.8" />
+          <circle cx="19" cy="6" r="1.8" />
+          <circle cx="5" cy="18" r="1.8" />
+          <circle cx="19" cy="18" r="1.8" />
+          <path d="M10.2 10.6 6.4 7.2M13.8 10.6 17.6 7.2M10.2 13.4 6.4 16.8M13.8 13.4 17.6 16.8" />
+        </svg>
+      );
     case "benchmark": // a gauge / timer
       return (
         <svg {...common}>

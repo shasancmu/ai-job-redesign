@@ -4,6 +4,7 @@ import { boardMember, type BoardEntry } from "@/lib/board";
 import { canvasByExercise } from "@/lib/canvases";
 import ConsultReport from "@/components/ConsultReport";
 import SuperpowerReport from "@/components/SuperpowerReport";
+import PersonalNetworkReport from "@/components/PersonalNetworkReport";
 import ResumeReport from "@/components/ResumeReport";
 import MyopiaReport from "@/components/MyopiaReport";
 import BoardVerdict from "@/components/BoardVerdict";
@@ -117,6 +118,16 @@ async function renderSession(admin: any, s: any) {
       <>
         <Head eyebrow="Find Your Superpower" title="A superpower profile" />
         <SuperpowerReport report={canvas.report} />
+      </>
+    );
+  }
+
+  if (ex === "personal-network") {
+    if (!canvas.report) return null;
+    return (
+      <>
+        <Head eyebrow="Map Your Personal Network" title="A personal network map" />
+        <PersonalNetworkReport report={canvas.report} metrics={canvas.metrics} contacts={canvas.contacts || []} ties={canvas.ties || {}} />
       </>
     );
   }

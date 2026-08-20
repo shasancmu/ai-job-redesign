@@ -51,6 +51,7 @@ export type ModuleDef = {
     | "resume-voice"
     | "myopia-business"
     | "myopia-career"
+    | "personal-network"
     | "voice-consult"; // which room engine renders it
   name: string;
   tagline: string;
@@ -494,6 +495,21 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_MYOPIA",
   },
   {
+    slug: "personal-network",
+    exercise: "personal-network",
+    name: "Map Your Personal Network",
+    tagline: "Map the people around you, across your org, your industry, and your personal life, and see the real shape of your network: where you broker between separate worlds, where you're boxed in, and the specific moves that would open it up.",
+    description:
+      "Grounded in network science: Ron Burt's structural holes and constraint, Granovetter's strength of weak ties, Krackhardt on closure and trust, and Rob Cross on energy networks. You list your key contacts across four worlds (inside your org, outside it, your field, and personal), tag each tie's strength and whether it energizes or drains you, then mark who knows whom. From that we compute your real ego-network statistics, density, effective size, Burt constraint, diversity, and energy balance, draw your network as a graph, and hand back an honest read: whether you broker across structural holes or sit in a closed group, where your network is thin, and the concrete people and moves to strengthen it.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 22,
+    ai: true,
+    emoji: "🕸️",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_NETWORK_MAP",
+  },
+  {
     slug: "career-myopia",
     exercise: "myopia-career",
     name: "Find Your Career's Blind Spots",
@@ -556,6 +572,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "customer-empathy": "strategy",
   "business-myopia": "strategy",
   "career-myopia": "redesign",
+  "personal-network": "redesign",
   "close-the-offer": "negotiate",
   "name-your-price": "negotiate",
   benchmark: "live",
@@ -607,6 +624,7 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "refresh-resume": ["career", "ai"],
   "refresh-resume-voice": ["career", "ai"],
   "career-myopia": ["career", "strategy"],
+  "personal-network": ["career", "leadership", "strategy"],
   "business-myopia": ["strategy", "innovation", "leadership"],
   // Negotiation
   "close-the-offer": ["negotiation", "career"],
