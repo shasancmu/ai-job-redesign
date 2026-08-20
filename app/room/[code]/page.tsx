@@ -79,7 +79,8 @@ export default async function RoomPage({
   if (session.exercise === "network") {
     if (!amHost) redirect("/dashboard");
     if (!session.cohort) redirect("/dashboard");
-    return <NetworkRoom me={user.id} session={session} />;
+    const { data: netProf } = await supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle();
+    return <NetworkRoom me={user.id} session={session} myName={(netProf as any)?.display_name || ""} />;
   }
 
   // Career X-ray (resume or JD exposure analysis): single-user, host only.

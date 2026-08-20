@@ -16,7 +16,7 @@ function tf(t: T, key: string, fallback: string) {
   return v === key ? fallback : v;
 }
 
-export default function NetworkRoom({ me, session }: { me: string; session: any }) {
+export default function NetworkRoom({ me, session, myName = "" }: { me: string; session: any; myName?: string }) {
   const supabase = createClient();
   const t = useT();
   const cohort = session.cohort || "__untagged__";
@@ -26,6 +26,7 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
   const [advice, setAdvice] = useState<Set<string>>(new Set());
   const [friends, setFriends] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   const loadRoster = async () => {
     const r = await fetch(`/api/network/roster?cohort=${encodeURIComponent(cohort)}`, {
@@ -48,6 +49,10 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
         setSelfId(data.self_id);
         setAdvice(new Set(data.advice || []));
         setFriends(new Set(data.friends || []));
+      } else if (myName.trim()) {
+        // Logged in with a known name → put them in the roster automatically so
+        // they never have to type it. They can still change it on this step.
+        await identify({ name: myName.trim() });
       }
       setStep("name");
     })();
@@ -56,14 +61,22 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
   // Set my identity (pick existing OR add new) via one endpoint that prevents
   // duplicate/orphan roster entries.
   async function identify(payload: { pickId?: string; name?: string }) {
-    const r = await fetch("/api/network/join", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cohort, ...payload }),
-    }).then((x) => x.json());
-    if (r.id) {
-      setRoster(r.roster || []);
-      setSelfId(r.id);
+    setErr(null);
+    try {
+      const res = await fetch("/api/network/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cohort, ...payload }),
+      });
+      const r = await res.json().catch(() => ({}));
+      if (res.ok && r.id) {
+        setRoster(r.roster || []);
+        setSelfId(r.id);
+      } else {
+        setErr(r.error === "service role not set" ? "The network isn't fully set up on the server (missing service role key)." : tf(t, "group.netSaveFailed", "Couldn't save your name. Try again."));
+      }
+    } catch {
+      setErr(tf(t, "group.netSaveFailed", "Couldn't save your name. Try again."));
     }
   }
 
@@ -111,7 +124,7 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
   const selfName = roster.find((r) => r.id === selfId)?.name;
 
   return (
-    <main className="mx-auto max-w-lg px-5 py-8">
+    <main className="mx-auto max-w-lg px-5 py-8 pb-28">
       <div className="mb-5 flex items-center justify-between">
         <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
           ← {t("room.exit")}
@@ -128,9 +141,11 @@ export default function NetworkRoom({ me, session }: { me: string; session: any 
           <SelfPicker
             roster={roster}
             selfId={selfId}
+            initialName={selfId ? "" : myName}
             onPick={(id) => identify({ pickId: id })}
             onAdd={(name) => identify({ name })}
           />
+          {err && <p className="mt-3 text-sm text-clay">{err}</p>}
           {selfId && (
             <button onClick={removeMe} className="mt-3 text-sm text-clay hover:underline">
               {t("group.netNotMeRestart")}
@@ -217,14 +232,16 @@ function SelfPicker({
   selfId,
   onPick,
   onAdd,
+  initialName = "",
 }: {
   roster: Person[];
   selfId: string | null;
   onPick: (id: string) => void;
   onAdd: (name: string) => void;
+  initialName?: string;
 }) {
   const t = useT();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialName);
   const filtered = roster.filter((r) => r.name.toLowerCase().includes(q.toLowerCase()));
   const exact = roster.some((r) => r.name.trim().toLowerCase() === q.trim().toLowerCase());
   return (
