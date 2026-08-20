@@ -33,7 +33,7 @@ function ExpertRow({ e, rank }: { e: ExpertSummary; rank: number }) {
           {e.representative.map((t, i) => <li key={i} className="text-xs text-slate-500">· {t}</li>)}
         </ul>
       )}
-      <div className="mt-2"><SciLink href={sciLink.researcher(e.id)}>Full profile on Scientifiq</SciLink></div>
+      <div className="mt-2"><SciLink href={sciLink.researcher(e.id, e.name)}>Full profile on Scientifiq</SciLink></div>
     </RankRow>
   );
 }
@@ -114,7 +114,7 @@ export default function DomainBriefReport({ brief, data }: { brief: Brief; data:
                     {p.url ? <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-ink hover:underline">{p.title}</a> : <span className="text-sm font-medium text-ink">{p.title}</span>}
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-slate-400">
                       <span>{[p.year, p.authors, p.journal].filter(Boolean).join(" · ")}</span>
-                      <SciLink href={sciLink.paper(p.id)}>Scientifiq</SciLink>
+                      <SciLink href={sciLink.paper(p.id, p.title)}>Scientifiq</SciLink>
                     </div>
                   </div>
                   <span className="flex shrink-0 flex-col items-end gap-1"><PotChip label="Com" value={p.compot} /><PotChip label="Sci" value={p.scipot} /></span>

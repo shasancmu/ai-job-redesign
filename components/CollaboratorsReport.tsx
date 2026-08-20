@@ -70,7 +70,7 @@ export default function CollaboratorsReport({ report, scopeLabel }: { report: Re
               </div>
               <div className="mt-0.5 flex flex-wrap items-center gap-x-2 pl-8 text-xs text-slate-400">
                 {(m.org || m.subfields) && <span>{[m.org, m.subfields].filter(Boolean).join(" · ")}</span>}
-                {m.sciId && <SciLink href={sciLink.researcher(m.sciId)}>Profile</SciLink>}
+                {m.sciId && <SciLink href={sciLink.researcher(m.sciId, m.name)}>Profile</SciLink>}
               </div>
               <div className="mt-2 pl-8">
                 <p className="text-sm leading-relaxed text-slate-700"><span className="font-semibold text-ink">Why them:</span> {m.why}</p>

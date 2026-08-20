@@ -112,7 +112,7 @@ export default function LicensingBriefReport({
                   <div className="text-sm font-medium text-ink">{p.title}</div>
                   <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-slate-400">
                     <span>{[p.year, p.assignees].filter(Boolean).join(" · ")}</span>
-                    {p.id && <SciLink href={sciLink.patent(p.id)}>Scientifiq</SciLink>}
+                    {p.id && <SciLink href={sciLink.patent(p.id, p.title)}>Scientifiq</SciLink>}
                   </div>
                 </div>
               ))}
@@ -132,7 +132,7 @@ export default function LicensingBriefReport({
                   <div className="text-sm font-medium text-ink">{c.title}</div>
                   <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-slate-400">
                     <span>{[c.year, c.authors].filter(Boolean).join(" · ")}</span>
-                    {c.id && <SciLink href={sciLink.paper(c.id)}>Scientifiq</SciLink>}
+                    {c.id && <SciLink href={sciLink.paper(c.id, c.title)}>Scientifiq</SciLink>}
                   </div>
                 </div>
                 <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-mist px-2 py-0.5 text-[11px] font-medium text-slate2">Com<span className="font-bold text-ink">{Math.round(c.comm)}</span></span>
