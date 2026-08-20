@@ -1827,6 +1827,96 @@ Return STRICT JSON only, no prose outside it:
   return extractJson(raw);
 }
 
+// ---- Find Collaborators (Scientifiq matchmaking) --------------------------
+// Ranks candidate researchers at the person's institution by genuine
+// COMPLEMENTARITY to their described work, not similarity. The candidates and
+// their scores are authoritative (from Scientifiq); the model judges fit.
+export async function collaboratorsAI(input: {
+  focus: string;
+  connectionKinds: string[];
+  scopeLabel: string;
+  candidates: { index: number; name: string; org: string; subfields: string; bio: string; scipot: number; compot: number; titles: string }[];
+  nudge?: string;
+}): Promise<any> {
+  const list = input.candidates
+    .map((c) => `[${c.index}] ${c.name} (${c.org}) sci ${Math.round(c.scipot)}, comm ${Math.round(c.compot)}. Subfields: ${c.subfields || "n/a"}. ${c.bio ? "Bio: " + c.bio.slice(0, 260) : ""} ${c.titles ? "Recent: " + c.titles.slice(0, 160) : ""}`)
+    .join("\n");
+  const kinds = input.connectionKinds?.length ? input.connectionKinds.join("; ") : "any productive collaboration";
+
+  const system = `You help a researcher find COMPLEMENTARY collaborators at their own institution (${input.scopeLabel}). You are given their described work and a list of candidate researchers there (semantically related, with authoritative Scientifiq potential scores). Your job is judgment, not search.
+
+What matters:
+- COMPLEMENTARITY over similarity. The best collaborator ADDS something the person's work lacks: a method or technique they don't have, a domain to apply their work in, a clinical or field partner, a co-PI who covers a different piece, or a data source. Someone who does exactly the same thing is the LEAST useful. Prefer candidates in a DIFFERENT sub-field who are still relevant, the people the person is least likely to already know.
+- Fit the kind(s) of connection they asked for: ${kinds}.
+- Only use candidates from the list; refer to each by its [index] and exact name. Do not invent people. If a candidate is clearly just the same specialty with nothing to add, leave them out.
+- Ground every "why" in the specific complementarity (what they bring that the person doesn't).
+
+${ADVICE_PRINCIPLES}
+Here, the decision to shift is who to reach out to FIRST and what to say.
+
+Return STRICT JSON only, plain text values (no markdown):
+{
+  ${BOTTOM_LINE_JSON},
+  "matches": [ { "index": <number from the list>, "name": "exact name", "why": "what they complement, specific to the person's work", "propose": "the concrete collaboration to propose", "intro": "a 2-3 sentence first-person intro message the person could send" } ],
+  "note": "one honest line, including that these are drawn from a relevance sample"
+}
+Rank matches best-first, at most 7.${expNudge(input.nudge)}`;
+
+  const raw = await complete([
+    { role: "system", content: system },
+    { role: "user", content: `THEIR WORK:\n${input.focus.slice(0, 4000)}\n\nWHAT THEY WANT: ${kinds}\n\nCANDIDATES at ${input.scopeLabel}:\n${list}` },
+  ], { json: true, temperature: 0.5, maxTokens: 3200 });
+  return extractJson(raw);
+}
+
+// ---- Licensing Brief (Scientifiq scouting) --------------------------------
+export async function licensingBriefAI(input: {
+  abstract: string;
+  title?: string;
+  constraints: { licenseType?: string; sectors?: string; stage?: string };
+  scores: any; // { commercial:{raw,stars}, scientific:{...}, social:{...} }
+  comparables: { title: string; year?: number; comm: number; authors?: string }[];
+  patents: { title: string; year?: number; assignees: string }[];
+  nudge?: string;
+}): Promise<any> {
+  const s = input.scores || {};
+  const pct = (x: any) => Math.round((x?.raw ?? 0) * 100);
+  const scoreLine = `Commercial potential ${pct(s.commercial)}/100 (${s.commercial?.stars ?? "?"}★), scientific ${pct(s.scientific)}/100 (${s.scientific?.stars ?? "?"}★), social ${pct(s.social)}/100 (${s.social?.stars ?? "?"}★). These are Scientifiq's predictive scores for THIS abstract.`;
+  const comps = (input.comparables || []).slice(0, 8).map((c) => `"${c.title}"${c.year ? ` (${c.year})` : ""} commPot ${Math.round(c.comm)}${c.authors ? ", " + c.authors : ""}`).join("\n");
+  const pats = (input.patents || []).slice(0, 8).map((p) => `"${p.title}"${p.year ? ` (${p.year})` : ""}${p.assignees ? " — assignees: " + p.assignees : ""}`).join("\n");
+  const con = input.constraints || {};
+  const conLine = [con.licenseType && `License type: ${con.licenseType}`, con.sectors && `Target sectors: ${con.sectors}`, con.stage && `Stage: ${con.stage}`].filter(Boolean).join("; ") || "no constraints specified";
+
+  const system = `You are a technology-transfer analyst writing a LICENSING BRIEF on one invention/disclosure for a university tech-transfer officer. You are given the invention's abstract, Scientifiq's predictive potential scores for it, comparable high-potential science, and the nearby patent landscape (with assignees, the companies already patenting in the space). Be commercially concrete and honest.
+
+Rules:
+- Do NOT invent numbers, companies, or patents not present. Name patent assignees from the data when you point to likely licensees or competitors (note that assignee names may be non-English/global).
+- Use the potential scores as a forward-looking signal, not proof; if commercial potential is low, say the case is weak rather than forcing optimism.
+- Respect the office's constraints: ${conLine}.
+- The patent assignees are your best signal for who is active in the space (potential licensees or competitors), since a firms endpoint is unavailable.
+
+${ADVICE_PRINCIPLES}
+Here, the decision to shift is whether and how to pursue this: worth developing? for whom? what is the first outreach?
+
+Return STRICT JSON only, plain text values (no markdown):
+{
+  ${BOTTOM_LINE_JSON},
+  "headline": "one sentence verdict on the commercial opportunity",
+  "market": "2-3 sentences: who would want this and the problem it solves commercially",
+  "licensees": [ { "who": "a type of company or a named assignee from the patent data", "why": "why they'd want it" } ],
+  "ipLandscape": "2-3 sentences reading the patent landscape: how crowded, who holds nearby IP, any freedom-to-operate flag",
+  "risks": ["the real commercial/technical/IP risks, honestly"],
+  "outreach": ["a concrete, ordered outreach and development plan the officer can start this week"],
+  "note": "one honest closing line with data caveats"
+}${expNudge(input.nudge)}`;
+
+  const raw = await complete([
+    { role: "system", content: system },
+    { role: "user", content: `INVENTION${input.title ? ` — ${input.title}` : ""}:\n${input.abstract.slice(0, 5000)}\n\nSCORES: ${scoreLine}\n\nCOMPARABLE SCIENCE:\n${comps || "(none found)"}\n\nNEARBY PATENTS:\n${pats || "(none found)"}\n\nOFFICE CONSTRAINTS: ${conLine}` },
+  ], { json: true, temperature: 0.5, maxTokens: 3200 });
+  return extractJson(raw);
+}
+
 // ===========================================================================
 // Synthetic experiments. AI personas act as simulated subjects so a variant can
 // be pre-tested in minutes. DIRECTIONAL ONLY: a persona + judge share the

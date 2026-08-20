@@ -6,6 +6,8 @@ import ConsultReport from "@/components/ConsultReport";
 import SuperpowerReport from "@/components/SuperpowerReport";
 import PersonalNetworkReport from "@/components/PersonalNetworkReport";
 import DomainBriefReport from "@/components/DomainBriefReport";
+import CollaboratorsReport from "@/components/CollaboratorsReport";
+import LicensingBriefReport from "@/components/LicensingBriefReport";
 import ResumeReport from "@/components/ResumeReport";
 import MyopiaReport from "@/components/MyopiaReport";
 import BoardVerdict from "@/components/BoardVerdict";
@@ -139,6 +141,26 @@ async function renderSession(admin: any, s: any) {
       <>
         <Head eyebrow="Domain Expertise Brief" title={canvas.data.domain ? `${canvas.data.domain} · ${canvas.data.scopeLabel}` : "Domain expertise"} />
         <DomainBriefReport brief={canvas.brief} data={canvas.data} />
+      </>
+    );
+  }
+
+  if (ex === "collaborators") {
+    if (!canvas.report) return null;
+    return (
+      <>
+        <Head eyebrow="Find Collaborators" title="Complementary collaborators" />
+        <CollaboratorsReport report={canvas.report} scopeLabel={canvas.scopeLabel} />
+      </>
+    );
+  }
+
+  if (ex === "licensing-brief") {
+    if (!canvas.brief) return null;
+    return (
+      <>
+        <Head eyebrow="Licensing Brief" title={canvas.title || "Licensing brief"} />
+        <LicensingBriefReport brief={canvas.brief} scores={canvas.scores} comparables={canvas.comparables || []} patents={canvas.patents || []} title={canvas.title} />
       </>
     );
   }

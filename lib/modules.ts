@@ -53,6 +53,8 @@ export type ModuleDef = {
     | "myopia-career"
     | "personal-network"
     | "domain-brief"
+    | "collaborators"
+    | "licensing-brief"
     | "voice-consult"; // which room engine renders it
   name: string;
   tagline: string;
@@ -526,6 +528,36 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_DOMAIN_BRIEF",
   },
   {
+    slug: "find-collaborators",
+    exercise: "collaborators",
+    name: "Find Collaborators",
+    tagline: "Describe your research and find the people at your university who complement it, the ones who add a method, a domain, a clinical partner, or a co-PI you don't already have, each with a draft intro to send.",
+    description:
+      "Built on Scientifiq.AI. Describe your work in a few sentences, pick a scope (your institution or the region), and say what kind of connection you need (a technique you lack, a domain to apply your work in, a clinical or field partner, a co-PI, a data source). It semantically searches the researchers at that institution and ranks them by genuine complementarity, not similarity: it favors people in adjacent fields who add what you don't have, the ones you're least likely to already know. Each match comes with why they complement you, what to propose, and a ready-to-send intro message.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 5,
+    ai: true,
+    emoji: "🔗",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_COLLABORATORS",
+  },
+  {
+    slug: "licensing-brief",
+    exercise: "licensing-brief",
+    name: "Licensing Brief",
+    tagline: "Paste a disclosure or abstract and get a decision-ready licensing brief: its predicted commercial potential, the nearby patent landscape, who to approach, the risks, and an outreach plan.",
+    description:
+      "A tech-transfer tool built on Scientifiq.AI. Paste an invention's abstract or disclosure and set your constraints (exclusive vs. non-exclusive, target sectors, stage). It scores the invention for commercial, scientific, and social potential, pulls comparable high-potential science and the nearby patent landscape (assignees show who is already active in the space and who might license or compete), and returns a structured brief: the bottom line on whether and for whom to pursue it, the market, likely licensees, the IP read, the honest risks, and an ordered outreach plan a licensing officer can start this week.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 5,
+    ai: true,
+    emoji: "📜",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_LICENSING",
+  },
+  {
     slug: "career-myopia",
     exercise: "myopia-career",
     name: "Find Your Career's Blind Spots",
@@ -590,6 +622,8 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "career-myopia": "redesign",
   "personal-network": "redesign",
   "domain-brief": "strategy",
+  "find-collaborators": "redesign",
+  "licensing-brief": "strategy",
   "close-the-offer": "negotiate",
   "name-your-price": "negotiate",
   benchmark: "live",
@@ -643,6 +677,8 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "career-myopia": ["career", "strategy"],
   "personal-network": ["career", "leadership", "strategy"],
   "domain-brief": ["strategy", "ai", "innovation"],
+  "find-collaborators": ["career", "innovation", "ai"],
+  "licensing-brief": ["strategy", "entrepreneurship", "innovation"],
   "business-myopia": ["strategy", "innovation", "leadership"],
   // Negotiation
   "close-the-offer": ["negotiation", "career"],

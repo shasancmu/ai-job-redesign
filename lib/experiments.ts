@@ -55,6 +55,9 @@ export const EXPERIMENT_FLOWS: { key: string; label: string }[] = [
   { key: "myopia-business", label: "Business Blind Spots" },
   { key: "myopia-career", label: "Career Blind Spots" },
   { key: "personal-network", label: "Map Your Personal Network" },
+  { key: "domain-brief", label: "Domain Expertise Brief" },
+  { key: "collaborators", label: "Find Collaborators" },
+  { key: "licensing-brief", label: "Licensing Brief" },
 ];
 
 export const METRICS: { key: "completion" | "depth" | "shared"; label: string; help: string }[] = [

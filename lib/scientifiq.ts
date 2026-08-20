@@ -226,8 +226,24 @@ export async function getFields(): Promise<SciField[]> {
   return (list as any[]).map((f) => ({ code: String(f.code ?? f.id ?? ""), name: String(f.name ?? ""), type: f.type }));
 }
 
-// Sandbox scoring — paste an abstract, get commercial/scientific/social potential.
-export async function scoreAbstract(abstract: string): Promise<SciSandboxScores> {
-  const data = await sciRequest("POST", "/sandbox", { body: { abstract } });
-  return (data?.predictions || data) as SciSandboxScores;
+export type PotentialScore = { raw: number; stars: number }; // raw 0-1, stars 1-5
+export type AbstractScores = {
+  commercial: PotentialScore;
+  scientific: PotentialScore;
+  social: PotentialScore;
+  field?: number;
+};
+
+// Sandbox scoring — paste an abstract, get commercial/scientific/social
+// potential. The combined /sandbox route returns empty predictions, so we call
+// the three individual model endpoints in parallel.
+export async function scoreAbstract(abstract: string): Promise<AbstractScores> {
+  const one = async (kind: "commercial" | "scientific" | "social"): Promise<{ p: PotentialScore; field?: number }> => {
+    const data = await sciRequest("POST", `/sandbox/${kind}`, { body: { abstract } });
+    const pred = data?.predictions || {};
+    const cap = kind[0].toUpperCase() + kind.slice(1);
+    return { p: { raw: Number(pred[`raw${cap}`] ?? 0), stars: Number(pred[`stars${cap}`] ?? 0) }, field: pred.field };
+  };
+  const [c, s, so] = await Promise.all([one("commercial"), one("scientific"), one("social")]);
+  return { commercial: c.p, scientific: s.p, social: so.p, field: c.field };
 }

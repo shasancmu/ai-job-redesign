@@ -80,6 +80,25 @@ export default function ModuleIcon({
           <path d="M8.6 9.3 11.2 8.2M11.6 8.7 10.8 11M9 10.2l1.2 1.4" />
         </svg>
       );
+    case "find-collaborators": // two nodes bridged by a link
+      return (
+        <svg {...common}>
+          <circle cx="6" cy="7" r="2.5" />
+          <circle cx="18" cy="17" r="2.5" />
+          <circle cx="17" cy="6" r="1.6" />
+          <circle cx="7" cy="18" r="1.6" />
+          <path d="M8 8.4 15.6 15.2" />
+        </svg>
+      );
+    case "licensing-brief": // a document with a seal
+      return (
+        <svg {...common}>
+          <path d="M7 3h7l4 4v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+          <path d="M13 3v4h4" />
+          <circle cx="11" cy="14" r="2" />
+          <path d="M11 16v3l-1.2-.9-1.3.9v-3" />
+        </svg>
+      );
     case "benchmark": // a gauge / timer
       return (
         <svg {...common}>
