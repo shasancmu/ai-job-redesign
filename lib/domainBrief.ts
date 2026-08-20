@@ -83,6 +83,7 @@ export type DomainBriefData = {
     firms: { name: string; patents: number; latestYear?: number }[];
     citingPatentCount: number;
     resolvedPatentCount: number;
+    pipeline: { researchers: string[]; firms: string[]; links: { source: string; target: string; value: number }[] };
   };
 };
 

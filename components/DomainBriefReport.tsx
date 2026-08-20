@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Meter, StatTile, Sparkline, BarList, Drill, RankRow, PotChip, SummaryHero, SortControl } from "@/components/ReportKit";
 import CollabGraph from "@/components/CollabGraph";
+import Sankey from "@/components/Sankey";
 import { sciLink, SciLink } from "@/lib/scientifiqLinks";
 import type { DomainBriefData, ExpertSummary } from "@/lib/domainBrief";
 
@@ -133,12 +134,20 @@ export default function DomainBriefReport({ brief, data }: { brief: Brief; data:
       {/* Firms building on this science (patent citations, via Reliance on Science) */}
       {data.firms && data.firms.firms.length > 0 && (
         <div>
-          <h2 className="eyebrow mb-1">Firms building on this science</h2>
+          <h2 className="eyebrow mb-1">From science to industry</h2>
           <p className="mb-2 text-xs text-slate-400">
-            Companies and institutions whose patents cite this body of work, from {data.firms.citingPatentCount.toLocaleString()} citing patents (front-page citations, Reliance on Science). Bar = distinct citing patents held.
+            The pipeline from researchers to the universities and companies whose patents cite their work, {data.firms.citingPatentCount.toLocaleString()} citing patents in all (front-page citations, Reliance on Science). Ribbon width = papers cited.
           </p>
-          <div className="card p-4">
-            <BarList rows={data.firms.firms.slice(0, 12).map((f) => ({ label: f.name, value: f.patents }))} />
+          {data.firms.pipeline && data.firms.pipeline.links.length > 0 ? (
+            <Sankey left={data.firms.pipeline.researchers} right={data.firms.pipeline.firms} links={data.firms.pipeline.links} />
+          ) : (
+            <div className="rounded-xl border border-line bg-mist py-6 text-center text-sm text-slate2">Too few patent citations in this scope to trace a pipeline.</div>
+          )}
+          <div className="mt-2.5">
+            <Drill title="All firms ranked" count={data.firms.firms.length}>
+              <BarList rows={data.firms.firms.slice(0, 15).map((f) => ({ label: f.name, value: f.patents }))} />
+              <p className="mt-2 text-[11px] text-slate-400">Bar = distinct citing patents held. {data.firms.resolvedPatentCount} of {data.firms.citingPatentCount} citing patents resolved to an assignee.</p>
+            </Drill>
           </div>
         </div>
       )}

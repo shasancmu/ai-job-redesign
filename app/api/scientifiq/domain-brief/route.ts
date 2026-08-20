@@ -130,10 +130,12 @@ export async function POST(request: Request) {
 
     // 4) Narrative + the firms-building-on-this-science lookup, in parallel so
     // the (slower) BigQuery + patent-assignee resolution hides behind the AI.
-    const dois = papersRes.papers.map((p) => normalizeDoi(p.url)).filter(Boolean) as string[];
+    const paperInputs = papersRes.papers
+      .filter((p) => normalizeDoi(p.url))
+      .map((p) => ({ doi: p.url, authors: (p.researcherNames || []).map((a) => a.res_name).filter(Boolean).slice(0, 4) }));
     const [brief, firms] = await Promise.all([
       domainBriefAI({ domain, scopeLabel, purpose, data }),
-      BIGQUERY_ENABLED && dois.length ? firmsBuildingOnScience(dois).catch(() => null) : Promise.resolve(null),
+      BIGQUERY_ENABLED && paperInputs.length ? firmsBuildingOnScience(paperInputs).catch(() => null) : Promise.resolve(null),
     ]);
     if (!brief) return Response.json({ error: "Built the data but couldn't write the brief. Try again." }, { status: 502 });
     if (firms) (data as any).firms = firms;

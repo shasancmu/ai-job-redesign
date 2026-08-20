@@ -101,17 +101,18 @@ export function normalizeDoi(urlOrDoi?: string): string | null {
   return d.startsWith("10.") ? d : null;
 }
 
-// Given paper DOIs, return the distinct front-page-citing patents.
-export async function citingPatentsByDoi(dois: string[]): Promise<CitingPatent[]> {
+// Given paper DOIs, return each (doi, patent) citation pair — so callers can
+// trace which paper each citing patent maps back to (and thence its authors).
+export async function citingRowsByDoi(dois: string[]): Promise<{ doi: string; patent: string; filingYear?: number }[]> {
   const clean = [...new Set(dois.map((d) => normalizeDoi(d)).filter(Boolean) as string[])];
   if (clean.length === 0) return [];
   const sql = `
-    SELECT DISTINCT patent, MIN(filing_year) AS filing_year
+    SELECT LOWER(doi) AS doi, patent, MIN(filing_year) AS filing_year
     FROM \`${ROS_TABLE}\`
     WHERE LOWER(doi) IN UNNEST(@dois)
       AND wherefound IN ('frontonly', 'both')
       AND patent IS NOT NULL
-    GROUP BY patent`;
+    GROUP BY doi, patent`;
   const rows = await bqQuery(sql, [{ name: "dois", type: "STRING", array: true, values: clean }]);
-  return rows.map((r) => ({ patent: r.patent, filingYear: r.filing_year ? Number(r.filing_year) : undefined }));
+  return rows.map((r) => ({ doi: r.doi, patent: r.patent, filingYear: r.filing_year ? Number(r.filing_year) : undefined }));
 }
