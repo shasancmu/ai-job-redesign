@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { activeEntitlements, FREE_TIER_MODULES, runsLeftByModule } from "@/lib/access";
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { isAdmin } from "@/lib/admin";
-import { claimInvites } from "@/lib/orgs";
+import { claimInvites, getMyOrgs, getActiveOrg } from "@/lib/orgs";
+import OrgSwitcher from "@/components/OrgSwitcher";
 import { titleCaseName } from "@/lib/name";
 import { MODULES } from "@/lib/modules";
 import Catalog from "@/components/Catalog";
@@ -40,6 +41,7 @@ export default async function Dashboard({
 
   // Turn any pending white-label invites for this email into memberships.
   await claimInvites(user.id, user.email);
+  const [myOrgs, activeOrg] = await Promise.all([getMyOrgs(user.id), getActiveOrg(user)]);
 
   let { data: profile } = await supabase
     .from("profiles")
@@ -168,6 +170,12 @@ export default async function Dashboard({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {myOrgs.length > 0 && (
+            <OrgSwitcher
+              orgs={myOrgs.map((m) => ({ slug: m.org.slug, name: m.org.name, logoUrl: m.org.logo_url, role: m.role }))}
+              activeSlug={activeOrg?.slug || null}
+            />
+          )}
           {I18N_ENABLED && <LanguagePicker me={user.id} initial={(profile as any)?.language} />}
           <TourButton />
           <a href="/reports" data-tour="reports" className="btn-ghost text-sm">
