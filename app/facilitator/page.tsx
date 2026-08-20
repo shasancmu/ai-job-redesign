@@ -12,7 +12,7 @@ import { analyze as negAnalyze, scenarioByExercise as negScenario, maxJointOf } 
 import { NegotiationScatter, NegotiationStrip } from "@/components/NegotiationPlot";
 import ExposureCohort from "@/components/ExposureCohort";
 import { AI_CELLS, HUMAN_CELLS, FEEDBACK_FIELDS, Cell } from "@/lib/exercise";
-import FacilitatorMenu from "@/components/FacilitatorMenu";
+import AdminTools from "@/components/AdminTools";
 import HeaderNav from "@/components/HeaderNav";
 import CanvasView from "@/components/CanvasView";
 
@@ -62,12 +62,12 @@ export default async function Facilitator({
   return cohort ? (
     <CohortDetail admin={admin} cohort={cohort} />
   ) : (
-    <Overview admin={admin} allowedCohorts={allowedCohorts} />
+    <Overview admin={admin} allowedCohorts={allowedCohorts} superadmin={access.superadmin} />
   );
 }
 
 // ---------------------------------------------------------------- Overview ---
-async function Overview({ admin, allowedCohorts }: { admin: any; allowedCohorts: string[] | null }) {
+async function Overview({ admin, allowedCohorts, superadmin }: { admin: any; allowedCohorts: string[] | null; superadmin: boolean }) {
   const { data: sessions } = await admin
     .from("sessions")
     .select("id, cohort, status, host_id, guest_id, created_at")
@@ -97,7 +97,7 @@ async function Overview({ admin, allowedCohorts }: { admin: any; allowedCohorts:
 
   return (
     <Shell>
-      {/* Header: identity + the one primary action, with the rest tucked away */}
+      {/* Header: identity + account, kept slick. Actions live on the page. */}
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="text-sm font-medium text-slate-400">Facilitator</div>
@@ -106,11 +106,7 @@ async function Overview({ admin, allowedCohorts }: { admin: any; allowedCohorts:
             Run a live activity, open a cohort to teach or review the work, or set up a new one.
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Link href="/facilitator/classes" className="btn-primary text-sm">New cohort</Link>
-          <FacilitatorMenu />
-          <HeaderNav />
-        </div>
+        <HeaderNav />
       </div>
 
       {/* Run something live, right now. */}
@@ -150,11 +146,14 @@ async function Overview({ admin, allowedCohorts }: { admin: any; allowedCohorts:
         </Link>
       </div>
 
-      <div className="mb-3 flex items-baseline justify-between">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <h2 className="eyebrow">Your cohorts</h2>
-        {rows.length > 0 && (
-          <span className="text-xs text-slate-400">{totalPeople.size} people across {rows.length} {rows.length === 1 ? "group" : "groups"}</span>
-        )}
+        <div className="flex items-center gap-3">
+          {rows.length > 0 && (
+            <span className="text-xs text-slate-400">{totalPeople.size} people across {rows.length} {rows.length === 1 ? "group" : "groups"}</span>
+          )}
+          <Link href="/facilitator/classes" className="btn-primary text-sm">+ New cohort</Link>
+        </div>
       </div>
 
       {rows.length === 0 ? (
@@ -216,6 +215,12 @@ async function Overview({ admin, allowedCohorts }: { admin: any; allowedCohorts:
           })}
         </ul>
       )}
+
+      {/* Admin tools — moved here from the header. */}
+      <section className="mt-12">
+        <h2 className="eyebrow mb-3">Admin tools</h2>
+        <AdminTools superadmin={superadmin} />
+      </section>
     </Shell>
   );
 }
