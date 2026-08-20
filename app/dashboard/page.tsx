@@ -42,6 +42,8 @@ export default async function Dashboard({
   // Turn any pending white-label invites for this email into memberships.
   await claimInvites(user.id, user.email);
   const [myOrgs, activeOrg] = await Promise.all([getMyOrgs(user.id), getActiveOrg(user)]);
+  // A white-label org can curate which modules its members see + can run.
+  const orgModules: string[] | null = activeOrg?.modules && activeOrg.modules.length ? activeOrg.modules : null;
 
   let { data: profile } = await supabase
     .from("profiles")
@@ -90,6 +92,8 @@ export default async function Dashboard({
       ents.has(m.slug) ||
       FREE_TIER_MODULES.has(m.slug);
   }
+  // A white-label org grants its curated modules to members, unlimited.
+  if (orgModules) for (const s of orgModules) unlocked[s] = true;
 
   // Wide enough that a module's finished run never falls outside the window —
   // otherwise "Done" would flicker back to "In progress" as newer sessions
@@ -212,6 +216,7 @@ export default async function Dashboard({
           userId={user.id}
           unlocked={unlocked}
           initialCohort={searchParams.cohort || ""}
+          moduleSlugs={orgModules || undefined}
           completed={completed}
           lastCode={lastCode}
           recommended={recommended}

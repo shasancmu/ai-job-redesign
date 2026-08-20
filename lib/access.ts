@@ -25,7 +25,7 @@ function num(v: string | undefined, d: number) {
   return Number.isFinite(n) && n > 0 ? n : d;
 }
 
-export type AccessVia = "free-module" | "admin" | "cohort" | "entitled" | "free-tier" | "blocked";
+export type AccessVia = "free-module" | "admin" | "cohort" | "org" | "entitled" | "free-tier" | "blocked";
 export type AccessResult = { ok: boolean; via: AccessVia; runs: number; cap: number };
 
 type Ent = { module: string; current_period_end: string | null; current_period_start: string | null };
@@ -73,6 +73,15 @@ export async function moduleRunAccess(
   // Cohort's selected modules are free (unlimited) for its members.
   if (opts.cohort && (await hasClassAccess(supabase, opts.userId, opts.cohort, opts.slug))) {
     return unlimited("cohort");
+  }
+
+  // White-label org members get the modules their org grants (unlimited). RLS
+  // lets a user read their own memberships + the org rows, so the user client
+  // is fine here.
+  const { data: orgMems } = await supabase.from("org_members").select("organizations(modules)").eq("user_id", opts.userId);
+  for (const m of (orgMems as any[]) || []) {
+    const mods = m.organizations?.modules;
+    if (Array.isArray(mods) && mods.includes(opts.slug)) return unlimited("org");
   }
 
   // Paid all-access takes precedence: PAID_RUNS per module, counted since the

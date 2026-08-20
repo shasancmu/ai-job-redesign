@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSuperadmin } from "@/lib/orgs";
+import { MODULES } from "@/lib/modules";
+
+const VALID_MODULES = new Set(MODULES.map((m) => m.slug));
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,6 +32,7 @@ export async function POST(request: Request) {
         tagline: body.tagline ? String(body.tagline).slice(0, 200) : null,
         primary_color: body.primary_color ? String(body.primary_color).slice(0, 16) : null,
         invite_only: body.invite_only !== false,
+        modules: Array.isArray(body.modules) ? [...new Set(body.modules.map((s: any) => String(s)).filter((s: string) => VALID_MODULES.has(s)))] : null,
         updated_at: new Date().toISOString(),
       };
       if (body.id) {

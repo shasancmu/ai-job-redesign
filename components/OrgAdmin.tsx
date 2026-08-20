@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { MODULES } from "@/lib/modules";
 
-type Org = { id: string; slug: string; name: string; tagline: string | null; primary_color: string | null; logo_url: string | null; hero_image_url: string | null; invite_only: boolean };
+const PICKABLE = MODULES.filter((m) => !m.hidden);
+
+type Org = { id: string; slug: string; name: string; tagline: string | null; primary_color: string | null; logo_url: string | null; hero_image_url: string | null; invite_only: boolean; modules: string[] | null };
 type Invite = { email: string; org_role: string };
 
 async function post(body: any) {
@@ -59,13 +62,16 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
   const [tagline, setTagline] = useState(org?.tagline || "");
   const [color, setColor] = useState(org?.primary_color || "#3f7a52");
   const [inviteOnly, setInviteOnly] = useState(org?.invite_only ?? true);
+  const [mods, setMods] = useState<Set<string>>(new Set(org?.modules || []));
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  const toggleMod = (slug: string) => setMods((s) => { const n = new Set(s); n.has(slug) ? n.delete(slug) : n.add(slug); return n; });
 
   async function save() {
     setBusy(true); setErr(null);
     try {
-      await post({ action: "save_org", id: org?.id, slug, name, tagline, primary_color: color, invite_only: inviteOnly });
+      await post({ action: "save_org", id: org?.id, slug, name, tagline, primary_color: color, invite_only: inviteOnly, modules: [...mods] });
       onDone();
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   }
@@ -99,6 +105,23 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
           <input type="checkbox" checked={inviteOnly} onChange={(e) => setInviteOnly(e.target.checked)} className="h-4 w-4 accent-[color:var(--ink)]" />
           Invite-only
         </label>
+      </div>
+      <div>
+        <div className="mb-1 flex items-center justify-between">
+          <label className="lbl mb-0">Modules members can access</label>
+          <div className="flex gap-2 text-xs">
+            <button type="button" onClick={() => setMods(new Set(PICKABLE.map((m) => m.slug)))} className="text-sky hover:underline">All</button>
+            <button type="button" onClick={() => setMods(new Set())} className="text-slate-400 hover:text-ink">None</button>
+          </div>
+        </div>
+        <div className="mb-1.5 text-xs text-slate-400">{mods.size === 0 ? "Empty = members get every module." : `${mods.size} selected — members get only these.`}</div>
+        <div className="flex max-h-52 flex-wrap gap-1.5 overflow-y-auto rounded-lg border border-line p-2">
+          {PICKABLE.map((m) => (
+            <button key={m.slug} type="button" onClick={() => toggleMod(m.slug)} className={"rounded-full px-2.5 py-1 text-xs font-medium transition " + (mods.has(m.slug) ? "bg-ink text-white" : "bg-mist text-slate2 hover:bg-slate-200")}>
+              {m.name}
+            </button>
+          ))}
+        </div>
       </div>
       {err && <p className="text-sm text-clay">{err}</p>}
       <div className="flex gap-2">

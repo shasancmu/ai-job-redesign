@@ -27,6 +27,7 @@ export type Org = {
   invite_only: boolean;
   plan: string;
   owner_id: string | null;
+  modules: string[] | null; // module slugs this org grants; null/empty = all
 };
 
 export type Membership = { org: Org; role: OrgRole };

@@ -691,3 +691,7 @@ alter table public.org_invites enable row level security; -- (no policies — se
 alter table public.sessions add column if not exists org_id uuid references public.organizations (id) on delete set null;
 create index if not exists sessions_org_idx on public.sessions (org_id);
 alter table public.classes add column if not exists org_id uuid references public.organizations (id) on delete set null;
+
+-- Which modules a white-label org grants its members (array of module slugs).
+-- null/empty = all modules (default); a set = only those, curated.
+alter table public.organizations add column if not exists modules jsonb;
