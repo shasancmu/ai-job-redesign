@@ -6,8 +6,22 @@ import { MODULES } from "@/lib/modules";
 
 const PICKABLE = MODULES.filter((m) => !m.hidden);
 
-type Org = { id: string; slug: string; name: string; tagline: string | null; primary_color: string | null; logo_url: string | null; hero_image_url: string | null; invite_only: boolean; modules: string[] | null };
+type Highlight = { title: string; body: string };
+type Faculty = { name: string; title?: string; image_url?: string };
+type Org = { id: string; slug: string; name: string; tagline: string | null; primary_color: string | null; logo_url: string | null; hero_image_url: string | null; invite_only: boolean; modules: string[] | null; about: string | null; highlights: Highlight[] | null; faculty: Faculty[] | null };
 type Invite = { email: string; org_role: string };
+
+// Upload a faculty photo to the shared branding bucket; returns its public URL.
+async function uploadPhoto(orgId: string, file: File): Promise<string> {
+  const blob = await downscale(file, 480);
+  const fd = new FormData();
+  fd.set("orgId", orgId); fd.set("kind", "faculty");
+  fd.set("file", new File([blob], file.name, { type: blob.type || file.type }));
+  const res = await fetch("/api/admin/orgs/asset", { method: "POST", body: fd });
+  const d = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(d.error || "Upload failed");
+  return d.url as string;
+}
 
 async function post(body: any) {
   const res = await fetch("/api/admin/orgs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -63,6 +77,9 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
   const [color, setColor] = useState(org?.primary_color || "#3f7a52");
   const [inviteOnly, setInviteOnly] = useState(org?.invite_only ?? true);
   const [mods, setMods] = useState<Set<string>>(new Set(org?.modules || []));
+  const [about, setAbout] = useState(org?.about || "");
+  const [highlights, setHighlights] = useState<Highlight[]>(org?.highlights || []);
+  const [faculty, setFaculty] = useState<Faculty[]>(org?.faculty || []);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -71,7 +88,12 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
   async function save() {
     setBusy(true); setErr(null);
     try {
-      await post({ action: "save_org", id: org?.id, slug, name, tagline, primary_color: color, invite_only: inviteOnly, modules: [...mods] });
+      await post({
+        action: "save_org", id: org?.id, slug, name, tagline, primary_color: color, invite_only: inviteOnly, modules: [...mods],
+        about,
+        highlights: highlights.filter((h) => h.title.trim() || h.body.trim()),
+        faculty: faculty.filter((f) => f.name.trim()),
+      });
       onDone();
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   }
@@ -94,6 +116,10 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
       <div>
         <label className="lbl">Tagline <span className="font-normal text-slate-400">(landing headline)</span></label>
         <input className="field" value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="AI for Duke's leaders and teams" />
+      </div>
+      <div>
+        <label className="lbl">About <span className="font-normal text-slate-400">(short intro under the headline)</span></label>
+        <textarea className="field min-h-[70px]" value={about} onChange={(e) => setAbout(e.target.value)} placeholder="A private Superadditive workspace for Duke — hands-on exercises for your teams." />
       </div>
       <div className="flex flex-wrap items-center gap-4">
         <label className="flex items-center gap-2 text-sm">
@@ -123,6 +149,47 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
           ))}
         </div>
       </div>
+      {/* Institution factors */}
+      <div>
+        <div className="mb-1 flex items-center justify-between">
+          <label className="lbl mb-0">Highlights <span className="font-normal text-slate-400">(the &ldquo;why us&rdquo; cards)</span></label>
+          <button type="button" onClick={() => setHighlights((h) => [...h, { title: "", body: "" }])} className="text-xs text-sky hover:underline">+ Add</button>
+        </div>
+        {highlights.length === 0 && <div className="mb-1.5 text-xs text-slate-400">Empty = tasteful placeholder cards show on the page.</div>}
+        <div className="space-y-2">
+          {highlights.map((h, i) => (
+            <div key={i} className="rounded-lg border border-line p-2.5">
+              <div className="flex items-center gap-1.5">
+                <input className="field" value={h.title} placeholder="Card title" onChange={(e) => setHighlights((arr) => arr.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} />
+                <button type="button" onClick={() => setHighlights((arr) => arr.filter((_, j) => j !== i))} className="shrink-0 text-slate-400 hover:text-clay">✕</button>
+              </div>
+              <textarea className="field mt-1.5 min-h-[54px]" value={h.body} placeholder="One or two sentences." onChange={(e) => setHighlights((arr) => arr.map((x, j) => j === i ? { ...x, body: e.target.value } : x))} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Key faculty */}
+      <div>
+        <div className="mb-1 flex items-center justify-between">
+          <label className="lbl mb-0">Faculty &amp; facilitators <span className="font-normal text-slate-400">(shown as circles)</span></label>
+          <button type="button" onClick={() => setFaculty((f) => [...f, { name: "" }])} className="text-xs text-sky hover:underline">+ Add person</button>
+        </div>
+        {faculty.length === 0 && <div className="mb-1.5 text-xs text-slate-400">Empty = placeholder circles show on the page.</div>}
+        <div className="space-y-2">
+          {faculty.map((f, i) => (
+            <div key={i} className="flex items-center gap-2 rounded-lg border border-line p-2.5">
+              <FacultyPhoto org={org} person={f} onUrl={(url) => setFaculty((arr) => arr.map((x, j) => j === i ? { ...x, image_url: url } : x))} />
+              <div className="flex-1 space-y-1.5">
+                <input className="field" value={f.name} placeholder="Full name" onChange={(e) => setFaculty((arr) => arr.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} />
+                <input className="field" value={f.title || ""} placeholder="Title (optional)" onChange={(e) => setFaculty((arr) => arr.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} />
+              </div>
+              <button type="button" onClick={() => setFaculty((arr) => arr.filter((_, j) => j !== i))} className="shrink-0 self-start text-slate-400 hover:text-clay">✕</button>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {err && <p className="text-sm text-clay">{err}</p>}
       <div className="flex gap-2">
         <button onClick={save} disabled={busy || !slug || !name} className="btn-primary text-sm">{busy ? "Saving…" : org ? "Save" : "Create"}</button>
@@ -229,5 +296,34 @@ function OrgCard({ org, count, invites, onChanged }: { org: Org; count?: { facil
 
       {err && <p className="mt-3 text-sm text-clay">{err}</p>}
     </div>
+  );
+}
+
+// A round avatar with an upload affordance for one faculty member. Photos need
+// the org to exist first (uploads are keyed by org id), so on a brand-new org
+// it shows initials only until the org is saved.
+function FacultyPhoto({ org, person, onUrl }: { org?: Org; person: Faculty; onUrl: (url: string) => void }) {
+  const [busy, setBusy] = useState(false);
+  const initials = (person.name || "?").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("") || "•";
+
+  async function pick(file: File) {
+    if (!org?.id) return;
+    setBusy(true);
+    try { onUrl(await uploadPhoto(org.id, file)); } catch { /* surfaced elsewhere */ } finally { setBusy(false); }
+  }
+
+  const circle = person.image_url ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={person.image_url} alt="" className="h-11 w-11 rounded-full object-cover" />
+  ) : (
+    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-mist text-xs font-bold text-slate2">{busy ? "…" : initials}</span>
+  );
+
+  if (!org?.id) return <div title="Save the org first to add photos" className="shrink-0">{circle}</div>;
+  return (
+    <label className="shrink-0 cursor-pointer" title="Upload photo">
+      {circle}
+      <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && pick(e.target.files[0])} />
+    </label>
   );
 }

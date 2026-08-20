@@ -5,6 +5,32 @@ import { MODULES } from "@/lib/modules";
 
 const VALID_MODULES = new Set(MODULES.map((m) => m.slug));
 
+// Landing-page content: keep only well-formed rows, cap counts + lengths, and
+// return null when empty so the page falls back to its placeholder copy.
+function cleanHighlights(v: any): { title: string; body: string }[] | null {
+  if (!Array.isArray(v)) return null;
+  const out = v
+    .map((h) => ({ title: String(h?.title || "").slice(0, 80).trim(), body: String(h?.body || "").slice(0, 400).trim() }))
+    .filter((h) => h.title || h.body)
+    .slice(0, 8);
+  return out.length ? out : null;
+}
+function cleanFaculty(v: any): { name: string; title?: string; image_url?: string }[] | null {
+  if (!Array.isArray(v)) return null;
+  const out = v
+    .map((f) => {
+      const row: any = { name: String(f?.name || "").slice(0, 80).trim() };
+      const title = String(f?.title || "").slice(0, 120).trim();
+      const img = String(f?.image_url || "").slice(0, 500).trim();
+      if (title) row.title = title;
+      if (img) row.image_url = img;
+      return row;
+    })
+    .filter((f) => f.name)
+    .slice(0, 24);
+  return out.length ? out : null;
+}
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -33,6 +59,9 @@ export async function POST(request: Request) {
         primary_color: body.primary_color ? String(body.primary_color).slice(0, 16) : null,
         invite_only: body.invite_only !== false,
         modules: Array.isArray(body.modules) ? [...new Set(body.modules.map((s: any) => String(s)).filter((s: string) => VALID_MODULES.has(s)))] : null,
+        about: body.about ? String(body.about).slice(0, 1000) : null,
+        highlights: cleanHighlights(body.highlights),
+        faculty: cleanFaculty(body.faculty),
         updated_at: new Date().toISOString(),
       };
       if (body.id) {

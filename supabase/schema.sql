@@ -695,3 +695,12 @@ alter table public.classes add column if not exists org_id uuid references publi
 -- Which modules a white-label org grants its members (array of module slugs).
 -- null/empty = all modules (default); a set = only those, curated.
 alter table public.organizations add column if not exists modules jsonb;
+
+-- Richer white-label landing content, all optional (the page shows tasteful
+-- placeholder copy until these are set):
+--   about      : a short intro paragraph under the hero.
+--   highlights : [{title, body}] institution-specific "why us" factor cards.
+--   faculty    : [{name, title, image_url}] key people shown as circles.
+alter table public.organizations add column if not exists about text;
+alter table public.organizations add column if not exists highlights jsonb;
+alter table public.organizations add column if not exists faculty jsonb;

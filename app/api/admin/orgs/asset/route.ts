@@ -17,7 +17,8 @@ export async function POST(request: Request) {
   let form: FormData;
   try { form = await request.formData(); } catch { return Response.json({ error: "bad request" }, { status: 400 }); }
   const orgId = String(form.get("orgId") || "");
-  const kind = form.get("kind") === "hero" ? "hero" : "logo";
+  const rawKind = String(form.get("kind") || "logo");
+  const kind = rawKind === "hero" ? "hero" : rawKind === "faculty" ? "faculty" : "logo";
   const file = form.get("file") as File | null;
   if (!orgId || !file) return Response.json({ error: "orgId and file required" }, { status: 400 });
   if (file.size > 4 * 1024 * 1024) return Response.json({ error: "Image must be under 4MB." }, { status: 400 });
@@ -35,8 +36,13 @@ export async function POST(request: Request) {
 
     const { data: pub } = admin.storage.from(BUCKET).getPublicUrl(path);
     const url = pub.publicUrl;
-    const col = kind === "hero" ? "hero_image_url" : "logo_url";
-    await admin.from("organizations").update({ [col]: url, updated_at: new Date().toISOString() }).eq("id", orgId);
+    // Faculty photos aren't a single column — the client stores the returned
+    // URL into the org's faculty array (saved via save_org). Logo/hero map to
+    // their columns directly.
+    if (kind !== "faculty") {
+      const col = kind === "hero" ? "hero_image_url" : "logo_url";
+      await admin.from("organizations").update({ [col]: url, updated_at: new Date().toISOString() }).eq("id", orgId);
+    }
     return Response.json({ url });
   } catch (e: any) {
     return Response.json({ error: e?.message || "upload failed" }, { status: 500 });

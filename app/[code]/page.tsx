@@ -5,8 +5,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizeCode } from "@/lib/classes";
 import { titleCaseName } from "@/lib/name";
 import { isAdmin } from "@/lib/admin";
-import { moduleBySlug } from "@/lib/modules";
-import { getOrgBySlug, type Org } from "@/lib/orgs";
+import { moduleBySlug, MODULES } from "@/lib/modules";
+import { getOrgBySlug, type Org, type OrgHighlight, type OrgFaculty } from "@/lib/orgs";
 import { enterOrg } from "./actions";
 import Catalog from "@/components/Catalog";
 import Logo from "@/components/Logo";
@@ -209,6 +209,37 @@ async function OrgLandingView({ org }: { org: Org }) {
 
   const accent = org.primary_color || "#3f7a52";
 
+  // Everything below the hero is optional. Until a facilitator fills it in from
+  // the console, the page shows tasteful, editable placeholder copy so it never
+  // looks empty.
+  const about = org.about?.trim() ||
+    `A private Superadditive workspace for ${org.name}. Hands-on exercises that put AI and real business frameworks to work on the decisions your teams actually face.`;
+
+  const highlights: OrgHighlight[] = org.highlights?.length
+    ? org.highlights
+    : [
+        { title: "Built around your people", body: `A private space for ${org.name}. Your teams work through the exercises together, and everything they create stays inside your organization.` },
+        { title: "Grounded in real frameworks", body: "Every exercise is built on established strategy, innovation, and organizational research, then run by an AI interviewer, partner, or coach." },
+        { title: "Live or on your own time", body: "Facilitators open live sessions for a cohort, or people work through exercises solo. Either way, the results roll up in one place." },
+      ];
+
+  const faculty: OrgFaculty[] = org.faculty?.length
+    ? org.faculty
+    : [
+        { name: "Faculty Lead", title: "Add your team in the console" },
+        { name: "Program Facilitator" },
+        { name: "Guest Expert" },
+        { name: "Teaching Team" },
+      ];
+
+  // Featured module cards — the org's curated set if it has one, else a marquee
+  // default. Filtered through the registry so a bad slug never renders.
+  const featuredSlugs = org.modules && org.modules.length
+    ? org.modules
+    : ["reimagine-job", "workflow-solo", "career-x-ray", "jd-x-ray", "benchmark", "reimagine-workflow"];
+  const picked = featuredSlugs.map((s) => moduleBySlug(s)).filter(Boolean) as NonNullable<ReturnType<typeof moduleBySlug>>[];
+  const mods = (picked.length >= 3 ? picked : MODULES.filter((m) => !m.hidden && m.forSale !== false)).slice(0, 6);
+
   return (
     <main className="relative min-h-screen">
       {org.primary_color && <style dangerouslySetInnerHTML={{ __html: `:root{--brand:${org.primary_color};}` }} />}
@@ -216,18 +247,18 @@ async function OrgLandingView({ org }: { org: Org }) {
       {/* Hero */}
       <div className="relative overflow-hidden border-b border-line" style={{ background: org.hero_image_url ? `center/cover no-repeat url(${org.hero_image_url})` : `linear-gradient(135deg, color-mix(in srgb, ${accent} 12%, white), white)` }}>
         {org.hero_image_url && <div className="absolute inset-0 bg-black/45" />}
-        <div className="relative mx-auto max-w-3xl px-6 py-16 sm:py-24">
+        <div className="relative mx-auto max-w-5xl px-6 py-16 sm:py-24">
           <div className={"inline-flex items-center gap-2.5 " + (org.hero_image_url ? "text-white" : "text-ink")}>
             {org.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={org.logo_url} alt={org.name} style={{ height: 40, maxWidth: 200 }} className="object-contain" />
+              <img src={org.logo_url} alt={org.name} style={{ height: 44, maxWidth: 240 }} className="object-contain" />
             ) : (
               <span className="text-2xl font-bold tracking-tight">{org.name}</span>
             )}
           </div>
-          <h1 className={"mt-8 text-4xl font-bold leading-tight sm:text-5xl " + (org.hero_image_url ? "text-white" : "text-ink")}>{org.tagline || `Welcome to ${org.name}`}</h1>
-          <p className={"mt-3 max-w-xl text-lg " + (org.hero_image_url ? "text-white/85" : "text-slate2")}>
-            Hands-on AI-and-strategy exercises, run for {org.name}.
+          <h1 className={"mt-8 max-w-2xl text-4xl font-bold leading-tight sm:text-5xl " + (org.hero_image_url ? "text-white" : "text-ink")}>{org.tagline || `Welcome to ${org.name}`}</h1>
+          <p className={"mt-4 max-w-xl text-lg " + (org.hero_image_url ? "text-white/85" : "text-slate2")}>
+            {about}
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -249,9 +280,80 @@ async function OrgLandingView({ org }: { org: Org }) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-3xl px-6 py-8 text-xs text-slate-400">
-        Powered by Superadditive.
+      {/* Institution-specific factors */}
+      <section className="mx-auto max-w-5xl px-6 py-16">
+        <span className="eyebrow">Why {org.name}</span>
+        <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink sm:text-3xl">What your team gets here.</h2>
+        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          {highlights.map((h, i) => (
+            <div key={i} className="card p-6">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold text-white" style={{ background: accent }}>{i + 1}</span>
+              <h3 className="mt-4 font-semibold text-ink">{h.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate2">{h.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Modules available */}
+      <section className="mx-auto max-w-5xl px-6 pb-16">
+        <span className="eyebrow">The library</span>
+        <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink sm:text-3xl">Exercises available to {org.name}.</h2>
+        <p className="mt-2 max-w-2xl text-slate2">
+          Each is grounded in a real framework and run by an AI interviewer, partner, or coach, and ends in something you keep.
+        </p>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {mods.map((m) => (
+            <div key={m.slug} className="card flex flex-col p-5">
+              <div className="text-2xl" aria-hidden>{m.emoji}</div>
+              <h3 className="mt-2 font-semibold text-ink">{m.name}</h3>
+              <p className="mt-1 flex-1 text-sm leading-relaxed text-slate2">
+                {m.tagline.length > 128 ? m.tagline.slice(0, 125).trimEnd() + "…" : m.tagline}
+              </p>
+              <div className="mt-3 text-xs text-slate-400">{m.minutes} min · {m.mode}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Key faculty */}
+      <section className="mx-auto max-w-5xl px-6 pb-20">
+        <span className="eyebrow">Your team</span>
+        <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink sm:text-3xl">Faculty &amp; facilitators.</h2>
+        <div className="mt-8 flex flex-wrap gap-8">
+          {faculty.map((f, i) => (
+            <div key={i} className="flex w-28 flex-col items-center text-center">
+              {f.image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={f.image_url} alt={f.name} className="h-20 w-20 rounded-full object-cover ring-2 ring-white shadow-soft" />
+              ) : (
+                <span className="flex h-20 w-20 items-center justify-center rounded-full text-lg font-bold text-white shadow-soft" style={{ background: accent }}>
+                  {facultyInitials(f.name)}
+                </span>
+              )}
+              <div className="mt-3 text-sm font-semibold text-ink">{f.name}</div>
+              {f.title && <div className="mt-0.5 text-xs text-slate2">{f.title}</div>}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="border-t border-line">
+        <div className="mx-auto max-w-5xl px-6 py-8 text-xs text-slate-400">
+          Powered by Superadditive.
+        </div>
       </div>
     </main>
+  );
+}
+
+function facultyInitials(name: string): string {
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase() || "")
+      .join("") || "•"
   );
 }

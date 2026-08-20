@@ -16,6 +16,9 @@ import { isAdmin } from "@/lib/admin";
 
 export type OrgRole = "facilitator" | "member";
 
+export type OrgHighlight = { title: string; body: string };
+export type OrgFaculty = { name: string; title?: string; image_url?: string };
+
 export type Org = {
   id: string;
   slug: string;
@@ -28,6 +31,9 @@ export type Org = {
   plan: string;
   owner_id: string | null;
   modules: string[] | null; // module slugs this org grants; null/empty = all
+  about: string | null; // short intro paragraph under the hero
+  highlights: OrgHighlight[] | null; // institution-specific "why us" cards
+  faculty: OrgFaculty[] | null; // key people, shown as circles
 };
 
 export type Membership = { org: Org; role: OrgRole };
