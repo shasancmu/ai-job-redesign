@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Meter, StatTile, Sparkline, BarList, Drill, RankRow, PotChip, SummaryHero, SortControl } from "@/components/ReportKit";
 import CollabGraph from "@/components/CollabGraph";
 import Sankey from "@/components/Sankey";
+import { classifyFirm, FIRM_TYPE_META } from "@/lib/firmType";
 import { sciLink, SciLink } from "@/lib/scientifiqLinks";
 import type { DomainBriefData, ExpertSummary } from "@/lib/domainBrief";
 
@@ -51,6 +52,7 @@ type SortKey = (typeof SORTS)[number]["key"];
 export default function DomainBriefReport({ brief, data }: { brief: Brief; data: DomainBriefData }) {
   const experts = data.topExperts || [];
   const [sort, setSort] = useState<SortKey>("fit");
+  const [firmFilter, setFirmFilter] = useState<"all" | "company" | "academic">("all");
   const sorted = useMemo(() => {
     if (sort === "fit") return experts; // as delivered: high commercial × relevance
     if (sort === "relevance") return [...experts].sort((a, b) => (a.relevanceRank ?? 0) - (b.relevanceRank ?? 0));
@@ -132,25 +134,53 @@ export default function DomainBriefReport({ brief, data }: { brief: Brief; data:
       )}
 
       {/* Firms building on this science (patent citations, via Reliance on Science) */}
-      {data.firms && data.firms.firms.length > 0 && (
-        <div>
-          <h2 className="eyebrow mb-1">From science to industry</h2>
-          <p className="mb-2 text-xs text-slate-400">
-            The pipeline from researchers to the universities and companies whose patents cite their work, {data.firms.citingPatentCount.toLocaleString()} citing patents in all (front-page citations, Reliance on Science). Ribbon width = papers cited.
-          </p>
-          {data.firms.pipeline && data.firms.pipeline.links.length > 0 ? (
-            <Sankey left={data.firms.pipeline.researchers} right={data.firms.pipeline.firms} links={data.firms.pipeline.links} />
-          ) : (
-            <div className="rounded-xl border border-line bg-mist py-6 text-center text-sm text-slate2">Too few patent citations in this scope to trace a pipeline.</div>
-          )}
-          <div className="mt-2.5">
-            <Drill title="All firms ranked" count={data.firms.firms.length}>
-              <BarList rows={data.firms.firms.slice(0, 15).map((f) => ({ label: f.name, value: f.patents }))} />
-              <p className="mt-2 text-[11px] text-slate-400">Bar = distinct citing patents held. {data.firms.resolvedPatentCount} of {data.firms.citingPatentCount} citing patents resolved to an assignee.</p>
-            </Drill>
+      {data.firms && data.firms.firms.length > 0 && (() => {
+        const f = data.firms!;
+        const pipeLinks = (f.pipeline?.links || []).filter((l) => firmFilter === "all" || classifyFirm(l.target) === firmFilter);
+        const firmList = f.firms.filter((x) => firmFilter === "all" || classifyFirm(x.name) === firmFilter);
+        const FILTERS = [
+          { key: "all", label: "All" },
+          { key: "company", label: "Companies" },
+          { key: "academic", label: "Universities" },
+        ] as const;
+        return (
+          <div>
+            <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="eyebrow">From science to industry</h2>
+              <div className="inline-flex items-center gap-1 rounded-full border border-line bg-white p-0.5 text-xs">
+                {FILTERS.map((o) => (
+                  <button key={o.key} onClick={() => setFirmFilter(o.key)} className={"rounded-full px-2.5 py-1 font-medium transition " + (firmFilter === o.key ? "bg-ink text-white" : "text-slate2 hover:bg-mist")}>{o.label}</button>
+                ))}
+              </div>
+            </div>
+            <p className="mb-2 text-xs text-slate-400">
+              The pipeline from researchers to the {firmFilter === "company" ? "companies" : firmFilter === "academic" ? "universities and research bodies" : "universities and companies"} whose patents cite their work, {f.citingPatentCount.toLocaleString()} citing patents in all (front-page citations, Reliance on Science). Ribbon width = papers cited.
+            </p>
+            {pipeLinks.length > 0 ? (
+              <Sankey left={f.pipeline.researchers} right={f.pipeline.firms} links={pipeLinks} typeOf={classifyFirm} />
+            ) : (
+              <div className="rounded-xl border border-line bg-mist py-6 text-center text-sm text-slate2">No {firmFilter === "company" ? "companies" : firmFilter === "academic" ? "universities" : "citing patents"} in this scope to trace a pipeline.</div>
+            )}
+            <div className="mt-2.5">
+              <Drill title={`All ${firmFilter === "company" ? "companies" : firmFilter === "academic" ? "universities & research" : "assignees"} ranked`} count={firmList.length}>
+                <div className="space-y-1">
+                  {firmList.slice(0, 15).map((x, i) => {
+                    const meta = FIRM_TYPE_META[classifyFirm(x.name)];
+                    return (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: meta.color }} title={meta.label} />
+                        <span className="flex-1 truncate text-xs text-slate2" title={x.name}>{x.name}</span>
+                        <span className="w-6 text-right text-xs font-semibold text-slate2">{x.patents}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-[11px] text-slate-400">Number = distinct citing patents held. {f.resolvedPatentCount} of {f.citingPatentCount} citing patents resolved to an assignee.</p>
+              </Drill>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* LAYER 3 — evidence, collapsed */}
       <div className="space-y-2.5">
