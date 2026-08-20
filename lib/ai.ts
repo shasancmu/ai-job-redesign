@@ -1754,6 +1754,79 @@ export async function experimentNarrateAI(input: { name: string; metric: string;
   return complete([{ role: "system", content: system }, { role: "user", content: `Experiment: ${input.name}.\n${facts}` }], { temperature: 0.4, maxTokens: 260 });
 }
 
+// ---- Domain Expertise Brief (Scientifiq) ----------------------------------
+// Writes the narrative on top of already-aggregated Scientifiq data. The counts
+// and scores are AUTHORITATIVE (computed from the API); the model interprets,
+// it does not invent numbers or names not present in the data.
+export async function domainBriefAI(input: {
+  domain: string;
+  scopeLabel: string;
+  purpose: string; // fund | partner | recruit | assess | scout
+  data: any;
+  nudge?: string;
+}): Promise<any> {
+  const d = input.data || {};
+  const experts = (d.topExperts || [])
+    .slice(0, 10)
+    .map((e: any, i: number) => `${i + 1}. ${e.name}${e.org ? ` (${e.org})` : ""} — sciPot ${Math.round(e.scipot ?? 0)}, commPot ${Math.round(e.compot ?? 0)} (0-100), ${e.totalPubs} pubs, ${e.acaCites} cites. Subfields: ${e.subfields || "n/a"}. ${e.bio ? "Bio: " + e.bio.slice(0, 240) : ""}`)
+    .join("\n");
+  const subs = (d.subfieldBreakdown || []).map((s: any) => `${s.name} (${s.count})`).join(", ");
+  const years = (d.yearTrend || []);
+  const trend = years.length ? `${years[0].year}: ${years[0].count} … ${years[years.length - 1].year}: ${years[years.length - 1].count} (fetched sample)` : "n/a";
+  const standouts = (d.standoutPapers || []).slice(0, 5).map((p: any) => `"${p.title}"${p.year ? ` (${p.year})` : ""} — commPot ${Math.round(p.compot ?? 0)}, sciPot ${Math.round(p.scipot ?? 0)} (0-100)${p.authors ? ", " + p.authors : ""}`).join("\n");
+
+  const dataBlock = `DOMAIN: ${input.domain}
+SCOPE: ${input.scopeLabel}
+Analyzed sample: the ${d.paperCount} most relevant papers and ${d.researcherCount} most relevant experts (semantic match). This is a relevance sample, NOT the full count of work in the scope.
+Average potential across the sample: commercial ${Math.round(d.avgCommPot ?? 0)}, scientific ${Math.round(d.avgSciPot ?? 0)}, social ${Math.round(d.avgSocPot ?? 0)} (0-100 scale, a predictive percentile; higher = more predicted potential).
+Sub-field composition: ${subs || "n/a"}.
+Publication trajectory: ${trend}.
+
+TOP EXPERTS (by scientific potential):
+${experts || "(none)"}
+
+STANDOUT WORK (highest combined potential):
+${standouts || "(none)"}`;
+
+  const purposeLine: Record<string, string> = {
+    fund: "The reader is a FUNDER deciding where to direct grant money. Emphasize where the strength is real and fundable, the standout groups, and the gaps worth seeding.",
+    partner: "The reader wants to PARTNER or collaborate. Emphasize who to approach and why, and where complementary strengths sit.",
+    recruit: "The reader is RECRUITING talent. Emphasize the standout people and rising groups.",
+    assess: "The reader is ASSESSING the scope's readiness/strength in this domain. Give an honest, balanced verdict with strengths and gaps.",
+    scout: "The reader is SCOUTING for commercial opportunity. Emphasize the highest commercial-potential work and the people behind it.",
+  };
+
+  const system = `You are a research-intelligence analyst writing a briefing on a scope's (an institution's or region's) expertise in a technology domain, for a decision-maker. You are given AUTHORITATIVE data aggregated from Scientifiq (a platform that scores research for commercial, scientific, and social POTENTIAL, a forward-looking signal). ${purposeLine[input.purpose] || purposeLine.assess}
+
+Rules:
+- Interpret the data; do NOT invent numbers, people, papers, or subfields not present in it. Refer to experts and work by the names given.
+- "Potential" scores are predictive (computed at publish), not citation counts; treat them as a forward-looking signal and say so where useful.
+- Be honest about scale: if the domain is thin in this scope (few papers/experts), say so plainly rather than inflating.
+- Ground the trajectory read in the publication trend provided, and note it is a fetched sample, not a full time series.
+- Write plain text only in every string value: no markdown, no asterisks, no bold.
+
+${ADVICE_PRINCIPLES}
+Here, the decision the brief should shift is the reader's next move given their purpose: who to fund, partner with, recruit, or scout, and where the whitespace is.
+
+Return STRICT JSON only, no prose outside it:
+{
+  ${BOTTOM_LINE_JSON},
+  "headline": "one sentence characterizing this scope's strength in the domain",
+  "summary": "2-3 sentence executive summary a decision-maker can read in 10 seconds",
+  "themes": [ { "title": "a sub-area the expertise concentrates in", "detail": "1-2 sentences grounded in the data" } ],
+  "standoutPeople": [ { "name": "an expert from the data", "why": "what makes them notable here, in one line" } ],
+  "trajectory": "is this domain rising, steady, or thin in this scope, and what that implies",
+  "gaps": ["sub-areas or capabilities that look under-represented or missing, worth building or funding"],
+  "note": "one honest closing line, including any data caveats"
+}${expNudge(input.nudge)}`;
+
+  const raw = await complete([
+    { role: "system", content: system },
+    { role: "user", content: dataBlock },
+  ], { json: true, temperature: 0.45, maxTokens: 3000 });
+  return extractJson(raw);
+}
+
 // ===========================================================================
 // Synthetic experiments. AI personas act as simulated subjects so a variant can
 // be pre-tested in minutes. DIRECTIONAL ONLY: a persona + judge share the

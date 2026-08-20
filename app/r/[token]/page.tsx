@@ -5,6 +5,7 @@ import { canvasByExercise } from "@/lib/canvases";
 import ConsultReport from "@/components/ConsultReport";
 import SuperpowerReport from "@/components/SuperpowerReport";
 import PersonalNetworkReport from "@/components/PersonalNetworkReport";
+import DomainBriefReport from "@/components/DomainBriefReport";
 import ResumeReport from "@/components/ResumeReport";
 import MyopiaReport from "@/components/MyopiaReport";
 import BoardVerdict from "@/components/BoardVerdict";
@@ -128,6 +129,16 @@ async function renderSession(admin: any, s: any) {
       <>
         <Head eyebrow="Map Your Personal Network" title="A personal network map" />
         <PersonalNetworkReport report={canvas.report} metrics={canvas.metrics} contacts={canvas.contacts || []} ties={canvas.ties || {}} />
+      </>
+    );
+  }
+
+  if (ex === "domain-brief") {
+    if (!canvas.brief || !canvas.data) return null;
+    return (
+      <>
+        <Head eyebrow="Domain Expertise Brief" title={canvas.data.domain ? `${canvas.data.domain} · ${canvas.data.scopeLabel}` : "Domain expertise"} />
+        <DomainBriefReport brief={canvas.brief} data={canvas.data} />
       </>
     );
   }

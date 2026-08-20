@@ -69,6 +69,17 @@ export default function ModuleIcon({
           <path d="M10.2 10.6 6.4 7.2M13.8 10.6 17.6 7.2M10.2 13.4 6.4 16.8M13.8 13.4 17.6 16.8" />
         </svg>
       );
+    case "domain-brief": // magnifier over a cluster of nodes
+      return (
+        <svg {...common}>
+          <circle cx="10" cy="10" r="6" />
+          <path d="m20 20-4.5-4.5" />
+          <circle cx="8" cy="9" r="1" />
+          <circle cx="12" cy="8" r="1" />
+          <circle cx="10.5" cy="12" r="1" />
+          <path d="M8.6 9.3 11.2 8.2M11.6 8.7 10.8 11M9 10.2l1.2 1.4" />
+        </svg>
+      );
     case "benchmark": // a gauge / timer
       return (
         <svg {...common}>

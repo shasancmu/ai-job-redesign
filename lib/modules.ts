@@ -52,6 +52,7 @@ export type ModuleDef = {
     | "myopia-business"
     | "myopia-career"
     | "personal-network"
+    | "domain-brief"
     | "voice-consult"; // which room engine renders it
   name: string;
   tagline: string;
@@ -510,6 +511,21 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_NETWORK_MAP",
   },
   {
+    slug: "domain-brief",
+    exercise: "domain-brief",
+    name: "Domain Expertise Brief",
+    tagline: "Name a technology domain and a scope (a university, a region, or the world), and get a decision-ready brief: the real experts, the standout work, and where the strength is, scored for commercial and scientific potential by Scientifiq.",
+    description:
+      "Built on Scientifiq.AI, which scores every paper and researcher for commercial, scientific, and social potential (a forward-looking signal computed at publish, not citations). Name a domain (\"drones,\" \"microbiomes,\" \"solid-state batteries\") and a scope (Duke, North Carolina universities, another institution, or global) and say who the brief is for (a funder, a partner, a recruiter, a scout). It semantically searches millions of papers and researchers, surfaces the leading experts with their potential scores and representative work, maps the sub-field composition and trajectory, highlights the highest-potential standout papers, and writes an honest read of where the strength is real and where the whitespace lies. A technical-roadmapping tool for grantors, deans, and tech-transfer offices.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 4,
+    ai: true,
+    emoji: "🔬",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_DOMAIN_BRIEF",
+  },
+  {
     slug: "career-myopia",
     exercise: "myopia-career",
     name: "Find Your Career's Blind Spots",
@@ -573,6 +589,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "business-myopia": "strategy",
   "career-myopia": "redesign",
   "personal-network": "redesign",
+  "domain-brief": "strategy",
   "close-the-offer": "negotiate",
   "name-your-price": "negotiate",
   benchmark: "live",
@@ -625,6 +642,7 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "refresh-resume-voice": ["career", "ai"],
   "career-myopia": ["career", "strategy"],
   "personal-network": ["career", "leadership", "strategy"],
+  "domain-brief": ["strategy", "ai", "innovation"],
   "business-myopia": ["strategy", "innovation", "leadership"],
   // Negotiation
   "close-the-offer": ["negotiation", "career"],
