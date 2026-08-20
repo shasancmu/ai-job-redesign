@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -305,7 +306,8 @@ export default function Catalog({
         const canStart = open && !out;
         const paired = PAIRED.has(m.exercise);
         const close = () => setDetail(null);
-        return (
+        if (typeof document === "undefined") return null;
+        return createPortal(
           <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-6" role="dialog" aria-modal onClick={close}>
             <div
               className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white p-6 shadow-xl sm:rounded-2xl"
@@ -365,7 +367,8 @@ export default function Catalog({
                 )}
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         );
       })()}
     </div>
