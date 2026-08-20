@@ -248,8 +248,8 @@ async function OrgLandingView({ org }: { org: Org }) {
       <div className="relative overflow-hidden" style={{ background: org.hero_image_url ? `center/cover no-repeat url(${org.hero_image_url})` : `linear-gradient(135deg, color-mix(in srgb, ${accent} 12%, white), white)` }}>
         {org.hero_image_url && <div className="absolute inset-0 bg-black/45" />}
         {/* Slick fade from the hero into the next section. */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-56 sm:h-80" style={{ background: "linear-gradient(to bottom, transparent, var(--paper))" }} />
-        <div className="relative mx-auto max-w-5xl px-6 pt-16 pb-56 sm:pt-24 sm:pb-80">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-52 sm:h-72" style={{ background: "linear-gradient(to bottom, transparent, transparent 32%, var(--paper))" }} />
+        <div className="relative mx-auto max-w-5xl px-6 pt-16 pb-32 sm:pt-24 sm:pb-40">
           <div className={"inline-flex items-center gap-2.5 " + (org.hero_image_url ? "text-white" : "text-ink")}>
             {org.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
