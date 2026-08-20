@@ -273,7 +273,19 @@ function OrgCard({ org, count, invites, users, onChanged }: { org: Org; count?: 
             exclude={new Set(facs.map((f) => f.email))}
             onPick={(email) => act({ action: "set_facilitator", orgId: org.id, email }, "fac")}
           />
-          {facs.length > 0 && <div className="mt-1.5 text-xs text-slate2">{facs.map((f) => f.email).join(", ")}</div>}
+          {facs.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {facs.map((f) => {
+                const u = users.find((x) => x.email === f.email);
+                return (
+                  <span key={f.email} className="inline-flex items-center gap-2 rounded-full bg-mist py-1 pl-1 pr-3 text-sm text-ink">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-[10px] font-bold text-slate2">{initialsOf(u?.name || f.email)}</span>
+                    <span className="leading-tight">{u?.name || f.email}</span>
+                  </span>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
