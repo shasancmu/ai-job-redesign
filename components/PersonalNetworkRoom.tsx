@@ -114,9 +114,9 @@ function Intro({ goal, setGoal }: { goal: string; setGoal: (v: string) => void }
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-line bg-mist p-4 text-sm leading-relaxed text-slate-600">
-        Your network is one of your most valuable and least examined assets. Research on it is clear: contacts who <span className="font-medium text-ink">don't</span> all know each other give you reach into separate worlds, and with it novel information and opportunities (Ron Burt&apos;s <span className="font-medium text-ink">structural holes</span>). A tight-knit core who all know each other gives you trust and the ability to get things done (<span className="font-medium text-ink">closure</span>). <span className="font-medium text-ink">Weak ties</span> often matter more than strong ones for what&apos;s new (Granovetter), and who <span className="font-medium text-ink">energizes vs. drains</span> you predicts your performance (Rob Cross).
+        Your network, the people you rely on for work and life, is one of your most valuable and least examined assets. In the next few minutes you&apos;ll map it: list your key contacts, note a few things about each, and mark who among them knows whom. Then you&apos;ll get an honest, research-based read on its real shape and the specific moves that would strengthen it.
         <br /><br />
-        In the next few minutes you&apos;ll list your key contacts, mark who knows whom, and get an honest read on the shape of your network, with the specific moves that would strengthen it.
+        For the read to be worth anything, answer as things <span className="font-medium text-ink">really are</span>, not as you think they should look. There are no right answers, and no shape is &quot;better&quot; in the abstract; the useful findings come from your real network, not a tidied-up one.
       </div>
       <div>
         <label className="lbl">What do you want most from your network right now? <span className="font-normal text-slate-400">(optional)</span></label>
@@ -136,7 +136,7 @@ function Contacts({ contacts, setContacts }: { contacts: Contact[]; setContacts:
   return (
     <div className="space-y-4">
       <p className="text-sm leading-relaxed text-slate-600">
-        List the people who matter to your work and life right now, aim for <span className="font-medium text-ink">8 to 12</span>. Deliberately reach across all four worlds; the empty ones are the most revealing. For each, mark how you&apos;d honestly describe the tie.
+        List the people who matter to your work and life right now, aim for <span className="font-medium text-ink">8 to 12</span>. The four worlds below are just a memory jog so you don&apos;t forget anyone; include whoever genuinely belongs, and leave a world empty if that&apos;s the truth. For each, mark how you&apos;d honestly describe the tie.
       </p>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -216,7 +216,7 @@ function Connections({ contacts, ties, setTies }: { contacts: Contact[]; ties: T
   return (
     <div className="space-y-4">
       <p className="text-sm leading-relaxed text-slate-600">
-        For each person, tap everyone they already <span className="font-medium text-ink">know each other</span> (would recognize the name, have met). This is what reveals the structure: the people your contacts <span className="font-medium text-ink">don&apos;t</span> connect are the separate worlds you bridge.
+        For each person, tap everyone else who <span className="font-medium text-ink">knows them</span>, would recognize the name, have met, or deal with each other directly. Go by what you actually know; don&apos;t guess generously either way, and it&apos;s fine to be unsure. This is what lets us map the real structure.
       </p>
 
       <div className="space-y-2">
@@ -247,7 +247,7 @@ function Connections({ contacts, ties, setTies }: { contacts: Contact[]; ties: T
           );
         })}
       </div>
-      <div className="text-sm text-slate2">{count} connection{count === 1 ? "" : "s"} marked. It&apos;s fine to leave people unconnected, that&apos;s the point.</div>
+      <div className="text-sm text-slate2">{count} connection{count === 1 ? "" : "s"} marked. Leave any pair unmarked if they don&apos;t really know each other.</div>
     </div>
   );
 }
