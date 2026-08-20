@@ -19,6 +19,8 @@ export default async function AdminUsagePage() {
   let sessions: { h: string; ex: string; st: string; at: string; code: string }[] = [];
   const names: Record<string, string> = {};
   const emails: Record<string, string> = {};
+  const joined: Record<string, string> = {}; // account creation date
+  const allUserIds: string[] = [];
   let ready = false;
 
   try {
@@ -35,16 +37,21 @@ export default async function AdminUsagePage() {
       if (data.length < 1000) break;
     }
 
-    const present = new Set(sessions.map((s) => s.h));
-    const { data: profiles } = await admin.from("profiles").select("id, display_name");
-    for (const p of profiles || []) if (present.has(p.id) && p.display_name) names[p.id] = p.display_name;
-
+    // EVERY account, not just those with activity, so signed-up-but-idle users show.
     for (let page = 1; page <= 50; page++) {
       const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
       if (error || !data?.users?.length) break;
-      for (const u of data.users) if (present.has(u.id) && u.email) emails[u.id] = u.email;
+      for (const u of data.users) {
+        allUserIds.push(u.id);
+        if (u.email) emails[u.id] = u.email;
+        if (u.created_at) joined[u.id] = u.created_at;
+      }
       if (data.users.length < 1000) break;
     }
+
+    const { data: profiles } = await admin.from("profiles").select("id, display_name");
+    for (const p of profiles || []) if (p.display_name) names[p.id] = p.display_name;
+
     ready = true;
   } catch {
     ready = false;
@@ -62,7 +69,7 @@ export default async function AdminUsagePage() {
       {!ready ? (
         <div className="mt-6 rounded-xl bg-mist px-4 py-5 text-sm text-slate2">Couldn&apos;t load usage. The service-role key must be set for this page.</div>
       ) : (
-        <div className="mt-6"><AdminUsage sessions={sessions} names={names} emails={emails} /></div>
+        <div className="mt-6"><AdminUsage sessions={sessions} names={names} emails={emails} allUserIds={allUserIds} joined={joined} /></div>
       )}
     </main>
   );

@@ -38,7 +38,7 @@ const RANGES: { key: string; label: string; days: number }[] = [
 ];
 type SortKey = "runs" | "done" | "rate" | "modules" | "last";
 
-export default function AdminUsage({ sessions, names, emails }: { sessions: Sess[]; names: Record<string, string>; emails: Record<string, string> }) {
+export default function AdminUsage({ sessions, names, emails, allUserIds = [], joined = {} }: { sessions: Sess[]; names: Record<string, string>; emails: Record<string, string>; allUserIds?: string[]; joined?: Record<string, string> }) {
   const [range, setRange] = useState("all");
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<SortKey>("runs");
@@ -67,12 +67,15 @@ export default function AdminUsage({ sessions, names, emails }: { sessions: Sess
       const gm = byModule.get(s.ex) || { runs: 0, done: 0 };
       gm.runs++; if (isDone) gm.done++; byModule.set(s.ex, gm);
     }
+    // Seed every account so signed-up-but-idle users are listed too (0 runs).
+    for (const id of allUserIds) if (!perUser.has(id)) perUser.set(id, { runs: 0, done: 0, mods: new Set(), byMod: new Map(), last: joined[id] || "", list: [] });
     const users = [...perUser.entries()].map(([id, u]) => {
       const top = [...u.byMod.entries()].sort((a, b) => b[1] - a[1])[0];
       return { id, runs: u.runs, done: u.done, modules: u.mods.size, top: top ? moduleName(top[0]) : "", last: u.last, list: u.list.slice().sort((a, b) => b.at.localeCompare(a.at)) };
     });
     const modules = [...byModule.entries()].map(([ex, m]) => ({ ex, name: moduleName(ex), runs: m.runs, done: m.done })).sort((a, b) => b.runs - a.runs);
-    const totals = { users: perUser.size, runs: filtered.length, done: filtered.reduce((n, s) => n + (s.st === "done" ? 1 : 0), 0) };
+    const active = [...perUser.values()].filter((u) => u.runs > 0).length;
+    const totals = { users: perUser.size, active, runs: filtered.length, done: filtered.reduce((n, s) => n + (s.st === "done" ? 1 : 0), 0) };
     return { totals, users, modules };
   }, [filtered]);
 
@@ -117,8 +120,9 @@ export default function AdminUsage({ sessions, names, emails }: { sessions: Sess
       </div>
 
       {/* Stats */}
-      <div className="grid gap-3 sm:grid-cols-4">
-        <Stat label="Active users" value={totals.users.toLocaleString()} />
+      <div className="grid gap-3 sm:grid-cols-5">
+        <Stat label="Users" value={totals.users.toLocaleString()} />
+        <Stat label="Active" value={totals.active.toLocaleString()} />
         <Stat label="Runs" value={totals.runs.toLocaleString()} />
         <Stat label="Completed" value={totals.done.toLocaleString()} />
         <Stat label="Completion" value={`${pct(totals.done, totals.runs)}%`} />
