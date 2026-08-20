@@ -13,6 +13,25 @@ async function post(body: any) {
   return d;
 }
 
+// Shrink an image in the browser before upload so it never exceeds the
+// serverless request-body limit. SVGs and already-small files pass through.
+async function downscale(file: File, maxDim: number): Promise<Blob> {
+  if (file.type === "image/svg+xml" || file.size < 250 * 1024) return file;
+  try {
+    const img = await createImageBitmap(file);
+    const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+    const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = h;
+    canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+    const isPng = file.type.includes("png"); // keep transparency for logos
+    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, isPng ? "image/png" : "image/jpeg", 0.85));
+    return blob && blob.size < file.size ? blob : file;
+  } catch {
+    return file;
+  }
+}
+
 export default function OrgAdmin({ orgs, counts, invitesByOrg }: { orgs: Org[]; counts: Record<string, { facilitators: number; members: number }>; invitesByOrg: Record<string, Invite[]> }) {
   const router = useRouter();
   const [creating, setCreating] = useState(false);
@@ -100,11 +119,18 @@ function OrgCard({ org, count, invites, onChanged }: { org: Org; count?: { facil
   async function upload(kind: "logo" | "hero", file: File) {
     setBusy(kind); setErr(null);
     try {
-      const fd = new FormData(); fd.set("orgId", org.id); fd.set("kind", kind); fd.set("file", file);
+      const blob = await downscale(file, kind === "hero" ? 1800 : 640);
+      const fd = new FormData();
+      fd.set("orgId", org.id); fd.set("kind", kind);
+      fd.set("file", new File([blob], file.name, { type: blob.type || file.type }));
       const res = await fetch("/api/admin/orgs/asset", { method: "POST", body: fd });
-      const d = await res.json(); if (!res.ok) throw new Error(d.error || "Upload failed");
+      if (!res.ok) {
+        const t = await res.text().catch(() => "");
+        throw new Error(/entity too large/i.test(t) ? "That image is too large even after resizing. Try a smaller one." : (t.trim().slice(0, 140) || `Upload failed (${res.status})`));
+      }
+      await res.json().catch(() => ({}));
       onChanged();
-    } catch (e: any) { setErr(e.message); } finally { setBusy(null); }
+    } catch (e: any) { setErr(e.message || "Upload failed"); } finally { setBusy(null); }
   }
   async function act(body: any, tag: string) {
     setBusy(tag); setErr(null);
