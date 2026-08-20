@@ -251,7 +251,7 @@ async function OrgLandingView({ org }: { org: Org }) {
           <div className={"inline-flex items-center gap-2.5 " + (org.hero_image_url ? "text-white" : "text-ink")}>
             {org.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={org.logo_url} alt={org.name} style={{ height: 44, maxWidth: 240 }} className="object-contain" />
+              <img src={org.logo_url} alt={org.name} style={{ height: 80, maxWidth: 360 }} className="object-contain" />
             ) : (
               <span className="text-2xl font-bold tracking-tight">{org.name}</span>
             )}
