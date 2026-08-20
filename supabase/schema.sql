@@ -635,3 +635,59 @@ alter table public.experiments add column if not exists mode text not null defau
 
 alter table public.experiments enable row level security;
 alter table public.experiment_assignments enable row level security;
+
+-- ============================================================================
+-- Multi-tenant white labels (organizations), platform/org roles, and invites.
+-- Roles: profiles.platform_role = superadmin | user  (superadmin = platform owner)
+--        org_members.org_role   = facilitator | member  (scoped to an org)
+-- ============================================================================
+
+alter table public.profiles add column if not exists platform_role text not null default 'user'; -- superadmin | user
+
+create table if not exists public.organizations (
+  id uuid primary key default gen_random_uuid(),
+  slug text unique not null,                 -- superadditive.app/{slug}
+  name text not null,
+  logo_url text,
+  hero_image_url text,
+  primary_color text,                        -- hex; themes accents app-wide
+  tagline text,
+  owner_id uuid references auth.users (id) on delete set null,
+  plan text not null default 'standard',
+  invite_only boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists organizations_slug_idx on public.organizations (slug);
+alter table public.organizations enable row level security;
+drop policy if exists org_read on public.organizations;
+-- Branding is readable by any signed-in user (needed to theme /{slug}); writes go through service-role admin routes.
+create policy org_read on public.organizations for select using (auth.role() = 'authenticated');
+
+create table if not exists public.org_members (
+  org_id uuid not null references public.organizations (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  org_role text not null default 'member',   -- facilitator | member
+  created_at timestamptz not null default now(),
+  primary key (org_id, user_id)
+);
+create index if not exists org_members_user_idx on public.org_members (user_id);
+alter table public.org_members enable row level security;
+drop policy if exists org_members_read_own on public.org_members;
+create policy org_members_read_own on public.org_members for select using (user_id = auth.uid()); -- writes via service role
+
+-- Pending, email-based invites. When an invited user signs in, membership is created.
+create table if not exists public.org_invites (
+  org_id uuid not null references public.organizations (id) on delete cascade,
+  email text not null,
+  org_role text not null default 'member',
+  created_at timestamptz not null default now(),
+  primary key (org_id, email)
+);
+create index if not exists org_invites_email_idx on public.org_invites (lower(email));
+alter table public.org_invites enable row level security; -- (no policies — service role only)
+
+-- Tenant scoping on the work tables.
+alter table public.sessions add column if not exists org_id uuid references public.organizations (id) on delete set null;
+create index if not exists sessions_org_idx on public.sessions (org_id);
+alter table public.classes add column if not exists org_id uuid references public.organizations (id) on delete set null;
