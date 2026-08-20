@@ -646,9 +646,10 @@ export type PillKey =
   | "entrepreneurship"
   | "innovation"
   | "deeptech"
-  | "negotiation"
-  | "live";
+  | "negotiation";
 
+// Topic pills: what an exercise is *about*. (How you run it — partner, AI, live,
+// voice, camera — is the separate FEATURES axis below.)
 export const PILLS: { key: PillKey; label: string }[] = [
   { key: "ai", label: "AI" },
   { key: "career", label: "Career" },
@@ -659,7 +660,6 @@ export const PILLS: { key: PillKey; label: string }[] = [
   { key: "innovation", label: "Innovation" },
   { key: "deeptech", label: "Deep Tech Innovation" },
   { key: "negotiation", label: "Negotiation" },
-  { key: "live", label: "Live in class" },
 ];
 
 const PILLS_OF: Record<string, PillKey[]> = {
@@ -700,8 +700,8 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "test-the-bet": ["innovation", "entrepreneurship"],
   "deeptech-canvas": ["deeptech", "innovation", "entrepreneurship"],
   // Live
-  benchmark: ["live", "ai"],
-  network: ["live", "leadership"],
+  benchmark: ["ai"],
+  network: ["leadership"],
 };
 
 export function modulePills(slug: string): PillKey[] {
@@ -709,6 +709,58 @@ export function modulePills(slug: string): PillKey[] {
 }
 export function pillLabel(key: string): string {
   return PILLS.find((p) => p.key === key)?.label || key;
+}
+
+// ---------------------------------------------------------------------------
+// Features — how you run an exercise (its format). Orthogonal to topic pills.
+// partner/AI/in-class come straight from the `partner` field; voice and camera
+// are the handful of modules with a spoken or photo step.
+// ---------------------------------------------------------------------------
+export type FeatureKey = "partner" | "ai" | "live" | "voice" | "camera";
+
+export const FEATURES: { key: FeatureKey; label: string }[] = [
+  { key: "partner", label: "With a partner" },
+  { key: "ai", label: "With AI" },
+  { key: "live", label: "In class" },
+  { key: "voice", label: "Voice" },
+  { key: "camera", label: "Camera" },
+];
+
+const VOICE_MODULES = new Set(["voice-consult", "refresh-resume-voice"]);
+const CAMERA_MODULES = new Set(["business-consult"]); // has a photograph-the-operation step
+
+export function moduleFeatures(slug: string): FeatureKey[] {
+  const m = moduleBySlug(slug);
+  const out: FeatureKey[] = [];
+  if (m?.partner === "human") out.push("partner");
+  if (m?.partner === "ai") out.push("ai");
+  if (m?.partner === "group") out.push("live");
+  if (VOICE_MODULES.has(slug)) out.push("voice");
+  if (CAMERA_MODULES.has(slug)) out.push("camera");
+  return out;
+}
+export function featureLabel(key: string): string {
+  return FEATURES.find((f) => f.key === key)?.label || key;
+}
+
+// The single filter predicate used by the catalog and the landing library:
+// text search over name/tagline/description, plus ANY-match topic and feature
+// pills. An empty query/set means "don't filter on that axis".
+export function moduleMatches(
+  m: ModuleDef,
+  opts: { query?: string; topics?: Set<string>; features?: Set<string> }
+): boolean {
+  const q = (opts.query || "").trim().toLowerCase();
+  if (q) {
+    const hay = `${m.name} ${m.tagline} ${m.description}`.toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+  if (opts.topics?.size && !modulePills(m.slug).some((p) => opts.topics!.has(p))) return false;
+  if (opts.features?.size && !moduleFeatures(m.slug).some((f) => opts.features!.has(f))) return false;
+  return true;
+}
+export function hasActiveFilters(opts: { query?: string; topics?: Set<string>; features?: Set<string> }): boolean {
+  return !!(opts.query?.trim() || opts.topics?.size || opts.features?.size);
 }
 
 export function moduleBySlug(slug: string): ModuleDef | undefined {

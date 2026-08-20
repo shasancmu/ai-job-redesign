@@ -6,11 +6,13 @@ import {
   PARTNER_META,
   CATEGORIES,
   moduleCategory,
-  PILLS,
   modulePills,
   pillLabel,
+  moduleMatches,
+  hasActiveFilters,
 } from "@/lib/modules";
 import ModuleIcon from "@/components/ModuleIcon";
+import ModuleFilters from "@/components/ModuleFilters";
 
 // The marketing-page mirror of the dashboard catalog: same finite pill set,
 // same category grouping — but cards are read-only (no start buttons) and the
@@ -18,13 +20,18 @@ import ModuleIcon from "@/components/ModuleIcon";
 const VISIBLE = MODULES.filter((m) => !m.hidden);
 
 export default function LandingLibrary() {
+  const [query, setQuery] = useState("");
   const [activePills, setActivePills] = useState<Set<string>>(new Set());
-  const togglePill = (k: string) =>
-    setActivePills((s) => {
+  const [activeFeatures, setActiveFeatures] = useState<Set<string>>(new Set());
+  const toggleIn = (set: (fn: (s: Set<string>) => Set<string>) => void) => (k: string) =>
+    set((s) => {
       const n = new Set(s);
       n.has(k) ? n.delete(k) : n.add(k);
       return n;
     });
+  const togglePill = toggleIn(setActivePills);
+  const toggleFeature = toggleIn(setActiveFeatures);
+  const clearFilters = () => { setQuery(""); setActivePills(new Set()); setActiveFeatures(new Set()); };
 
   const grid = "mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3";
 
@@ -66,49 +73,35 @@ export default function LandingLibrary() {
     </div>
   );
 
-  return (
-    <div className="mt-8">
-      {/* Pill filter bar — the cross-cutting themes, shared with the dashboard. */}
-      <div className="flex flex-wrap items-center gap-2">
-        {PILLS.map((p) => {
-          const on = activePills.has(p.key);
-          const count = VISIBLE.filter((m) => modulePills(m.slug).includes(p.key)).length;
-          if (count === 0) return null;
-          return (
-            <button
-              key={p.key}
-              onClick={() => togglePill(p.key)}
-              className={
-                "rounded-full px-3 py-1 text-sm font-medium transition " +
-                (on ? "bg-ink text-white" : "border border-line bg-white text-slate2 hover:border-slate-300")
-              }
-            >
-              {p.label}
-            </button>
-          );
-        })}
-        {activePills.size > 0 && (
-          <button onClick={() => setActivePills(new Set())} className="text-sm text-slate-400 hover:text-ink">
-            Clear
-          </button>
-        )}
-      </div>
+  const filterState = { query, topics: activePills, features: activeFeatures };
+  const filtering = hasActiveFilters(filterState);
+  const mods = filtering ? VISIBLE.filter((m) => moduleMatches(m, filterState)) : VISIBLE;
 
-      {activePills.size > 0 ? (
-        // Filtered flat grid — modules matching ANY selected pill.
-        (() => {
-          const mods = VISIBLE.filter((m) => modulePills(m.slug).some((p) => activePills.has(p)));
-          return mods.length ? (
-            <div className={grid}>{mods.map((m) => card(m, CATEGORIES.find((c) => c.key === moduleCategory(m.slug))?.chip || "bg-sage-soft text-sage"))}</div>
-          ) : (
-            <p className="mt-6 text-sm text-slate2">No exercises match those themes.</p>
-          );
-        })()
+  return (
+    <div className="mt-8 space-y-6">
+      <ModuleFilters
+        query={query}
+        onQuery={setQuery}
+        topics={activePills}
+        onToggleTopic={togglePill}
+        features={activeFeatures}
+        onToggleFeature={toggleFeature}
+        onClear={clearFilters}
+        modules={VISIBLE}
+        resultCount={filtering ? mods.length : undefined}
+      />
+
+      {filtering ? (
+        mods.length ? (
+          <div className={grid}>{mods.map((m) => card(m, CATEGORIES.find((c) => c.key === moduleCategory(m.slug))?.chip || "bg-sage-soft text-sage"))}</div>
+        ) : (
+          <p className="mt-6 text-sm text-slate2">No exercises match. Try clearing a filter or your search.</p>
+        )
       ) : (
         <div className="space-y-12">
           {CATEGORIES.map((cat) => {
-            const mods = VISIBLE.filter((m) => moduleCategory(m.slug) === cat.key);
-            if (mods.length === 0) return null;
+            const catMods = VISIBLE.filter((m) => moduleCategory(m.slug) === cat.key);
+            if (catMods.length === 0) return null;
             return (
               <div key={cat.key}>
                 <div className="flex items-baseline gap-3">
@@ -116,7 +109,7 @@ export default function LandingLibrary() {
                   <h3 className="text-xl font-bold tracking-tight text-ink">{cat.title}</h3>
                 </div>
                 <p className="mt-1 max-w-2xl text-sm text-slate2">{cat.blurb}</p>
-                <div className={grid}>{mods.map((m) => card(m, cat.chip))}</div>
+                <div className={grid}>{catMods.map((m) => card(m, cat.chip))}</div>
               </div>
             );
           })}

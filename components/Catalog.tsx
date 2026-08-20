@@ -5,8 +5,9 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { MODULES, PARTNER_META, CATEGORIES, moduleCategory, formatPrice, PILLS, modulePills, pillLabel } from "@/lib/modules";
+import { MODULES, PARTNER_META, CATEGORIES, moduleCategory, formatPrice, modulePills, pillLabel, moduleMatches, hasActiveFilters } from "@/lib/modules";
 import ModuleIcon from "@/components/ModuleIcon";
+import ModuleFilters from "@/components/ModuleFilters";
 import { useT } from "@/components/I18nProvider";
 
 const ACCENT: Record<string, string> = {
@@ -77,13 +78,18 @@ export default function Catalog({
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [detail, setDetail] = useState<string | null>(null); // slug of the module whose "What's this?" is open
+  const [query, setQuery] = useState("");
   const [activePills, setActivePills] = useState<Set<string>>(new Set());
-  const togglePill = (k: string) =>
-    setActivePills((s) => {
+  const [activeFeatures, setActiveFeatures] = useState<Set<string>>(new Set());
+  const toggleIn = (set: (fn: (s: Set<string>) => Set<string>) => void) => (k: string) =>
+    set((s) => {
       const n = new Set(s);
       n.has(k) ? n.delete(k) : n.add(k);
       return n;
     });
+  const togglePill = toggleIn(setActivePills);
+  const toggleFeature = toggleIn(setActiveFeatures);
+  const clearFilters = () => { setQuery(""); setActivePills(new Set()); setActiveFeatures(new Set()); };
   const shown = moduleSlugs
     ? (moduleSlugs.map((s) => MODULES.find((m) => m.slug === s)).filter(Boolean) as typeof MODULES)
     : MODULES.filter((m) => !m.hidden);
@@ -241,43 +247,31 @@ export default function Catalog({
         <div className={grid}>{shown.map(renderCard)}</div>
       ) : (
         <div className="space-y-8">
-          {/* Pill filter bar */}
-          <div data-tour="filters" className="flex flex-wrap items-center gap-2">
-            {PILLS.map((p) => {
-              const on = activePills.has(p.key);
-              const count = shown.filter((m) => modulePills(m.slug).includes(p.key)).length;
-              if (count === 0) return null;
-              return (
-                <button
-                  key={p.key}
-                  onClick={() => togglePill(p.key)}
-                  className={
-                    "rounded-full px-3 py-1 text-sm font-medium transition " +
-                    (on ? "bg-ink text-white" : "border border-line bg-white text-slate2 hover:border-slate-300")
-                  }
-                >
-                  {p.label}
-                </button>
-              );
-            })}
-            {activePills.size > 0 && (
-              <button onClick={() => setActivePills(new Set())} className="text-sm text-slate-400 hover:text-ink">
-                Clear
-              </button>
-            )}
-          </div>
+          {(() => {
+            const filterState = { query, topics: activePills, features: activeFeatures };
+            const filtering = hasActiveFilters(filterState);
+            const mods = filtering ? shown.filter((m) => moduleMatches(m, filterState)) : shown;
+            return (
+              <>
+                <ModuleFilters
+                  query={query}
+                  onQuery={setQuery}
+                  topics={activePills}
+                  onToggleTopic={togglePill}
+                  features={activeFeatures}
+                  onToggleFeature={toggleFeature}
+                  onClear={clearFilters}
+                  modules={shown}
+                  resultCount={filtering ? mods.length : undefined}
+                />
 
-          {activePills.size > 0 ? (
-            // Filtered flat grid — modules matching ANY selected pill.
-            (() => {
-              const mods = shown.filter((m) => modulePills(m.slug).some((p) => activePills.has(p)));
-              return mods.length ? (
-                <div className={grid}>{mods.map(renderCard)}</div>
-              ) : (
-                <p className="text-sm text-slate2">No modules match those filters.</p>
-              );
-            })()
-          ) : (
+                {filtering ? (
+                  mods.length ? (
+                    <div className={grid}>{mods.map(renderCard)}</div>
+                  ) : (
+                    <p className="text-sm text-slate2">No exercises match. Try clearing a filter or your search.</p>
+                  )
+                ) : (
             <>
               {recModules.length > 0 && (
                 <div>
@@ -301,8 +295,11 @@ export default function Catalog({
                   </div>
                 );
               })}
-            </>
-          )}
+                    </>
+                  )}
+                </>
+              );
+            })()}
         </div>
       )}
 
