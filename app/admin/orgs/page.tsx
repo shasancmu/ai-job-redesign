@@ -15,11 +15,28 @@ export default async function OrgsAdminPage() {
   if (!(await isSuperadmin(user))) redirect("/dashboard");
 
   const admin = createAdminClient();
-  const [{ data: orgs }, { data: invites }, { data: members }] = await Promise.all([
+  const [{ data: orgs }, { data: invites }, { data: members }, { data: profs }] = await Promise.all([
     admin.from("organizations").select("*").order("created_at", { ascending: false }),
     admin.from("org_invites").select("org_id, email, org_role"),
     admin.from("org_members").select("org_id, org_role"),
+    admin.from("profiles").select("id, display_name"),
   ]);
+
+  // Every account in the system, for the facilitator/member lookup. Names come
+  // from profiles; the email is the auth record.
+  const nameById = new Map((profs || []).map((p: any) => [p.id, p.display_name]));
+  const users: { id: string; email: string; name: string }[] = [];
+  for (let page = 1; page <= 20; page++) {
+    const { data } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+    const list = data?.users || [];
+    for (const u of list) {
+      const email = (u.email || "").toLowerCase();
+      if (!email) continue;
+      users.push({ id: u.id, email, name: nameById.get(u.id) || (u.user_metadata?.display_name as string) || email.split("@")[0] });
+    }
+    if (list.length < 1000) break;
+  }
+  users.sort((a, b) => a.name.localeCompare(b.name));
 
   // Count facilitators/members per org for the overview.
   const counts: Record<string, { facilitators: number; members: number }> = {};
@@ -40,7 +57,7 @@ export default async function OrgsAdminPage() {
       <p className="mt-1 text-sm text-slate-500">Create a branded org (superadditive.app/slug), assign a facilitator, and invite members. Only you can see this.</p>
 
       <div className="mt-6">
-        <OrgAdmin orgs={(orgs as any) || []} counts={counts} invitesByOrg={invitesByOrg} />
+        <OrgAdmin orgs={(orgs as any) || []} counts={counts} invitesByOrg={invitesByOrg} users={users} />
       </div>
     </main>
   );

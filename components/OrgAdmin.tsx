@@ -8,6 +8,7 @@ const PICKABLE = MODULES.filter((m) => !m.hidden);
 
 type Highlight = { title: string; body: string };
 type Faculty = { name: string; title?: string; image_url?: string };
+type User = { id: string; email: string; name: string };
 type Org = { id: string; slug: string; name: string; tagline: string | null; primary_color: string | null; logo_url: string | null; hero_image_url: string | null; invite_only: boolean; modules: string[] | null; about: string | null; highlights: Highlight[] | null; faculty: Faculty[] | null };
 type Invite = { email: string; org_role: string };
 
@@ -49,7 +50,7 @@ async function downscale(file: File, maxDim: number): Promise<Blob> {
   }
 }
 
-export default function OrgAdmin({ orgs, counts, invitesByOrg }: { orgs: Org[]; counts: Record<string, { facilitators: number; members: number }>; invitesByOrg: Record<string, Invite[]> }) {
+export default function OrgAdmin({ orgs, counts, invitesByOrg, users = [] }: { orgs: Org[]; counts: Record<string, { facilitators: number; members: number }>; invitesByOrg: Record<string, Invite[]>; users?: User[] }) {
   const router = useRouter();
   const [creating, setCreating] = useState(false);
 
@@ -64,7 +65,7 @@ export default function OrgAdmin({ orgs, counts, invitesByOrg }: { orgs: Org[]; 
       {orgs.length === 0 && !creating && <p className="text-sm text-slate-400">No organizations yet.</p>}
 
       {orgs.map((o) => (
-        <OrgCard key={o.id} org={o} count={counts[o.id]} invites={invitesByOrg[o.id] || []} onChanged={() => router.refresh()} />
+        <OrgCard key={o.id} org={o} count={counts[o.id]} invites={invitesByOrg[o.id] || []} users={users} onChanged={() => router.refresh()} />
       ))}
     </div>
   );
@@ -199,9 +200,8 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
   );
 }
 
-function OrgCard({ org, count, invites, onChanged }: { org: Org; count?: { facilitators: number; members: number }; invites: Invite[]; onChanged: () => void }) {
+function OrgCard({ org, count, invites, users, onChanged }: { org: Org; count?: { facilitators: number; members: number }; invites: Invite[]; users: User[]; onChanged: () => void }) {
   const [editing, setEditing] = useState(false);
-  const [facEmail, setFacEmail] = useState("");
   const [memEmails, setMemEmails] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -267,10 +267,12 @@ function OrgCard({ org, count, invites, onChanged }: { org: Org; count?: { facil
         {/* Facilitator */}
         <div className="rounded-lg border border-line p-3">
           <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Facilitator</div>
-          <div className="flex gap-1.5">
-            <input className="field" value={facEmail} onChange={(e) => setFacEmail(e.target.value)} placeholder="facilitator@duke.edu" />
-            <button onClick={() => act({ action: "set_facilitator", orgId: org.id, email: facEmail }, "fac").then(() => setFacEmail(""))} disabled={busy === "fac" || !facEmail.includes("@")} className="btn-dark shrink-0 text-sm">Add</button>
-          </div>
+          <UserLookup
+            users={users}
+            busy={busy === "fac"}
+            exclude={new Set(facs.map((f) => f.email))}
+            onPick={(email) => act({ action: "set_facilitator", orgId: org.id, email }, "fac")}
+          />
           {facs.length > 0 && <div className="mt-1.5 text-xs text-slate2">{facs.map((f) => f.email).join(", ")}</div>}
         </div>
       </div>
@@ -325,5 +327,67 @@ function FacultyPhoto({ org, person, onUrl }: { org?: Org; person: Faculty; onUr
       {circle}
       <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && pick(e.target.files[0])} />
     </label>
+  );
+}
+
+function initialsOf(name: string) {
+  return (name || "?").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("") || "?";
+}
+
+// Typeahead over every account in the system: type a name or email, pick a
+// person to make them a facilitator. Typing a full email that isn't in the
+// system offers to invite it (so you can pre-assign someone before they sign up).
+function UserLookup({ users, onPick, busy, exclude }: { users: User[]; onPick: (email: string) => void; busy?: boolean; exclude?: Set<string> }) {
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const query = q.trim().toLowerCase();
+
+  const matches = query
+    ? users.filter((u) => !exclude?.has(u.email) && (u.name.toLowerCase().includes(query) || u.email.includes(query))).slice(0, 8)
+    : [];
+  const showRawInvite = query.includes("@") && !matches.some((m) => m.email === query) && !exclude?.has(query);
+
+  function pick(email: string) {
+    onPick(email);
+    setQ("");
+    setOpen(false);
+  }
+
+  return (
+    <div className="relative">
+      <input
+        className="field"
+        value={q}
+        onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        placeholder="Search people by name or email…"
+        disabled={busy}
+      />
+      {open && query && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute inset-x-0 z-20 mt-1 max-h-64 overflow-y-auto rounded-lg border border-line bg-white p-1 shadow-lift">
+            {matches.map((u) => (
+              <button key={u.id} type="button" onClick={() => pick(u.email)} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-mist">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-mist text-[10px] font-bold text-slate2">{initialsOf(u.name)}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm text-ink">{u.name}</span>
+                  <span className="block truncate text-xs text-slate-400">{u.email}</span>
+                </span>
+              </button>
+            ))}
+            {showRawInvite && (
+              <button type="button" onClick={() => pick(query)} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-mist">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-mist text-base text-slate-400">+</span>
+                <span className="text-sm text-ink">Invite <b>{query}</b></span>
+              </button>
+            )}
+            {matches.length === 0 && !showRawInvite && (
+              <div className="px-2.5 py-2 text-sm text-slate-400">No matching accounts. Type a full email to invite someone new.</div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
