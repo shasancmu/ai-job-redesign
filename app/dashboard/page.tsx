@@ -186,6 +186,7 @@ export default async function Dashboard({
           <AccountMenu
             name={profile?.display_name || "You"}
             facilitator={facAccess.ok}
+            director={facAccess.orgIds.length > 0}
             superadmin={facAccess.superadmin}
             dataTour="reports"
             labels={{

@@ -15,6 +15,7 @@ type Labels = { reports: string; profile: string; facilitator: string; orgs: str
 export default function AccountMenu({
   name,
   facilitator = false,
+  director = false,
   superadmin = false,
   labels,
   dataTour,
@@ -22,7 +23,8 @@ export default function AccountMenu({
   tour = true,
 }: {
   name: string;
-  facilitator?: boolean; // has facilitator access → show the Facilitator link
+  facilitator?: boolean; // has facilitator access → show the Cohorts link
+  director?: boolean; // runs an org → show the Organization console
   superadmin?: boolean; // platform owner → also show the Orgs console
   labels: Labels;
   dataTour?: string;
@@ -78,9 +80,10 @@ export default function AccountMenu({
             <a href="/reports" className={item}>{labels.reports}</a>
             <a href="/profile" className={item}>{labels.profile}</a>
             {tour && <button onClick={() => { setOpen(false); window.dispatchEvent(new Event("app:start-tour")); }} className={item}>{labels.tour}</button>}
-            {(facilitator || superadmin) && (
+            {(facilitator || director || superadmin) && (
               <>
                 <div className="my-1 border-t border-line" />
+                {director && <a href="/team" className={item}>Organization</a>}
                 {facilitator && <a href="/facilitator" className={item}>{labels.facilitator}</a>}
                 {superadmin && <a href="/admin/orgs" className={item}>{labels.orgs}</a>}
               </>

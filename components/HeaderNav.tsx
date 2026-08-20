@@ -30,6 +30,7 @@ export default async function HeaderNav({ showDashboard = true }: { showDashboar
       <AccountMenu
         name={name}
         facilitator={access.ok}
+        director={access.orgIds.length > 0}
         superadmin={access.superadmin}
         dashboard={showDashboard}
         tour={false}
