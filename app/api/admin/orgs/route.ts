@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isSuperadmin } from "@/lib/orgs";
+import { isSuperadmin, getOrgById, ensureMasterCohort, joinMasterCohort } from "@/lib/orgs";
 import { MODULES } from "@/lib/modules";
 
 const VALID_MODULES = new Set(MODULES.map((m) => m.slug));
@@ -72,16 +72,19 @@ export async function POST(request: Request) {
       row.owner_id = user.id;
       const { data, error } = await admin.from("organizations").insert(row).select().single();
       if (error) return Response.json({ error: error.message.includes("duplicate") ? `The slug "${slug}" is taken.` : error.message }, { status: 400 });
+      // Give the new org its master cohort (the default "everyone" group).
+      if (data) await ensureMasterCohort(data as any);
       return Response.json({ org: data });
     }
 
-    if (action === "set_facilitator" || action === "add_invites") {
+    if (action === "set_facilitator" || action === "set_director" || action === "set_instructor" || action === "add_invites") {
       const orgId = String(body.orgId || "");
-      const role = action === "set_facilitator" ? "facilitator" : "member";
+      const role = action === "add_invites" ? "member" : action === "set_instructor" ? "instructor" : "director";
       const emails: string[] = (Array.isArray(body.emails) ? body.emails : [body.email])
         .map((e: any) => String(e || "").trim().toLowerCase())
         .filter((e: string) => e.includes("@"));
       if (!orgId || emails.length === 0) return Response.json({ error: "orgId and email(s) required" }, { status: 400 });
+      const org = await getOrgById(orgId);
       // Record invites (claimed → membership on the user's next sign-in).
       await admin.from("org_invites").upsert(emails.map((email) => ({ org_id: orgId, email, org_role: role })), { onConflict: "org_id,email" });
       // If any invitee already has an account, add the membership immediately.
@@ -92,6 +95,7 @@ export async function POST(request: Request) {
           const em = (u.email || "").toLowerCase();
           if (emails.includes(em)) {
             await admin.from("org_members").upsert({ org_id: orgId, user_id: u.id, org_role: role }, { onConflict: "org_id,user_id" });
+            if (org) await joinMasterCohort(u.id, org);
           }
         }
         if (users.length < 1000) break;

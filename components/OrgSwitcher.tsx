@@ -62,7 +62,7 @@ export default function OrgSwitcher({ orgs, activeSlug }: { orgs: Item[]; active
                   <span className="h-2 w-2 rounded-full bg-slate-300" />
                 )}
                 <span className="flex-1 truncate">{o.name}</span>
-                {o.role === "facilitator" && <span className="rounded-full bg-mist px-1.5 py-0.5 text-[10px] text-slate2">facilitator</span>}
+                {o.role !== "member" && <span className="rounded-full bg-mist px-1.5 py-0.5 text-[10px] text-slate2">{o.role}</span>}
                 {o.slug === activeSlug && <span className="text-sage">✓</span>}
               </button>
             ))}

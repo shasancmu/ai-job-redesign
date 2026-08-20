@@ -200,7 +200,7 @@ export default async function Dashboard({
         </div>
       </header>
 
-      <FacilitatorWelcome orgs={myOrgs.filter((m) => m.role === "facilitator").map((m) => ({ slug: m.org.slug, name: m.org.name }))} />
+      <FacilitatorWelcome orgs={myOrgs.filter((m) => m.role !== "member").map((m) => ({ slug: m.org.slug, name: m.org.name, role: m.role }))} />
 
       <EnrichOnce />
 

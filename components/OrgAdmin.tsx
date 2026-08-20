@@ -229,8 +229,9 @@ function OrgCard({ org, count, invites, users, onChanged }: { org: Org; count?: 
 
   if (editing) return <OrgForm org={org} onDone={() => { setEditing(false); onChanged(); }} onCancel={() => setEditing(false)} />;
 
-  const facs = invites.filter((i) => i.org_role === "facilitator");
-  const mems = invites.filter((i) => i.org_role === "member");
+  // 'facilitator' is the legacy value for 'director'.
+  const dirs = invites.filter((i) => i.org_role === "director" || i.org_role === "facilitator");
+  const mems = invites.filter((i) => i.org_role === "member" || (!["director", "facilitator", "instructor"].includes(i.org_role)));
 
   return (
     <div className="card p-5">
@@ -239,7 +240,7 @@ function OrgCard({ org, count, invites, users, onChanged }: { org: Org; count?: 
           {org.logo_url ? <img src={org.logo_url} alt="" className="h-8 max-w-[120px] object-contain" /> : <span className="h-6 w-6 rounded-full" style={{ background: org.primary_color || "#3f7a52" }} />}
           <div>
             <div className="font-bold text-ink">{org.name}</div>
-            <div className="text-xs text-slate-400">superadditive.app/{org.slug} · {count?.facilitators || 0} facilitator(s), {count?.members || 0} member(s) · {org.invite_only ? "invite-only" : "open"}</div>
+            <div className="text-xs text-slate-400">superadditive.app/{org.slug} · {count?.facilitators || 0} director(s), {count?.members || 0} member(s) · {org.invite_only ? "invite-only" : "open"}</div>
           </div>
         </div>
         <div className="flex gap-2">
@@ -264,18 +265,18 @@ function OrgCard({ org, count, invites, users, onChanged }: { org: Org; count?: 
           </div>
         </div>
 
-        {/* Facilitator */}
+        {/* Director */}
         <div className="rounded-lg border border-line p-3">
-          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Facilitator</div>
+          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Director <span className="font-normal normal-case text-slate-400">(runs the org)</span></div>
           <UserLookup
             users={users}
             busy={busy === "fac"}
-            exclude={new Set(facs.map((f) => f.email))}
-            onPick={(email) => act({ action: "set_facilitator", orgId: org.id, email }, "fac")}
+            exclude={new Set(dirs.map((f) => f.email))}
+            onPick={(email) => act({ action: "set_director", orgId: org.id, email }, "fac")}
           />
-          {facs.length > 0 && (
+          {dirs.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {facs.map((f) => {
+              {dirs.map((f) => {
                 const u = users.find((x) => x.email === f.email);
                 return (
                   <span key={f.email} className="inline-flex items-center gap-2 rounded-full bg-mist py-1 pl-1 pr-3 text-sm text-ink">

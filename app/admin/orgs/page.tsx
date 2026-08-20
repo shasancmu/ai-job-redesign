@@ -42,7 +42,7 @@ export default async function OrgsAdminPage() {
   const counts: Record<string, { facilitators: number; members: number }> = {};
   for (const m of members || []) {
     const c = (counts[m.org_id] ||= { facilitators: 0, members: 0 });
-    if (m.org_role === "facilitator") c.facilitators++; else c.members++;
+    if (m.org_role === "director" || m.org_role === "facilitator") c.facilitators++; else c.members++;
   }
   const invitesByOrg: Record<string, { email: string; org_role: string }[]> = {};
   for (const i of invites || []) (invitesByOrg[i.org_id] ||= []).push({ email: i.email, org_role: i.org_role });

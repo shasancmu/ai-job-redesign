@@ -88,9 +88,10 @@ export async function POST(request: Request) {
     return Response.json({ error: "That code is taken." }, { status: 409 });
   }
 
-  // Stamp the org so it's scoped to the facilitator's white label (their first
-  // org; superadmin-created classes stay unscoped unless they belong to an org).
-  const org_id = access.orgIds[0] || null;
+  // Stamp the org so it's scoped to the creator's white label — a director's
+  // org, or an instructor's org — so the director sees it. Superadmin-created
+  // classes stay unscoped unless they belong to an org.
+  const org_id = access.orgIds[0] || access.instructorOrgIds[0] || null;
   const { error } = await admin
     .from("classes")
     .upsert({ code, name, owner_id: user.id, modules, language, kind, allowed_emails, ...(org_id ? { org_id } : {}) }, { onConflict: "code" });

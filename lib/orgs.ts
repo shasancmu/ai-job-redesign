@@ -3,8 +3,14 @@
 // truth for tenant resolution and role checks (server-only).
 //
 // Roles:
-//   platform_role: 'superadmin' | 'user'   (superadmin = you, the platform owner)
-//   org_role:      'facilitator' | 'member' (per-organization, in org_members)
+//   platform_role: 'superadmin' | 'user'              (superadmin = platform owner)
+//   org_role:      'director' | 'instructor' | 'member' (per-organization)
+//     - director   runs the whole org: instructor rights on EVERY cohort,
+//                   manages people/branding, appoints instructors. Org-wide reach.
+//     - instructor builds & runs their own cohorts; sees only those learners.
+//     - member     a learner; in the org's master cohort + any sections.
+//   ('facilitator' is the legacy name for 'director' and is normalized on read,
+//    so nothing breaks before the migration runs.)
 //
 // A user can belong to several orgs. The "active" org (whose branding shows) is
 // resolved from the URL slug when present, else a cookie, else their first org.
@@ -14,7 +20,14 @@ import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 
-export type OrgRole = "facilitator" | "member";
+export type OrgRole = "director" | "instructor" | "member";
+
+// Normalize a stored org_role, folding the legacy 'facilitator' into 'director'.
+export function normalizeRole(raw: string | null | undefined): OrgRole {
+  if (raw === "director" || raw === "facilitator") return "director";
+  if (raw === "instructor") return "instructor";
+  return "member";
+}
 
 export type OrgHighlight = { title: string; body: string };
 export type OrgFaculty = { name: string; title?: string; image_url?: string };
@@ -55,6 +68,52 @@ export async function getOrgBySlug(slug: string): Promise<Org | null> {
   return (data as Org) || null;
 }
 
+export async function getOrgById(id: string): Promise<Org | null> {
+  const db = admin();
+  if (!db || !id) return null;
+  const { data } = await db.from("organizations").select("*").eq("id", id).maybeSingle();
+  return (data as Org) || null;
+}
+
+// The "master cohort": a default class auto-created per org that every member
+// belongs to. It gives an org an "everyone" group with a real cohort code, so
+// live activities and roll-ups work org-wide with no sections. Deterministic,
+// unique code from the org id (nobody types it — you join the org, not this).
+function masterCohortCode(orgId: string): string {
+  return ("ORG-" + orgId.replace(/-/g, "").slice(0, 10)).toUpperCase();
+}
+
+// Create the org's master cohort if it doesn't exist yet; returns its code (or
+// null if it can't be created — e.g. no owner to satisfy the classes FK).
+export async function ensureMasterCohort(org: Pick<Org, "id" | "name" | "owner_id" | "modules">): Promise<string | null> {
+  const db = admin();
+  if (!db) return null;
+  const code = masterCohortCode(org.id);
+  const { data: existing } = await db.from("classes").select("code").eq("code", code).maybeSingle();
+  if (existing) return code;
+  if (!org.owner_id) return null; // classes.owner_id is NOT NULL
+  const { error } = await db.from("classes").insert({
+    code,
+    name: `${org.name} — All members`,
+    owner_id: org.owner_id,
+    org_id: org.id,
+    is_default: true,
+    modules: org.modules || [],
+  });
+  return error ? null : code;
+}
+
+// Idempotently add a user to their org's master cohort.
+export async function joinMasterCohort(userId: string, org: Pick<Org, "id" | "name" | "owner_id" | "modules">): Promise<void> {
+  const db = admin();
+  if (!db || !userId) return;
+  const code = await ensureMasterCohort(org);
+  if (!code) return;
+  const { data: klass } = await db.from("classes").select("id").eq("code", code).maybeSingle();
+  if (!klass) return;
+  await db.from("class_members").upsert({ class_id: (klass as any).id, user_id: userId }, { onConflict: "class_id,user_id", ignoreDuplicates: true });
+}
+
 // Every org this user belongs to, with their role in each.
 export async function getMyOrgs(userId: string): Promise<Membership[]> {
   const db = admin();
@@ -64,13 +123,14 @@ export async function getMyOrgs(userId: string): Promise<Membership[]> {
     .select("org_role, organizations(*)")
     .eq("user_id", userId);
   return (data || [])
-    .map((r: any) => (r.organizations ? { org: r.organizations as Org, role: r.org_role as OrgRole } : null))
+    .map((r: any) => (r.organizations ? { org: r.organizations as Org, role: normalizeRole(r.org_role) } : null))
     .filter(Boolean) as Membership[];
 }
 
 export type RoleInfo = {
   superadmin: boolean;
-  facilitatorOrgIds: string[];
+  directorOrgIds: string[];   // orgs this user runs (org-wide reach)
+  instructorOrgIds: string[]; // orgs where they instruct (own cohorts only)
   memberOrgIds: string[];
   memberships: Membership[];
 };
@@ -79,7 +139,7 @@ export type RoleInfo = {
 // (ADMIN_EMAILS) OR the platform_role column — the env list can never lock you
 // out even if the DB is wrong.
 export async function roleFor(user: { id: string; email?: string | null } | null): Promise<RoleInfo> {
-  const empty: RoleInfo = { superadmin: false, facilitatorOrgIds: [], memberOrgIds: [], memberships: [] };
+  const empty: RoleInfo = { superadmin: false, directorOrgIds: [], instructorOrgIds: [], memberOrgIds: [], memberships: [] };
   if (!user) return empty;
   let superadmin = isAdmin(user.email);
   const db = admin();
@@ -90,7 +150,8 @@ export async function roleFor(user: { id: string; email?: string | null } | null
   const memberships = await getMyOrgs(user.id);
   return {
     superadmin,
-    facilitatorOrgIds: memberships.filter((m) => m.role === "facilitator").map((m) => m.org.id),
+    directorOrgIds: memberships.filter((m) => m.role === "director").map((m) => m.org.id),
+    instructorOrgIds: memberships.filter((m) => m.role === "instructor").map((m) => m.org.id),
     memberOrgIds: memberships.map((m) => m.org.id),
     memberships,
   };
@@ -100,14 +161,28 @@ export async function isSuperadmin(user: { id: string; email?: string | null } |
   return (await roleFor(user)).superadmin;
 }
 
-// Can this user reach the facilitator console, and scoped to which orgs?
-// Superadmin sees everything; a facilitator sees only their org(s).
-export async function facilitatorAccess(
-  user: { id: string; email?: string | null } | null
-): Promise<{ ok: boolean; superadmin: boolean; orgIds: string[] }> {
+// The single isolation resolver for the teaching console. Directors and
+// instructors are "staff"; superadmin sees all. `orgIds` are the orgs the user
+// runs org-wide (director) — the caller reads every cohort in them. Instructors
+// get no org-wide reach; their scope is only the cohorts they own (owner_id),
+// which the caller adds separately. This keeps one org OUT of another org's data.
+export type StaffAccess = {
+  ok: boolean;
+  superadmin: boolean;
+  orgIds: string[];          // director orgs → org-wide cohort reach
+  instructorOrgIds: string[];
+};
+export async function orgStaffAccess(user: { id: string; email?: string | null } | null): Promise<StaffAccess> {
   const r = await roleFor(user);
-  return { ok: r.superadmin || r.facilitatorOrgIds.length > 0, superadmin: r.superadmin, orgIds: r.facilitatorOrgIds };
+  return {
+    ok: r.superadmin || r.directorOrgIds.length > 0 || r.instructorOrgIds.length > 0,
+    superadmin: r.superadmin,
+    orgIds: r.directorOrgIds,
+    instructorOrgIds: r.instructorOrgIds,
+  };
 }
+// Legacy alias — existing callers keep working while labels migrate.
+export const facilitatorAccess = orgStaffAccess;
 
 // Resolve the branding/scope org for a request. Priority: an explicit slug (from
 // a /{slug} URL) the user may access, else the cookie, else their first org.
@@ -139,9 +214,12 @@ export async function claimInvites(userId: string, email?: string | null): Promi
   const { data: invites } = await db.from("org_invites").select("org_id, org_role").eq("email", email.toLowerCase());
   for (const inv of invites || []) {
     await db.from("org_members").upsert(
-      { org_id: (inv as any).org_id, user_id: userId, org_role: (inv as any).org_role },
+      { org_id: (inv as any).org_id, user_id: userId, org_role: normalizeRole((inv as any).org_role) },
       { onConflict: "org_id,user_id", ignoreDuplicates: true }
     );
+    // Everyone in the org belongs to its master cohort.
+    const org = await getOrgById((inv as any).org_id);
+    if (org) await joinMasterCohort(userId, org);
   }
 }
 

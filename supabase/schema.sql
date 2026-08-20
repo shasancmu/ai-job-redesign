@@ -639,7 +639,8 @@ alter table public.experiment_assignments enable row level security;
 -- ============================================================================
 -- Multi-tenant white labels (organizations), platform/org roles, and invites.
 -- Roles: profiles.platform_role = superadmin | user  (superadmin = platform owner)
---        org_members.org_role   = facilitator | member  (scoped to an org)
+--        org_members.org_role   = director | instructor | member  (scoped to an org;
+--        'facilitator' is the legacy value for 'director', migrated below)
 -- ============================================================================
 
 alter table public.profiles add column if not exists platform_role text not null default 'user'; -- superadmin | user
@@ -704,3 +705,31 @@ alter table public.organizations add column if not exists modules jsonb;
 alter table public.organizations add column if not exists about text;
 alter table public.organizations add column if not exists highlights jsonb;
 alter table public.organizations add column if not exists faculty jsonb;
+
+-- ============================================================================
+-- Role model (phase 1): an org's staff is a Director (runs the whole org, sees
+-- all its cohorts) or an Instructor (runs their own cohorts only). 'facilitator'
+-- was the single legacy staff role → fold it into 'director'.
+-- ============================================================================
+update public.org_members  set org_role = 'director' where org_role = 'facilitator';
+update public.org_invites  set org_role = 'director' where org_role = 'facilitator';
+
+-- Master cohort: a default class per org that every member belongs to, so an
+-- org has an "everyone" group with a real cohort code (live activities + roll-ups
+-- work org-wide with no sections). is_default marks it.
+alter table public.classes add column if not exists is_default boolean not null default false;
+
+-- Backfill: give every existing org a master cohort (code derived from the org
+-- id so it's unique + stable), then put every current member in it.
+insert into public.classes (code, name, owner_id, org_id, is_default, modules)
+select 'ORG-' || upper(substring(replace(o.id::text, '-', ''), 1, 10)),
+       o.name || ' — All members', o.owner_id, o.id, true, coalesce(o.modules, '[]'::jsonb)
+from public.organizations o
+where o.owner_id is not null
+  and not exists (select 1 from public.classes c where c.org_id = o.id and c.is_default);
+
+insert into public.class_members (class_id, user_id)
+select c.id, m.user_id
+from public.org_members m
+join public.classes c on c.org_id = m.org_id and c.is_default
+on conflict do nothing;

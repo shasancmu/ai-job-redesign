@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-type FacOrg = { slug: string; name: string };
+type FacOrg = { slug: string; name: string; role: "director" | "instructor" | "member" };
 
-// A one-time welcome for someone who's just been made a facilitator of an org.
-// Facilitators are *assigned* (they didn't opt in), so without this they'd only
-// discover the role by noticing their dashboard changed. Dismissal is kept in
-// localStorage (keyed by org), so it shows once per browser — no backend.
+// A one-time welcome for someone who's just been made staff (director or
+// instructor) of an org. Staff are *assigned* (they didn't opt in), so without
+// this they'd only discover the role by noticing their dashboard changed.
+// Dismissal is kept in localStorage (keyed by org), so it shows once per browser.
 export default function FacilitatorWelcome({ orgs }: { orgs: FacOrg[] }) {
   const [show, setShow] = useState<FacOrg | null>(null);
 
@@ -32,8 +32,12 @@ export default function FacilitatorWelcome({ orgs }: { orgs: FacOrg[] }) {
         ★
       </span>
       <div className="min-w-0 flex-1">
-        <div className="font-semibold text-ink">You&apos;re now a facilitator for {show.name}.</div>
-        <div className="mt-0.5 text-sm text-slate2">Run live activities, open cohorts, and review the room&apos;s work from the facilitator hub.</div>
+        <div className="font-semibold text-ink">You&apos;re now {show.role === "director" ? "a director" : "an instructor"} for {show.name}.</div>
+        <div className="mt-0.5 text-sm text-slate2">
+          {show.role === "director"
+            ? "Manage your cohorts and people, run live activities, and review the room's work."
+            : "Build and run your cohorts, run live activities, and review your group's work."}
+        </div>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <a href="/facilitator" onClick={dismiss} className="btn-primary text-sm">Open the hub →</a>
