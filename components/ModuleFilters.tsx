@@ -47,7 +47,8 @@ export default function ModuleFilters({
           onChange={(e) => onQuery(e.target.value)}
           placeholder="Search exercises…"
           aria-label="Search exercises"
-          className="field pl-9 pr-9"
+          className="field"
+          style={{ paddingLeft: "2.25rem", paddingRight: "2.25rem" }}
         />
         {query && (
           <button onClick={() => onQuery("")} aria-label="Clear search" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-ink">✕</button>
