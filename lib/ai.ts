@@ -1000,7 +1000,7 @@ ${DECISION_LENS}
 
 Produce the NEXT round of debate. Each of the four members speaks once, 1 to 2 punchy sentences, in a distinct voice true to their role. They must react to the conversation so far and to EACH OTHER by name (agree, build, or push back), and advance the argument, do not repeat points already made. Stay specific to THIS decision, draw on the reference materials where they help, and reason like the decision lens above, never generic. If the person just said something, respond to it directly. If their latest message @mentions specific members by name (e.g. "@Priya"), those members answer directly and go first.
 
-Then offer the person 3 or 4 SHORT ways to respond so they don't have to type from scratch: things they could say back, in their own first-person voice or as a directive to the board. Make each concrete to THIS moment and lean on the decision lens (e.g. name the option they lean toward, state a real constraint, ask a member a pointed question, probe opportunity cost / downside / the cheapest test). Keep each reply under about 8 words.
+Then suggest 3 or 4 things the PERSON (the moderator running this board) could say next to steer the discussion, written in THEIR OWN first-person voice. Each must be a COMPLETE, natural sentence a real person would say out loud (about 5 to 12 words), never a terse fragment, and never phrased as the board asking the person something. Good moves: state where they are leaning ("I'm leaning toward keeping the plan"), name a real constraint ("We can't change pricing this quarter"), direct a member ("Sam, walk me through the cash impact"), or push the board on an angle ("Let's stress-test the downside before deciding"). Make each concrete to THIS moment and grounded in the decision lens.
 
 Return STRICT JSON only, one line, no markdown: {"round":[{"member":"optimist|skeptic|customer|operator","text":"..."}],"replies":["...","...","..."]} with all four members.${expNudge(input.nudge)}`;
 
@@ -1015,7 +1015,7 @@ Return STRICT JSON only, one line, no markdown: {"round":[{"member":"optimist|sk
     .filter((r: any) => r && valid.has(r.member) && r.text)
     .map((r: any) => ({ member: String(r.member), text: String(r.text).slice(0, 600) }));
   const replies = (Array.isArray(p?.replies) ? p.replies : [])
-    .map((r: any) => String(r || "").slice(0, 90))
+    .map((r: any) => String(r || "").trim().slice(0, 140))
     .filter(Boolean)
     .slice(0, 4);
   return { round, replies };

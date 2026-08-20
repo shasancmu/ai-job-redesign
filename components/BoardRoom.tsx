@@ -242,6 +242,9 @@ export default function BoardRoom({
       {/* Feed */}
       <div ref={scroller} className="flex-1 overflow-y-auto px-4 py-4">
         <div className="mx-auto max-w-2xl space-y-3">
+          <div className="rounded-xl border border-line bg-white px-3.5 py-2.5 text-center text-xs leading-relaxed text-slate2">
+            Mara, Dev, Priya, and Sam are debating <span className="font-medium text-ink">your</span> decision, each other, not you. You&apos;re the moderator: tap a suggested reply or type to steer them, or <span className="font-medium text-ink">⚡ Debate</span> to let them keep going. Hit <span className="font-medium text-ink">Call the vote</span> when you&apos;re ready for their verdict.
+          </div>
           {transcript.map((e, i) => {
             if (e.who === "you") return <Bubble key={i} mine>{highlightNames(e.text)}</Bubble>;
             if (e.who === "attach") return <Attach key={i} label={e.text} />;
@@ -265,14 +268,17 @@ export default function BoardRoom({
         </div>
       )}
 
-      {/* Quick replies — tap instead of typing */}
+      {/* Quick replies — things YOU (the moderator) could say to steer the board */}
       {replies.length > 0 && !busy && !typing && (
-        <div className="border-t border-line bg-white/70 px-4 pt-2.5">
-          <div className="mx-auto flex max-w-2xl flex-wrap gap-2">
-            {replies.map((r, i) => (
-              <button key={i} onClick={() => sendReply(r)} className="rounded-full border border-line bg-white px-3.5 py-1.5 text-sm text-ink transition hover:border-slate-300 hover:shadow-soft">{r}</button>
-            ))}
-            <button onClick={() => { setReplies([]); inputRef.current?.focus(); }} className="rounded-full bg-mist px-3.5 py-1.5 text-sm font-medium text-slate2 hover:text-ink">✍️ Other…</button>
+        <div className="border-t border-line bg-white/70 px-4 pt-2 pb-0.5">
+          <div className="mx-auto max-w-2xl">
+            <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">You could say…</div>
+            <div className="flex flex-wrap gap-2">
+              {replies.map((r, i) => (
+                <button key={i} onClick={() => sendReply(r)} className="rounded-2xl border border-line bg-white px-3.5 py-1.5 text-left text-sm text-ink transition hover:border-slate-300 hover:shadow-soft">{r}</button>
+              ))}
+              <button onClick={() => { setReplies([]); inputRef.current?.focus(); }} className="rounded-2xl bg-mist px-3.5 py-1.5 text-sm font-medium text-slate2 hover:text-ink">✍️ Say something else…</button>
+            </div>
           </div>
         </div>
       )}

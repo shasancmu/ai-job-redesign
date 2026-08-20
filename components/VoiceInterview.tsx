@@ -64,6 +64,10 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
   const startListenRef = useRef<() => void>(() => {});
   const finishTurnRef = useRef<() => void>(() => {});
   const supported = useRef(false);
+  // The interview loop only runs while this is true. Building the report (or any
+  // exit) flips it false so a late speak()/advisorTurn callback can't restart the
+  // mic or ask another question.
+  const runningRef = useRef(false);
 
   const SILENCE_MS = 2300;
   const MAX_TURN_MS = 30000;
@@ -79,7 +83,7 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
   }
 
   const speak = useCallback((text: string, onEnd?: () => void) => {
-    if (deadRef.current) return;
+    if (deadRef.current || !runningRef.current) return;
     setCaption(text);
     setPhase("speaking");
     const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
@@ -104,7 +108,7 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
 
   const startListening = useCallback(() => {
     const rec = recRef.current;
-    if (!rec || deadRef.current) return;
+    if (!rec || deadRef.current || !runningRef.current) return;
     finalRef.current = "";
     interimRef.current = "";
     turnDoneRef.current = false;
@@ -116,7 +120,7 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
   }, []);
 
   const finishTurn = useCallback(() => {
-    if (turnDoneRef.current) return;
+    if (turnDoneRef.current || !runningRef.current) return;
     turnDoneRef.current = true;
     clearTurnTimers();
     try { recRef.current?.stop(); } catch {}
@@ -139,6 +143,7 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
   const advisorTurn = useCallback(async (history: Msg[]) => {
     setPhase("thinking");
     const reply = await fetchChat(history);
+    if (!runningRef.current) return; // report build (or exit) happened mid-request
     if (!reply) { setPhase("listening"); return; }
     const next = [...history, { role: "assistant" as const, content: reply }];
     setM(next);
@@ -205,6 +210,7 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
 
   function start() {
     setErr(null);
+    runningRef.current = true;
     if (mref.current.length > 0) {
       const lastA = [...mref.current].reverse().find((m) => m.role === "assistant");
       if (lastA) speak(lastA.content, () => startListening());
@@ -227,8 +233,11 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
   }
 
   async function buildReport() {
+    runningRef.current = false; // stop the interview loop for good
     turnDoneRef.current = true;
     clearTurnTimers();
+    setInterim("");
+    try { recRef.current?.stop(); } catch {}
     try { recRef.current?.abort(); } catch {}
     window.speechSynthesis?.cancel();
     setErr(null);
@@ -265,6 +274,8 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
   function keepTalking() {
     setBuild("idle");
     setErr(null);
+    runningRef.current = true;
+    turnDoneRef.current = false;
     startListening();
   }
 
