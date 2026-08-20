@@ -244,10 +244,12 @@ async function OrgLandingView({ org }: { org: Org }) {
     <main className="relative min-h-screen">
       {org.primary_color && <style dangerouslySetInnerHTML={{ __html: `:root{--brand:${org.primary_color};}` }} />}
 
-      {/* Hero */}
-      <div className="relative overflow-hidden border-b border-line" style={{ background: org.hero_image_url ? `center/cover no-repeat url(${org.hero_image_url})` : `linear-gradient(135deg, color-mix(in srgb, ${accent} 12%, white), white)` }}>
+      {/* Hero — the image dissolves into the page below instead of a hard edge. */}
+      <div className="relative overflow-hidden" style={{ background: org.hero_image_url ? `center/cover no-repeat url(${org.hero_image_url})` : `linear-gradient(135deg, color-mix(in srgb, ${accent} 12%, white), white)` }}>
         {org.hero_image_url && <div className="absolute inset-0 bg-black/45" />}
-        <div className="relative mx-auto max-w-5xl px-6 py-16 sm:py-24">
+        {/* Slick fade from the hero into the next section. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-36 sm:h-52" style={{ background: "linear-gradient(to bottom, transparent, var(--paper))" }} />
+        <div className="relative mx-auto max-w-5xl px-6 pt-16 pb-40 sm:pt-24 sm:pb-52">
           <div className={"inline-flex items-center gap-2.5 " + (org.hero_image_url ? "text-white" : "text-ink")}>
             {org.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
