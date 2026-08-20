@@ -26,7 +26,7 @@ export default async function Classes() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-8">
       <div className="flex items-center justify-between gap-3">
-        <Link href="/facilitator" className="text-sm text-slate2 hover:text-ink">← Facilitator</Link>
+        <Link href="/facilitator" className="text-sm text-slate2 hover:text-ink">← Cohorts</Link>
         <HeaderNav tour />
       </div>
       <h1 className="mt-1 text-2xl font-bold text-ink">Cohorts</h1>

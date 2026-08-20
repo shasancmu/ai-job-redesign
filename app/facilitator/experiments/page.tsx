@@ -19,11 +19,11 @@ export default async function ExperimentsPage() {
     <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Facilitator</div>
+          <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Teaching</div>
           <h1 className="mt-1 text-3xl text-ink">Experiments</h1>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/facilitator" className="text-sm text-slate2 hover:text-ink">← Facilitator</Link>
+          <Link href="/facilitator" className="text-sm text-slate2 hover:text-ink">← Cohorts</Link>
           <HeaderNav />
         </div>
       </div>

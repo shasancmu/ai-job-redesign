@@ -26,7 +26,7 @@ export default async function FacilitatorCloud() {
     <main className="mx-auto max-w-3xl px-6 py-8">
       <div className="mb-6">
         <div className="flex items-center justify-between gap-3">
-          <Link href="/facilitator" className="text-sm text-slate2 hover:text-ink">← Facilitator</Link>
+          <Link href="/facilitator" className="text-sm text-slate2 hover:text-ink">← Cohorts</Link>
           <HeaderNav />
         </div>
         <h1 className="mt-1 text-3xl font-bold text-ink">Live Word Cloud</h1>

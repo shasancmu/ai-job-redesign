@@ -13,7 +13,7 @@ export default function CohortChooser({
 }) {
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
-      <Link href="/facilitator" className="text-sm text-slate2 hover:text-ink">← Facilitator</Link>
+      <Link href="/facilitator" className="text-sm text-slate2 hover:text-ink">← Cohorts</Link>
       <h1 className="mt-1 text-3xl text-ink">{title}</h1>
       <p className="mt-1 text-slate2">Pick a cohort to run this live for.</p>
 

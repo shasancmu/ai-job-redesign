@@ -192,7 +192,7 @@ export default async function Dashboard({
             labels={{
               reports: "Reports",
               profile: t("nav.profile"),
-              facilitator: t("nav.facilitator"),
+              facilitator: "Cohorts",
               orgs: "Orgs",
               signOut: t("nav.signOut"),
               tour: "Take a tour",

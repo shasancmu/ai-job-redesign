@@ -107,7 +107,7 @@ async function Overview({ admin, allowedCohorts, superadmin }: { admin: any; all
       {/* Header: identity + account, kept slick. Actions live on the page. */}
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="text-sm font-medium text-slate-400">Facilitator</div>
+          <div className="text-sm font-medium text-slate-400">Teaching</div>
           <h1 className="mt-0.5 text-3xl text-ink">Cohorts</h1>
           <p className="mt-1 max-w-lg text-sm text-slate2">
             Run a live activity, open a cohort to teach or review the work, or set up a new one.
