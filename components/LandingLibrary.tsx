@@ -13,6 +13,7 @@ import {
 } from "@/lib/modules";
 import ModuleIcon from "@/components/ModuleIcon";
 import ModuleFilters from "@/components/ModuleFilters";
+import FeatureBadges from "@/components/FeatureBadges";
 
 // The marketing-page mirror of the dashboard catalog: same finite pill set,
 // same category grouping — but cards are read-only (no start buttons) and the
@@ -69,6 +70,7 @@ export default function LandingLibrary() {
           {PARTNER_META[m.partner].label}
         </span>
         <span>{m.minutes} min</span>
+        <FeatureBadges slug={m.slug} />
       </div>
     </div>
   );

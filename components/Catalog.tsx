@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { MODULES, PARTNER_META, CATEGORIES, moduleCategory, formatPrice, modulePills, pillLabel, moduleMatches, hasActiveFilters } from "@/lib/modules";
 import ModuleIcon from "@/components/ModuleIcon";
 import ModuleFilters from "@/components/ModuleFilters";
+import FeatureBadges from "@/components/FeatureBadges";
 import { useT } from "@/components/I18nProvider";
 
 const ACCENT: Record<string, string> = {
@@ -172,6 +173,7 @@ export default function Catalog({
                   {tf("partner." + m.partner, pm.label)}
                 </span>
                 <span>{t("catalog.min", { n: m.minutes })}</span>
+                <FeatureBadges slug={m.slug} />
                 {completed[m.slug] && (
                   <span className="rounded-full bg-sage-soft px-2 py-0.5 font-medium text-sage">{t("catalog.done")}</span>
                 )}
