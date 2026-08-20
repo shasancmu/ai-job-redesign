@@ -111,7 +111,7 @@ export default function ClassManager() {
     <div className="space-y-8">
       <div className="card p-6">
         <h2 className="text-lg font-bold text-ink">New cohort</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2" data-tour="cohort-basics">
           <div>
             <label className="lbl">Cohort name</label>
             <input className="field" value={name} onChange={(e) => setName(e.target.value)} placeholder="Chief AI Officer, Sep 27" />
@@ -129,7 +129,7 @@ export default function ClassManager() {
         </div>
 
         {/* Cohort type */}
-        <div className="mt-4">
+        <div className="mt-4" data-tour="cohort-type">
           <label className="lbl">Cohort type</label>
           <div className="grid gap-2 sm:grid-cols-2">
             {([
@@ -175,7 +175,7 @@ export default function ClassManager() {
         )}
 
         {/* Ordered module list */}
-        <div className="mt-5">
+        <div className="mt-5" data-tour="cohort-modules">
           <label className="lbl">Modules: in the order participants will do them</label>
           {order.length === 0 ? (
             <p className="text-sm text-slate2">Add modules below; drag order with the arrows.</p>
@@ -250,7 +250,7 @@ export default function ClassManager() {
         </div>
       </div>
 
-      <div>
+      <div data-tour="cohort-list">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate2">Your cohorts</h2>
         {classes.length === 0 ? (
           <p className="text-slate2">No cohorts yet.</p>

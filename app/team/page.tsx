@@ -7,8 +7,16 @@ import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
 import OrgSwitcher from "@/components/OrgSwitcher";
 import TeamConsole from "@/components/TeamConsole";
+import Tour from "@/components/Tour";
 
 export const dynamic = "force-dynamic";
+
+const TEAM_TOUR = [
+  { sel: '[data-tour="team-add"]', title: "Add your people", body: "Invite anyone by email as a Member (a learner) or an Instructor. They join instantly if they already have an account, otherwise the moment they sign in." },
+  { sel: '[data-tour="team-instructors"]', title: "Instructors run cohorts", body: "Instructors build and run their own cohorts and see only their group's learners. Promote a member to instructor, or add one above." },
+  { sel: '[data-tour="team-members"]', title: "Your learners", body: "Everyone in your org lives here and belongs to your master cohort by default. Promote someone to instructor, or remove them, any time." },
+  { sel: '[data-tour="team-cohorts"]', title: "Run cohorts & live activities", body: "Head to the cohort hub to create sections, run live activities, and review the room's work. You have instructor rights on every cohort in your org." },
+];
 
 export type TeamPerson = { userId: string; name: string; email: string; role: OrgRole };
 export type TeamInvite = { email: string; role: OrgRole };
@@ -67,7 +75,7 @@ export default async function TeamPage() {
         <Logo />
         <div className="flex items-center gap-2">
           {directorOrgs.length > 1 && <OrgSwitcher orgs={switcherOrgs} activeSlug={org.slug} />}
-          <HeaderNav />
+          <HeaderNav tour />
         </div>
       </header>
 
@@ -77,12 +85,19 @@ export default async function TeamPage() {
         <p className="mt-1 max-w-lg text-sm text-slate2">
           Manage your people, appoint instructors, and run cohorts. Only your organization&apos;s members are shown here.
         </p>
-        <Link href="/facilitator" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-sage">
+        <Link href="/facilitator" data-tour="team-cohorts" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-sage">
           Manage cohorts &amp; run live activities <span aria-hidden>→</span>
         </Link>
       </div>
 
       <TeamConsole orgId={org.id} people={people} invites={invites} />
+
+      <Tour
+        steps={TEAM_TOUR}
+        storageKey="tour-team-v1"
+        welcomeTitle={`Welcome to ${org.name}`}
+        welcomeBody="You're the director here. This is where you manage your people and point instructors at their cohorts. Here's a 30-second tour."
+      />
     </main>
   );
 }

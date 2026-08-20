@@ -6,7 +6,7 @@ import AccountMenu from "@/components/AccountMenu";
 // The shared right-side header nav for signed-in pages other than the dashboard:
 // the org switcher (when the user belongs to any org) plus the account menu.
 // One place loads name + role + orgs, so every page's header stays identical.
-export default async function HeaderNav({ showDashboard = true }: { showDashboard?: boolean }) {
+export default async function HeaderNav({ showDashboard = true, tour = false }: { showDashboard?: boolean; tour?: boolean }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
@@ -33,7 +33,7 @@ export default async function HeaderNav({ showDashboard = true }: { showDashboar
         director={access.orgIds.length > 0}
         superadmin={access.superadmin}
         dashboard={showDashboard}
-        tour={false}
+        tour={tour}
         labels={{
           reports: "Reports",
           profile: "Profile",

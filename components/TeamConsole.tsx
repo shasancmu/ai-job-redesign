@@ -44,8 +44,8 @@ export default function TeamConsole({ orgId, people, invites }: { orgId: string;
     </div>
   );
 
-  const Section = ({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) => (
-    <section className="mt-6">
+  const Section = ({ title, hint, anchor, children }: { title: string; hint?: string; anchor?: string; children: React.ReactNode }) => (
+    <section className="mt-6" data-tour={anchor}>
       <div className="mb-2 flex items-baseline gap-2">
         <h2 className="eyebrow">{title}</h2>
         {hint && <span className="text-xs text-slate-400">{hint}</span>}
@@ -59,7 +59,7 @@ export default function TeamConsole({ orgId, people, invites }: { orgId: string;
   return (
     <div>
       {/* Invite */}
-      <div className="card p-4">
+      <div className="card p-4" data-tour="team-add">
         <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Add people</div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <input
@@ -94,7 +94,7 @@ export default function TeamConsole({ orgId, people, invites }: { orgId: string;
         </Section>
       )}
 
-      <Section title="Instructors" hint={instructors.length ? undefined : "none yet — promote a member or add one above"}>
+      <Section title="Instructors" anchor="team-instructors" hint={instructors.length ? undefined : "none yet — promote a member or add one above"}>
         {instructors.map((p) => (
           <Row key={p.userId} p={p}>
             <button onClick={() => act({ action: "set_role", userId: p.userId, role: "member" }, p.userId)} disabled={busy === p.userId} className={btn}>Make member</button>
@@ -103,7 +103,7 @@ export default function TeamConsole({ orgId, people, invites }: { orgId: string;
         ))}
       </Section>
 
-      <Section title="Members" hint={`${members.length} ${members.length === 1 ? "learner" : "learners"}`}>
+      <Section title="Members" anchor="team-members" hint={`${members.length} ${members.length === 1 ? "learner" : "learners"}`}>
         {members.length === 0 && <p className="text-sm text-slate2">No members yet. Add people above.</p>}
         {members.map((p) => (
           <Row key={p.userId} p={p}>

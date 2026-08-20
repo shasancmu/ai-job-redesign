@@ -14,9 +14,16 @@ import ExposureCohort from "@/components/ExposureCohort";
 import { AI_CELLS, HUMAN_CELLS, FEEDBACK_FIELDS, Cell } from "@/lib/exercise";
 import AdminTools from "@/components/AdminTools";
 import HeaderNav from "@/components/HeaderNav";
+import Tour from "@/components/Tour";
 import CanvasView from "@/components/CanvasView";
 
 export const dynamic = "force-dynamic";
+
+const HUB_TOUR = [
+  { sel: '[data-tour="fac-live"]', title: "Run something live", body: "Start a live activity your whole room joins from their phones — a word cloud, a photo wall, the benchmark, or a network map. No sign-in needed for them." },
+  { sel: '[data-tour="fac-cohorts"]', title: "Your cohorts", body: "Each cohort is a group going through a program. Open one to review the room's work, or make a new one. Your org's master cohort is the default 'everyone' group." },
+  { sel: '[data-tour="fac-admin"]', title: "Admin tools", body: "Usage, experiments, and cost dashboards live here. (Directors: manage your people and instructors from the Organization page in your account menu.)" },
+];
 
 export default async function Facilitator({
   searchParams,
@@ -106,12 +113,12 @@ async function Overview({ admin, allowedCohorts, superadmin }: { admin: any; all
             Run a live activity, open a cohort to teach or review the work, or set up a new one.
           </p>
         </div>
-        <HeaderNav />
+        <HeaderNav tour />
       </div>
 
       {/* Run something live, right now. */}
       <h2 className="eyebrow mb-3">Run something live</h2>
-      <div className="mb-9 grid gap-3 sm:grid-cols-2">
+      <div data-tour="fac-live" className="mb-9 grid gap-3 sm:grid-cols-2">
         <Link href="/facilitator/cloud" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-soft text-2xl">🌥️</div>
           <div className="min-w-0 flex-1">
@@ -146,7 +153,7 @@ async function Overview({ admin, allowedCohorts, superadmin }: { admin: any; all
         </Link>
       </div>
 
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+      <div data-tour="fac-cohorts" className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <h2 className="eyebrow">Your cohorts</h2>
         <div className="flex items-center gap-3">
           {rows.length > 0 && (
@@ -217,10 +224,17 @@ async function Overview({ admin, allowedCohorts, superadmin }: { admin: any; all
       )}
 
       {/* Admin tools — moved here from the header. */}
-      <section className="mt-12">
+      <section data-tour="fac-admin" className="mt-12">
         <h2 className="eyebrow mb-3">Admin tools</h2>
         <AdminTools superadmin={superadmin} />
       </section>
+
+      <Tour
+        steps={HUB_TOUR}
+        storageKey="tour-hub-v1"
+        welcomeTitle="Your teaching hub"
+        welcomeBody="This is where you run cohorts and live activities. Here's a quick tour of what you can do."
+      />
     </Shell>
   );
 }
