@@ -32,10 +32,14 @@ export default function FacilitatorWelcome({ orgs }: { orgs: FacOrg[] }) {
         ★
       </span>
       <div className="min-w-0 flex-1">
-        <div className="font-semibold text-ink">You&apos;re now {show.role === "director" ? "a director" : "an instructor"} for {show.name}.</div>
+        <div className="font-semibold text-ink">
+          {show.role === "director"
+            ? `You now run ${show.name}'s space on Superadditive.`
+            : `You're an instructor in ${show.name}'s space on Superadditive.`}
+        </div>
         <div className="mt-0.5 text-sm text-slate2">
           {show.role === "director"
-            ? "Manage your cohorts and people, run live activities, and review the room's work."
+            ? "You manage the people, instructors, and cohorts in your organization's Superadditive space — not the institution itself."
             : "Build and run your cohorts, run live activities, and review your group's work."}
         </div>
       </div>

@@ -80,10 +80,10 @@ export default async function TeamPage() {
       </header>
 
       <div className="mb-6">
-        <div className="text-sm font-medium text-slate-400">Organization</div>
+        <div className="text-sm font-medium text-slate-400">Your space on Superadditive</div>
         <h1 className="mt-0.5 text-3xl text-ink">{org.name}</h1>
         <p className="mt-1 max-w-lg text-sm text-slate2">
-          Manage your people, appoint instructors, and run cohorts. Only your organization&apos;s members are shown here.
+          You&apos;re the director of {org.name}&apos;s space here — manage its people, appoint instructors, and run cohorts. This covers your organization&apos;s Superadditive experience, not the institution itself. Only your members are shown.
         </p>
         <Link href="/facilitator" data-tour="team-cohorts" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-sage">
           Manage cohorts &amp; run live activities <span aria-hidden>→</span>
@@ -95,8 +95,8 @@ export default async function TeamPage() {
       <Tour
         steps={TEAM_TOUR}
         storageKey="tour-team-v1"
-        welcomeTitle={`Welcome to ${org.name}`}
-        welcomeBody="You're the director here. This is where you manage your people and point instructors at their cohorts. Here's a 30-second tour."
+        welcomeTitle={`${org.name} on Superadditive`}
+        welcomeBody={`You run ${org.name}'s space on Superadditive — its people and cohorts, not the institution itself. Here's a 30-second tour of what you manage.`}
       />
     </main>
   );
