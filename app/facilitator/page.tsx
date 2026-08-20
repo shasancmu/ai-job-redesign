@@ -13,6 +13,7 @@ import { NegotiationScatter, NegotiationStrip } from "@/components/NegotiationPl
 import ExposureCohort from "@/components/ExposureCohort";
 import { AI_CELLS, HUMAN_CELLS, FEEDBACK_FIELDS, Cell } from "@/lib/exercise";
 import FacilitatorMenu from "@/components/FacilitatorMenu";
+import HeaderNav from "@/components/HeaderNav";
 import CanvasView from "@/components/CanvasView";
 
 export const dynamic = "force-dynamic";
@@ -106,9 +107,9 @@ async function Overview({ admin, allowedCohorts }: { admin: any; allowedCohorts:
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Link href="/dashboard" className="btn-ghost text-sm">← My dashboard</Link>
           <Link href="/facilitator/classes" className="btn-primary text-sm">New cohort</Link>
           <FacilitatorMenu />
+          <HeaderNav />
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { isAdmin } from "@/lib/admin";
 import { claimInvites, getMyOrgs, getActiveOrg } from "@/lib/orgs";
 import OrgSwitcher from "@/components/OrgSwitcher";
+import AccountMenu from "@/components/AccountMenu";
 import { titleCaseName } from "@/lib/name";
 import { MODULES } from "@/lib/modules";
 import Catalog from "@/components/Catalog";
@@ -19,13 +20,13 @@ import { getServerLocale } from "@/lib/i18n-server";
 import { makeT } from "@/lib/i18n";
 import Footer from "@/components/Footer";
 import Logo from "@/components/Logo";
-import Tour, { TourButton } from "@/components/Tour";
+import Tour from "@/components/Tour";
 
 const DASHBOARD_TOUR = [
   { sel: '[data-tour="your-work"]', title: "Jump back in", body: "Your recent exercises and reports live here, so you can pick up right where you left off." },
   { sel: '[data-tour="catalog"]', title: "The library", body: "Every exercise is run by an AI interviewer, partner, or coach, and ends in something you keep. Tap the ⓘ on any card to see what it's about before you start." },
   { sel: '[data-tour="filters"]', title: "Find your starting point", body: "Filter by theme, like AI, Strategy, or Career, to narrow the library to what fits what you need right now." },
-  { sel: '[data-tour="reports"]', title: "Your reports", body: "Everything you generate is saved here, ready to reopen or share anytime." },
+  { sel: '[data-tour="reports"]', title: "Your account", body: "This menu holds your reports, profile, and sign out. Everything you generate is saved under Reports, ready to reopen or share anytime." },
 ];
 
 export default async function Dashboard({
@@ -181,26 +182,19 @@ export default async function Dashboard({
             />
           )}
           {I18N_ENABLED && <LanguagePicker me={user.id} initial={(profile as any)?.language} />}
-          <TourButton />
-          <a href="/reports" data-tour="reports" className="btn-ghost text-sm">
-            Reports
-          </a>
-          <a href="/profile" className="btn-ghost text-sm">
-            {t("nav.profile")}
-          </a>
-          {instructor && (
-            <a href="/facilitator" className="btn-ghost text-sm">
-              {t("nav.facilitator")}
-            </a>
-          )}
-          {instructor && (
-            <a href="/admin/orgs" className="btn-ghost text-sm">
-              Orgs
-            </a>
-          )}
-          <form action="/auth/signout" method="post">
-            <button className="btn-ghost text-sm">{t("nav.signOut")}</button>
-          </form>
+          <AccountMenu
+            name={profile?.display_name || "You"}
+            admin={instructor}
+            dataTour="reports"
+            labels={{
+              reports: "Reports",
+              profile: t("nav.profile"),
+              facilitator: t("nav.facilitator"),
+              orgs: "Orgs",
+              signOut: t("nav.signOut"),
+              tour: "Take a tour",
+            }}
+          />
         </div>
       </header>
       <EnrichOnce />

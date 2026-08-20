@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProfileForm from "@/components/ProfileForm";
 import ChangePassword from "@/components/ChangePassword";
 import Logo from "@/components/Logo";
+import HeaderNav from "@/components/HeaderNav";
 
 export default async function ProfilePage() {
   const supabase = createClient();
@@ -24,7 +24,7 @@ export default async function ProfilePage() {
     <main className="mx-auto max-w-2xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between">
         <Logo />
-        <Link href="/dashboard" className="btn-ghost text-sm">← Dashboard</Link>
+        <HeaderNav />
       </header>
 
       <h1 className="text-2xl font-bold">Your profile</h1>

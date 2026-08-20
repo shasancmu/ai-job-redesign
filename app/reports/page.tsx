@@ -5,6 +5,7 @@ import { MODULES } from "@/lib/modules";
 import { artifactHref, timeAgo } from "@/lib/momentum";
 import ModuleIcon from "@/components/ModuleIcon";
 import Logo from "@/components/Logo";
+import HeaderNav from "@/components/HeaderNav";
 import Footer from "@/components/Footer";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +46,7 @@ export default async function Reports() {
           <h1 className="mt-3 text-3xl text-ink">Your reports</h1>
           <p className="mt-1 text-sm text-slate2">Everything you&apos;ve saved, open any time.</p>
         </div>
-        <Link href="/dashboard" className="btn-ghost text-sm">← Dashboard</Link>
+        <HeaderNav />
       </header>
 
       {reports.length === 0 ? (

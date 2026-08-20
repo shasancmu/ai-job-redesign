@@ -1,4 +1,4 @@
-import Link from "next/link";
+import HeaderNav from "@/components/HeaderNav";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -61,7 +61,7 @@ export default async function AdminUsagePage() {
     <main className="mx-auto max-w-5xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between">
         <Logo />
-        <Link href="/facilitator" className="btn-ghost text-sm">← Facilitator</Link>
+        <HeaderNav />
       </header>
       <h1 className="text-2xl font-bold text-ink">Usage</h1>
       <p className="mt-1 text-sm text-slate-500">Who&apos;s using the platform, what they run, and how much they finish. Only you can see this.</p>

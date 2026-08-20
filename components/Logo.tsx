@@ -17,12 +17,18 @@ export default function Logo({
 }) {
   const tenant = useTenant();
   const name = tenant?.name || BRAND.name;
+  // A tenant's uploaded logo almost always already contains its name, so the
+  // wordmark text beside it would just repeat it. Show the mark alone, a touch
+  // larger. The default Superadditive disc mark still gets its wordmark.
+  const hasTenantLogo = !!tenant?.logoUrl;
+  const showWordmark = wordmark && !hasTenantLogo;
+  const logoHeight = hasTenantLogo ? Math.round(size * 1.4) : size;
 
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
-      {tenant?.logoUrl ? (
+      {hasTenantLogo ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={tenant.logoUrl} alt={name} style={{ height: size, maxWidth: size * 4 }} className="shrink-0 object-contain" />
+        <img src={tenant!.logoUrl!} alt={name} style={{ height: logoHeight, maxWidth: logoHeight * 6 }} className="shrink-0 object-contain" />
       ) : (
         <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true" className="shrink-0">
           <g style={{ mixBlendMode: "multiply" }}>
@@ -31,7 +37,7 @@ export default function Logo({
           </g>
         </svg>
       )}
-      {wordmark && <span className="text-[1.1rem] font-bold tracking-tight text-ink">{name}</span>}
+      {showWordmark && <span className="text-[1.1rem] font-bold tracking-tight text-ink">{name}</span>}
     </span>
   );
 }

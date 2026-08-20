@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import HeaderNav from "@/components/HeaderNav";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin, UNTAGGED } from "@/lib/admin";
 import NetworkRosterEditor from "@/components/NetworkRosterEditor";
@@ -36,9 +37,10 @@ export default async function EditRoster({
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-8">
-      <Link href={`/facilitator/network?cohort=${encodeURIComponent(cohort)}`} className="text-sm text-slate2 hover:text-ink">
-        ← Back to the live network
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link href={`/facilitator/network?cohort=${encodeURIComponent(cohort)}`} className="text-sm text-slate2 hover:text-ink">← Back to the live network</Link>
+        <HeaderNav />
+      </div>
       <h1 className="mt-1 text-2xl font-bold text-ink">Class roster</h1>
       <p className="mb-6 text-slate2">
         Optional: paste your class list, one name per line, so people can find each other fast.
