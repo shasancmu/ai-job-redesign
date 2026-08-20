@@ -41,6 +41,7 @@ export type ExpertSummary = {
   socpot: number;
   subfields: string;
   representative: string[]; // a few representative titles
+  relevanceRank?: number; // original position in the semantic-relevance results
 };
 
 export type PaperSummary = {
@@ -172,7 +173,23 @@ export function buildDomainBriefData(input: {
     .sort((a, b) => (b.compot + b.scipot + b.socpot) - (a.compot + a.scipot + a.socpot))
     .slice(0, 6);
 
-  const topExperts = input.researchers.map(summarizeExpert).slice(0, 12);
+  // Experts = the UPPER-RIGHT QUADRANT: high commercial potential AND high
+  // relevance. The API returns researchers in semantic-relevance order; we score
+  // each on relevance (its rank) × commercial potential and keep the leaders, so
+  // the brief centers on people who are both on-topic and commercially promising,
+  // not merely the most relevant. `relevanceRank` is retained so the report can
+  // re-sort back to pure relevance.
+  const rr = input.researchers.map((r, i) => ({ e: summarizeExpert(r), rank: i }));
+  const n = Math.max(1, rr.length);
+  const topExperts = rr
+    .map(({ e, rank }) => {
+      const relevanceNorm = (n - rank) / n; // 1 at top of relevance, →0 at the tail
+      const commercialNorm = (e.compot || 0) / 100;
+      return { ...e, relevanceRank: rank, _fit: relevanceNorm * commercialNorm };
+    })
+    .sort((a, b) => b._fit - a._fit)
+    .slice(0, 15)
+    .map(({ _fit, ...e }) => e);
 
   const patents = (input.patents || []).slice(0, 6).map((p) => ({
     title: p.title || "Untitled",

@@ -1,16 +1,16 @@
 "use client";
 
-import BottomLine from "@/components/BottomLine";
-import { Meter, StatTile, Sparkline, BarList, Drill, RankRow, PotChip } from "@/components/ReportKit";
+import { useMemo, useState } from "react";
+import { Meter, StatTile, Sparkline, BarList, Drill, RankRow, PotChip, SummaryHero, SortControl } from "@/components/ReportKit";
 import { sciLink, SciLink } from "@/lib/scientifiqLinks";
 import type { DomainBriefData, ExpertSummary } from "@/lib/domainBrief";
 
 type Theme = { title: string; detail: string };
 type Person = { name: string; why: string };
 type Brief = {
-  bottomLine?: any;
   headline?: string;
   summary?: string;
+  takeaway?: string;
   themes?: Theme[];
   standoutPeople?: Person[];
   trajectory?: string;
@@ -38,23 +38,30 @@ function ExpertRow({ e, rank }: { e: ExpertSummary; rank: number }) {
   );
 }
 
+const SORTS = [
+  { key: "fit", label: "Best fit" },
+  { key: "compot", label: "Commercial" },
+  { key: "scipot", label: "Scientific" },
+  { key: "relevance", label: "Relevance" },
+] as const;
+type SortKey = (typeof SORTS)[number]["key"];
+
 export default function DomainBriefReport({ brief, data }: { brief: Brief; data: DomainBriefData }) {
   const experts = data.topExperts || [];
-  const top = experts.slice(0, 5);
-  const rest = experts.slice(5);
+  const [sort, setSort] = useState<SortKey>("fit");
+  const sorted = useMemo(() => {
+    if (sort === "fit") return experts; // as delivered: high commercial × relevance
+    if (sort === "relevance") return [...experts].sort((a, b) => (a.relevanceRank ?? 0) - (b.relevanceRank ?? 0));
+    return [...experts].sort((a, b) => ((b as any)[sort] || 0) - ((a as any)[sort] || 0));
+  }, [experts, sort]);
+  const top = sorted.slice(0, 5);
+  const rest = sorted.slice(5);
   const trend = (data.yearTrend || []).map((y) => y.count);
 
   return (
     <div className="space-y-5">
-      {/* LAYER 1 — the verdict */}
-      {brief.bottomLine ? <BottomLine b={brief.bottomLine} /> : brief.headline ? (
-        <div className="rounded-3xl border border-line bg-gradient-to-br from-white to-mist p-6">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{data.domain} · {data.scopeLabel}</div>
-          <p className="mt-1 text-2xl font-bold leading-snug text-ink">{brief.headline}</p>
-        </div>
-      ) : null}
-
-      {brief.summary && <p className="text-sm leading-relaxed text-slate-600">{brief.summary}</p>}
+      {/* LAYER 1 — a broad summary of what was found */}
+      <SummaryHero eyebrow={`${data.domain} · ${data.scopeLabel}`} headline={brief.headline} body={brief.summary} takeaway={brief.takeaway} />
 
       {/* LAYER 2 — at a glance */}
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-5">
@@ -74,7 +81,10 @@ export default function DomainBriefReport({ brief, data }: { brief: Brief; data:
       {/* Top experts — scan the leaders, drill for detail */}
       {experts.length > 0 && (
         <div>
-          <h2 className="eyebrow mb-2">The experts</h2>
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="eyebrow">The experts</h2>
+            <SortControl options={SORTS as any} value={sort} onChange={(k) => setSort(k as SortKey)} />
+          </div>
           <div className="card divide-y divide-line p-0">
             {top.map((e, i) => <ExpertRow key={e.id} e={e} rank={i + 1} />)}
           </div>

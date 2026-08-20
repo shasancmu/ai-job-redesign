@@ -4,13 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import DomainBriefReport from "@/components/DomainBriefReport";
-
-const SCOPES = [
-  { key: "duke", label: "Duke University", kind: "org", orgQuery: "Duke University" },
-  { key: "nc", label: "NC universities", kind: "region", orgQuery: "" },
-  { key: "other", label: "Another institution", kind: "org", orgQuery: "" },
-  { key: "global", label: "Global", kind: "global", orgQuery: "" },
-] as const;
+import ScientifiqScopePicker, { type Scope } from "@/components/ScientifiqScopePicker";
 
 const PURPOSES = [
   { key: "assess", label: "Assess the strength" },
@@ -27,8 +21,7 @@ export default function DomainBriefRoom({ session, initialWorkspace }: { session
   const savedInput = state.input || {};
 
   const [domain, setDomain] = useState<string>(savedInput.domain || "");
-  const [scopeKey, setScopeKey] = useState<string>(savedInput.scopeKey || "duke");
-  const [orgQuery, setOrgQuery] = useState<string>(savedInput.orgQuery && savedInput.scopeKey === "other" ? savedInput.orgQuery : "");
+  const [scope, setScope] = useState<Scope>(savedInput.scope || { kind: "org", orgIds: [], countryId: "", scopeLabel: "Duke University", orgQuery: "Duke University" });
   const [purpose, setPurpose] = useState<string>(savedInput.purpose || "assess");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -40,13 +33,13 @@ export default function DomainBriefRoom({ session, initialWorkspace }: { session
     await supabase.from("sessions").update({ status: "done" }).eq("id", session.id);
   }, [supabase, ws.id, session.id]);
 
-  const scope = SCOPES.find((s) => s.key === scopeKey) || SCOPES[0];
   const report = state.data && state.brief ? { data: state.data, brief: state.brief } : null;
 
   async function run() {
     const d = domain.trim();
     if (!d) { setErr("Enter a technology domain."); return; }
-    if (scope.key === "other" && !orgQuery.trim()) { setErr("Name the institution."); return; }
+    if (scope.kind === "org" && scope.orgIds.length === 0) { setErr("Pick at least one institution."); return; }
+    if (scope.kind === "country" && !scope.countryId) { setErr("Pick a country."); return; }
     setBusy(true); setErr(null);
     try {
       const res = await fetch("/api/scientifiq/domain-brief", {
@@ -55,13 +48,16 @@ export default function DomainBriefRoom({ session, initialWorkspace }: { session
         body: JSON.stringify({
           domain: d,
           scopeKind: scope.kind,
-          orgQuery: scope.key === "other" ? orgQuery.trim() : scope.orgQuery,
+          orgIds: scope.orgIds,
+          orgQuery: scope.orgQuery,
+          countryId: scope.countryId,
+          scopeLabel: scope.scopeLabel,
           purpose,
         }),
       });
       const j = await res.json();
       if (!res.ok) { setErr(j.error || "Couldn't build the brief."); setBusy(false); return; }
-      await persist({ ...state, input: { domain: d, scopeKey, orgQuery, purpose }, data: j.data, brief: j.brief });
+      await persist({ ...state, input: { domain: d, scope, purpose }, data: j.data, brief: j.brief });
     } catch {
       setErr("Couldn't reach the brief service.");
     }
@@ -97,26 +93,7 @@ export default function DomainBriefRoom({ session, initialWorkspace }: { session
 
         <div>
           <div className="lbl mb-1">Scope</div>
-          <div className="flex flex-wrap gap-1.5">
-            {SCOPES.map((s) => (
-              <button
-                key={s.key}
-                onClick={() => setScopeKey(s.key)}
-                className={"rounded-full px-3 py-1.5 text-sm font-medium transition " + (scopeKey === s.key ? "bg-ink text-white" : "bg-mist text-slate2 hover:bg-slate-200")}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-          {scope.key === "other" && (
-            <input
-              className="field mt-2"
-              value={orgQuery}
-              onChange={(e) => setOrgQuery(e.target.value)}
-              placeholder="Full institution name, e.g. Stanford University"
-            />
-          )}
-          {scope.key === "nc" && <p className="mt-1.5 text-xs text-slate-400">Duke, UNC, NC State, Wake Forest, ECU, and other NC universities.</p>}
+          <ScientifiqScopePicker initial={savedInput.scope} onChange={setScope} />
         </div>
 
         <div>

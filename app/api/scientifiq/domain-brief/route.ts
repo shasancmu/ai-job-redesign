@@ -60,20 +60,35 @@ export async function POST(request: Request) {
   }
 
   const domain = String(body.domain || "").trim().slice(0, 200);
-  const scopeKind: string = body.scopeKind === "region" || body.scopeKind === "global" ? body.scopeKind : "org";
+  const scopeKind: string = ["org", "region", "country", "global"].includes(body.scopeKind) ? body.scopeKind : "org";
   const orgQuery = String(body.orgQuery || "Duke University").trim().slice(0, 120);
+  const bodyOrgIds: string[] = Array.isArray(body.orgIds) ? body.orgIds.map((x: any) => String(x)).slice(0, 12) : [];
+  const countryId = String(body.countryId || "").trim().slice(0, 8);
+  const clientLabel = String(body.scopeLabel || "").trim().slice(0, 160);
   const purpose = String(body.purpose || "assess");
   if (!domain) return Response.json({ error: "Enter a technology domain." }, { status: 400 });
 
   try {
-    // 1) Resolve scope → org ids + a human label.
+    // 1) Resolve scope → org ids / country + a human label. The client picker
+    // sends explicit orgIds (the chosen institution + any affiliated orgs), so
+    // it is transparent exactly which organizations are included.
     let orgIds: string[] = [];
+    let countries: string[] = [];
     let scopeLabel = "Global (all institutions)";
     if (scopeKind === "org") {
-      const id = await resolveOrg(orgQuery);
-      if (!id) return Response.json({ error: `Couldn't find "${orgQuery}" in Scientifiq. Try the full institution name.` }, { status: 404 });
-      orgIds = [id];
-      scopeLabel = orgQuery;
+      if (bodyOrgIds.length) {
+        orgIds = bodyOrgIds;
+        scopeLabel = clientLabel || orgQuery;
+      } else {
+        const id = await resolveOrg(orgQuery);
+        if (!id) return Response.json({ error: `Couldn't find "${orgQuery}" in Scientifiq. Try the full institution name.` }, { status: 404 });
+        orgIds = [id];
+        scopeLabel = orgQuery;
+      }
+    } else if (scopeKind === "country") {
+      if (!countryId) return Response.json({ error: "Pick a country." }, { status: 400 });
+      countries = [countryId];
+      scopeLabel = clientLabel || `Country: ${countryId.toUpperCase()}`;
     } else if (scopeKind === "region") {
       const ids = (await Promise.all(NC_UNIVERSITIES.map(resolveOrg))).filter(Boolean) as string[];
       if (ids.length === 0) return Response.json({ error: "Couldn't resolve the North Carolina institutions." }, { status: 404 });
@@ -86,9 +101,10 @@ export async function POST(request: Request) {
     // 10000 ceiling, so we report the analyzed sample instead. Patents are
     // best-effort and never block the brief.
     const orgParam = orgIds.length ? orgIds : undefined;
+    const countryParam = countries.length ? countries : undefined;
     const [papersRes, researchersRes, fields, patentsRes] = await Promise.all([
-      searchPapers({ search: domain, organizations: orgParam, limit: 80 }),
-      searchResearchers({ search: domain, organizations: orgParam, limit: 25 }),
+      searchPapers({ search: domain, organizations: orgParam, countries: countryParam, limit: 80 }),
+      searchResearchers({ search: domain, organizations: orgParam, countries: countryParam, limit: 50 }),
       fieldsCache ? Promise.resolve(fieldsCache) : getFields().then((f) => (fieldsCache = f)),
       searchPatents({ search: domain, limit: 8 }).catch(() => ({ total: 0, patents: [] })),
     ]);

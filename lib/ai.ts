@@ -1805,14 +1805,13 @@ Rules:
 - Ground the trajectory read in the publication trend provided, and note it is a fetched sample, not a full time series.
 - Write plain text only in every string value: no markdown, no asterisks, no bold.
 
-${ADVICE_PRINCIPLES}
-Here, the decision the brief should shift is the reader's next move given their purpose: who to fund, partner with, recruit, or scout, and where the whitespace is.
+Lead with a BROAD SUMMARY of what was found, not a question. The headline is the single most important finding; the summary is the overview; the takeaway is the one implication for the reader's purpose (who to fund, partner with, recruit, or scout, and where the whitespace is).
 
 Return STRICT JSON only, no prose outside it:
 {
-  ${BOTTOM_LINE_JSON},
-  "headline": "one sentence characterizing this scope's strength in the domain",
-  "summary": "2-3 sentence executive summary a decision-maker can read in 10 seconds",
+  "headline": "one strong sentence: the single most important finding about this scope's strength in the domain",
+  "summary": "3-4 sentences summarizing what was found: the shape of the expertise, its scale, where it concentrates, and how strong it is. A decision-maker should grasp the whole picture from this alone.",
+  "takeaway": "one sentence: the single most important implication or action for the reader, given their purpose",
   "themes": [ { "title": "a sub-area the expertise concentrates in", "detail": "1-2 sentences grounded in the data" } ],
   "standoutPeople": [ { "name": "an expert from the data", "why": "what makes them notable here, in one line" } ],
   "trajectory": "is this domain rising, steady, or thin in this scope, and what that implies",

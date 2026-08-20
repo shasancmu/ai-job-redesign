@@ -20,6 +20,40 @@ function toneColor(pct: number): string {
   return "#9aa7b4";
 }
 
+// A summary-led hero: lead with the broad finding, not a question. Used by the
+// research/findings reports where the reader wants "what was found" up front.
+export function SummaryHero({ eyebrow, headline, body, takeaway }: { eyebrow?: string; headline?: string; body?: string; takeaway?: string }) {
+  if (!headline && !body) return null;
+  return (
+    <div className="rounded-3xl border-2 border-ink/10 bg-gradient-to-br from-white to-mist p-6 sm:p-7">
+      {eyebrow && <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{eyebrow}</div>}
+      {headline && <p className="mt-2 text-2xl font-bold leading-snug text-ink sm:text-[26px]">{headline}</p>}
+      {body && <p className="mt-3 text-sm leading-relaxed text-slate-600">{body}</p>}
+      {takeaway && (
+        <div className="mt-4 flex items-start gap-2.5 rounded-2xl bg-ink p-4 text-white">
+          <span className="mt-0.5 text-sm leading-none">▸</span>
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-white/60">The takeaway</div>
+            <p className="mt-0.5 text-sm font-medium leading-relaxed">{takeaway}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// A small segmented sort control. `value` is the active key.
+export function SortControl<T extends string>({ options, value, onChange }: { options: { key: T; label: string }[]; value: T; onChange: (k: T) => void }) {
+  return (
+    <div className="inline-flex items-center gap-1 rounded-full border border-line bg-white p-0.5 text-xs">
+      <span className="pl-2 pr-1 text-[11px] font-medium text-slate-400">Sort</span>
+      {options.map((o) => (
+        <button key={o.key} onClick={() => onChange(o.key)} className={"rounded-full px-2.5 py-1 font-medium transition " + (value === o.key ? "bg-ink text-white" : "text-slate2 hover:bg-mist")}>{o.label}</button>
+      ))}
+    </div>
+  );
+}
+
 // A 0-100 meter: big number + a length-encoded bar. The primary way to show a
 // score, because length is the most accurately-read visual channel.
 export function Meter({ label, value, suffix = "/100", hint }: { label: string; value: number; suffix?: string; hint?: string }) {

@@ -162,6 +162,7 @@ export type SciSandboxScores = {
 export type ResearcherQuery = {
   search?: string;
   organizations?: (string | number)[];
+  countries?: (string | number)[];
   mainFields?: (string | number)[];
   subFields?: (string | number)[];
   order?: "pubYear" | "commPot" | "sciPot" | "socPot" | "acaCites" | "patCites";
@@ -187,6 +188,7 @@ export async function getResearcher(id: string): Promise<any> {
 export type PaperQuery = {
   search?: string;
   organizations?: (string | number)[];
+  countries?: (string | number)[];
   mainFields?: (string | number)[];
   subFields?: (string | number)[];
   year?: string | number;
@@ -210,11 +212,20 @@ export async function searchPatents(q: { search?: string; assignees?: (string | 
 }
 
 // Organizations lookup — resolve a name like "Duke University" to its id(s).
+// Returns every matching org so callers can show affiliated institutions
+// (e.g. Duke University, Duke Medical Center, Duke University Health System).
 export async function searchOrganizations(search: string, limit = 20): Promise<SciOrg[]> {
   const data = await sciRequest("GET", "/organizations", { params: { search, limit } });
   // Tolerate either a bare array or { organizations: [...] }.
   const list = Array.isArray(data) ? data : data?.organizations || data?.orgs || [];
   return (list as any[]).map((o) => ({ id: String(o.id ?? o._id), name: String(o.name ?? o.orgName ?? "") }));
+}
+
+// Countries lookup — resolve a name like "United States" to its 2-letter id.
+export async function searchCountries(search: string, limit = 12): Promise<SciOrg[]> {
+  const data = await sciRequest("GET", "/countries", { params: { search, limit } });
+  const list = Array.isArray(data) ? data : data?.countries || [];
+  return (list as any[]).map((c) => ({ id: String(c.id ?? c._id), name: String(c.name ?? "") }));
 }
 
 // The field taxonomy is a single endpoint returning both main and sub fields,
