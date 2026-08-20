@@ -12,6 +12,7 @@
   --amber: #c98a2b;
   --clay: #c06a47;
   --sky: #4e79c9;
+  --brand: #3f7a52; /* primary action color; a white-label org overrides this */
 }
 
 html,
@@ -111,11 +112,11 @@ h1 {
 }
 .btn-primary {
   @apply btn text-white;
-  background: var(--sage);
+  background: var(--brand);
   box-shadow: 0 1px 1px rgba(20, 40, 58, 0.06), 0 2px 6px rgba(63, 122, 82, 0.28);
 }
 .btn-primary:hover {
-  background: #366a47;
+  background: color-mix(in srgb, var(--brand) 88%, black);
   transform: translateY(-1px);
 }
 .btn-dark {

@@ -6,13 +6,20 @@ import { normalizeCode } from "@/lib/classes";
 import { titleCaseName } from "@/lib/name";
 import { isAdmin } from "@/lib/admin";
 import { moduleBySlug } from "@/lib/modules";
+import { getOrgBySlug, type Org } from "@/lib/orgs";
+import { enterOrg } from "./actions";
 import Catalog from "@/components/Catalog";
 import Logo from "@/components/Logo";
 import Footer from "@/components/Footer";
 
 export const dynamic = "force-dynamic";
 
-export default async function ClassPage({ params }: { params: { code: string } }) {
+export default async function CodeOrOrgPage({ params }: { params: { code: string } }) {
+  // A white-label org slug (superadditive.app/duke) takes precedence over a
+  // class join code — both live at the top level, org is the nicer URL.
+  const org = await getOrgBySlug(params.code.trim().toLowerCase());
+  if (org) return <OrgLandingView org={org} />;
+
   const code = normalizeCode(params.code);
   if (!code) redirect("/");
 
@@ -174,6 +181,77 @@ export default async function ClassPage({ params }: { params: { code: string } }
       )}
 
       <Footer />
+    </main>
+  );
+}
+
+// ---- White-label org landing (superadditive.app/{slug}) --------------------
+async function OrgLandingView({ org }: { org: Org }) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Signed-in: is this person allowed in (member, invited, or the org is open)?
+  let allowed = false;
+  let alreadyMember = false;
+  if (user) {
+    try {
+      const admin = createAdminClient();
+      const email = (user.email || "").toLowerCase();
+      const { data: mem } = await admin.from("org_members").select("org_id").eq("org_id", org.id).eq("user_id", user.id).maybeSingle();
+      alreadyMember = !!mem;
+      allowed = alreadyMember || !org.invite_only;
+      if (!allowed) {
+        const { data: inv } = await admin.from("org_invites").select("org_role").eq("org_id", org.id).eq("email", email).maybeSingle();
+        allowed = !!inv;
+      }
+    } catch { /* service role not set */ }
+  }
+
+  const accent = org.primary_color || "#3f7a52";
+
+  return (
+    <main className="relative min-h-screen">
+      {org.primary_color && <style dangerouslySetInnerHTML={{ __html: `:root{--brand:${org.primary_color};}` }} />}
+
+      {/* Hero */}
+      <div className="relative overflow-hidden border-b border-line" style={{ background: org.hero_image_url ? `center/cover no-repeat url(${org.hero_image_url})` : `linear-gradient(135deg, color-mix(in srgb, ${accent} 12%, white), white)` }}>
+        {org.hero_image_url && <div className="absolute inset-0 bg-black/45" />}
+        <div className="relative mx-auto max-w-3xl px-6 py-16 sm:py-24">
+          <div className={"inline-flex items-center gap-2.5 " + (org.hero_image_url ? "text-white" : "text-ink")}>
+            {org.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={org.logo_url} alt={org.name} style={{ height: 40, maxWidth: 200 }} className="object-contain" />
+            ) : (
+              <span className="text-2xl font-bold tracking-tight">{org.name}</span>
+            )}
+          </div>
+          <h1 className={"mt-8 text-4xl font-bold leading-tight sm:text-5xl " + (org.hero_image_url ? "text-white" : "text-ink")}>{org.tagline || `Welcome to ${org.name}`}</h1>
+          <p className={"mt-3 max-w-xl text-lg " + (org.hero_image_url ? "text-white/85" : "text-slate2")}>
+            Hands-on AI-and-strategy exercises, run for {org.name}.
+          </p>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            {!user ? (
+              <>
+                <Link href={`/login?mode=signup&next=/${org.slug}`} className="btn-primary">Create your account</Link>
+                <Link href={`/login?next=/${org.slug}`} className={org.hero_image_url ? "btn-primary bg-white/15 backdrop-blur" : "btn-ghost"}>Sign in</Link>
+              </>
+            ) : allowed ? (
+              <form action={enterOrg.bind(null, org.slug)}>
+                <button className="btn-primary">{alreadyMember ? `Continue to ${org.name} →` : `Join ${org.name} →`}</button>
+              </form>
+            ) : (
+              <div className="rounded-xl bg-white/90 px-4 py-3 text-sm text-ink shadow-soft">
+                {org.name} is invite-only. Your account ({user.email}) isn&apos;t on the list yet — ask your organizer to add it.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-3xl px-6 py-8 text-xs text-slate-400">
+        Powered by Superadditive.
+      </div>
     </main>
   );
 }

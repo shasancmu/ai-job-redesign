@@ -1,7 +1,11 @@
-import { BRAND } from "@/lib/brand";
+"use client";
 
-// Two overlapping discs — sage (plants) + amber (sun) — whose overlap deepens
-// to olive: the whole worth more than the parts. Pure SVG, no image.
+import { BRAND } from "@/lib/brand";
+import { useTenant } from "@/components/TenantProvider";
+
+// The app wordmark. In a white-label org it swaps to that org's logo + name;
+// otherwise the default Superadditive mark (two overlapping discs whose overlap
+// deepens to olive: the whole worth more than the parts).
 export default function Logo({
   size = 30,
   wordmark = true,
@@ -11,25 +15,23 @@ export default function Logo({
   wordmark?: boolean;
   className?: string;
 }) {
+  const tenant = useTenant();
+  const name = tenant?.name || BRAND.name;
+
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 40 40"
-        aria-hidden="true"
-        className="shrink-0"
-      >
-        <g style={{ mixBlendMode: "multiply" }}>
-          <circle cx="15.5" cy="20" r="11.5" fill="#4A6A4E" fillOpacity="0.92" />
-          <circle cx="24.5" cy="20" r="11.5" fill="#CE8F2C" fillOpacity="0.92" />
-        </g>
-      </svg>
-      {wordmark && (
-        <span className="text-[1.1rem] font-bold tracking-tight text-ink">
-          {BRAND.name}
-        </span>
+      {tenant?.logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={tenant.logoUrl} alt={name} style={{ height: size, maxWidth: size * 4 }} className="shrink-0 object-contain" />
+      ) : (
+        <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true" className="shrink-0">
+          <g style={{ mixBlendMode: "multiply" }}>
+            <circle cx="15.5" cy="20" r="11.5" fill="#4A6A4E" fillOpacity="0.92" />
+            <circle cx="24.5" cy="20" r="11.5" fill="#CE8F2C" fillOpacity="0.92" />
+          </g>
+        </svg>
       )}
+      {wordmark && <span className="text-[1.1rem] font-bold tracking-tight text-ink">{name}</span>}
     </span>
   );
 }
