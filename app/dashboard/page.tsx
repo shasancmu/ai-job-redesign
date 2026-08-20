@@ -164,7 +164,7 @@ export default async function Dashboard({
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
-      <header className="mb-8 flex items-center justify-between gap-3">
+      <header className="mb-8 flex flex-wrap items-center justify-between gap-x-3 gap-y-4">
         <div>
           <Logo />
           <div className="mt-3 flex flex-wrap items-center gap-2.5">
@@ -174,7 +174,7 @@ export default async function Dashboard({
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2 ml-auto">
           {myOrgs.length > 0 && (
             <OrgSwitcher
               orgs={myOrgs.map((m) => ({ slug: m.org.slug, name: m.org.name, logoUrl: m.org.logo_url, role: m.role }))}

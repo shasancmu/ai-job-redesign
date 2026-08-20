@@ -51,7 +51,7 @@ export default function AccountMenu({
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-20 mt-1 w-56 overflow-hidden rounded-xl border border-line bg-white p-1 shadow-lift">
+          <div className="absolute right-0 z-20 mt-1 w-56 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl border border-line bg-white p-1 shadow-lift">
             <div className="truncate px-2.5 py-1.5 text-xs font-medium text-slate2">{name}</div>
             <div className="mb-1 border-t border-line" />
             {dashboard && <a href="/dashboard" className={item}>Dashboard</a>}
