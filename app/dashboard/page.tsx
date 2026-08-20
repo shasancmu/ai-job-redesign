@@ -6,6 +6,7 @@ import { isAdmin } from "@/lib/admin";
 import { claimInvites, getMyOrgs, getActiveOrg, facilitatorAccess } from "@/lib/orgs";
 import OrgSwitcher from "@/components/OrgSwitcher";
 import AccountMenu from "@/components/AccountMenu";
+import FacilitatorWelcome from "@/components/FacilitatorWelcome";
 import { titleCaseName } from "@/lib/name";
 import { MODULES } from "@/lib/modules";
 import Catalog from "@/components/Catalog";
@@ -198,6 +199,9 @@ export default async function Dashboard({
           />
         </div>
       </header>
+
+      <FacilitatorWelcome orgs={myOrgs.filter((m) => m.role === "facilitator").map((m) => ({ slug: m.org.slug, name: m.org.name }))} />
+
       <EnrichOnce />
 
       <div data-tour="your-work">
