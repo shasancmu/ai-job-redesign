@@ -125,24 +125,18 @@ export default function Catalog({
     const canStart = open && !out;
     return (
             <div key={m.slug} className="card relative flex flex-col p-6 transition hover:shadow-lift">
-              <div className="group/info absolute right-3 top-3">
-                <button
-                  type="button"
-                  onClick={() => setDetail(m.slug)}
-                  aria-label={`What's ${m.name}?`}
-                  className="flex h-6 w-6 items-center justify-center rounded-full text-slate-400 transition hover:bg-mist hover:text-ink"
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 16v-4M12 8h.01" />
-                  </svg>
-                </button>
-                {/* Quick peek on hover; click opens the full detail. */}
-                <div className="pointer-events-none absolute right-0 top-8 z-20 w-56 rounded-lg bg-ink px-3 py-2 text-xs leading-relaxed text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover/info:opacity-100">
-                  {tf("modules." + m.slug + ".tagline", m.tagline)}
-                  <span className="mt-1 block text-[10px] font-medium uppercase tracking-wide text-white/50">Click for details</span>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => setDetail(m.slug)}
+                aria-label={`What's ${m.name}?`}
+                title="See what this exercise is, its themes, and how to start"
+                className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full text-slate-400 transition hover:bg-mist hover:text-ink"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 16v-4M12 8h.01" />
+                </svg>
+              </button>
               <div className={"flex h-11 w-11 items-center justify-center rounded-xl " + chip}>
                 <ModuleIcon slug={m.slug} />
               </div>
@@ -179,7 +173,11 @@ export default function Catalog({
               </div>
 
               {!canStart ? (
-                <Link href={`/paywall?module=${m.slug}`} className="btn-dark mt-5">
+                <Link
+                  href={`/paywall?module=${m.slug}`}
+                  title={out && open ? "Buy more runs for this exercise" : "Unlock this exercise to start"}
+                  className="btn-dark mt-5"
+                >
                   {out && open ? "Get more runs" : t("catalog.unlock")}
                 </Link>
               ) : m.partner === "group" && !cohort ? (
@@ -191,6 +189,7 @@ export default function Catalog({
                   {paired ? (
                     <Link
                       href={`/pair/${m.slug}${cohort ? `?cohort=${encodeURIComponent(cohort)}` : ""}`}
+                      title={completed[m.slug] ? "Run this again with a partner over a shared link" : "Start with a partner over a shared link"}
                       className="btn-primary w-full"
                     >
                       {completed[m.slug] ? t("catalog.doItAgain") : t("catalog.pairUp")}
@@ -199,6 +198,7 @@ export default function Catalog({
                     <button
                       onClick={() => startSolo(m.slug, m.exercise)}
                       disabled={busy === m.slug}
+                      title={completed[m.slug] ? "Run this exercise again" : "Start this exercise now"}
                       className="btn-primary w-full"
                     >
                       {busy === m.slug ? t("catalog.starting") : completed[m.slug] ? t("catalog.doItAgain") : t("catalog.start")}
@@ -207,6 +207,7 @@ export default function Catalog({
                   {completed[m.slug] && lastCode[m.slug] && (
                     <Link
                       href={resultHref(m.exercise, lastCode[m.slug])}
+                      title="Reopen your saved report"
                       className="block text-center text-sm text-slate2 hover:text-ink"
                     >
                       {t("catalog.viewLast")}
