@@ -146,19 +146,22 @@ export default function NetworkRoom({ me, session, myName = "" }: { me: string; 
             onAdd={(name) => identify({ name })}
           />
           {err && <p className="mt-3 text-sm text-clay">{err}</p>}
-          {selfId && (
-            <button onClick={removeMe} className="mt-3 text-sm text-clay hover:underline">
-              {t("group.netNotMeRestart")}
+          <div className="mt-6 flex items-center justify-between gap-3">
+            {selfId ? (
+              <button onClick={removeMe} className="text-sm text-clay hover:underline">
+                {t("group.netNotMeRestart")}
+              </button>
+            ) : (
+              <span className="text-xs text-slate-400">{myName ? t("group.netFindName") : ""}</span>
+            )}
+            <button
+              disabled={!selfId}
+              onClick={async () => { await loadRoster(); setStep("advice"); }}
+              className="btn-primary disabled:opacity-40"
+            >
+              {t("group.next")} →
             </button>
-          )}
-          <StickyNext
-            disabled={!selfId}
-            label={t("group.next")}
-            onClick={async () => {
-              await loadRoster();
-              setStep("advice");
-            }}
-          />
+          </div>
         </div>
       )}
 
