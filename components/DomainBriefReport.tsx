@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Meter, StatTile, Sparkline, BarList, Drill, RankRow, PotChip, SummaryHero, SortControl } from "@/components/ReportKit";
+import CollabGraph from "@/components/CollabGraph";
 import { sciLink, SciLink } from "@/lib/scientifiqLinks";
 import type { DomainBriefData, ExpertSummary } from "@/lib/domainBrief";
 
@@ -97,6 +98,35 @@ export default function DomainBriefReport({ brief, data }: { brief: Brief; data:
               </Drill>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Collaboration network + who-should-talk (the structural-hole insight) */}
+      {data.collab && data.collab.nodes.length > 2 && (
+        <div>
+          <h2 className="eyebrow mb-2">Collaboration network</h2>
+          <CollabGraph nodes={data.collab.nodes} edges={data.collab.edges} suggestions={data.collab.shouldTalk} />
+        </div>
+      )}
+
+      {(data.collab?.shouldTalk || []).length > 0 && (
+        <div>
+          <h2 className="eyebrow mb-1">Who should talk (but doesn&apos;t)</h2>
+          <p className="mb-2 text-xs text-slate-400">Experts working on very similar topics with no shared paper: collaborations waiting across a structural hole.</p>
+          <div className="card divide-y divide-line p-0">
+            {data.collab.shouldTalk.map((s, i) => (
+              <div key={i} className="p-4">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-ink">
+                  <a href={sciLink.researcher(s.aId, s.aName)} target="_blank" rel="noopener noreferrer" className="hover:underline">{s.aName}</a>
+                  <span className="text-slate-300">&harr;</span>
+                  <a href={sciLink.researcher(s.bId, s.bName)} target="_blank" rel="noopener noreferrer" className="hover:underline">{s.bName}</a>
+                </div>
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {s.sharedTopics.map((t, k) => <span key={k} className="rounded-full bg-mist px-2 py-0.5 text-[11px] text-slate2">{t}</span>)}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
