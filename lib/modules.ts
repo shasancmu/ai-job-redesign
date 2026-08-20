@@ -645,6 +645,7 @@ export type PillKey =
   | "implementation"
   | "entrepreneurship"
   | "innovation"
+  | "deeptech"
   | "negotiation"
   | "live";
 
@@ -656,6 +657,7 @@ export const PILLS: { key: PillKey; label: string }[] = [
   { key: "implementation", label: "Implementation" },
   { key: "entrepreneurship", label: "Entrepreneurship" },
   { key: "innovation", label: "Innovation" },
+  { key: "deeptech", label: "Deep Tech Innovation" },
   { key: "negotiation", label: "Negotiation" },
   { key: "live", label: "Live in class" },
 ];
@@ -676,9 +678,9 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "refresh-resume-voice": ["career", "ai"],
   "career-myopia": ["career", "strategy"],
   "personal-network": ["career", "leadership", "strategy"],
-  "domain-brief": ["strategy", "ai", "innovation"],
-  "find-collaborators": ["career", "innovation", "ai"],
-  "licensing-brief": ["strategy", "entrepreneurship", "innovation"],
+  "domain-brief": ["deeptech", "strategy", "ai", "innovation"],
+  "find-collaborators": ["deeptech", "innovation", "ai"],
+  "licensing-brief": ["deeptech", "strategy", "entrepreneurship", "innovation"],
   "business-myopia": ["strategy", "innovation", "leadership"],
   // Negotiation
   "close-the-offer": ["negotiation", "career"],
@@ -696,7 +698,7 @@ const PILLS_OF: Record<string, PillKey[]> = {
   // Entrepreneurship / innovation
   "good-business": ["entrepreneurship", "strategy"],
   "test-the-bet": ["innovation", "entrepreneurship"],
-  "deeptech-canvas": ["innovation", "entrepreneurship"],
+  "deeptech-canvas": ["deeptech", "innovation", "entrepreneurship"],
   // Live
   benchmark: ["live", "ai"],
   network: ["live", "leadership"],
