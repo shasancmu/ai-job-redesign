@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { activeEntitlements, FREE_TIER_MODULES, runsLeftByModule } from "@/lib/access";
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { isAdmin } from "@/lib/admin";
+import { claimInvites } from "@/lib/orgs";
 import { titleCaseName } from "@/lib/name";
 import { MODULES } from "@/lib/modules";
 import Catalog from "@/components/Catalog";
@@ -36,6 +37,9 @@ export default async function Dashboard({
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+
+  // Turn any pending white-label invites for this email into memberships.
+  await claimInvites(user.id, user.email);
 
   let { data: profile } = await supabase
     .from("profiles")
@@ -175,6 +179,11 @@ export default async function Dashboard({
           {instructor && (
             <a href="/facilitator" className="btn-ghost text-sm">
               {t("nav.facilitator")}
+            </a>
+          )}
+          {instructor && (
+            <a href="/admin/orgs" className="btn-ghost text-sm">
+              Orgs
             </a>
           )}
           <form action="/auth/signout" method="post">
