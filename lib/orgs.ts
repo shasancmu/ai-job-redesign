@@ -39,6 +39,10 @@ export type Org = {
 export type Membership = { org: Org; role: OrgRole };
 
 const ACTIVE_ORG_COOKIE = "active_org";
+// A sentinel cookie value meaning "the user explicitly chose Personal". Without
+// it, an empty cookie is indistinguishable from "never chose", and we'd default
+// a multi-org user straight back into their first org — making Personal unreachable.
+const ACTIVE_ORG_PERSONAL = "__personal__";
 
 function admin() {
   try { return createAdminClient(); } catch { return null; }
@@ -119,6 +123,7 @@ export async function getActiveOrg(
   const memberships = await getMyOrgs(user.id);
   if (memberships.length === 0) return null;
   const cookieSlug = cookies().get(ACTIVE_ORG_COOKIE)?.value;
+  if (cookieSlug === ACTIVE_ORG_PERSONAL) return null; // explicit Personal
   if (cookieSlug) {
     const m = memberships.find((x) => x.org.slug === cookieSlug);
     if (m) return m.org;
@@ -140,4 +145,4 @@ export async function claimInvites(userId: string, email?: string | null): Promi
   }
 }
 
-export { ACTIVE_ORG_COOKIE };
+export { ACTIVE_ORG_COOKIE, ACTIVE_ORG_PERSONAL };

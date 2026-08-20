@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { getMyOrgs, ACTIVE_ORG_COOKIE } from "@/lib/orgs";
+import { getMyOrgs, ACTIVE_ORG_COOKIE, ACTIVE_ORG_PERSONAL } from "@/lib/orgs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,8 +16,10 @@ export async function POST(request: Request) {
   try { body = await request.json(); } catch { return Response.json({ error: "bad request" }, { status: 400 }); }
   const slug = String(body.slug || "").trim().toLowerCase();
 
+  // Personal is a real choice, not the absence of one: store a sentinel so it
+  // sticks instead of defaulting back to the user's first org on the next load.
   if (!slug) {
-    cookies().set(ACTIVE_ORG_COOKIE, "", { path: "/", maxAge: 0 });
+    cookies().set(ACTIVE_ORG_COOKIE, ACTIVE_ORG_PERSONAL, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
     return Response.json({ ok: true, slug: null });
   }
 
