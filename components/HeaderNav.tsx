@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getMyOrgs, getActiveOrg, isSuperadmin } from "@/lib/orgs";
+import { getMyOrgs, getActiveOrg, facilitatorAccess } from "@/lib/orgs";
 import OrgSwitcher from "@/components/OrgSwitcher";
 import AccountMenu from "@/components/AccountMenu";
 
@@ -11,10 +11,10 @@ export default async function HeaderNav({ showDashboard = true }: { showDashboar
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [myOrgs, activeOrg, superadmin, profileRes] = await Promise.all([
+  const [myOrgs, activeOrg, access, profileRes] = await Promise.all([
     getMyOrgs(user.id),
     getActiveOrg(user),
-    isSuperadmin(user),
+    facilitatorAccess(user),
     supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
   ]);
   const name = (profileRes.data as any)?.display_name || user.email?.split("@")[0] || "You";
@@ -29,7 +29,8 @@ export default async function HeaderNav({ showDashboard = true }: { showDashboar
       )}
       <AccountMenu
         name={name}
-        admin={superadmin}
+        facilitator={access.ok}
+        superadmin={access.superadmin}
         dashboard={showDashboard}
         tour={false}
         labels={{

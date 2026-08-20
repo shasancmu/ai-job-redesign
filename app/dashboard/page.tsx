@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { activeEntitlements, FREE_TIER_MODULES, runsLeftByModule } from "@/lib/access";
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { isAdmin } from "@/lib/admin";
-import { claimInvites, getMyOrgs, getActiveOrg } from "@/lib/orgs";
+import { claimInvites, getMyOrgs, getActiveOrg, facilitatorAccess } from "@/lib/orgs";
 import OrgSwitcher from "@/components/OrgSwitcher";
 import AccountMenu from "@/components/AccountMenu";
 import { titleCaseName } from "@/lib/name";
@@ -42,7 +42,7 @@ export default async function Dashboard({
 
   // Turn any pending white-label invites for this email into memberships.
   await claimInvites(user.id, user.email);
-  const [myOrgs, activeOrg] = await Promise.all([getMyOrgs(user.id), getActiveOrg(user)]);
+  const [myOrgs, activeOrg, facAccess] = await Promise.all([getMyOrgs(user.id), getActiveOrg(user), facilitatorAccess(user)]);
   // A white-label org can curate which modules its members see + can run.
   const orgModules: string[] | null = activeOrg?.modules && activeOrg.modules.length ? activeOrg.modules : null;
 
@@ -184,7 +184,8 @@ export default async function Dashboard({
           {I18N_ENABLED && <LanguagePicker me={user.id} initial={(profile as any)?.language} />}
           <AccountMenu
             name={profile?.display_name || "You"}
-            admin={instructor}
+            facilitator={facAccess.ok}
+            superadmin={facAccess.superadmin}
             dataTour="reports"
             labels={{
               reports: "Reports",

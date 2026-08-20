@@ -14,14 +14,16 @@ type Labels = { reports: string; profile: string; facilitator: string; orgs: str
 // later content no matter its z-index. A body-level portal escapes all of that.
 export default function AccountMenu({
   name,
-  admin,
+  facilitator = false,
+  superadmin = false,
   labels,
   dataTour,
   dashboard = false,
   tour = true,
 }: {
   name: string;
-  admin: boolean;
+  facilitator?: boolean; // has facilitator access → show the Facilitator link
+  superadmin?: boolean; // platform owner → also show the Orgs console
   labels: Labels;
   dataTour?: string;
   dashboard?: boolean;
@@ -76,11 +78,11 @@ export default function AccountMenu({
             <a href="/reports" className={item}>{labels.reports}</a>
             <a href="/profile" className={item}>{labels.profile}</a>
             {tour && <button onClick={() => { setOpen(false); window.dispatchEvent(new Event("app:start-tour")); }} className={item}>{labels.tour}</button>}
-            {admin && (
+            {(facilitator || superadmin) && (
               <>
                 <div className="my-1 border-t border-line" />
-                <a href="/facilitator" className={item}>{labels.facilitator}</a>
-                <a href="/admin/orgs" className={item}>{labels.orgs}</a>
+                {facilitator && <a href="/facilitator" className={item}>{labels.facilitator}</a>}
+                {superadmin && <a href="/admin/orgs" className={item}>{labels.orgs}</a>}
               </>
             )}
             <div className="my-1 border-t border-line" />
