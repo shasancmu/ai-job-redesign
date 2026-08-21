@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
 import ShareReport from "@/components/ShareReport";
+import InterviewHelper from "@/components/InterviewHelper";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -17,6 +18,7 @@ export default function ChatInterview({
   ws,
   apiPath,
   extraBody,
+  helpKey,
   renderReport,
   reportHref,
   share,
@@ -30,6 +32,7 @@ export default function ChatInterview({
   ws: any;
   apiPath: string;
   extraBody: Record<string, any>;
+  helpKey?: string;
   renderReport: (report: any) => ReactNode;
   reportHref: (code: string) => string;
   share: { title: string; text: string };
@@ -142,6 +145,7 @@ export default function ChatInterview({
           <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} rows={1} placeholder="Type your answer…" className="field max-h-32 flex-1 resize-none py-2.5" disabled={waiting} />
           <button onClick={send} disabled={waiting || !input.trim()} className="btn-primary shrink-0 px-4 py-2.5 disabled:opacity-40">Send</button>
         </div>
+        <InterviewHelper module={helpKey} answered={answered} hasDraft={!!input.trim()} onInsert={setInput} />
         {answered >= 3 && <p className="mt-2 text-center text-[11px] text-slate-400">{bottomHint}</p>}
       </div>
     </div>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
+import InterviewHelper from "@/components/InterviewHelper";
 import { SOLO_STEPS } from "@/lib/solo";
 import GridEditor from "@/components/GridEditor";
 import Timer from "@/components/Timer";
@@ -271,6 +272,7 @@ function Interview({ ws, update, sessionId }: { ws: any; update: (p: any) => voi
 
       {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
 
+      <InterviewHelper module="job" answered={messages.filter((m) => m.role === "user").length} hasDraft={!!input.trim()} onInsert={setInput} />
       <form onSubmit={send} className="mt-3 flex items-center gap-2">
         <input
           className="field"

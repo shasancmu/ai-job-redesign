@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
+import InterviewHelper from "@/components/InterviewHelper";
 import { CANVAS_STEPS, accentColor, type CanvasDef, type CanvasField } from "@/lib/canvases";
 import Timer from "@/components/Timer";
 import CanvasView from "@/components/CanvasView";
@@ -238,6 +239,7 @@ function Interview({
         )}
       </div>
       {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
+      <InterviewHelper module={def.exercise} answered={chat.filter((m) => m.role === "user").length} hasDraft={!!input.trim()} onInsert={setInput} />
       <form onSubmit={send} className="mt-3 flex items-center gap-2">
         <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t("room.typeAnswer")} disabled={busy} />
         <button className="btn-primary" disabled={busy || !input.trim()}>{t("room.send")}</button>

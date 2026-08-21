@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
+import InterviewHelper from "@/components/InterviewHelper";
 import Timer from "@/components/Timer";
 import VisionReport from "@/components/VisionReport";
 
@@ -161,6 +162,7 @@ function Interview({ state, setState, ctx }: { state: any; setState: (p: any) =>
           {busy && !streaming && messages.length > 0 && <div className="flex justify-start"><div className="rounded-2xl bg-slate-100 px-4 py-2.5 text-sm text-slate-400">…</div></div>}
         </div>
         {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
+        <InterviewHelper module="vision" answered={messages.filter((m) => m.role === "user").length} hasDraft={!!input.trim()} onInsert={setInput} />
         <form onSubmit={send} className="mt-3 flex items-center gap-2">
           <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type your answer…" disabled={busy} />
           <button className="btn-primary" disabled={busy || !input.trim()}>Send</button>

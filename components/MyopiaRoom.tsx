@@ -47,6 +47,7 @@ export default function MyopiaRoom({ session, initialWorkspace, domain }: { sess
       ws={ws}
       apiPath="/api/myopia"
       extraBody={{ domain, subject }}
+      helpKey={domain === "career" ? "myopia-career" : "myopia-business"}
       renderReport={(r) => <MyopiaReport report={r} subjectWord={domain} />}
       reportHref={(c) => `/myopia/${c}`}
       share={{ title: `${label} blind spots`, text: `Here are the blind spots in ${d.subject}, from Superadditive:` }}
