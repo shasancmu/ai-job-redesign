@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import Logo from "@/components/Logo";
 import ShareReport from "@/components/ShareReport";
+import PrintButton from "@/components/PrintButton";
 
 // Shared chrome for owner-only report pages: logo + share + back, an eyebrow /
 // title, and either the report or a "not built yet" empty state.
@@ -32,7 +33,8 @@ export default function ReportShell({
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <header className="mb-6 flex items-center justify-between">
         <Logo />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 no-print">
+          {hasReport && <PrintButton />}
           {hasReport && <ShareReport code={code} title={shareTitle} text={shareText} />}
           <Link href={`/room/${code}`} className="btn-ghost text-sm">{backLabel}</Link>
         </div>

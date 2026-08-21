@@ -19,8 +19,25 @@ import CanvasView from "@/components/CanvasView";
 import WorkflowPlanView from "@/components/WorkflowPlanView";
 import EmpathyAggregate from "@/components/EmpathyAggregate";
 import Logo from "@/components/Logo";
+import type { Metadata } from "next";
+import { loadReportPreview } from "@/lib/reportPreview";
 
 export const dynamic = "force-dynamic";
+
+// Per-report social preview: a real title + one-line summary (the OG image comes
+// from opengraph-image.tsx in this segment, so a shared link previews richly).
+export async function generateMetadata({ params }: { params: { token: string } }): Promise<Metadata> {
+  const p = await loadReportPreview(params.token).catch(() => null);
+  const title = p ? p.title : "A shared report";
+  const description = p?.summary || "A result made with Superadditive, AI for business strategy and innovation.";
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "article" },
+    twitter: { card: "summary_large_image", title, description },
+    robots: { index: false, follow: false }, // shared links are private, not for search
+  };
+}
 
 // PUBLIC, no-auth: a read-only view of a report the owner chose to share. Looked
 // up by an unguessable token via the service-role client. Sharing is opt-in (the
@@ -72,10 +89,10 @@ export default async function SharedReport({ params }: { params: { token: string
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <header className="mb-6 flex items-center justify-between">
         <Logo />
-        <span className="rounded-full bg-mist px-3 py-1 text-xs font-semibold text-slate2">Shared with you</span>
+        <span className="no-print rounded-full bg-mist px-3 py-1 text-xs font-semibold text-slate2">Shared with you</span>
       </header>
       {node}
-      <div className="mt-12 border-t border-line pt-6 text-center">
+      <div className="no-print mt-12 border-t border-line pt-6 text-center">
         <p className="text-sm text-slate-400">Made with Superadditive, AI for business strategy and innovation.</p>
         <Link href="/" className="btn-ghost mt-2 inline-block text-sm">Try it yourself →</Link>
       </div>

@@ -30,8 +30,21 @@ const display = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: BRAND.name,
+  metadataBase: new URL(BRAND.siteUrl),
+  title: { default: BRAND.name, template: `%s · ${BRAND.name}` },
   description: BRAND.description,
+  openGraph: {
+    type: "website",
+    siteName: BRAND.name,
+    title: BRAND.name,
+    description: BRAND.description,
+    url: BRAND.siteUrl,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: BRAND.name,
+    description: BRAND.description,
+  },
 };
 
 export default async function RootLayout({
