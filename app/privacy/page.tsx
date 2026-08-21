@@ -22,7 +22,7 @@ export default function Privacy() {
           Superadditive provides AI-run exercises for work, strategy, and learning. Depending on how you use it, we act as
           the <b>data controller</b> (when you sign up and use Superadditive directly) or as a <b>data processor</b> (when
           your organization deploys a branded space and invites you — in that case your organization is the controller and
-          we process data on their instructions). Contact: <a href="mailto:shasanx@gmail.com">shasanx@gmail.com</a>.
+          we process data on their instructions). <Link href="/contact">Contact us</Link> with any questions.
         </Section>
 
         <Section title="What we collect">
@@ -79,7 +79,7 @@ export default function Privacy() {
           Subject to applicable law (including the GDPR), you can access, correct, export, delete, restrict, or object to the
           processing of your data, and withdraw consent. From <Link href="/profile">your profile</Link> you can
           <b> export your data</b> and <b>delete your account</b> yourself. For anything else, email
-          <a href="mailto:shasanx@gmail.com"> shasanx@gmail.com</a>. You may also complain to your local data protection
+          <Link href="/contact"> contact us</Link>. You may also complain to your local data protection
           authority.
         </Section>
 

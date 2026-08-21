@@ -738,3 +738,20 @@ select c.id, m.user_id
 from public.org_members m
 join public.classes c on c.org_id = m.org_id and c.is_default
 on conflict do nothing;
+
+-- ============================================================================
+-- Contact messages: submissions from the public /contact form. All access via
+-- the service-role API — the public form posts through /api/contact and only
+-- the superadmin reads them. RLS with no policies denies direct client access.
+-- ============================================================================
+create table if not exists public.contact_messages (
+  id uuid primary key default gen_random_uuid(),
+  name text,
+  email text,
+  org text,
+  message text not null,
+  source text,
+  handled boolean not null default false,
+  created_at timestamptz not null default now()
+);
+alter table public.contact_messages enable row level security;

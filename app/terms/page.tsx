@@ -47,7 +47,7 @@ export default function Terms() {
         </section>
         <section>
           <h2>Contact</h2>
-          <p className="mt-2 leading-relaxed">Questions about these terms: <a href="mailto:shasanx@gmail.com">shasanx@gmail.com</a>.</p>
+          <p className="mt-2 leading-relaxed">Questions about these terms? <Link href="/contact">Contact us</Link>.</p>
         </section>
       </div>
 

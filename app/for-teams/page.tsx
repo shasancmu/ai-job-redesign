@@ -10,7 +10,7 @@ export const metadata = {
   description: "A branded, AI-run learning space that keeps your participants engaged long after the program ends.",
 };
 
-const CONTACT = "mailto:shasanx@gmail.com?subject=Superadditive%20for%20our%20organization";
+const CONTACT = "/contact?source=for-teams";
 
 // Live count of catalog exercises, rounded down to a clean "N+" so it stays
 // honest as modules are added (no hardcoded number to update).
