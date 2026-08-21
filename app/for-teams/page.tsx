@@ -3,6 +3,7 @@ import Logo from "@/components/Logo";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import ForTeamsStory from "@/components/ForTeamsStory";
+import { MODULES } from "@/lib/modules";
 
 export const metadata = {
   title: "Superadditive for teams & programs",
@@ -11,9 +12,14 @@ export const metadata = {
 
 const CONTACT = "mailto:shasanx@gmail.com?subject=Superadditive%20for%20our%20organization";
 
+// Live count of catalog exercises, rounded down to a clean "N+" so it stays
+// honest as modules are added (no hardcoded number to update).
+const EXERCISE_COUNT = MODULES.filter((m) => !m.hidden).length;
+const EXERCISE_STAT = `${Math.floor(EXERCISE_COUNT / 5) * 5}+`;
+
 const FEATURES = [
   { icon: "🎨", title: "Your brand, your space", body: "Your logo, colors, hero, and a private address — superadditive.app/your-org. It feels like your program, not a vendor." },
-  { icon: "🧩", title: "30+ AI-run exercises", body: "More than thirty hands-on exercises — and growing — where an AI runs the interview, plays a partner or counterpart, and coaches the debrief." },
+  { icon: "🧩", title: `${EXERCISE_STAT} AI-run exercises`, body: "A growing library of hands-on exercises where an AI runs the interview, plays a partner or counterpart, and coaches the debrief." },
   { icon: "👥", title: "Cohorts, directors & instructors", body: "Organize people into cohorts and sections. Directors run the space; instructors run their groups. You only see your own people." },
   { icon: "📡", title: "Live, in-room activities", body: "Run a live word cloud, benchmark, or network map your whole room joins from their phones — no sign-in for them." },
   { icon: "📄", title: "Their work is theirs", body: "Each exercise ends in a concrete artifact — a plan, a scorecard, a map — that belongs to the participant, to keep and share on their own terms." },
@@ -49,7 +55,7 @@ export default function ForTeams() {
               Keep your people thinking, long after the session ends.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate2">
-              Give your team or cohort a private, branded space with 30+ AI-run exercises grounded in real research.
+              Give your team or cohort a private, branded space with {EXERCISE_STAT} AI-run exercises grounded in real research.
               They keep practicing the ideas; you stay connected to the people you brought together.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -65,7 +71,7 @@ export default function ForTeams() {
         <Reveal>
           <div className="grid gap-6 rounded-2xl border border-line bg-white p-8 text-center shadow-soft sm:grid-cols-3">
             {[
-              ["30+", "AI-run exercises, and growing"],
+              [EXERCISE_STAT, "AI-run exercises, and growing"],
               ["~1 week", "from hello to your live space"],
               ["0", "IT projects — just share a link"],
             ].map(([n, l]) => (
