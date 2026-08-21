@@ -66,8 +66,8 @@ export default function ForTeams() {
           <div className="grid gap-6 rounded-2xl border border-line bg-white p-8 text-center shadow-soft sm:grid-cols-3">
             {[
               ["30+", "AI-run exercises, and growing"],
-              ["~30 min", "each — start to a real artifact"],
-              ["1", "branded space that's yours"],
+              ["~1 week", "from hello to your live space"],
+              ["0", "IT projects — just share a link"],
             ].map(([n, l]) => (
               <div key={l}>
                 <div className="text-4xl font-bold tracking-tight text-ink sm:text-5xl">{n}</div>
