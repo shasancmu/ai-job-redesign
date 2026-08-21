@@ -12,13 +12,36 @@ import { MODULES } from "@/lib/modules";
 
 const EXERCISE_STAT = `${Math.floor(MODULES.filter((m) => !m.hidden).length / 5) * 5}+`;
 
+// Minimal line icons — 24×24, stroke = currentColor. Kept intentionally plain
+// so the cards read as considered product UI, not emoji.
+const ICON: Record<string, React.ReactNode> = {
+  runs: (
+    <><path d="M7.5 8.5h9M7.5 12h6" /><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v8a1.5 1.5 0 0 1-1.5 1.5H9l-4 3.5v-3.5H5.5A1.5 1.5 0 0 1 4 13.5Z" /></>
+  ),
+  frameworks: (
+    <><rect x="4" y="4" width="7" height="7" rx="1.2" /><rect x="13" y="4" width="7" height="7" rx="1.2" /><rect x="4" y="13" width="7" height="7" rx="1.2" /><rect x="13" y="13" width="7" height="7" rx="1.2" /></>
+  ),
+  keep: (
+    <><path d="M6 3.5h8l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z" /><path d="M13.5 3.5V8h4.5" /><path d="M8.5 13h7M8.5 16.5h5" /></>
+  ),
+  voice: (
+    <><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M6 11a6 6 0 0 0 12 0" /><path d="M12 17v3.5M9 20.5h6" /></>
+  ),
+  paired: (
+    <><circle cx="8.5" cy="8" r="3" /><circle cx="16" cy="9.5" r="2.4" /><path d="M3.5 19c0-2.8 2.2-5 5-5s5 2.2 5 5" /><path d="M14.5 14.2c2.3.3 4 2.2 4 4.8" /></>
+  ),
+  changes: (
+    <><path d="M13 3 5 13.5h5.5L10 21l8-10.5h-5.5Z" /></>
+  ),
+};
+
 const GETS = [
-  { icon: "🤝", title: "An AI that runs it", body: "It interviews you, plays a partner or a tough counterpart, and coaches the debrief — adapting to what you actually say." },
-  { icon: "🧠", title: "Real frameworks", body: "Every exercise is built on established research, not generic advice — the kind of thinking that holds up on a real decision." },
-  { icon: "📄", title: "Something you keep", body: "A plan, a redesigned role, a map, a sharpened story — a concrete artifact you can act on, not a grade." },
-  { icon: "🎙️", title: "Type or talk", body: "Do it in text, or go hands-free and just talk it through by voice." },
-  { icon: "👤", title: "Solo or paired", body: "Work through it on your own, or pair up and interview each other." },
-  { icon: "⚡", title: "It changes how you work", body: "You practice the thinking and leave having actually done it — not just read about it." },
+  { icon: "runs", tint: "#3F7A52", soft: "bg-sage-soft", title: "An AI that runs it", body: "It interviews you, plays a partner or a tough counterpart, and coaches the debrief — adapting to what you actually say." },
+  { icon: "frameworks", tint: "#2F6DA8", soft: "bg-sky-soft", title: "Real frameworks", body: "Every exercise is built on established research, not generic advice — the kind of thinking that holds up on a real decision." },
+  { icon: "keep", tint: "#B07A1E", soft: "bg-amber-soft", title: "Something you keep", body: "A plan, a redesigned role, a map, a sharpened story — a concrete artifact you can act on, not a grade." },
+  { icon: "voice", tint: "#B0533E", soft: "bg-clay-soft", title: "Type or talk", body: "Do it in text, or go hands-free and just talk it through by voice." },
+  { icon: "paired", tint: "#3F7A52", soft: "bg-sage-soft", title: "Solo or paired", body: "Work through it on your own, or pair up and interview each other." },
+  { icon: "changes", tint: "#B07A1E", soft: "bg-amber-soft", title: "It changes how you work", body: "You practice the thinking and leave having actually done it — not just read about it." },
 ];
 
 const RESEARCH = [
@@ -127,7 +150,11 @@ export default async function Home() {
           {GETS.map((f, i) => (
             <Reveal key={f.title} delay={(i % 3) * 80}>
               <div className="card h-full p-6">
-                <div className="text-3xl" aria-hidden>{f.icon}</div>
+                <div className={"flex h-11 w-11 items-center justify-center rounded-xl " + f.soft} aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={f.tint} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    {ICON[f.icon]}
+                  </svg>
+                </div>
                 <h3 className="mt-4 text-lg font-bold text-ink">{f.title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-slate2">{f.body}</p>
               </div>
