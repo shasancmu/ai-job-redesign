@@ -51,12 +51,12 @@ export default async function Home() {
               </Link>
             </div>
             <div className="mt-4">
-              <a
-                href="mailto:shasanx@gmail.com?subject=Running%20Superadditive%20for%20a%20team"
+              <Link
+                href="/for-teams"
                 className="text-sm font-medium text-slate2 underline-offset-4 hover:text-ink hover:underline"
               >
-                Running this for a team? <span aria-hidden>→</span>
-              </a>
+                Running this for a team or program? <span aria-hidden>→</span>
+              </Link>
             </div>
           </div>
         </div>
@@ -91,12 +91,12 @@ export default async function Home() {
             <h2 className="text-xl font-bold text-ink">Ready to reimagine the work?</h2>
             <p className="mt-1 text-slate2">
               Create an account and start an exercise in minutes, or{" "}
-              <a
-                href="mailto:shasanx@gmail.com?subject=Running%20Superadditive%20for%20a%20team"
+              <Link
+                href="/for-teams"
                 className="font-medium text-ink underline underline-offset-4 hover:text-sage"
               >
                 run it for a team
-              </a>
+              </Link>
               .
             </p>
           </div>

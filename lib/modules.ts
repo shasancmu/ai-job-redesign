@@ -723,7 +723,7 @@ export const FEATURES: { key: FeatureKey; label: string }[] = [
   { key: "ai", label: "With AI" },
   { key: "live", label: "In class" },
   { key: "voice", label: "Voice" },
-  { key: "camera", label: "Camera" },
+  { key: "camera", label: "Photo" },
 ];
 
 const VOICE_MODULES = new Set(["voice-consult", "refresh-resume-voice"]);

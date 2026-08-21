@@ -27,7 +27,7 @@ export default function FeatureBadges({ slug }: { slug: string }) {
             <path d="M14.5 4h-5L7.5 6.5H4A2 2 0 0 0 2 8.5v10A2 2 0 0 0 4 20.5h16a2 2 0 0 0 2-2v-10a2 2 0 0 0-2-2h-3.5z" />
             <circle cx="12" cy="13" r="3.2" />
           </svg>
-          Camera
+          Photo
         </span>
       )}
     </>
