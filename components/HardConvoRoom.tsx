@@ -1,12 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import Timer from "@/components/Timer";
+import RoleplayChat, { type Msg } from "@/components/RoleplayChat";
 import { CONVOS, convoByKey, type HardConvo } from "@/lib/hardconvo";
 
-type Msg = { role: "user" | "assistant"; content: string };
+async function hardConvoReply(convoKey: string, history: Msg[]): Promise<string | null> {
+  try {
+    const res = await fetch("/api/hard-convo/reply", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ convoKey, messages: history }) });
+    const d = await res.json();
+    return res.ok ? (d.reply as string) : null;
+  } catch { return null; }
+}
 
 const STEPS = [
   { key: "pick", title: "Pick a conversation", minutes: 2 },
@@ -73,7 +80,17 @@ export default function HardConvoRoom({ me, session, initialWorkspace }: { me: s
       <div className="pb-24">
         {step.key === "pick" && <Pick chosen={state.convoKey} onPick={(k) => { setState({ convoKey: k, chat: [] }); go(1); }} />}
         {step.key === "brief" && convo && <Brief convo={convo} />}
-        {step.key === "rehearse" && convo && <Rehearse convo={convo} chat={state.chat || []} setChat={(c) => setState({ chat: c })} />}
+        {step.key === "rehearse" && convo && (
+          <RoleplayChat
+            chat={state.chat || []}
+            setChat={(c) => setState({ chat: c })}
+            onCall={(h) => hardConvoReply(convo.key, h)}
+            counterpartName={convo.counterpartName}
+            aiOpens={false}
+            placeholder={(state.chat || []).length === 0 ? convo.opener : `Reply to ${convo.counterpartName}…`}
+            emptyHint={<>You&apos;re about to speak with <b>{convo.counterpartName}</b>. Say your opening line to begin — how you start matters.</>}
+          />
+        )}
         {step.key === "debrief" && convo && <Debrief convo={convo} state={state} setState={setState} />}
         {step.key !== "pick" && !convo && <div className="card p-5 text-slate-600">Pick a conversation first.</div>}
       </div>
@@ -120,59 +137,6 @@ function Brief({ convo }: { convo: HardConvo }) {
         <p className="mt-1.5 text-sm text-slate-700">{convo.watchOut}</p>
         <p className="mt-4 text-sm text-slate-500">You&apos;re speaking with <b>{convo.counterpartName}</b> ({convo.counterpartRole}). You open the conversation — say the first line yourself.</p>
       </div>
-    </div>
-  );
-}
-
-function Rehearse({ convo, chat, setChat }: { convo: HardConvo; chat: Msg[]; setChat: (m: Msg[]) => void }) {
-  const [input, setInput] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const scroller = useRef<HTMLDivElement>(null);
-
-  const call = useCallback(async (history: Msg[]) => {
-    setErr(null); setBusy(true);
-    try {
-      const res = await fetch("/api/hard-convo/reply", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ convoKey: convo.key, messages: history }) });
-      const d = await res.json();
-      if (!res.ok) { setErr(d.error || `${convo.counterpartName} is unavailable.`); return null; }
-      return d.reply as string;
-    } catch { setErr(`${convo.counterpartName} is unavailable.`); return null; } finally { setBusy(false); }
-  }, [convo.key, convo.counterpartName]);
-
-  useEffect(() => { scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" }); }, [chat.length, busy]);
-
-  async function send(e: React.FormEvent) {
-    e.preventDefault();
-    const text = input.trim();
-    if (!text || busy) return;
-    const next: Msg[] = [...chat, { role: "user", content: text }];
-    setChat(next);
-    setInput("");
-    const reply = await call(next);
-    if (reply) setChat([...next, { role: "assistant", content: reply }]);
-  }
-
-  return (
-    <div className="card flex flex-col p-5" style={{ height: "60vh", minHeight: 420 }}>
-      <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto pr-1">
-        {chat.length === 0 && (
-          <div className="rounded-xl bg-mist p-4 text-sm text-slate-600">
-            You&apos;re about to speak with <b>{convo.counterpartName}</b>. Type your opening line to begin — how you start matters.
-          </div>
-        )}
-        {chat.map((m, i) => (
-          <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
-            <div className={"max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed " + (m.role === "user" ? "bg-ink text-white" : "bg-slate-100 text-slate-800")}>{m.content}</div>
-          </div>
-        ))}
-        {busy && <div className="flex justify-start"><div className="rounded-2xl bg-slate-100 px-4 py-2.5 text-sm text-slate-400">…</div></div>}
-      </div>
-      {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
-      <form onSubmit={send} className="mt-3 flex items-center gap-2">
-        <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={chat.length === 0 ? convo.opener : `Reply to ${convo.counterpartName}…`} disabled={busy} />
-        <button className="btn-primary" disabled={busy || !input.trim()}>Send</button>
-      </form>
     </div>
   );
 }

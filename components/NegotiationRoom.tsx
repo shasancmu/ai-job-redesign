@@ -1,14 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import Timer from "@/components/Timer";
 import { scenarioByExercise, analyze, yourMaxOf, type Scenario, type MultiScenario, type PriceScenario } from "@/lib/negotiation";
+import RoleplayChat, { type Msg } from "@/components/RoleplayChat";
 import { useT } from "@/components/I18nProvider";
 import type { T } from "@/lib/i18n";
 
-type Msg = { role: "user" | "assistant"; content: string };
+async function negotiationReply(exercise: string, history: Msg[]): Promise<string | null> {
+  try {
+    const res = await fetch("/api/negotiation/reply", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ exercise, messages: history }) });
+    const d = await res.json();
+    return res.ok ? (d.reply as string) : null;
+  } catch { return null; }
+}
 
 // Translate with a fallback to the passed-in English: if the key is missing,
 // show the original rather than a raw key.
@@ -88,7 +95,16 @@ export default function NegotiationRoom({ me, session, initialWorkspace }: { me:
 
       <div className="pb-24">
         {step.key === "brief" && <Brief scn={scn} />}
-        {step.key === "negotiate" && <Negotiate scn={scn} chat={state.chat || []} setChat={(c) => setState({ chat: c })} />}
+        {step.key === "negotiate" && (
+          <RoleplayChat
+            chat={state.chat || []}
+            setChat={(c) => setState({ chat: c })}
+            onCall={(h) => negotiationReply(scn.exercise, h)}
+            counterpartName={scn.counterpartName}
+            aiOpens
+            placeholder={t("nego.replyTo", { name: scn.counterpartName })}
+          />
+        )}
         {step.key === "deal" && <Deal scn={scn} terms={state.terms || {}} noDeal={!!state.noDeal} onTerms={(t) => setState({ terms: t })} onNoDeal={(v) => setState({ noDeal: v })} />}
         {step.key === "debrief" && <Debrief scn={scn} state={state} setState={setState} />}
       </div>
@@ -141,63 +157,6 @@ function Brief({ scn }: { scn: Scenario }) {
           </ul>
         </div>
       )}
-    </div>
-  );
-}
-
-function Negotiate({ scn, chat, setChat }: { scn: Scenario; chat: Msg[]; setChat: (m: Msg[]) => void }) {
-  const t = useT();
-  const [input, setInput] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const started = useRef(false);
-  const scroller = useRef<HTMLDivElement>(null);
-
-  const call = useCallback(async (history: Msg[]) => {
-    setErr(null);
-    setBusy(true);
-    try {
-      const res = await fetch("/api/negotiation/reply", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ exercise: scn.exercise, messages: history }) });
-      const d = await res.json();
-      if (!res.ok) { setErr(d.error || t("nego.counterpartUnavailable")); return null; }
-      return d.reply as string;
-    } catch { setErr(t("nego.counterpartUnavailable")); return null; } finally { setBusy(false); }
-  }, [scn.exercise]);
-
-  useEffect(() => {
-    if (started.current || chat.length > 0) { started.current = true; return; }
-    started.current = true;
-    call([]).then((reply) => { if (reply) setChat([{ role: "assistant", content: reply }]); });
-  }, []); // eslint-disable-line
-  useEffect(() => { scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" }); }, [chat.length, busy]);
-
-  async function send(e: React.FormEvent) {
-    e.preventDefault();
-    const text = input.trim();
-    if (!text || busy) return;
-    const next: Msg[] = [...chat, { role: "user", content: text }];
-    setChat(next);
-    setInput("");
-    const reply = await call(next);
-    if (reply) setChat([...next, { role: "assistant", content: reply }]);
-  }
-
-  return (
-    <div className="card flex flex-col p-5" style={{ height: "60vh", minHeight: 420 }}>
-      <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto pr-1">
-        {chat.length === 0 && busy && <div className="text-slate-400">{t("nego.opening", { name: scn.counterpartName })}</div>}
-        {chat.map((m, i) => (
-          <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
-            <div className={"max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed " + (m.role === "user" ? "bg-ink text-white" : "bg-slate-100 text-slate-800")}>{m.content}</div>
-          </div>
-        ))}
-        {busy && chat.length > 0 && <div className="flex justify-start"><div className="rounded-2xl bg-slate-100 px-4 py-2.5 text-sm text-slate-400">…</div></div>}
-      </div>
-      {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
-      <form onSubmit={send} className="mt-3 flex items-center gap-2">
-        <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t("nego.replyTo", { name: scn.counterpartName })} disabled={busy} />
-        <button className="btn-primary" disabled={busy || !input.trim()}>{t("room.send")}</button>
-      </form>
     </div>
   );
 }
