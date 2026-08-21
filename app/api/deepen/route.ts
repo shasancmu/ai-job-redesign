@@ -2,9 +2,11 @@ import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, deeperInterviewAI } from "@/lib/ai";
 
 export const runtime = "nodejs";
+import { setFlow } from "@/lib/aiflow";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  setFlow("job:probe");
   const supabase = createClient();
   const {
     data: { user },

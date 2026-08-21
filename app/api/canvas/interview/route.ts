@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, canvasInterviewReply } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
 
   const def = canvasByExercise(String(body.exercise || ""));
   if (!def) return Response.json({ error: "unknown canvas" }, { status: 400 });
+  setFlow("canvas:" + def.exercise);
 
   const messages = Array.isArray(body.messages) ? body.messages : [];
   try {

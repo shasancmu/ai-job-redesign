@@ -4,6 +4,7 @@ import { SCIENTIFIQ_ENABLED, ScientifiqError, searchResearchers, searchOrganizat
 import { summarizeExpert, NC_UNIVERSITIES } from "@/lib/domainBrief";
 
 export const runtime = "nodejs";
+import { setFlow } from "@/lib/aiflow";
 export const dynamic = "force-dynamic";
 
 const orgIdCache = new Map<string, string | null>();
@@ -27,6 +28,7 @@ async function resolveOrg(name: string): Promise<string | null> {
 // institution, then the LLM ranks by COMPLEMENTARITY. (authorSearch is too
 // loose to resolve a person by name, so we key off their described work.)
 export async function POST(request: Request) {
+  setFlow("collaborators");
   if (!SCIENTIFIQ_ENABLED) return Response.json({ error: "Scientifiq is not configured." }, { status: 503 });
   if (!AI_ENABLED) return Response.json({ error: "AI is not configured." }, { status: 503 });
 

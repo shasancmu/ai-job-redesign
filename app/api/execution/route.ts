@@ -2,10 +2,12 @@ import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, executionPlanAI } from "@/lib/ai";
 
 export const runtime = "nodejs";
+import { setFlow } from "@/lib/aiflow";
 export const dynamic = "force-dynamic";
 
 // "How do we actually do this?" — a concrete execution plan for the AI tasks.
 export async function POST(request: Request) {
+  setFlow("execution:plan");
   const supabase = createClient();
   const {
     data: { user },

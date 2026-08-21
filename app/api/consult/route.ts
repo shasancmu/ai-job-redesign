@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, VISION_ENABLED, businessInterviewReply, businessVoiceInterviewReply, businessReportAI, photoDescribeAI } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "bad request" }, { status: 400 });
   }
   const mode = String(body.mode || "");
+  setFlow("consult:" + (mode || "chat"));
 
   try {
     if (mode === "chat") {

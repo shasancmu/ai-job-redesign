@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, myopiaInterviewReply, myopiaReportAI } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "bad request" }, { status: 400 });
   }
   const mode = String(body.mode || "");
+  setFlow("myopia:" + (mode || "chat"));
   const domain: MyopiaDomain = body.domain === "career" ? "career" : "business";
   const subject = String(body.subject || "").slice(0, 400);
   const flow = domain === "career" ? "myopia-career" : "myopia-business";

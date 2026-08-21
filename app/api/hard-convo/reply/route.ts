@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, roleplayReply } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { convoByKey, recipientSystem } from "@/lib/hardconvo";
@@ -19,6 +20,7 @@ export async function POST(request: Request) {
   const messages = Array.isArray(body.messages) ? body.messages.slice(-40) : [];
   const convo = convoByKey(String(body.convoKey || ""));
   if (!convo) return Response.json({ error: "unknown scenario" }, { status: 400 });
+  setFlow("hard-convo:reply");
 
   const lang = await getUserLanguage(supabase, user.id);
   return streamingResponse((emit) => withLanguage(lang, () => roleplayReply(recipientSystem(convo), messages, emit)));

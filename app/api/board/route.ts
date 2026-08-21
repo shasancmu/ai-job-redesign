@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge } from "@/lib/experiments";
 
 export const runtime = "nodejs";
+import { setFlow } from "@/lib/aiflow";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
@@ -11,6 +12,7 @@ export const maxDuration = 60;
 // Modes: round (next debate round), verdict, ingest (turn a link/PDF/image into
 // reference text the board can use).
 export async function POST(request: Request) {
+  setFlow("board");
   if (!AI_ENABLED) return Response.json({ error: "AI is not configured." }, { status: 503 });
 
   const supabase = createClient();

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, workflowInterviewReply, ChatMsg } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
         .map((m: any) => ({ role: m.role, content: String(m.content).slice(0, 4000) }))
     : [];
 
+  setFlow("workflow:chat");
   try {
     let nudge = "";
     try { nudge = await experimentNudgeAuto(createAdminClient(), String(body.sessionId || "")); } catch {}

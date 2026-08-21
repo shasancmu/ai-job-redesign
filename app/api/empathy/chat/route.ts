@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AI_ENABLED, empathyInterviewReply, type EmpathyContext } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
+import { setFlow } from "@/lib/aiflow";
 import { experimentNudge } from "@/lib/experiments";
 
 export const runtime = "nodejs";
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
 
   const { data: session } = await admin.from("sessions").select("id, exercise").eq("public_token", token).maybeSingle();
   if (!session || session.exercise !== "empathy") return Response.json({ error: "This link isn't valid." }, { status: 404 });
+  setFlow("empathy:chat");
 
   const { data: ws } = await admin.from("workspaces").select("canvas").eq("session_id", session.id).limit(1).maybeSingle();
   const canvas = (ws?.canvas as any) || {};

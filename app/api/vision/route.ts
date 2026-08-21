@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, visionInterviewReply, visionReportAI } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
@@ -17,6 +18,7 @@ export async function POST(request: Request) {
   let body: any;
   try { body = await request.json(); } catch { return Response.json({ error: "bad request" }, { status: 400 }); }
   const mode = String(body.mode || "");
+  setFlow("vision:" + (mode || "chat"));
   const ctx = { name: body?.ctx?.name || "", does: body?.ctx?.does || "" };
   const lang = await getUserLanguage(supabase, user.id);
 

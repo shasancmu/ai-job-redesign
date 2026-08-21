@@ -3,9 +3,11 @@ import { AI_ENABLED, workflowTradeoffsAI } from "@/lib/ai";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 
 export const runtime = "nodejs";
+import { setFlow } from "@/lib/aiflow";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  setFlow("workflow:tradeoffs");
   const supabase = createClient();
   const {
     data: { user },

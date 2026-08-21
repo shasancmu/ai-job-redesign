@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, interviewReply, proposeRedesign, ChatMsg } from "@/lib/ai";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
   }
 
   const mode = body.mode === "propose" ? "propose" : "chat";
+  setFlow("job:" + mode);
   const history: ChatMsg[] = Array.isArray(body.messages)
     ? body.messages
         .filter((m: any) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")

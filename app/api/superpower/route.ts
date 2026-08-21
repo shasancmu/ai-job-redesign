@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, superpowerInterviewReply, superpowerReportAI } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "bad request" }, { status: 400 });
   }
   const mode = String(body.mode || "");
+  setFlow("superpower:" + (mode || "chat"));
 
   try {
     if (mode === "chat") {

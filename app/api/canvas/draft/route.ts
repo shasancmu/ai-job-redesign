@@ -4,9 +4,11 @@ import { getUserLanguage, withLanguage } from "@/lib/lang";
 import { canvasByExercise } from "@/lib/canvases";
 
 export const runtime = "nodejs";
+import { setFlow } from "@/lib/aiflow";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  setFlow("canvas:draft");
   const supabase = createClient();
   const {
     data: { user },

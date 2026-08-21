@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, careerRoadmapAI, careerRoadmapProfileAI, careerRoadmapInterview, careerGrowthAI } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
 
   const lang = await getUserLanguage(supabase, user.id);
   const intent: "pivot" | "growth" = body.intent === "growth" ? "growth" : "pivot";
+  setFlow("career-roadmap:" + (body.mode === "chat" ? "chat" : "analyze"));
 
   // ---- interview turn ------------------------------------------------------
   if (body.mode === "chat") {

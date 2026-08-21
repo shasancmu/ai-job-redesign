@@ -32,6 +32,7 @@ import { currentLanguage } from "./lang";
 import { ADVICE_PRINCIPLES, BOTTOM_LINE_JSON } from "./advice";
 import { RESUME_CRAFT } from "./resume";
 import { createAdminClient } from "./supabase/admin";
+import { currentFlow } from "./aiflow";
 
 // Anthropic's OpenAI-compatible endpoint requires max_tokens and doesn't take
 // response_format, so we set the first and only send the second elsewhere.
@@ -227,7 +228,7 @@ async function complete(
     error = String(e?.message || e);
     throw e;
   } finally {
-    await logAiEvent({ model, flow: opts.flow ?? null, ok: !error, error, latencyMs: Date.now() - started, usage });
+    await logAiEvent({ model, flow: opts.flow ?? currentFlow(), ok: !error, error, latencyMs: Date.now() - started, usage });
   }
 }
 

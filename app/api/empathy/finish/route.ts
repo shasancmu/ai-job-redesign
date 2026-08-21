@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { AI_ENABLED, empathyProfileAI, type EmpathyContext } from "@/lib/ai";
 
 export const runtime = "nodejs";
+import { setFlow } from "@/lib/aiflow";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
@@ -9,6 +10,7 @@ export const maxDuration = 60;
 // profile and store the transcript + profile as one row for the owner. Keyed by
 // the shared link token; the service role bypasses RLS to insert.
 export async function POST(request: Request) {
+  setFlow("empathy:profile");
   if (!AI_ENABLED) return Response.json({ error: "This interview isn't available right now." }, { status: 503 });
 
   let body: any;

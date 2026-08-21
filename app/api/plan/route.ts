@@ -3,12 +3,14 @@ import { AI_ENABLED, implementationPlanAI } from "@/lib/ai";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 
 export const runtime = "nodejs";
+import { setFlow } from "@/lib/aiflow";
 export const dynamic = "force-dynamic";
 
 const AI_KEYS = ["search", "structure", "think", "translate"];
 const HUMAN_KEYS = ["lead", "own", "judge", "integrate"];
 
 export async function POST(request: Request) {
+  setFlow("solo:plan");
   const supabase = createClient();
   const {
     data: { user },

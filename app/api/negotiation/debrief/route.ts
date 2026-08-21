@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, coachReply } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { analyze, debriefFacts, scenarioByExercise } from "@/lib/negotiation";
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
   const transcript = String(body.transcript || "").slice(0, 4000);
   const scn = scenarioByExercise(String(body.exercise || "negotiation"));
   if (!scn) return Response.json({ error: "unknown scenario" }, { status: 400 });
+  setFlow("negotiation:debrief");
 
   const facts = debriefFacts(scn, analyze(scn, terms, noDeal));
   const user_msg = `FACTS:\n${JSON.stringify(facts, null, 2)}\n\nTranscript excerpt:\n${transcript || "(none)"}`;

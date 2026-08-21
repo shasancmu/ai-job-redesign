@@ -4,12 +4,14 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge } from "@/lib/experiments";
 
 export const runtime = "nodejs";
+import { setFlow } from "@/lib/aiflow";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 // Owner-only: synthesize an aggregate read across all completed empathy
 // interviews for one session, and cache it on the owner's workspace canvas.
 export async function POST(request: Request) {
+  setFlow("empathy:aggregate");
   if (!AI_ENABLED) return Response.json({ error: "AI is not configured." }, { status: 503 });
 
   const supabase = createClient();

@@ -15,6 +15,7 @@ import { BIGQUERY_ENABLED, normalizeDoi } from "@/lib/bigquery";
 import { firmsBuildingOnScience } from "@/lib/citingFirms";
 
 export const runtime = "nodejs";
+import { setFlow } from "@/lib/aiflow";
 export const dynamic = "force-dynamic";
 
 // Warm-start caches: the field taxonomy and resolved org ids rarely change.
@@ -45,6 +46,7 @@ async function resolveOrg(name: string): Promise<string | null> {
 }
 
 export async function POST(request: Request) {
+  setFlow("domain-brief");
   if (!SCIENTIFIQ_ENABLED) return Response.json({ error: "Scientifiq is not configured (SCIENTIFIQ_API_KEY)." }, { status: 503 });
   if (!AI_ENABLED) return Response.json({ error: "AI is not configured." }, { status: 503 });
 

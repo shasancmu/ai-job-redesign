@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, roleplayReply } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { counterpartSystem, scenarioByExercise } from "@/lib/negotiation";
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
   const messages = Array.isArray(body.messages) ? body.messages.slice(-40) : [];
   const scn = scenarioByExercise(String(body.exercise || "negotiation"));
   if (!scn) return Response.json({ error: "unknown scenario" }, { status: 400 });
+  setFlow("negotiation:reply");
 
   const lang = await getUserLanguage(supabase, user.id);
   return streamingResponse((emit) => withLanguage(lang, () => roleplayReply(counterpartSystem(scn), messages, emit)));

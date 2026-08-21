@@ -3,11 +3,13 @@ import { AI_ENABLED, licensingBriefAI } from "@/lib/ai";
 import { SCIENTIFIQ_ENABLED, ScientifiqError, scoreAbstract, searchPapers, searchPatents } from "@/lib/scientifiq";
 
 export const runtime = "nodejs";
+import { setFlow } from "@/lib/aiflow";
 export const dynamic = "force-dynamic";
 
 // Licensing Brief — score an invention, pull comparable science and the nearby
 // patent landscape (assignees = who's active), then the LLM writes the brief.
 export async function POST(request: Request) {
+  setFlow("licensing-brief");
   if (!SCIENTIFIQ_ENABLED) return Response.json({ error: "Scientifiq is not configured." }, { status: 503 });
   if (!AI_ENABLED) return Response.json({ error: "AI is not configured." }, { status: 503 });
 

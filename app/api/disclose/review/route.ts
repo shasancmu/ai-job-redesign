@@ -4,10 +4,12 @@ import { AI_ENABLED, disclosureReviewAI } from "@/lib/ai";
 import { domainsFor, variantForExercise, answeredCount } from "@/lib/disclosure";
 
 export const runtime = "nodejs";
+import { setFlow } from "@/lib/aiflow";
 export const dynamic = "force-dynamic";
 
 // Buyer-only: score the vendor's disclosure against the framework.
 export async function POST(request: Request) {
+  setFlow("disclosure:review");
   const supabase = createClient();
   const {
     data: { user },
