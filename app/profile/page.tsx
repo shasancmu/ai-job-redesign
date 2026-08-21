@@ -24,7 +24,7 @@ export default async function ProfilePage() {
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between">
-        <Logo />
+        <Logo href="/dashboard" />
         <HeaderNav />
       </header>
 

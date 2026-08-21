@@ -42,7 +42,7 @@ export default async function Reports() {
     <main className="mx-auto max-w-4xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between gap-3">
         <div>
-          <Logo />
+          <Logo href="/dashboard" />
           <h1 className="mt-3 text-3xl text-ink">Your reports</h1>
           <p className="mt-1 text-sm text-slate2">Everything you&apos;ve saved, open any time.</p>
         </div>

@@ -72,7 +72,7 @@ export default async function TeamPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
       <header className="mb-8 flex flex-wrap items-center justify-between gap-3">
-        <Logo />
+        <Logo href="/dashboard" />
         <div className="flex items-center gap-2">
           {directorOrgs.length > 1 && <OrgSwitcher orgs={switcherOrgs} activeSlug={org.slug} />}
           <HeaderNav tour />

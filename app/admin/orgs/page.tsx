@@ -50,7 +50,7 @@ export default async function OrgsAdminPage() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between">
-        <Logo />
+        <Logo href="/dashboard" />
         <HeaderNav />
       </header>
       <h1 className="text-2xl font-bold text-ink">White-label organizations</h1>

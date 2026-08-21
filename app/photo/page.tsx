@@ -20,7 +20,7 @@ export default function PhotoEntry() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-10">
       <div className="mb-8 flex justify-center">
-        <Logo />
+        <Logo href="/dashboard" />
       </div>
       <div className="card p-7">
         <h1 className="text-xl font-bold text-ink">Join the photo activity</h1>

@@ -60,7 +60,7 @@ export default async function AdminUsagePage() {
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between">
-        <Logo />
+        <Logo href="/dashboard" />
         <HeaderNav />
       </header>
       <h1 className="text-2xl font-bold text-ink">Usage</h1>
