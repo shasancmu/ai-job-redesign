@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { scorePassword } from "@/lib/passwordStrength";
+import PasswordField from "@/components/PasswordField";
 
 // In-profile password change for signed-in users (Supabase updateUser).
 export default function ChangePassword() {
@@ -15,7 +17,7 @@ export default function ChangePassword() {
     e.preventDefault();
     setErr(null);
     setMsg(null);
-    if (pw.length < 6) return setErr("Password must be at least 6 characters.");
+    if (!scorePassword(pw).ok) return setErr("Please choose a stronger password.");
     if (pw !== confirm) return setErr("Passwords don't match.");
     setBusy(true);
     const { error } = await createClient().auth.updateUser({ password: pw });
@@ -29,13 +31,10 @@ export default function ChangePassword() {
   return (
     <form onSubmit={submit} className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">
+        <PasswordField id="newpw" label="New password" value={pw} onChange={setPw} isNew autoComplete="new-password" />
         <div>
-          <label className="lbl">New password</label>
-          <input className="field" type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="••••••••" minLength={6} />
-        </div>
-        <div>
-          <label className="lbl">Confirm new password</label>
-          <input className="field" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" minLength={6} />
+          <label className="lbl" htmlFor="confirmpw">Confirm new password</label>
+          <input id="confirmpw" className="field" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" autoComplete="new-password" />
         </div>
       </div>
       <div className="flex items-center gap-3">

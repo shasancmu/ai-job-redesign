@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { scorePassword } from "@/lib/passwordStrength";
+import PasswordField from "@/components/PasswordField";
 import Logo from "@/components/Logo";
 
 // Reached via the reset email → /auth/callback (which set a recovery session)
@@ -26,7 +28,7 @@ export default function ResetPasswordPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
-    if (pw.length < 6) return setErr("Password must be at least 6 characters.");
+    if (!scorePassword(pw).ok) return setErr("Please choose a stronger password.");
     if (pw !== confirm) return setErr("Passwords don't match.");
     setBusy(true);
     const { error } = await createClient().auth.updateUser({ password: pw });
@@ -54,13 +56,10 @@ export default function ResetPasswordPage() {
         </p>
       ) : (
         <form onSubmit={submit} className="mt-6 space-y-4">
+          <PasswordField id="newpw" label="New password" value={pw} onChange={setPw} isNew autoComplete="new-password" autoFocus />
           <div>
-            <label className="lbl">New password</label>
-            <input className="field" type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="••••••••" minLength={6} required />
-          </div>
-          <div>
-            <label className="lbl">Confirm new password</label>
-            <input className="field" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" minLength={6} required />
+            <label className="lbl" htmlFor="confirmpw">Confirm new password</label>
+            <input id="confirmpw" className="field" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" autoComplete="new-password" required />
           </div>
           {err && <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
           <button className="btn-primary w-full" disabled={busy || ready === null}>
