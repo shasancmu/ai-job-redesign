@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { streamPost } from "@/lib/streamClient";
 import { CONSULT_STEPS, WMS, WMS_AREAS } from "@/lib/business";
 import Timer from "@/components/Timer";
 import ConsultReport from "@/components/ConsultReport";
@@ -131,18 +132,19 @@ function Interview({ state, setState, ctx, sessionId, onSkip }: { state: any; se
   const messages: Msg[] = state.interview_chat || [];
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [streaming, setStreaming] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const started = useRef(false);
   const scroller = useRef<HTMLDivElement>(null);
 
   const call = useCallback(async (history: Msg[]) => {
-    setErr(null); setBusy(true);
+    setErr(null); setBusy(true); setStreaming("");
+    let acc = "";
     try {
-      const res = await fetch("/api/consult", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", messages: history, ctx, sessionId }) });
-      const data = await res.json();
-      if (!res.ok) { setErr(data.error || "The advisor is unavailable."); return null; }
-      return data.reply as string;
-    } catch { setErr("The advisor is unavailable."); return null; } finally { setBusy(false); }
+      const reply = await streamPost("/api/consult", { mode: "chat", messages: history, ctx, sessionId }, (d) => { acc += d; setStreaming(acc); });
+      return (reply || acc).trim() || null;
+    } catch (e: any) { setErr(e?.message || "The advisor is unavailable."); return null; }
+    finally { setBusy(false); setStreaming(""); }
   }, [ctx]);
 
   useEffect(() => {
@@ -150,7 +152,7 @@ function Interview({ state, setState, ctx, sessionId, onSkip }: { state: any; se
     started.current = true;
     call([]).then((reply) => { if (reply) setState({ interview_chat: [{ role: "assistant", content: reply }] }); });
   }, []); // eslint-disable-line
-  useEffect(() => { scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" }); }, [messages.length, busy]);
+  useEffect(() => { scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" }); }, [messages.length, busy, streaming]);
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
@@ -174,7 +176,8 @@ function Interview({ state, setState, ctx, sessionId, onSkip }: { state: any; se
               <div className={"max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed " + (m.role === "user" ? "bg-ink text-white" : "bg-slate-100 text-slate-800")}>{m.content}</div>
             </div>
           ))}
-          {busy && messages.length > 0 && <div className="flex justify-start"><div className="rounded-2xl bg-slate-100 px-4 py-2.5 text-sm text-slate-400">…</div></div>}
+          {streaming && <div className="flex justify-start"><div className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-slate-100 px-4 py-2.5 text-sm leading-relaxed text-slate-800">{streaming}</div></div>}
+          {busy && !streaming && messages.length > 0 && <div className="flex justify-start"><div className="rounded-2xl bg-slate-100 px-4 py-2.5 text-sm text-slate-400">…</div></div>}
         </div>
         {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
         <form onSubmit={send} className="mt-3 flex items-center gap-2">

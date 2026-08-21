@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { streamPost } from "@/lib/streamClient";
 import ShareReport from "@/components/ShareReport";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -43,13 +44,14 @@ export default function ChatInterview({
   const [report, setReport] = useState<any>(ws.canvas?.report || null);
   const [input, setInput] = useState("");
   const [waiting, setWaiting] = useState(false);
+  const [streaming, setStreaming] = useState("");
   const [building, setBuilding] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const booted = useRef(false);
   const answered = messages.filter((m) => m.role === "user").length;
 
-  useEffect(() => { scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" }); }, [messages, waiting]);
+  useEffect(() => { scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" }); }, [messages, waiting, streaming]);
 
   async function saveCanvas(patch: Record<string, any>) {
     const canvas = { ...(ws.canvas || {}), ...patch };
@@ -58,14 +60,21 @@ export default function ChatInterview({
   }
 
   async function ask(history: Msg[]) {
-    setWaiting(true); setErr(null);
+    setWaiting(true); setErr(null); setStreaming("");
+    let acc = "";
     try {
-      const res = await fetch(apiPath, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", messages: history, sessionId: session.id, ...extraBody }) });
-      const d = await res.json();
-      if (res.ok && d.reply) { const next = [...history, { role: "assistant" as const, content: d.reply }]; setMessages(next); saveCanvas({ interview_chat: next }); }
-      else setErr(d.error || "The advisor is unavailable. Try again.");
-    } catch { setErr("Connection hiccup. Try again."); }
-    setWaiting(false);
+      // Stream the question into a transient bubble; persist once at the end so
+      // we don't write to the DB on every token.
+      const full = await streamPost(
+        apiPath,
+        { mode: "chat", messages: history, sessionId: session.id, ...extraBody },
+        (d) => { acc += d; setStreaming(acc); }
+      );
+      const finalText = (full || acc).trim();
+      if (finalText) { const next = [...history, { role: "assistant" as const, content: finalText }]; setMessages(next); saveCanvas({ interview_chat: next }); }
+      else setErr("The advisor is unavailable. Try again.");
+    } catch (e: any) { setErr(e?.message || "Connection hiccup. Try again."); }
+    setStreaming(""); setWaiting(false);
   }
 
   // Ask the first question on mount (once) if the conversation is empty.
@@ -123,7 +132,8 @@ export default function ChatInterview({
             <div className={"max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed " + (m.role === "user" ? "rounded-br-sm bg-ink text-white" : "rounded-bl-sm bg-mist text-ink")}>{m.content}</div>
           </div>
         ))}
-        {waiting && <div className="flex justify-start"><div className="rounded-2xl rounded-bl-sm bg-mist px-4 py-3 text-slate-400">…</div></div>}
+        {streaming && <div className="flex justify-start"><div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-bl-sm bg-mist px-4 py-2.5 text-[15px] leading-relaxed text-ink">{streaming}</div></div>}
+        {waiting && !streaming && <div className="flex justify-start"><div className="rounded-2xl rounded-bl-sm bg-mist px-4 py-3 text-slate-400">…</div></div>}
         {err && <div className="mx-auto max-w-sm rounded-lg bg-red-50 px-3 py-2 text-center text-sm text-red-700">{err}</div>}
       </div>
 

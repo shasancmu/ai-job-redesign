@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { streamPost } from "@/lib/streamClient";
 import { pickBestVoice } from "@/lib/voices";
 import { useVoices } from "@/components/useVoices";
 import VoicePicker from "@/components/VoicePicker";
@@ -133,11 +134,11 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
 
   const fetchChat = useCallback(async (history: Msg[]): Promise<string | null> => {
     try {
-      const res = await fetch(apiPath, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "chat", voice: true, messages: history, sessionId: session.id, ...cfg.chatExtra }) });
-      const d = await res.json();
-      if (!res.ok) { setErr(d.error || `The ${cfg.speaker} is unavailable.`); return null; }
-      return d.reply as string;
-    } catch { setErr(`The ${cfg.speaker} is unavailable.`); return null; }
+      // The route streams, but a spoken turn is read aloud whole, so we just
+      // collect the full reply (no incremental TTS, which would sound broken).
+      const reply = await streamPost(apiPath, { mode: "chat", voice: true, messages: history, sessionId: session.id, ...cfg.chatExtra }, () => {});
+      return reply;
+    } catch (e: any) { setErr(e?.message || `The ${cfg.speaker} is unavailable.`); return null; }
   }, []); // eslint-disable-line
 
   const advisorTurn = useCallback(async (history: Msg[]) => {

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, visionInterviewReply, visionReportAI } from "@/lib/ai";
+import { streamingResponse } from "@/lib/stream";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 
 export const runtime = "nodejs";
@@ -22,8 +23,7 @@ export async function POST(request: Request) {
   try {
     if (mode === "chat") {
       const messages: Msg[] = Array.isArray(body.messages) ? body.messages.slice(-40) : [];
-      const reply = await withLanguage(lang, () => visionInterviewReply(messages, ctx));
-      return Response.json({ reply });
+      return streamingResponse((emit) => withLanguage(lang, () => visionInterviewReply(messages, ctx, emit)));
     }
     if (mode === "report") {
       const interview: Msg[] = Array.isArray(body.interview) ? body.interview : [];

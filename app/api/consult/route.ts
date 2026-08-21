@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, VISION_ENABLED, businessInterviewReply, businessVoiceInterviewReply, businessReportAI, photoDescribeAI } from "@/lib/ai";
+import { streamingResponse } from "@/lib/stream";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge } from "@/lib/experiments";
 import { wmsScore } from "@/lib/business";
@@ -33,10 +34,9 @@ export async function POST(request: Request) {
     if (mode === "chat") {
       let nudge = "";
       try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "consult"); } catch {}
-      const reply = body.voice
-        ? await businessVoiceInterviewReply(body.messages || [], body.ctx || {}, nudge)
-        : await businessInterviewReply(body.messages || [], body.ctx || {}, nudge);
-      return Response.json({ reply });
+      return streamingResponse((emit) => body.voice
+        ? businessVoiceInterviewReply(body.messages || [], body.ctx || {}, nudge, emit)
+        : businessInterviewReply(body.messages || [], body.ctx || {}, nudge, emit));
     }
 
     if (mode === "photo") {

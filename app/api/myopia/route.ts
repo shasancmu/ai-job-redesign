@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, myopiaInterviewReply, myopiaReportAI } from "@/lib/ai";
+import { streamingResponse } from "@/lib/stream";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge } from "@/lib/experiments";
 import type { MyopiaDomain } from "@/lib/myopia";
@@ -35,8 +36,7 @@ export async function POST(request: Request) {
     if (mode === "chat") {
       let nudge = "";
       try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), flow, "interview"); } catch {}
-      const reply = await myopiaInterviewReply(domain, body.messages || [], { subject }, nudge);
-      return Response.json({ reply });
+      return streamingResponse((emit) => myopiaInterviewReply(domain, body.messages || [], { subject }, nudge, emit));
     }
     if (mode === "report") {
       let nudge = "";
