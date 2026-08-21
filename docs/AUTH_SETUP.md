@@ -7,14 +7,17 @@ work in production. None of these are in code.
 
 ## 1. Password security (do this first — biggest win)
 
-Supabase Dashboard → **Authentication → Policies** (a.k.a. Password settings):
+Note: in the dashboard sidebar, **Authentication → Policies** (the item with the
+↗) opens the *database RLS policies*, NOT the password settings. The password
+settings live in two other places:
 
-- Set **Minimum password length** to **8** (matches the app's client check).
-- Enable **Leaked password protection** (checks passwords against
-  HaveIBeenPwned). This is the real protection; the in-app strength meter only
-  guides the user, it does not check breaches.
-- Optionally require a character mix — but length + breach check is stronger than
-  composition rules, so leaving composition off is fine.
+- **Authentication → Sign In / Providers** → expand the **Email** provider → set
+  **Minimum password length = 8** (matches the app's client check) and,
+  optionally, Password Requirements. (Length + the breach check below beats
+  arcane composition rules, so composition is optional.)
+- **Authentication → Attack Protection** → enable **"Prevent use of leaked
+  passwords"** (HaveIBeenPwned). This is the real protection; the in-app strength
+  meter only guides the user, it does not check breaches.
 
 The app already blocks common/repeated/sequential passwords client-side and shows
 a strength meter, and will surface any server rejection (e.g. a breached
@@ -26,8 +29,8 @@ password) as an error.
    application).
    - Authorized redirect URI: `https://<your-project-ref>.supabase.co/auth/v1/callback`
      (Supabase shows this exact value on the provider page — copy it from there).
-2. **Supabase Dashboard → Authentication → Providers → Google**: enable it, paste
-   the Client ID and Client Secret, save.
+2. **Supabase Dashboard → Authentication → Sign In / Providers → Google**: enable
+   it, paste the Client ID and Client Secret, save.
 3. **Supabase Dashboard → Authentication → URL Configuration**:
    - Site URL: `https://app.superadditive.co`
    - Redirect URLs: add `https://app.superadditive.co/auth/callback` (and any
@@ -42,7 +45,7 @@ The code flow calls `signInWithOtp` then `verifyOtp`. By default Supabase's emai
 shows a **magic link**, not a **code**, so you must expose the token in the
 template:
 
-- **Supabase Dashboard → Authentication → Email Templates → Magic Link**: make
+- **Supabase Dashboard → Authentication → Emails → Templates → Magic Link**: make
   sure the body includes the code token, e.g.
 
   ```
@@ -51,9 +54,9 @@ template:
 
   (You can keep the link too; the app uses the code.)
 - If you use a custom SMTP sender (recommended for deliverability, especially to
-  Gmail/Android users in India), configure it under **Authentication → SMTP
-  Settings**. Supabase's built-in email has low rate limits and is not meant for
-  production volume.
+  Gmail/Android users in India), configure it in the same **Authentication →
+  Emails** section (SMTP settings). Supabase's built-in email has low rate limits
+  and is not meant for production volume.
 
 ## 4. Confirm the redirect allow-list
 
