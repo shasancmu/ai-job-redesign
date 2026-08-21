@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Logo from "@/components/Logo";
 import IntakeNotice from "@/components/IntakeNotice";
+import { streamPost } from "@/lib/streamClient";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -15,6 +16,7 @@ export default function EmpathyChat({ token, business }: { token: string; busine
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [waiting, setWaiting] = useState(false); // interviewer is thinking
+  const [streaming, setStreaming] = useState(""); // reply arriving token by token
   const [finishing, setFinishing] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
@@ -23,24 +25,20 @@ export default function EmpathyChat({ token, business }: { token: string; busine
 
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
-  }, [messages, waiting]);
+  }, [messages, waiting, streaming]);
 
   async function ask(history: Msg[]) {
-    setWaiting(true);
-    setErr(null);
+    setWaiting(true); setErr(null); setStreaming("");
+    let acc = "";
     try {
-      const res = await fetch("/api/empathy/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, messages: history }),
-      });
-      const d = await res.json();
-      if (res.ok && d.reply) setMessages([...history, { role: "assistant", content: d.reply }]);
-      else setErr(d.error || "The interviewer is unavailable. Try again.");
-    } catch {
-      setErr("Connection hiccup. Try again.");
+      const full = await streamPost("/api/empathy/chat", { token, messages: history }, (d) => { acc += d; setStreaming(acc); });
+      const finalText = (full || acc).trim();
+      if (finalText) setMessages([...history, { role: "assistant", content: finalText }]);
+      else setErr("The interviewer is unavailable. Try again.");
+    } catch (e: any) {
+      setErr(e?.message || "Connection hiccup. Try again.");
     }
-    setWaiting(false);
+    setStreaming(""); setWaiting(false);
   }
 
   function begin() {
@@ -135,7 +133,12 @@ export default function EmpathyChat({ token, business }: { token: string; busine
             </div>
           </div>
         ))}
-        {waiting && (
+        {streaming && (
+          <div className="flex justify-start">
+            <div className="max-w-[82%] whitespace-pre-wrap rounded-2xl rounded-bl-sm bg-mist px-4 py-2.5 text-[15px] leading-relaxed text-ink">{streaming}</div>
+          </div>
+        )}
+        {waiting && !streaming && (
           <div className="flex justify-start">
             <div className="rounded-2xl rounded-bl-sm bg-mist px-4 py-3">
               <span className="typing-dot" /><span className="typing-dot" /><span className="typing-dot" />

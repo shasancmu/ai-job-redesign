@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { streamPost } from "@/lib/streamClient";
 import { CANVAS_STEPS, accentColor, type CanvasDef, type CanvasField } from "@/lib/canvases";
 import Timer from "@/components/Timer";
 import CanvasView from "@/components/CanvasView";
@@ -163,6 +164,7 @@ function Interview({
   const t = useT();
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [streaming, setStreaming] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const started = useRef(false);
   const scroller = useRef<HTMLDivElement>(null);
@@ -171,23 +173,17 @@ function Interview({
     async (history: Msg[]) => {
       setErr(null);
       setBusy(true);
+      setStreaming("");
+      let acc = "";
       try {
-        const res = await fetch("/api/canvas/interview", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ exercise: def.exercise, subject, messages: history }),
-        });
-        const d = await res.json();
-        if (!res.ok) {
-          setErr(d.error || t("canvas.aiUnavailable"));
-          return null;
-        }
-        return d.reply as string;
-      } catch {
-        setErr(t("canvas.aiUnavailable"));
+        const reply = await streamPost("/api/canvas/interview", { exercise: def.exercise, subject, messages: history }, (d) => { acc += d; setStreaming(acc); });
+        return (reply || acc).trim() || null;
+      } catch (e: any) {
+        setErr(e?.message || t("canvas.aiUnavailable"));
         return null;
       } finally {
         setBusy(false);
+        setStreaming("");
       }
     },
     [def.exercise, subject]
@@ -206,7 +202,7 @@ function Interview({
 
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
-  }, [chat.length, busy]);
+  }, [chat.length, busy, streaming]);
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
@@ -230,7 +226,12 @@ function Interview({
             </div>
           </div>
         ))}
-        {busy && chat.length > 0 && (
+        {streaming && (
+          <div className="flex justify-start">
+            <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-slate-100 px-4 py-2.5 text-sm leading-relaxed text-slate-800">{streaming}</div>
+          </div>
+        )}
+        {busy && !streaming && chat.length > 0 && (
           <div className="flex justify-start">
             <div className="rounded-2xl bg-slate-100 px-4 py-2.5 text-sm text-slate-400">…</div>
           </div>

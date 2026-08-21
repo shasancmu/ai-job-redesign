@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, careerRoadmapAI, careerRoadmapProfileAI, careerRoadmapInterview, careerGrowthAI } from "@/lib/ai";
+import { streamingResponse } from "@/lib/stream";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 import {
   matchOccupation,
@@ -36,10 +37,9 @@ export async function POST(request: Request) {
 
   // ---- interview turn ------------------------------------------------------
   if (body.mode === "chat") {
-    const reply = await withLanguage(lang, () =>
-      careerRoadmapInterview(body.messages || [], { role: String(body.role || "") }, intent)
-    );
-    return Response.json({ reply });
+    return streamingResponse((emit) => withLanguage(lang, () =>
+      careerRoadmapInterview(body.messages || [], { role: String(body.role || "") }, intent, emit)
+    ));
   }
 
   // ---- full roadmap analysis ----------------------------------------------

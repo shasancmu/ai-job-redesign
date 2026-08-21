@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, workflowInterviewReply, ChatMsg } from "@/lib/ai";
+import { streamingResponse } from "@/lib/stream";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudgeAuto } from "@/lib/experiments";
@@ -32,13 +33,13 @@ export async function POST(request: Request) {
   try {
     let nudge = "";
     try { nudge = await experimentNudgeAuto(createAdminClient(), String(body.sessionId || "")); } catch {}
-    const reply = await withLanguage(await getUserLanguage(supabase, user.id), () =>
+    const lang = await getUserLanguage(supabase, user.id);
+    return streamingResponse((emit) => withLanguage(lang, () =>
       workflowInterviewReply(history, {
         name: String(body.name || "").slice(0, 200),
         description: String(body.description || "").slice(0, 1500),
-      }, nudge)
-    );
-    return Response.json({ reply });
+      }, nudge, emit)
+    ));
   } catch (e: any) {
     return Response.json({ error: e?.message || "AI request failed." }, { status: 502 });
   }

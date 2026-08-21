@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AI_ENABLED, empathyInterviewReply, type EmpathyContext } from "@/lib/ai";
+import { streamingResponse } from "@/lib/stream";
 import { experimentNudge } from "@/lib/experiments";
 
 export const runtime = "nodejs";
@@ -44,8 +45,7 @@ export async function POST(request: Request) {
   try {
     let nudge = "";
     try { nudge = await experimentNudge(admin, session.id, "empathy"); } catch {}
-    const reply = await empathyInterviewReply(history, ctx, nudge);
-    return Response.json({ reply });
+    return streamingResponse((emit) => empathyInterviewReply(history, ctx, nudge, emit));
   } catch (e: any) {
     return Response.json({ error: e?.message || "The interviewer is unavailable." }, { status: 500 });
   }

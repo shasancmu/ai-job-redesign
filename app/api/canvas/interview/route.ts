@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, canvasInterviewReply } from "@/lib/ai";
+import { streamingResponse } from "@/lib/stream";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 import { canvasByExercise } from "@/lib/canvases";
 
@@ -26,10 +27,10 @@ export async function POST(request: Request) {
 
   const messages = Array.isArray(body.messages) ? body.messages : [];
   try {
-    const reply = await withLanguage(await getUserLanguage(supabase, user.id), () =>
-      canvasInterviewReply(def.interviewSystem, def.subjectLabel, String(body.subject || "").slice(0, 400), messages)
-    );
-    return Response.json({ reply });
+    const lang = await getUserLanguage(supabase, user.id);
+    return streamingResponse((emit) => withLanguage(lang, () =>
+      canvasInterviewReply(def.interviewSystem, def.subjectLabel, String(body.subject || "").slice(0, 400), messages, emit)
+    ));
   } catch (e: any) {
     return Response.json({ error: e?.message || "The AI is unavailable." }, { status: 502 });
   }

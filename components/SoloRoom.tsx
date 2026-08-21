@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { streamPost } from "@/lib/streamClient";
 import { SOLO_STEPS } from "@/lib/solo";
 import GridEditor from "@/components/GridEditor";
 import Timer from "@/components/Timer";
@@ -184,6 +185,7 @@ function Interview({ ws, update, sessionId }: { ws: any; update: (p: any) => voi
   const messages: Msg[] = ws.interview_chat || [];
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [streaming, setStreaming] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const started = useRef(false);
   const scroller = useRef<HTMLDivElement>(null);
@@ -194,23 +196,17 @@ function Interview({ ws, update, sessionId }: { ws: any; update: (p: any) => voi
     async (history: Msg[]) => {
       setErr(null);
       setBusy(true);
+      setStreaming("");
+      let acc = "";
       try {
-        const res = await fetch("/api/interview", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mode: "chat", messages: history, ...job, sessionId }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          setErr(data.error || t("room.aiUnavailable"));
-          return null;
-        }
-        return data.reply as string;
-      } catch {
-        setErr(t("room.aiUnavailable"));
+        const reply = await streamPost("/api/interview", { mode: "chat", messages: history, ...job, sessionId }, (d) => { acc += d; setStreaming(acc); });
+        return (reply || acc).trim() || null;
+      } catch (e: any) {
+        setErr(e?.message || t("room.aiUnavailable"));
         return null;
       } finally {
         setBusy(false);
+        setStreaming("");
       }
     },
     [job.jobTitle, job.jobDescription]
@@ -230,7 +226,7 @@ function Interview({ ws, update, sessionId }: { ws: any; update: (p: any) => voi
 
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length, busy]);
+  }, [messages.length, busy, streaming]);
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
@@ -261,7 +257,12 @@ function Interview({ ws, update, sessionId }: { ws: any; update: (p: any) => voi
             </div>
           </div>
         ))}
-        {busy && messages.length > 0 && (
+        {streaming && (
+          <div className="flex justify-start">
+            <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-slate-100 px-4 py-2.5 text-sm leading-relaxed text-slate-800">{streaming}</div>
+          </div>
+        )}
+        {busy && !streaming && messages.length > 0 && (
           <div className="flex justify-start">
             <div className="rounded-2xl bg-slate-100 px-4 py-2.5 text-sm text-slate-400">…</div>
           </div>

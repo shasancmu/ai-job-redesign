@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, personalNetworkInterviewReply, personalNetworkFeedbackAI } from "@/lib/ai";
+import { streamingResponse } from "@/lib/stream";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge } from "@/lib/experiments";
 import { computeEgoMetrics, type Contact, type Ties } from "@/lib/egonet";
@@ -32,8 +33,7 @@ export async function POST(request: Request) {
     if (mode === "chat") {
       let nudge = "";
       try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "personal-network"); } catch {}
-      const reply = await personalNetworkInterviewReply(body.messages || [], { roster: body.roster, goal: body.goal }, nudge);
-      return Response.json({ reply });
+      return streamingResponse((emit) => personalNetworkInterviewReply(body.messages || [], { roster: body.roster, goal: body.goal }, nudge, emit));
     }
     if (mode === "report") {
       const contacts: Contact[] = Array.isArray(body.contacts) ? body.contacts : [];
