@@ -18,7 +18,7 @@ const INTROS: Record<string, ModuleIntro> = {
   "career-x-ray": { steps: [
     { title: "What you'll do", body: "Paste your résumé and let an AI read your work, task by task, for where AI is already strong." },
     { title: "Where it comes from", body: "Built on task-based research into AI's impact on jobs — the lens economists use, pointed at your own career." },
-    { title: "What you'll leave with", body: "A clear read on where to lean in next. The useful part is what it surfaces about you, so we won't preview it." },
+    { title: "What you'll leave with", body: "A task-by-task read on where AI can take over and where your judgment becomes the point, specific to the work you put in." },
   ] },
   "business-consult": { steps: [
     { title: "What you'll do", body: "A 30-minute guided diagnostic: an AI advisor interviews you about how your business really works, and you rate a few things." },
@@ -48,7 +48,7 @@ const INTROS: Record<string, ModuleIntro> = {
   "name-your-price": { steps: [
     { title: "What you'll do", body: "Haggle over a single price against an AI seller who has a hidden floor." },
     { title: "Where it comes from", body: "Built on distributive-bargaining research: anchoring, walk-aways (BATNA), and the zone of possible agreement." },
-    { title: "What you'll leave with", body: "A clear read on how much of the bargaining zone you claimed. Better felt than spoiled." },
+    { title: "What you'll leave with", body: "A clear read on how much of the bargaining zone you claimed." },
   ] },
   "rehearse-hard-conversation": { steps: [
     { title: "What you'll do", body: "Rehearse a hard conversation — a layoff, tough feedback, a denied promotion — against an AI who reacts like a real person." },
@@ -58,7 +58,7 @@ const INTROS: Record<string, ModuleIntro> = {
   "ai-board": { steps: [
     { title: "What you'll do", body: "Put a real decision in front of a board of AI advisors and watch them debate it — and each other." },
     { title: "Where it comes from", body: "Built on research about groupthink and the value of dissent and diverse perspectives in decisions." },
-    { title: "What you'll leave with", body: "The strongest arguments on every side, surfaced. What they find is the point, so we won't preview it." },
+    { title: "What you'll leave with", body: "The strongest case for and against your decision, argued by a board of distinct advisors. What they say depends on the decision you bring." },
   ] },
   "personal-network": { steps: [
     { title: "What you'll do", body: "Map your real advice and trust relationships, inside and outside your organization." },
@@ -119,12 +119,12 @@ const INTROS: Record<string, ModuleIntro> = {
   "career-myopia": { steps: [
     { title: "What you'll do", body: "An AI advisor interviews you about your career, then maps where the skills that made you successful might now hold you back." },
     { title: "Where it comes from", body: "Grounded in research on competency traps and career adaptability." },
-    { title: "What you'll leave with", body: "The blind spots worth addressing. What it surfaces is the point, so we won't preview it." },
+    { title: "What you'll leave with", body: "The blind spots worth addressing, drawn from your own career rather than generic advice." },
   ] },
   "business-myopia": { steps: [
     { title: "What you'll do", body: "An AI advisor interviews you about your business, then maps where past success has quietly narrowed your view." },
     { title: "Where it comes from", body: "Grounded in research on competency traps and marketing myopia." },
-    { title: "What you'll leave with", body: "The blind spots worth widening. Naming them is the whole point, so we won't preview them." },
+    { title: "What you'll leave with", body: "The blind spots worth widening, drawn from your own business rather than a checklist." },
   ] },
   "good-business": { steps: [
     { title: "What you'll do", body: "An AI partner interviews you about a business you're weighing, then builds a rigorous analysis." },
@@ -169,7 +169,7 @@ const INTROS: Record<string, ModuleIntro> = {
   "close-the-vendor-deal": { steps: [
     { title: "What you'll do", body: "Negotiate a software contract live against an AI account exec — price, term, payment, support, and more." },
     { title: "Where it comes from", body: "Built on the integrative-bargaining tradition: trade the terms they value for the ones you do." },
-    { title: "What you'll leave with", body: "A score and a debrief on the value you claimed and created. Better seen than spoiled." },
+    { title: "What you'll leave with", body: "A score and a debrief on the value you claimed and created." },
   ] },
   "lease-the-space": { steps: [
     { title: "What you'll do", body: "Haggle over a monthly office rent against an AI landlord who has a hidden floor." },
@@ -216,7 +216,7 @@ export function getModuleIntro(m: ModuleDef): ModuleIntro {
     steps: [
       { title: "What you'll do", body: `${m.name} is a hands-on exercise run by AI — it interviews, partners with, or coaches you through your real situation, one step at a time.` },
       { title: "Grounded in research", body: "It's built on an established framework, not generic advice — the kind of thinking that holds up on a real decision." },
-      { title: "What you'll leave with", body: "A concrete result you can act on. We won't spoil the insight here — you'll get more out of it by reaching it yourself." },
+      { title: "What you'll leave with", body: "A concrete result you can act on, built from what you bring in." },
     ],
   };
 }
