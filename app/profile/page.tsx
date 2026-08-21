@@ -4,6 +4,7 @@ import ProfileForm from "@/components/ProfileForm";
 import ChangePassword from "@/components/ChangePassword";
 import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
+import AccountPrivacy from "@/components/AccountPrivacy";
 
 export default async function ProfilePage() {
   const supabase = createClient();
@@ -50,6 +51,8 @@ export default async function ProfilePage() {
         <p className="mb-3 mt-1 text-xs text-slate-400">Set a new password for your account.</p>
         <ChangePassword />
       </section>
+
+      <AccountPrivacy />
     </main>
   );
 }

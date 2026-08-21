@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Logo from "@/components/Logo";
+import IntakeNotice from "@/components/IntakeNotice";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -87,6 +88,7 @@ export default function EmpathyChat({ token, business }: { token: string; busine
         </div>
         <button onClick={begin} className="btn-primary mt-6 px-6 py-3 text-base">Start the chat →</button>
         <p className="mt-3 text-xs text-slate-400">Takes about 5 minutes. Your answers are shared with the business owner.</p>
+        <IntakeNotice what="Your answers" />
       </main>
     );
   }

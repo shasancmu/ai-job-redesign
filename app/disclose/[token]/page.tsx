@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { domainsFor, variantForExercise } from "@/lib/disclosure";
 import DisclosureForm from "@/components/DisclosureForm";
+import IntakeNotice from "@/components/IntakeNotice";
 import Logo from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
@@ -57,6 +58,7 @@ export default async function DisclosePage({ params }: { params: { token: string
         initial={(canvas.responses as any) || {}}
         alreadySubmitted={!!canvas.submittedAt}
       />
+      <IntakeNotice what="Your disclosure responses" />
     </main>
   );
 }

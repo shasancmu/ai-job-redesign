@@ -19,6 +19,7 @@ function LoginInner() {
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [consent, setConsent] = useState(false);
   const next = params.get("next") || "/dashboard";
 
   async function submit(e: React.FormEvent) {
@@ -29,12 +30,18 @@ function LoginInner() {
     const supabase = createClient();
 
     if (mode === "signup") {
+      if (!consent) {
+        setErr("Please accept the Terms and Privacy Policy to create an account.");
+        setBusy(false);
+        return;
+      }
       const cleanName = titleCaseName(name);
+      const acceptedAt = new Date().toISOString();
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { display_name: cleanName },
+          data: { display_name: cleanName, tos_accepted_at: acceptedAt },
           emailRedirectTo: `${location.origin}/auth/callback`,
         },
       });
@@ -141,7 +148,17 @@ function LoginInner() {
           </div>
         )}
 
-        <button className="btn-primary w-full" disabled={busy}>
+        {mode === "signup" && (
+          <label className="flex items-start gap-2 text-sm text-slate-600">
+            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--ink)]" />
+            <span>
+              I agree to the <Link href="/terms" className="text-sage underline">Terms</Link> and{" "}
+              <Link href="/privacy" className="text-sage underline">Privacy Policy</Link>.
+            </span>
+          </label>
+        )}
+
+        <button className="btn-primary w-full" disabled={busy || (mode === "signup" && !consent)}>
           {busy
             ? "Working…"
             : mode === "signup"

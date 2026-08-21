@@ -6,6 +6,7 @@ import { getServerLocale } from "@/lib/i18n-server";
 import { isRTL } from "@/lib/i18n";
 import { I18nProvider } from "@/components/I18nProvider";
 import FirstTouch from "@/components/FirstTouch";
+import CookieNotice from "@/components/CookieNotice";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/orgs";
 import { TenantProvider, type TenantBrand } from "@/components/TenantProvider";
@@ -59,6 +60,7 @@ export default async function RootLayout({
         <TenantProvider value={brand}>
           <FirstTouch />
           <I18nProvider locale={locale}>{children}</I18nProvider>
+          <CookieNotice />
         </TenantProvider>
       </body>
     </html>
