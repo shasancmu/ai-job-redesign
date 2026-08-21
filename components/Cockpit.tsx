@@ -7,6 +7,15 @@ import { PHASES } from "@/lib/exercise";
 
 const BREAK_INDEX = PHASES.findIndex((p) => p.mode === "break");
 
+// Seconds a room is past its current step's time budget (0 if within budget, or
+// if the step is untimed / a break). Used to flag rooms that may be stuck.
+function overtimeSecs(room: { minutes: number | null; phase_started_at: string | null }, now: number): number {
+  if (room.minutes == null || room.minutes <= 0 || !room.phase_started_at) return 0;
+  const started = new Date(room.phase_started_at).getTime();
+  const rem = room.minutes * 60 - Math.floor((now - started) / 1000);
+  return rem < 0 ? -rem : 0;
+}
+
 type Room = {
   id: string;
   code: string;
@@ -82,6 +91,9 @@ export default function Cockpit({
   const active = rooms.filter((r) => r.status === "active").length;
   const done = rooms.filter((r) => r.status === "done").length;
   const waiting = rooms.filter((r) => r.status === "waiting").length;
+  // Rooms actively working but more than 30s past their step budget — the ones a
+  // facilitator might want to check on or nudge forward.
+  const runningLong = rooms.filter((r) => r.status === "active" && overtimeSecs(r, now) > 30).length;
 
   // distribution across steps
   const maxStep = Math.max(6, ...rooms.map((r) => r.totalPhases));
@@ -107,6 +119,7 @@ export default function Cockpit({
           <Stat n={active} label="active" color="text-blue-600" />
           <Stat n={waiting} label="waiting" color="text-amber-600" />
           <Stat n={done} label="done" color="text-green-600" />
+          {runningLong > 0 && <Stat n={runningLong} label="running long" color="text-amber-600" />}
           <span className="flex items-center gap-1.5 text-slate-400">
             <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
             live
@@ -224,20 +237,22 @@ function Stat({ n, label, color }: { n: number; label: string; color?: string })
 
 function RoomCard({ room, now }: { room: Room; now: number }) {
   let remaining: number | null = null;
-  if (room.minutes != null && room.phase_started_at) {
+  if (room.minutes != null && room.minutes > 0 && room.phase_started_at) {
     const started = new Date(room.phase_started_at).getTime();
     remaining = Math.max(0, room.minutes * 60 - Math.floor((now - started) / 1000));
   }
-  const over = remaining === 0;
+  const overBy = overtimeSecs(room, now);
+  const runningLong = room.status === "active" && overBy > 30;
   const statusColor =
     room.status === "done"
       ? "bg-green-500"
       : room.status === "active"
         ? "bg-blue-500"
         : "bg-amber-500";
+  const fmt = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
 
   return (
-    <div className="card p-4">
+    <div className={"card p-4" + (runningLong ? " border-l-2 border-l-amber-400" : "")}>
       <div className="flex items-center justify-between">
         <span className="font-mono text-sm font-bold tracking-widest">
           {room.code}
@@ -261,14 +276,17 @@ function RoomCard({ room, now }: { room: Room; now: number }) {
           <span
             className={
               "font-mono text-sm font-semibold tabular-nums " +
-              (over ? "text-red-500" : "text-slate-500")
+              (overBy > 0 ? "text-amber-600" : "text-slate-500")
             }
+            title={overBy > 0 ? "Past this step's time" : undefined}
           >
-            {Math.floor(remaining / 60)}:
-            {(remaining % 60).toString().padStart(2, "0")}
+            {overBy > 0 ? `+${fmt(overBy)}` : fmt(remaining)}
           </span>
         )}
       </div>
+      {runningLong && (
+        <div className="mt-2 text-xs font-medium text-amber-600">Running long, may need a nudge</div>
+      )}
     </div>
   );
 }
