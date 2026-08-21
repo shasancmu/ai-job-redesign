@@ -75,6 +75,17 @@ export default async function AdminAiPage() {
     byModel.set(k, m);
   }
   const models = [...byModel.entries()].sort((a, b) => b[1].cost - a[1].cost);
+
+  // Breakdown by module/flow (30d)
+  const byFlow = new Map<string, { calls: number; errors: number; cost: number }>();
+  for (const e of events) {
+    const k = e.flow || "(unlabeled)";
+    const m = byFlow.get(k) || { calls: 0, errors: 0, cost: 0 };
+    m.calls++; if (!e.ok) m.errors++; m.cost += eventCost(e);
+    byFlow.set(k, m);
+  }
+  const flows = [...byFlow.entries()].sort((a, b) => b[1].cost - a[1].cost);
+
   const recentErrors = events.filter((e) => !e.ok).slice(0, 25);
 
   return (
@@ -125,6 +136,26 @@ export default async function AdminAiPage() {
                     <td className="px-4 py-2">{m.calls.toLocaleString()}</td>
                     <td className="px-4 py-2">{m.inTok.toLocaleString()}</td>
                     <td className="px-4 py-2">{m.outTok.toLocaleString()}</td>
+                    <td className="px-4 py-2 font-medium">{usd(m.cost)}</td>
+                    <td className="px-4 py-2 text-slate-500">{usd(m.cost / Math.max(1, m.calls))}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <h2 className="mt-10 text-sm font-semibold uppercase tracking-wide text-slate-400">By module (30 days)</h2>
+          <div className="mt-3 overflow-x-auto rounded-xl border border-line">
+            <table className="w-full text-sm">
+              <thead className="bg-mist text-left text-xs uppercase tracking-wide text-slate-500">
+                <tr><th className="px-4 py-2">Module · step</th><th className="px-4 py-2">Calls</th><th className="px-4 py-2">Errors</th><th className="px-4 py-2">Cost</th><th className="px-4 py-2">$/call</th></tr>
+              </thead>
+              <tbody>
+                {flows.map(([name, m]) => (
+                  <tr key={name} className="border-t border-line">
+                    <td className="px-4 py-2 font-mono text-xs">{name}</td>
+                    <td className="px-4 py-2">{m.calls.toLocaleString()}</td>
+                    <td className={"px-4 py-2 " + (m.errors > 0 ? "font-medium text-red-600" : "text-slate-400")}>{m.errors || "—"}</td>
                     <td className="px-4 py-2 font-medium">{usd(m.cost)}</td>
                     <td className="px-4 py-2 text-slate-500">{usd(m.cost / Math.max(1, m.calls))}</td>
                   </tr>
