@@ -40,3 +40,30 @@ export function costPerRun(a: CostAssumption, price: { inPer1M: number; outPer1M
   const perCall = (a.inTok * price.inPer1M) / 1e6 + (a.outTok * price.outPer1M) / 1e6;
   return a.calls * perCall;
 }
+
+// Per-model token prices (USD per 1M tokens), for turning measured ai_events
+// token counts into dollars. Cache reads are ~10% of input; cache writes ~125%.
+// Update when Anthropic pricing changes. Matched by substring so date suffixes
+// still resolve.
+export const MODEL_PRICES: { match: string; inPer1M: number; outPer1M: number }[] = [
+  { match: "haiku", inPer1M: 1.0, outPer1M: 5.0 },
+  { match: "sonnet", inPer1M: 3.0, outPer1M: 15.0 },
+  { match: "opus", inPer1M: 5.0, outPer1M: 25.0 },
+  { match: "fable", inPer1M: 10.0, outPer1M: 50.0 },
+  { match: "llama", inPer1M: 0.59, outPer1M: 0.79 }, // Groq Llama 3.3 70B, rough
+];
+
+export function priceForModel(model: string): { inPer1M: number; outPer1M: number } {
+  const m = (model || "").toLowerCase();
+  return MODEL_PRICES.find((p) => m.includes(p.match)) || DEFAULT_TOKEN_PRICE;
+}
+
+// Dollar cost of one ai_events row, honoring cache-read (0.1x) and cache-write
+// (1.25x) pricing on the input side.
+export function eventCost(ev: { model?: string | null; input_tokens?: number | null; output_tokens?: number | null; cache_read_tokens?: number | null; cache_write_tokens?: number | null }): number {
+  const p = priceForModel(ev.model || "");
+  const freshIn = Math.max(0, (ev.input_tokens || 0) - (ev.cache_read_tokens || 0) - (ev.cache_write_tokens || 0));
+  const inCost = (freshIn * p.inPer1M + (ev.cache_read_tokens || 0) * p.inPer1M * 0.1 + (ev.cache_write_tokens || 0) * p.inPer1M * 1.25) / 1e6;
+  const outCost = ((ev.output_tokens || 0) * p.outPer1M) / 1e6;
+  return inCost + outCost;
+}

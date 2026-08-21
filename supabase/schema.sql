@@ -755,3 +755,26 @@ create table if not exists public.contact_messages (
   created_at timestamptz not null default now()
 );
 alter table public.contact_messages enable row level security;
+
+-- ============================================================================
+-- AI events: real measured usage + errors + latency for every AI call, written
+-- best-effort from lib/ai.ts (service role). Powers the admin AI health/cost
+-- page (actual spend, error rate, latency), complementing the estimate on
+-- /admin/costs. RLS with no policies denies direct client access; only the
+-- service-role admin reads it.
+-- ============================================================================
+create table if not exists public.ai_events (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  model text,
+  flow text,
+  ok boolean not null default true,
+  error text,
+  latency_ms integer,
+  input_tokens integer,
+  output_tokens integer,
+  cache_read_tokens integer,
+  cache_write_tokens integer
+);
+create index if not exists ai_events_created_idx on public.ai_events (created_at desc);
+alter table public.ai_events enable row level security;

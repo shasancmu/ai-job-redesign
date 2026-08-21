@@ -88,6 +88,7 @@ export default function AccountMenu({
                 {superadmin && <a href="/admin/orgs" className={item}>{labels.orgs}</a>}
               </>
             )}
+            <a href="/contact" className={item}>Send feedback</a>
             <div className="my-1 border-t border-line" />
             <form action="/auth/signout" method="post">
               <button className={item + " text-slate-500"}>{labels.signOut}</button>

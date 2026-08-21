@@ -1,3 +1,4 @@
+import Link from "next/link";
 import HeaderNav from "@/components/HeaderNav";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -30,9 +31,12 @@ export default async function AdminCostsPage() {
         <Logo href="/dashboard" />
         <HeaderNav />
       </header>
-      <h1 className="text-2xl font-bold">Module unit costs</h1>
+      <div className="flex items-baseline justify-between">
+        <h1 className="text-2xl font-bold">Module unit costs</h1>
+        <Link href="/admin/ai" className="text-sm text-slate-400 hover:text-ink">Actual measured spend →</Link>
+      </div>
       <p className="mt-1 text-sm text-slate-500">
-        Estimated AI cost per module run, and how it lands against your $29/yr and $19 prices. Only you can see this page.
+        Estimated AI cost per module run, and how it lands against your $29/yr and $19 prices. Only you can see this page. For real logged usage, see <Link href="/admin/ai" className="text-sage underline">AI health &amp; spend</Link>.
       </p>
       <div className="mt-6">
         <AdminCosts rows={rows} freeRuns={FREE_TIER_RUNS} paidRuns={PAID_RUNS} priceAll={29} priceCohort={19} />

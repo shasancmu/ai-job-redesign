@@ -31,6 +31,7 @@ import type { CanvasDef } from "./canvases";
 import { currentLanguage } from "./lang";
 import { ADVICE_PRINCIPLES, BOTTOM_LINE_JSON } from "./advice";
 import { RESUME_CRAFT } from "./resume";
+import { createAdminClient } from "./supabase/admin";
 
 // Anthropic's OpenAI-compatible endpoint requires max_tokens and doesn't take
 // response_format, so we set the first and only send the second elsewhere.
@@ -95,7 +96,7 @@ async function postSSE(
   payload: any,
   extractDelta: (evt: any) => string,
   onToken: (delta: string) => void
-): Promise<string> {
+): Promise<{ text: string; usage: AiUsage | null }> {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 90000);
   let res: Response;
@@ -115,6 +116,7 @@ async function postSSE(
   const decoder = new TextDecoder();
   let buf = "";
   let full = "";
+  let usage: AiUsage | null = null;
   try {
     for (;;) {
       const { done, value } = await reader.read();
@@ -129,6 +131,8 @@ async function postSSE(
         if (!data || data === "[DONE]") continue;
         let evt: any;
         try { evt = JSON.parse(data); } catch { continue; }
+        const u = usageFromEvent(evt);
+        if (u) usage = mergeUsage(usage, u);
         const delta = extractDelta(evt) || "";
         if (delta) { full += delta; try { onToken(delta); } catch { /* consumer gone */ } }
       }
@@ -136,13 +140,101 @@ async function postSSE(
   } finally {
     clearTimeout(timer);
   }
-  return full;
+  return { text: full, usage };
 }
 
+// ---- Usage / instrumentation ---------------------------------------------
+// Real measured token usage + errors + latency per AI call, logged best-effort
+// to the ai_events table so the admin cost/health page shows actual spend and
+// failures (not just estimates). Never allowed to affect a user request.
+type AiUsage = { input?: number; output?: number; cacheRead?: number; cacheWrite?: number };
+
+// Map either provider's usage shape (Anthropic native or OpenAI-compatible) to
+// our common fields.
+function normalizeUsage(raw: any): AiUsage | null {
+  if (!raw || typeof raw !== "object") return null;
+  const u: AiUsage = {};
+  if (raw.input_tokens != null) u.input = raw.input_tokens;           // Anthropic
+  if (raw.output_tokens != null) u.output = raw.output_tokens;
+  if (raw.cache_read_input_tokens != null) u.cacheRead = raw.cache_read_input_tokens;
+  if (raw.cache_creation_input_tokens != null) u.cacheWrite = raw.cache_creation_input_tokens;
+  if (raw.prompt_tokens != null) u.input = raw.prompt_tokens;         // OpenAI-compatible
+  if (raw.completion_tokens != null) u.output = raw.completion_tokens;
+  if (raw.prompt_tokens_details?.cached_tokens != null) u.cacheRead = raw.prompt_tokens_details.cached_tokens;
+  return Object.keys(u).length ? u : null;
+}
+
+// Pull usage out of a single streamed event (Anthropic message_start / _delta,
+// or an OpenAI-compatible final chunk carrying `usage`).
+function usageFromEvent(evt: any): AiUsage | null {
+  if (!evt || typeof evt !== "object") return null;
+  if (evt.type === "message_start" && evt.message?.usage) return normalizeUsage(evt.message.usage);
+  if (evt.type === "message_delta" && evt.usage) return normalizeUsage(evt.usage);
+  if (evt.usage) return normalizeUsage(evt.usage);
+  return null;
+}
+
+function mergeUsage(a: AiUsage | null, b: AiUsage | null): AiUsage | null {
+  if (!a) return b;
+  if (!b) return a;
+  // Later values win (output_tokens in a stream is cumulative, not additive).
+  return { ...a, ...b };
+}
+
+let _logClient: any = null;
+let _logClientTried = false;
+function logClient(): any {
+  if (_logClientTried) return _logClient;
+  _logClientTried = true;
+  try { _logClient = createAdminClient(); } catch { _logClient = null; }
+  return _logClient;
+}
+
+async function logAiEvent(e: { model: string; flow: string | null; ok: boolean; error: string | null; latencyMs: number; usage: AiUsage | null }): Promise<void> {
+  try {
+    const admin = logClient();
+    if (!admin) return;
+    await admin.from("ai_events").insert({
+      model: e.model,
+      flow: e.flow,
+      ok: e.ok,
+      error: e.error ? e.error.slice(0, 400) : null,
+      latency_ms: e.latencyMs,
+      input_tokens: e.usage?.input ?? null,
+      output_tokens: e.usage?.output ?? null,
+      cache_read_tokens: e.usage?.cacheRead ?? null,
+      cache_write_tokens: e.usage?.cacheWrite ?? null,
+    });
+  } catch { /* logging must never break a request */ }
+}
+
+// Public wrapper: times the call, records the outcome (tokens/error/latency) to
+// ai_events, and re-throws any error unchanged. The generation itself lives in
+// runCompletion.
 async function complete(
   messages: ChatMsg[],
-  opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean; onToken?: (delta: string) => void } = {}
+  opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean; onToken?: (delta: string) => void; flow?: string | null } = {}
 ): Promise<string> {
+  const started = Date.now();
+  const model = opts.vision ? VISION_MODEL : MODEL;
+  let error: string | null = null;
+  let usage: AiUsage | null = null;
+  try {
+    const r = await runCompletion(messages, opts);
+    usage = r.usage;
+    return r.text;
+  } catch (e: any) {
+    error = String(e?.message || e);
+    throw e;
+  } finally {
+    await logAiEvent({ model, flow: opts.flow ?? null, ok: !error, error, latencyMs: Date.now() - started, usage });
+  }
+}
+
+async function runCompletion(
+  messages: ChatMsg[],
+  opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean; onToken?: (delta: string) => void; flow?: string | null } = {}
+): Promise<{ text: string; usage: AiUsage | null }> {
   // Vision requests route to the (optional) dedicated vision model/endpoint/key.
   const baseUrl = (opts.vision ? VISION_BASE_URL : BASE_URL).replace(/\/$/, "");
   const model = opts.vision ? VISION_MODEL : MODEL;
@@ -182,14 +274,14 @@ async function complete(
         "anthropic-version": "2023-06-01",
       };
       if (opts.onToken) {
-        const out = await postSSE(`${baseUrl}/messages`, anthropicHeaders, payload,
+        const { text, usage } = await postSSE(`${baseUrl}/messages`, anthropicHeaders, payload,
           (evt) => (evt?.type === "content_block_delta" && evt?.delta?.type === "text_delta" ? evt.delta.text || "" : ""),
           opts.onToken);
-        if (out && out.trim()) return out;
+        if (text && text.trim()) return { text, usage };
       } else {
         const data = await postJSON(`${baseUrl}/messages`, anthropicHeaders, payload);
         const out = (data?.content || []).filter((b: any) => b?.type === "text").map((b: any) => b.text).join("");
-        if (out && out.trim()) return out;
+        if (out && out.trim()) return { text: out, usage: normalizeUsage(data?.usage) };
       }
     } catch {
       /* fall through to the OpenAI-compatible path */
@@ -209,12 +301,13 @@ async function complete(
     Authorization: `Bearer ${apiKey}`,
   };
   if (opts.onToken) {
+    payload.stream_options = { include_usage: true }; // ask compat providers to report tokens on streams
     return postSSE(`${baseUrl}/chat/completions`, compatHeaders, payload,
       (evt) => evt?.choices?.[0]?.delta?.content || "",
       opts.onToken);
   }
   const data = await postJSON(`${baseUrl}/chat/completions`, compatHeaders, payload);
-  return data.choices?.[0]?.message?.content ?? "";
+  return { text: data.choices?.[0]?.message?.content ?? "", usage: normalizeUsage(data?.usage) };
 }
 
 // Public streaming entry point for chat-turn callers that own their own message
