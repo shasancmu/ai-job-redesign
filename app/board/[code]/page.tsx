@@ -16,7 +16,7 @@ export default async function BoardView({ params }: { params: { code: string } }
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <header className="mb-6 flex items-center justify-between">
-        <Logo />
+        <Logo href="/dashboard" />
         <div className="flex items-center gap-2">
           {verdict && <ShareReport code={code} title="An AI Board verdict" text="Here's what my AI Board decided, on Superadditive:" />}
           <Link href={`/room/${code}`} className="btn-ghost text-sm">← Back to the board</Link>

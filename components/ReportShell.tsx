@@ -32,7 +32,7 @@ export default function ReportShell({
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <header className="mb-6 flex items-center justify-between">
-        <Logo />
+        <Logo href="/dashboard" />
         <div className="flex items-center gap-2 no-print">
           {hasReport && <PrintButton />}
           {hasReport && <ShareReport code={code} title={shareTitle} text={shareText} />}

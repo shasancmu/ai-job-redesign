@@ -16,7 +16,7 @@ export default async function VisionReportPage({ params }: { params: { code: str
     <main className="mx-auto max-w-3xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between gap-3">
         <div>
-          <Logo />
+          <Logo href="/dashboard" />
           <h1 className="mt-3 text-3xl text-ink">{org ? `${org} — vision` : "Your vision"}</h1>
         </div>
         <div className="flex items-center gap-2">
