@@ -6,15 +6,14 @@ import { createClient } from "@/lib/supabase/client";
 import Timer from "@/components/Timer";
 import { scenarioByExercise, analyze, yourMaxOf, type Scenario, type MultiScenario, type PriceScenario } from "@/lib/negotiation";
 import RoleplayChat, { type Msg } from "@/components/RoleplayChat";
+import { streamPost } from "@/lib/streamClient";
 import { useT } from "@/components/I18nProvider";
 import type { T } from "@/lib/i18n";
 
-async function negotiationReply(exercise: string, history: Msg[]): Promise<string | null> {
-  try {
-    const res = await fetch("/api/negotiation/reply", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ exercise, messages: history }) });
-    const d = await res.json();
-    return res.ok ? (d.reply as string) : null;
-  } catch { return null; }
+// Streams the counterpart's reply token by token. Errors propagate so the chat
+// can show a retry message rather than a silent dead end.
+async function negotiationReply(exercise: string, history: Msg[], onChunk?: (d: string) => void): Promise<string | null> {
+  return streamPost("/api/negotiation/reply", { exercise, messages: history }, onChunk || (() => {}));
 }
 
 // Translate with a fallback to the passed-in English: if the key is missing,
@@ -99,7 +98,7 @@ export default function NegotiationRoom({ me, session, initialWorkspace }: { me:
           <RoleplayChat
             chat={state.chat || []}
             setChat={(c) => setState({ chat: c })}
-            onCall={(h) => negotiationReply(scn.exercise, h)}
+            onCall={(h, onChunk) => negotiationReply(scn.exercise, h, onChunk)}
             counterpartName={scn.counterpartName}
             aiOpens
             placeholder={t("nego.replyTo", { name: scn.counterpartName })}
@@ -204,15 +203,23 @@ function Debrief({ scn, state, setState }: { scn: Scenario; state: any; setState
   const t = useT();
   const a = analyze(scn, state.terms || {}, !!state.noDeal);
   const [busy, setBusy] = useState(false);
+  const [live, setLive] = useState("");
+  const [coachErr, setCoachErr] = useState("");
   const feedback = state.feedback;
 
   async function coach() {
-    setBusy(true);
+    setBusy(true); setLive(""); setCoachErr("");
     try {
       const transcript = (state.chat || []).map((m: Msg) => `${m.role === "user" ? "You" : scn.counterpartName}: ${m.content}`).join("\n");
-      const res = await fetch("/api/negotiation/debrief", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ exercise: scn.exercise, terms: state.terms || {}, noDeal: !!state.noDeal, transcript }) });
-      const d = await res.json();
-      if (res.ok && d.feedback) setState({ feedback: d.feedback });
+      const full = await streamPost(
+        "/api/negotiation/debrief",
+        { exercise: scn.exercise, terms: state.terms || {}, noDeal: !!state.noDeal, transcript },
+        (d) => setLive((s) => s + d)
+      );
+      if (full) setState({ feedback: full });
+      setLive("");
+    } catch (e: any) {
+      setCoachErr(e?.message || "Couldn't build the debrief. Please try again.");
     } finally { setBusy(false); }
   }
 
@@ -266,9 +273,10 @@ function Debrief({ scn, state, setState }: { scn: Scenario; state: any; setState
       <div className="card p-5">
         <div className="flex items-center justify-between">
           <div className="text-sm font-semibold text-ink">{t("nego.coachDebrief")}</div>
-          {!feedback && <button onClick={coach} disabled={busy} className="btn-primary text-sm">{busy ? t("room.thinking") : "✨ " + t("nego.getFeedback")}</button>}
+          {!feedback && !live && <button onClick={coach} disabled={busy} className="btn-primary text-sm">{busy ? t("room.thinking") : "✨ " + t("nego.getFeedback")}</button>}
         </div>
-        {feedback && <p className="mt-2 whitespace-pre-wrap leading-relaxed text-slate-700">{feedback}</p>}
+        {(feedback || live) && <p className="mt-2 whitespace-pre-wrap leading-relaxed text-slate-700">{feedback || live}</p>}
+        {coachErr && <p className="mt-2 text-sm text-red-700">{coachErr}</p>}
       </div>
     </div>
   );

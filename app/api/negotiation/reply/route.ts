@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, roleplayReply } from "@/lib/ai";
+import { streamingResponse } from "@/lib/stream";
 import { counterpartSystem, scenarioByExercise } from "@/lib/negotiation";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 
@@ -24,10 +25,6 @@ export async function POST(request: Request) {
   const scn = scenarioByExercise(String(body.exercise || "negotiation"));
   if (!scn) return Response.json({ error: "unknown scenario" }, { status: 400 });
 
-  try {
-    const reply = await withLanguage(await getUserLanguage(supabase, user.id), () => roleplayReply(counterpartSystem(scn), messages));
-    return Response.json({ reply });
-  } catch (e: any) {
-    return Response.json({ error: e?.message || "The counterpart is unavailable." }, { status: 502 });
-  }
+  const lang = await getUserLanguage(supabase, user.id);
+  return streamingResponse((emit) => withLanguage(lang, () => roleplayReply(counterpartSystem(scn), messages, emit)));
 }

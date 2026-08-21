@@ -30,7 +30,7 @@ export default function RoleplayChat({
 }: {
   chat: Msg[];
   setChat: (m: Msg[]) => void;
-  onCall: (history: Msg[]) => Promise<string | null>;
+  onCall: (history: Msg[], onChunk?: (delta: string) => void) => Promise<string | null>;
   counterpartName: string;
   aiOpens?: boolean; // AI speaks first (negotiation) vs. user opens (hard convo)
   placeholder: string;
@@ -82,13 +82,30 @@ export default function RoleplayChat({
     let history = chatRef.current;
     if (userText != null) { history = [...history, { role: "user", content: userText }]; setChat(history); }
     setBusy(true); setErr(null);
-    const reply = await onCall(history);
+    // Stream the counterpart's reply into a live bubble as tokens arrive. Until
+    // the first token lands, the "…" thinking indicator (busy) stays up.
+    let acc = "";
+    let started = false;
+    const onChunk = (delta: string) => {
+      acc += delta;
+      if (!started) { started = true; setBusy(false); }
+      setChat([...history, { role: "assistant", content: acc }]);
+    };
+    let reply: string | null = null;
+    try {
+      reply = await onCall(history, onChunk);
+    } catch (e: any) {
+      setBusy(false);
+      setChat(history); // drop any partial bubble; keep the user's message
+      setErr(e?.message || `Couldn't reach ${counterpartName}. Please try again.`);
+      return;
+    }
     setBusy(false);
-    if (!reply) { if (voiceRef.current) startListenRef.current(); return; }
-    const next: Msg[] = [...history, { role: "assistant", content: reply }];
-    setChat(next);
-    if (voiceRef.current) speak(reply, () => startListenRef.current());
-  }, [onCall, setChat, speak]);
+    const finalText = (reply ?? acc).trim();
+    if (!finalText) { if (voiceRef.current) startListenRef.current(); return; }
+    setChat([...history, { role: "assistant", content: finalText }]);
+    if (voiceRef.current) speak(finalText, () => startListenRef.current());
+  }, [onCall, setChat, speak, counterpartName]);
 
   const startListening = useCallback(() => {
     const rec = recRef.current;

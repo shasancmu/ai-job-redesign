@@ -5,14 +5,11 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import Timer from "@/components/Timer";
 import RoleplayChat, { type Msg } from "@/components/RoleplayChat";
+import { streamPost } from "@/lib/streamClient";
 import { CONVOS, convoByKey, type HardConvo } from "@/lib/hardconvo";
 
-async function hardConvoReply(convoKey: string, history: Msg[]): Promise<string | null> {
-  try {
-    const res = await fetch("/api/hard-convo/reply", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ convoKey, messages: history }) });
-    const d = await res.json();
-    return res.ok ? (d.reply as string) : null;
-  } catch { return null; }
+async function hardConvoReply(convoKey: string, history: Msg[], onChunk?: (d: string) => void): Promise<string | null> {
+  return streamPost("/api/hard-convo/reply", { convoKey, messages: history }, onChunk || (() => {}));
 }
 
 const STEPS = [
@@ -84,7 +81,7 @@ export default function HardConvoRoom({ me, session, initialWorkspace }: { me: s
           <RoleplayChat
             chat={state.chat || []}
             setChat={(c) => setState({ chat: c })}
-            onCall={(h) => hardConvoReply(convo.key, h)}
+            onCall={(h, onChunk) => hardConvoReply(convo.key, h, onChunk)}
             counterpartName={convo.counterpartName}
             aiOpens={false}
             placeholder={(state.chat || []).length === 0 ? convo.opener : `Reply to ${convo.counterpartName}…`}
@@ -143,16 +140,24 @@ function Brief({ convo }: { convo: HardConvo }) {
 
 function Debrief({ convo, state, setState }: { convo: HardConvo; state: any; setState: (p: Record<string, any>) => void }) {
   const [busy, setBusy] = useState(false);
+  const [live, setLive] = useState("");
+  const [coachErr, setCoachErr] = useState("");
   const feedback = state.feedback;
   const chat: Msg[] = state.chat || [];
 
   async function coach() {
-    setBusy(true);
+    setBusy(true); setLive(""); setCoachErr("");
     try {
       const transcript = chat.map((m) => `${m.role === "user" ? "You" : convo.counterpartName}: ${m.content}`).join("\n");
-      const res = await fetch("/api/hard-convo/debrief", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ convoKey: convo.key, transcript }) });
-      const d = await res.json();
-      if (res.ok && d.feedback) setState({ feedback: d.feedback });
+      const full = await streamPost(
+        "/api/hard-convo/debrief",
+        { convoKey: convo.key, transcript },
+        (d) => setLive((s) => s + d)
+      );
+      if (full) setState({ feedback: full });
+      setLive("");
+    } catch (e: any) {
+      setCoachErr(e?.message || "Couldn't build the read. Please try again.");
     } finally { setBusy(false); }
   }
 
@@ -162,9 +167,10 @@ function Debrief({ convo, state, setState }: { convo: HardConvo; state: any; set
       <div className="card p-5">
         <div className="flex items-center justify-between">
           <div className="text-sm font-semibold text-ink">How you handled it</div>
-          {!feedback && chat.length > 0 && <button onClick={coach} disabled={busy} className="btn-primary text-sm">{busy ? "Thinking…" : "✨ Get the coach's read"}</button>}
+          {!feedback && !live && chat.length > 0 && <button onClick={coach} disabled={busy} className="btn-primary text-sm">{busy ? "Thinking…" : "✨ Get the coach's read"}</button>}
         </div>
-        {feedback && <p className="mt-3 whitespace-pre-wrap leading-relaxed text-slate-700">{feedback}</p>}
+        {(feedback || live) && <p className="mt-3 whitespace-pre-wrap leading-relaxed text-slate-700">{feedback || live}</p>}
+        {coachErr && <p className="mt-3 text-sm text-red-700">{coachErr}</p>}
       </div>
     </div>
   );

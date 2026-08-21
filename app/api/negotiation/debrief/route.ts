@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, coachReply } from "@/lib/ai";
+import { streamingResponse } from "@/lib/stream";
 import { analyze, debriefFacts, scenarioByExercise } from "@/lib/negotiation";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 
@@ -34,12 +35,8 @@ export async function POST(request: Request) {
   const scn = scenarioByExercise(String(body.exercise || "negotiation"));
   if (!scn) return Response.json({ error: "unknown scenario" }, { status: 400 });
 
-  try {
-    const facts = debriefFacts(scn, analyze(scn, terms, noDeal));
-    const user_msg = `FACTS:\n${JSON.stringify(facts, null, 2)}\n\nTranscript excerpt:\n${transcript || "(none)"}`;
-    const feedback = await withLanguage(await getUserLanguage(supabase, user.id), () => coachReply(SYSTEM, user_msg));
-    return Response.json({ feedback });
-  } catch (e: any) {
-    return Response.json({ error: e?.message || "Couldn't build the debrief." }, { status: 502 });
-  }
+  const facts = debriefFacts(scn, analyze(scn, terms, noDeal));
+  const user_msg = `FACTS:\n${JSON.stringify(facts, null, 2)}\n\nTranscript excerpt:\n${transcript || "(none)"}`;
+  const lang = await getUserLanguage(supabase, user.id);
+  return streamingResponse((emit) => withLanguage(lang, () => coachReply(SYSTEM, user_msg, 0.6, emit)));
 }

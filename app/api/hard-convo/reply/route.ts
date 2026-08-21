@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, roleplayReply } from "@/lib/ai";
+import { streamingResponse } from "@/lib/stream";
 import { convoByKey, recipientSystem } from "@/lib/hardconvo";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 
@@ -19,10 +20,6 @@ export async function POST(request: Request) {
   const convo = convoByKey(String(body.convoKey || ""));
   if (!convo) return Response.json({ error: "unknown scenario" }, { status: 400 });
 
-  try {
-    const reply = await withLanguage(await getUserLanguage(supabase, user.id), () => roleplayReply(recipientSystem(convo), messages));
-    return Response.json({ reply });
-  } catch (e: any) {
-    return Response.json({ error: e?.message || "They're unavailable right now." }, { status: 502 });
-  }
+  const lang = await getUserLanguage(supabase, user.id);
+  return streamingResponse((emit) => withLanguage(lang, () => roleplayReply(recipientSystem(convo), messages, emit)));
 }
