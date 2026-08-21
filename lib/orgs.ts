@@ -47,6 +47,8 @@ export type Org = {
   about: string | null; // short intro paragraph under the hero
   highlights: OrgHighlight[] | null; // institution-specific "why us" cards
   faculty: OrgFaculty[] | null; // key people, shown as circles
+  dpa_accepted_at: string | null; // when the org accepted the DPA
+  dpa_accepted_by: string | null; // who accepted (name/email)
 };
 
 export type Membership = { org: Org; role: OrgRole };

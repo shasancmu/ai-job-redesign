@@ -90,6 +90,13 @@ export default async function TeamPage() {
         </Link>
       </div>
 
+      {!org.dpa_accepted_at && (
+        <Link href="/dpa" className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-amber/40 bg-amber-soft px-4 py-3 text-sm text-ink transition hover:border-amber">
+          <span>Please review and accept your <b>Data Processing Agreement</b>.</span>
+          <span className="shrink-0 font-medium text-amber">Review &amp; accept →</span>
+        </Link>
+      )}
+
       <TeamConsole orgId={org.id} people={people} invites={invites} />
 
       <Tour

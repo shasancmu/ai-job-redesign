@@ -706,6 +706,11 @@ alter table public.organizations add column if not exists about text;
 alter table public.organizations add column if not exists highlights jsonb;
 alter table public.organizations add column if not exists faculty jsonb;
 
+-- Data Processing Agreement acceptance (org customer accepts the processor
+-- terms). Records when and who.
+alter table public.organizations add column if not exists dpa_accepted_at timestamptz;
+alter table public.organizations add column if not exists dpa_accepted_by text;
+
 -- ============================================================================
 -- Role model (phase 1): an org's staff is a Director (runs the whole org, sees
 -- all its cohorts) or an Instructor (runs their own cohorts only). 'facilitator'
