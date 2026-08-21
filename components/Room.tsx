@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { useCohortPing } from "@/components/useCohortLive";
 import { PHASES } from "@/lib/exercise";
 import SetupPanel from "@/components/phases/SetupPanel";
 import InterviewPanel from "@/components/phases/InterviewPanel";
@@ -31,6 +32,7 @@ export default function Room({
   initialProfiles: Profile[];
 }) {
   const supabase = useMemo(() => createClient(), []);
+  const pingCohort = useCohortPing(initialSession.cohort);
   const t = useT();
   const [session, setSession] = useState<Session>(initialSession);
   const [workspaces, setWorkspaces] = useState<Workspace[]>(initialWorkspaces);
@@ -226,6 +228,7 @@ export default function Room({
       .from("sessions")
       .update({ phase: clamped, phase_started_at: startedAt, status })
       .eq("id", session.id);
+    pingCohort(); // let the facilitator cockpit refetch instantly
   }
 
   async function resetTimer() {

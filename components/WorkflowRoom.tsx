@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { useCohortPing } from "@/components/useCohortLive";
 import { WORKFLOW_STEPS, STEP_ROLES } from "@/lib/workflow";
 import Timer from "@/components/Timer";
 import PairWaiting from "@/components/PairWaiting";
@@ -40,6 +41,7 @@ export default function WorkflowRoom({
   initialProfiles: any[];
 }) {
   const supabase = useMemo(() => createClient(), []);
+  const pingCohort = useCohortPing(initialSession.cohort);
   const t = useT();
   const [session, setSession] = useState<any>(initialSession);
   const [doc, setDoc] = useState<Doc>({
@@ -256,6 +258,7 @@ export default function WorkflowRoom({
       .from("sessions")
       .update({ phase: clamped, phase_started_at: startedAt, status })
       .eq("id", session.id);
+    pingCohort(); // let the facilitator cockpit refetch instantly
   }
   const [nowTick, setNowTick] = useState(() => Date.now());
   useEffect(() => {

@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { cohortChannelName } from "@/components/useCohortLive";
 import { UNTAGGED } from "@/lib/admin";
 import { PHASES } from "@/lib/exercise";
 
@@ -43,6 +45,7 @@ export default function Cockpit({
   const [msg, setMsg] = useState("");
   const [flash, setFlash] = useState<string | null>(null);
   const label = cohort === UNTAGGED ? "(untagged)" : cohort;
+  const supabase = useMemo(() => createClient(), []);
 
   const load = useCallback(async () => {
     const res = await fetch(
@@ -56,15 +59,36 @@ export default function Cockpit({
     }
   }, [cohort]);
 
+  // Coalesce a burst of participant pings into a single refetch.
+  const loadTimer = useRef<any>(null);
+  const scheduleLoad = useCallback(() => {
+    if (loadTimer.current) return;
+    loadTimer.current = setTimeout(() => { loadTimer.current = null; load(); }, 350);
+  }, [load]);
+
   useEffect(() => {
     load();
-    const poll = setInterval(load, 4000);
+    // Realtime pings (below) drive the fast path; this poll is just a safety net
+    // in case a broadcast is missed, so it can be slow.
+    const poll = setInterval(load, 12000);
     const tick = setInterval(() => setNow(Date.now()), 1000);
+    // Refetch the instant any room in this cohort advances. Broadcast is not
+    // RLS-gated, so it reaches us even though we can't read participant rows.
+    const name = cohortChannelName(cohort);
+    let ch: any = null;
+    if (name) {
+      ch = supabase
+        .channel(name, { config: { broadcast: { self: false } } })
+        .on("broadcast", { event: "progress" }, () => scheduleLoad())
+        .subscribe();
+    }
     return () => {
       clearInterval(poll);
       clearInterval(tick);
+      if (loadTimer.current) { clearTimeout(loadTimer.current); loadTimer.current = null; }
+      if (ch) { try { supabase.removeChannel(ch); } catch { /* already gone */ } }
     };
-  }, [load]);
+  }, [load, scheduleLoad, supabase, cohort]);
 
   const flashTimer = useRef<any>(null);
   function showFlash(t: string) {
