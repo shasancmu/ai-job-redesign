@@ -798,7 +798,7 @@ export const FEATURES: { key: FeatureKey; label: string }[] = [
   { key: "camera", label: "Photo" },
 ];
 
-const VOICE_MODULES = new Set(["voice-consult", "refresh-resume-voice"]);
+const VOICE_MODULES = new Set(["voice-consult", "refresh-resume-voice", "rehearse-hard-conversation"]);
 const CAMERA_MODULES = new Set(["business-consult"]); // has a photograph-the-operation step
 
 export function moduleFeatures(slug: string): FeatureKey[] {
