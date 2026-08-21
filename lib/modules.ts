@@ -41,6 +41,7 @@ export type ModuleDef = {
     | "raise"
     | "vendor-deal"
     | "lease"
+    | "hard-convo"
     | "career-xray"
     | "jd-xray"
     | "career-roadmap"
@@ -334,6 +335,21 @@ export const MODULES: ModuleDef[] = [
     emoji: "🏢",
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_HAGGLE",
+  },
+  {
+    slug: "rehearse-hard-conversation",
+    exercise: "hard-convo",
+    name: "Rehearse a Hard Conversation",
+    tagline: "Practice a hard conversation — letting someone go, tough feedback, denying a promotion, a PIP, or pushing back on your boss — with an AI who reacts like a real person. Then get coached on the tape.",
+    description:
+      "Pick a hard conversation and rehearse it live: an AI plays the person on the other side, reacting in character to how you handle it, while you lead. Then a coach walks the transcript — clarity, respect, structure (situation–behavior–impact), holding the line, and a clear next step. Grounded in feedback science and deliberate practice.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "🗣️",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_NEGOTIATION",
   },
   {
     slug: "good-business",
@@ -677,6 +693,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "ask-for-a-raise": "negotiate",
   "close-the-vendor-deal": "negotiate",
   "lease-the-space": "negotiate",
+  "rehearse-hard-conversation": "negotiate",
   benchmark: "live",
   network: "live",
 };
@@ -739,6 +756,7 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "ask-for-a-raise": ["negotiation", "career"],
   "close-the-vendor-deal": ["negotiation", "strategy"],
   "lease-the-space": ["negotiation", "entrepreneurship"],
+  "rehearse-hard-conversation": ["leadership", "career"],
   // Strategy & management
   "execution-4a": ["strategy", "leadership", "implementation"],
   "balanced-scorecard": ["strategy", "leadership"],
