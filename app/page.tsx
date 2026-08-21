@@ -6,6 +6,34 @@ import HeroVisual from "@/components/HeroVisual";
 import LandingLibrary from "@/components/LandingLibrary";
 import ShareApp from "@/components/ShareApp";
 import Footer from "@/components/Footer";
+import Reveal from "@/components/Reveal";
+import HomeStory from "@/components/HomeStory";
+import { MODULES } from "@/lib/modules";
+
+const EXERCISE_STAT = `${Math.floor(MODULES.filter((m) => !m.hidden).length / 5) * 5}+`;
+
+const GETS = [
+  { icon: "🤝", title: "An AI that runs it", body: "It interviews you, plays a partner or a tough counterpart, and coaches the debrief — adapting to what you actually say." },
+  { icon: "🧠", title: "Real frameworks", body: "Every exercise is built on established research, not generic advice — the kind of thinking that holds up on a real decision." },
+  { icon: "📄", title: "Something you keep", body: "A plan, a redesigned role, a map, a sharpened story — a concrete artifact you can act on, not a grade." },
+  { icon: "🎙️", title: "Type or talk", body: "Do it in text, or go hands-free and just talk it through by voice." },
+  { icon: "👤", title: "Solo or paired", body: "Work through it on your own, or pair up and interview each other." },
+  { icon: "⚡", title: "It changes how you work", body: "You practice the thinking and leave having actually done it — not just read about it." },
+];
+
+const RESEARCH = [
+  { title: "The economics of AI & work", body: "How AI is actually reshaping specific tasks, roles, and careers — not the hype." },
+  { title: "Elicitation & interviewing", body: "What makes an interview — spoken or typed — draw out real signal instead of platitudes." },
+  { title: "Network science", body: "How advice, trust, and influence really move through a team or a room." },
+  { title: "Behavioral strategy", body: "The frameworks that hold up when a real decision, bet, or negotiation is on the line." },
+];
+
+const FOR_YOU = [
+  ["Rethinking your own role", "See what AI can take off your plate, and where your judgment becomes the point."],
+  ["Managing a team", "Redesign how the work gets done and put people and AI in the right seats."],
+  ["Building something", "Pressure-test a bet, shape a vision, and practice the negotiations that decide it."],
+  ["On the move", "Sharpen your story, map your next moves, and rehearse the conversations that matter."],
+];
 
 export default async function Home() {
   const supabase = createClient();
@@ -62,51 +90,133 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Thesis */}
-      <section className="mx-auto mt-4 max-w-4xl px-6 text-center sm:mt-10">
-        <p className="text-2xl font-semibold leading-snug tracking-tight text-ink sm:text-[2.1rem]">
-          Companies that gain from AI <span className="text-sage">reimagine the work</span>. They don&apos;t patch it. Every exercise helps you do exactly that.
-        </p>
+      {/* Numbers */}
+      <section className="mx-auto -mt-6 max-w-4xl px-6">
+        <Reveal>
+          <div className="grid gap-6 rounded-2xl border border-line bg-white p-8 text-center shadow-soft sm:grid-cols-3">
+            {[
+              [EXERCISE_STAT, "AI-run exercises, and growing"],
+              ["Free", "to start — no card needed"],
+              ["Yours", "every result is yours to keep"],
+            ].map(([n, l]) => (
+              <div key={l}>
+                <div className="text-4xl font-bold tracking-tight text-ink sm:text-5xl">{n}</div>
+                <div className="mt-1 text-sm text-slate2">{l}</div>
+              </div>
+            ))}
+          </div>
+        </Reveal>
       </section>
 
-      {/* Exercises */}
-      <section className="mx-auto mt-16 max-w-6xl px-6">
-        <span className="eyebrow">The library</span>
-        <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
-          A library of exercises, each run by AI.
-        </h2>
-        <p className="mt-2 max-w-2xl text-slate2">
-          Every one is grounded in a real framework, run by an AI interviewer, partner, counterpart, or coach, and
-          ends in something you keep. Do them on your own, with a partner, or live with a cohort. Filter by theme to
-          find your starting point.
-        </p>
+      {/* Thesis */}
+      <section className="mx-auto mt-20 max-w-4xl px-6 text-center sm:mt-28">
+        <Reveal>
+          <p className="text-2xl font-semibold leading-snug tracking-tight text-ink sm:text-[2.2rem]">
+            The people who gain from AI <span className="text-sage">reimagine their own work</span> — they don&apos;t just bolt a tool onto it. Every exercise helps you do exactly that.
+          </p>
+        </Reveal>
+      </section>
 
+      {/* What you get */}
+      <section className="mx-auto mt-24 max-w-6xl px-6 sm:mt-32">
+        <Reveal>
+          <span className="eyebrow">What you get</span>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">A workout for your judgment, not another course to watch.</h2>
+        </Reveal>
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {GETS.map((f, i) => (
+            <Reveal key={f.title} delay={(i % 3) * 80}>
+              <div className="card h-full p-6">
+                <div className="text-3xl" aria-hidden>{f.icon}</div>
+                <h3 className="mt-4 text-lg font-bold text-ink">{f.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-slate2">{f.body}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+      {/* How it works — scrolly */}
+      <section className="mx-auto mt-28 max-w-6xl px-6 sm:mt-40">
+        <Reveal>
+          <div className="max-w-2xl">
+            <span className="eyebrow">How it works</span>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">From your real situation to something you keep, in three moves.</h2>
+          </div>
+        </Reveal>
+        <div className="mt-12"><HomeStory /></div>
+      </section>
+
+      {/* Grounded in science */}
+      <section className="mt-16 border-y border-line bg-mist/50">
+        <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
+          <Reveal>
+            <div className="max-w-2xl">
+              <span className="eyebrow">Grounded in science</span>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Frameworks from the frontier — not invented for a webinar.</h2>
+              <p className="mt-4 text-lg leading-relaxed text-slate2">
+                Every exercise is built on peer-reviewed research and put to work by an AI that runs it with you. Rigor a
+                researcher would recognize, in a form you&apos;ll actually finish.
+              </p>
+            </div>
+          </Reveal>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {RESEARCH.map((r, i) => (
+              <Reveal key={r.title} delay={(i % 4) * 70}>
+                <div className="card h-full p-5">
+                  <h3 className="font-semibold text-ink">{r.title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-slate2">{r.body}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* The exercises */}
+      <section className="mx-auto mt-24 max-w-6xl px-6 sm:mt-32">
+        <Reveal>
+          <span className="eyebrow">The library</span>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Find your starting point.</h2>
+          <p className="mt-2 max-w-2xl text-slate2">
+            Every exercise is run by an AI interviewer, partner, counterpart, or coach, and ends in something you keep.
+            Search or filter by theme to find the one that fits what you&apos;re working on right now.
+          </p>
+        </Reveal>
         <LandingLibrary />
       </section>
 
-      {/* Get started */}
-      <section className="mx-auto mt-16 max-w-6xl px-6">
-        <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-line bg-mist p-8 sm:flex-row sm:items-center">
-          <div>
-            <h2 className="text-xl font-bold text-ink">Ready to reimagine the work?</h2>
-            <p className="mt-1 text-slate2">
-              Create an account and start an exercise in minutes, or{" "}
-              <Link
-                href="/for-teams"
-                className="font-medium text-ink underline underline-offset-4 hover:text-sage"
-              >
-                run it for a team
-              </Link>
-              .
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <ShareApp />
-            <Link href="/login?mode=signup" className="btn-primary">
-              Create an account
-            </Link>
-          </div>
+      {/* Who it's for */}
+      <section className="mx-auto mt-24 max-w-6xl px-6 sm:mt-32">
+        <Reveal>
+          <span className="eyebrow">Wherever you are</span>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Built for the decision in front of you.</h2>
+        </Reveal>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {FOR_YOU.map(([t, b], i) => (
+            <Reveal key={t} delay={i * 70}>
+              <div className="card h-full p-6">
+                <h3 className="text-lg font-bold text-ink">{t}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-slate2">{b}</p>
+              </div>
+            </Reveal>
+          ))}
         </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="mx-auto mt-24 max-w-6xl px-6 sm:mt-32">
+        <Reveal>
+          <div className="overflow-hidden rounded-3xl border border-line bg-ink px-8 py-14 text-center sm:py-20">
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-[2.6rem]">Start with the thing you&apos;re actually working on.</h2>
+            <p className="mx-auto mt-3 max-w-xl text-lg text-white/70">Create an account and finish your first exercise in minutes. It&apos;s free to start.</p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <Link href="/login?mode=signup" className="btn-primary">Start your first exercise <span aria-hidden>→</span></Link>
+              <ShareApp />
+              <Link href="/for-teams" className="rounded-full px-5 py-2.5 text-sm font-semibold text-white/85 hover:text-white">Running this for a team? →</Link>
+            </div>
+          </div>
+        </Reveal>
       </section>
 
       <div className="mx-auto max-w-6xl px-6">

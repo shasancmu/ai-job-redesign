@@ -62,6 +62,11 @@ export default function ForTeams() {
               <a href={CONTACT} className="btn-primary">Bring it to your organization <span aria-hidden>→</span></a>
               <Link href="/" className="btn-ghost">See the exercises</Link>
             </div>
+            <div className="mt-4">
+              <Link href="/contact?source=for-teams" className="text-sm font-medium text-slate2 underline-offset-4 hover:text-ink hover:underline">
+                Prefer to talk first? Contact us <span aria-hidden>→</span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
