@@ -37,8 +37,8 @@ export default async function HeaderNav({ showDashboard = true, tour = false }: 
         labels={{
           reports: "Reports",
           profile: "Profile",
-          facilitator: "Cohorts",
-          orgs: "Orgs",
+          facilitator: "My Cohorts",
+          orgs: "Manage Organizations",
           signOut: "Sign out",
           tour: "Take a tour",
         }}

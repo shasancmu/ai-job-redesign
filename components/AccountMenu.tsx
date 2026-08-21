@@ -83,7 +83,7 @@ export default function AccountMenu({
             {(facilitator || director || superadmin) && (
               <>
                 <div className="my-1 border-t border-line" />
-                {director && <a href="/team" className={item}>Organization</a>}
+                {director && <a href="/team" className={item}>My Organizations</a>}
                 {facilitator && <a href="/facilitator" className={item}>{labels.facilitator}</a>}
                 {superadmin && <a href="/admin/orgs" className={item}>{labels.orgs}</a>}
               </>
