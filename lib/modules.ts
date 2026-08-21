@@ -38,6 +38,9 @@ export type ModuleDef = {
     | "deeptech"
     | "negotiation"
     | "haggle"
+    | "raise"
+    | "vendor-deal"
+    | "lease"
     | "career-xray"
     | "jd-xray"
     | "career-roadmap"
@@ -284,6 +287,51 @@ export const MODULES: ModuleDef[] = [
     minutes: 20,
     ai: true,
     emoji: "💵",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_HAGGLE",
+  },
+  {
+    slug: "ask-for-a-raise",
+    exercise: "raise",
+    name: "Ask for a Raise",
+    tagline: "Negotiate your own pay and package with an AI manager, across raise, title, remote, and more. Learn to trade for what you value instead of just pushing on the number.",
+    description:
+      "A live, multi-issue negotiation: you're the employee, AI plays your manager. Argue raise, title, remote days, PTO, review timing, and learning budget at once, with hidden priorities on both sides. Then see your score, the joint value you created, and a coach's debrief on where you traded well and what you left on the table.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 25,
+    ai: true,
+    emoji: "📈",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_NEGOTIATION",
+  },
+  {
+    slug: "close-the-vendor-deal",
+    exercise: "vendor-deal",
+    name: "Close a Vendor Deal",
+    tagline: "Negotiate a software contract with an AI account exec — price, term, payment, support, and more. Learn to trade the terms they value for the ones you do.",
+    description:
+      "A live, multi-issue B2B negotiation: you're the buyer, AI plays the vendor's account exec. Bargain across price, contract length, payment terms, support tier, onboarding, and being a reference — hidden priorities on both sides. Then see your score, the joint value created, and a coach's debrief.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 25,
+    ai: true,
+    emoji: "📝",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_NEGOTIATION",
+  },
+  {
+    slug: "lease-the-space",
+    exercise: "lease",
+    name: "Negotiate the Rent",
+    tagline: "Haggle over a monthly office rent against an AI landlord with a hidden floor. Practice anchoring, holding your walk-away, and claiming the bargaining zone.",
+    description:
+      "A single-issue distributive negotiation: you're the tenant, AI plays the landlord with a hidden floor. One number, no trades — just anchoring, patience, and your walk-away. Then see how much of the bargaining zone you claimed, on a ZOPA bar, with a coach's debrief.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "🏢",
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_HAGGLE",
   },
@@ -626,6 +674,9 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "licensing-brief": "strategy",
   "close-the-offer": "negotiate",
   "name-your-price": "negotiate",
+  "ask-for-a-raise": "negotiate",
+  "close-the-vendor-deal": "negotiate",
+  "lease-the-space": "negotiate",
   benchmark: "live",
   network: "live",
 };
@@ -685,6 +736,9 @@ const PILLS_OF: Record<string, PillKey[]> = {
   // Negotiation
   "close-the-offer": ["negotiation", "career"],
   "name-your-price": ["negotiation"],
+  "ask-for-a-raise": ["negotiation", "career"],
+  "close-the-vendor-deal": ["negotiation", "strategy"],
+  "lease-the-space": ["negotiation", "entrepreneurship"],
   // Strategy & management
   "execution-4a": ["strategy", "leadership", "implementation"],
   "balanced-scorecard": ["strategy", "leadership"],

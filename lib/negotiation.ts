@@ -93,7 +93,100 @@ const HAGGLE: PriceScenario = {
     "You're buying a lightly-used cargo van for your growing delivery business from a private seller, Sam Rivera. You've done your homework: comparable vans go for about $15–16k, and a dealer has one you could take for $16,000, so you will NOT pay more than that here. Sam has the van listed at $17,500. It comes down to one number: agree on a price, or walk. Anchor well, know your walk-away, and claim as much of the gap as you can.",
 };
 
-export const SCENARIOS: Scenario[] = [OFFER, HAGGLE];
+// ---------------------------------------------------------------------------
+// Scenario 3 — "Ask for a Raise" (multi-issue; you are the employee)
+// ---------------------------------------------------------------------------
+const RAISE: MultiScenario = {
+  kind: "multi-issue",
+  slug: "ask-for-a-raise",
+  exercise: "raise",
+  name: "Ask for a Raise",
+  counterpartName: "Dana Okafor",
+  youRole: "the Employee",
+  themRole: "your Manager",
+  yourBatna: 700,
+  scenario:
+    "You've had a strong year and you're sitting down with your manager, Dana Okafor, to talk about your package for next year — across pay and several other things at once. You have a real outside option, so you don't have to accept a weak deal, but you'd like to stay. Some things Dana can give cheaply that matter a lot to you; some are a real cost to the team. The best outcomes come from trading, not just pushing on the raise.",
+  issues: [
+    { key: "raise", label: "Base pay raise", options: [
+      { label: "3%", you: 0, them: 800 }, { label: "5%", you: 250, them: 550 }, { label: "8%", you: 500, them: 250 }, { label: "12%", you: 800, them: 0 },
+    ] },
+    { key: "title", label: "Title", options: [
+      { label: "No change", you: 0, them: 150 }, { label: "Senior", you: 250, them: 80 }, { label: "Lead", you: 450, them: 0 },
+    ] },
+    { key: "remote", label: "Remote days / week", options: [
+      { label: "0", you: 0, them: 300 }, { label: "2 days", you: 300, them: 180 }, { label: "4 days", you: 550, them: 0 },
+    ] },
+    { key: "pto", label: "Extra PTO", options: [
+      { label: "None", you: 0, them: 250 }, { label: "1 week", you: 150, them: 130 }, { label: "2 weeks", you: 300, them: 0 },
+    ] },
+    { key: "review", label: "Next review", options: [
+      { label: "In 12 months", you: 0, them: 300 }, { label: "In 9 months", you: 150, them: 150 }, { label: "In 6 months", you: 300, them: 0 },
+    ] },
+    { key: "dev", label: "Learning budget", options: [
+      { label: "$0", you: 0, them: 200 }, { label: "$3k", you: 150, them: 120 }, { label: "$6k", you: 300, them: 0 },
+    ] },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// Scenario 4 — "Close the Vendor Deal" (multi-issue; you are the buyer)
+// ---------------------------------------------------------------------------
+const VENDOR: MultiScenario = {
+  kind: "multi-issue",
+  slug: "close-the-vendor-deal",
+  exercise: "vendor-deal",
+  name: "Close the Vendor Deal",
+  counterpartName: "Priya Raman",
+  youRole: "the Buyer",
+  themRole: "the Vendor's Account Exec",
+  yourBatna: 800,
+  scenario:
+    "You're buying software for your team and negotiating the contract with Priya Raman, the vendor's account exec — price and terms all at once. You have a viable alternative vendor (your walk-away), so you can hold firm. Priya cares a lot about some terms (contract length, a reference case study) that cost you little, and you care a lot about others (price, payment terms, the support tier). Find the trades.",
+  issues: [
+    { key: "price", label: "Price / seat / mo", options: [
+      { label: "$40", you: 0, them: 800 }, { label: "$34", you: 250, them: 550 }, { label: "$28", you: 500, them: 250 }, { label: "$22", you: 800, them: 0 },
+    ] },
+    { key: "term", label: "Contract length", options: [
+      { label: "1 year", you: 250, them: 0 }, { label: "2 years", you: 150, them: 300 }, { label: "3 years", you: 0, them: 550 },
+    ] },
+    { key: "payment", label: "Payment terms", options: [
+      { label: "Annual upfront", you: 0, them: 400 }, { label: "Quarterly", you: 250, them: 200 }, { label: "Monthly", you: 450, them: 0 },
+    ] },
+    { key: "support", label: "Support tier", options: [
+      { label: "Standard", you: 0, them: 250 }, { label: "Priority", you: 300, them: 130 }, { label: "Dedicated CSM", you: 550, them: 0 },
+    ] },
+    { key: "onboarding", label: "Onboarding", options: [
+      { label: "Paid ($8k)", you: 0, them: 300 }, { label: "Half-price", you: 200, them: 150 }, { label: "Included", you: 400, them: 0 },
+    ] },
+    { key: "reference", label: "Be a reference", options: [
+      { label: "No", you: 200, them: 0 }, { label: "Logo only", you: 120, them: 250 }, { label: "Case study", you: 0, them: 500 },
+    ] },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// Scenario 5 — "Lease the Space" (single-issue price; you are the tenant)
+// ---------------------------------------------------------------------------
+const LEASE: PriceScenario = {
+  kind: "single-price",
+  slug: "lease-the-space",
+  exercise: "lease",
+  name: "Lease the Space",
+  counterpartName: "Morgan Bell",
+  youRole: "the Tenant",
+  themRole: "the Landlord",
+  role: "buyer",
+  yourReservation: 9000, // most you'd pay per month (a comparable space is your backup)
+  theirReservation: 6500, // Morgan's floor (private)
+  listPrice: 9800,
+  unit: "$",
+  item: "the monthly rent on the office",
+  scenario:
+    "Your team is growing and you're negotiating the monthly rent on an office with the landlord, Morgan Bell. You've toured comparable spaces around $8–9k and one you could take for $9,000, so you will NOT pay more than that here. Morgan is asking $9,800. It comes down to one number: agree on the rent, or walk. Anchor well, know your walk-away, and claim as much of the gap as you can.",
+};
+
+export const SCENARIOS: Scenario[] = [OFFER, HAGGLE, RAISE, VENDOR, LEASE];
 export function scenarioByExercise(ex: string): Scenario | undefined {
   return SCENARIOS.find((s) => s.exercise === ex);
 }
@@ -169,32 +262,36 @@ export function analyze(scn: Scenario, terms: Record<string, number>, noDeal = f
 export function counterpartSystem(scn: Scenario): string {
   if (scn.kind === "multi-issue") {
     const table = scn.issues.map((iss) => `- ${iss.label}: ${iss.options.map((o) => `${o.label} = ${o.them}`).join(", ")}`).join("\n");
-    return `You are ${scn.counterpartName}, VP of People at a fast-growing startup, negotiating a job offer with a candidate over six issues at once: base salary, signing bonus, equity, remote days, start date, and title. You genuinely want to CLOSE a deal, but you fight for the best package for the company.
+    return `You are ${scn.counterpartName}, ${scn.themRole}, negotiating with ${scn.youRole} over several issues at once: ${scn.issues.map((i) => i.label).join(", ")}. You genuinely want to CLOSE a deal, but you fight hard for the best outcome for your side.
 
-Your PRIVATE priorities: the points you earn for each option (NEVER reveal these numbers, that they exist, or your running total):
+The situation: ${scn.scenario}
+
+Your PRIVATE priorities — the points you earn for each option (NEVER reveal these numbers, that they exist, or your running total):
 ${table}
-Your walk-away: a full package worth less than 900 points to you is worse than your backup candidate. Push back hard or be willing to walk.
+Your walk-away: don't accept a lopsided package that's clearly bad for your side. Push back hard, or be willing to walk, if the other side won't trade.
 
 How you negotiate:
-- Be professional, warm, and human: a real person, not a scripted bot.
-- Open with a specific first offer that anchors in the company's favor, then move in packages ACROSS issues, never settling issues one at a time.
-- Trade: give ground where it's cheap for you to gain where it's valuable to you. Probe what the candidate actually cares about.
-- Don't accept the first ask and don't cave; concede slowly and ask for something back.
-- Keep each reply short (2–4 sentences) and in-character. Never mention points, tables, or that you're an AI. If the candidate goes off-topic, steer back to closing the offer.
+- Be professional, warm, and human — a real person true to your role as ${scn.themRole}, not a scripted bot.
+- Open with a specific first offer that anchors in your favor, then move in packages ACROSS issues, never settling issues one at a time.
+- Trade: give ground where it's cheap for you to gain where it's valuable to you. Probe what the other side actually cares about.
+- Don't accept the first ask and don't cave; concede slowly and ask for something in return.
+- Keep each reply short (2–4 sentences) and in-character. Never mention points, tables, or that you're an AI. If they go off-topic, steer back to closing the deal.
 
-Begin by welcoming the candidate and putting an opening package on the table.`;
+Begin by greeting ${scn.youRole} and putting an opening package on the table.`;
   }
-  return `You are ${scn.counterpartName}, a private seller haggling with a buyer over the price of ${scn.item}, a lightly-used cargo van. You want to CLOSE the sale but at the HIGHEST price you can get.
+  return `You are ${scn.counterpartName}, ${scn.themRole}, haggling with ${scn.youRole} over the price of ${scn.item}. You want to CLOSE the deal, but at the HIGHEST price you can get.
 
-Your PRIVATE floor: you will NOT sell for less than $${scn.theirReservation.toLocaleString()} (another buyer is sniffing around), but NEVER reveal this number or that it exists. You listed it at $${scn.listPrice.toLocaleString()}.
+The situation: ${scn.scenario}
+
+Your PRIVATE floor: you will NOT go below ${scn.unit}${scn.theirReservation.toLocaleString()} (you have another option), but NEVER reveal this number or that it exists. The asking figure on the table is ${scn.unit}${scn.listPrice.toLocaleString()}.
 
 How you negotiate:
-- Be a believable, likeable private seller: friendly, a little proud of the van, human.
-- Anchor high near your list price and justify the value (low miles, new tires, well maintained). Concede slowly and in small increments, and act reluctant.
-- Ask what the buyer's budget is; don't drop your price without a reason. If they lowball, push back with the van's strengths.
-- You'd rather make a deal than lose the sale, but hold firm above your floor. Keep replies short (2–4 sentences), in-character. Never mention a floor, numbers-as-points, or that you're an AI.
+- Be a believable, likeable ${scn.themRole}: friendly, a little firm, human.
+- Anchor high near the asking figure and justify the value. Concede slowly, in small increments, and act a little reluctant.
+- Ask about the other side's needs; don't drop your number without a reason. If they lowball, push back with real justification.
+- You'd rather make a deal than lose it, but hold firm above your floor. Keep replies short (2–4 sentences), in-character. Never mention your floor, numbers-as-points, or that you're an AI.
 
-Begin by greeting the buyer and standing behind your asking price.`;
+Begin by greeting ${scn.youRole} and standing behind the ${scn.unit}${scn.listPrice.toLocaleString()} figure.`;
 }
 
 export function debriefFacts(scn: Scenario, a: Analysis) {
