@@ -70,13 +70,30 @@ export default function RoleplayChat({
       u.rate = 1.0;
       u.voice = bestVoice.current || pickVoice(synth.getVoices());
       let done = false;
-      const fin = () => { if (done) return; done = true; setSpeaking(false); after?.(); };
+      let keepAlive: any = null;
+      const fin = () => { if (done) return; done = true; if (keepAlive) clearInterval(keepAlive); setSpeaking(false); after?.(); };
       const wd = setTimeout(() => { try { synth.cancel(); } catch {} fin(); }, Math.min(3500 + text.length * 65, 24000));
       u.onend = () => { clearTimeout(wd); fin(); };
       u.onerror = () => { clearTimeout(wd); fin(); };
       synth.speak(u);
+      // iOS/Safari pauses long speech after ~15s; nudge it to keep going.
+      keepAlive = setInterval(() => { try { synth.resume(); } catch {} }, 5000);
     } catch { setSpeaking(false); after?.(); }
   }, []);
+
+  // iOS Safari blocks speechSynthesis until it's first called inside a user
+  // gesture. Turning voice on is a tap, so speak a silent utterance there to
+  // unlock audio; later (post-fetch) replies are then allowed to play.
+  function unlockAudio() {
+    try {
+      const synth = window.speechSynthesis;
+      if (!synth) return;
+      const u = new SpeechSynthesisUtterance(" ");
+      u.volume = 0;
+      synth.speak(u);
+      synth.resume();
+    } catch { /* not supported */ }
+  }
 
   const runTurn = useCallback(async (userText: string | null) => {
     let history = chatRef.current;
@@ -168,6 +185,7 @@ export default function RoleplayChat({
     const on = !voice;
     setVoice(on); voiceRef.current = on;
     if (on) {
+      unlockAudio(); // inside this tap, so iOS lets the counterpart speak
       const lastA = [...chatRef.current].reverse().find((m) => m.role === "assistant");
       if (lastA) speak(lastA.content, () => startListening()); else startListening();
     } else {

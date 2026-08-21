@@ -54,6 +54,10 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
   const [err, setErr] = useState<string | null>(null);
   const [build, setBuild] = useState<"idle" | "working" | "failed">("idle");
   const [buildStep, setBuildStep] = useState(0);
+  const [isIOS, setIsIOS] = useState(false);
+  useEffect(() => {
+    try { setIsIOS(/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)); } catch { /* no navigator */ }
+  }, []);
 
   const { voices, voiceName, voiceRef, chooseVoice } = useVoices(mutedRef);
 
@@ -90,7 +94,8 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
     const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
     if (mutedRef.current || !synth) { onEnd?.(); return; }
     let done = false;
-    const finish = () => { if (done) return; done = true; onEnd?.(); };
+    let keepAlive: any = null;
+    const finish = () => { if (done) return; done = true; if (keepAlive) clearInterval(keepAlive); onEnd?.(); };
     try {
       synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -102,10 +107,27 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
       u.onend = () => { clearTimeout(wd); finish(); };
       u.onerror = () => { clearTimeout(wd); finish(); };
       synth.speak(u);
+      // iOS/Safari silently pauses speech after ~15s; nudge it to keep going.
+      keepAlive = setInterval(() => { try { synth.resume(); } catch {} }, 5000);
     } catch {
       finish();
     }
   }, []);
+
+  // iOS Safari blocks speechSynthesis unless it is first invoked from inside a
+  // user gesture. Our first spoken reply arrives after a fetch (not a gesture),
+  // so on the opening tap we speak a silent utterance to unlock audio; every
+  // later speak() is then allowed to play. Harmless on other browsers.
+  function unlockAudio() {
+    try {
+      const synth = window.speechSynthesis;
+      if (!synth) return;
+      const u = new SpeechSynthesisUtterance(" ");
+      u.volume = 0;
+      synth.speak(u);
+      synth.resume();
+    } catch { /* not supported */ }
+  }
 
   const startListening = useCallback(() => {
     const rec = recRef.current;
@@ -211,6 +233,7 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
 
   function start() {
     setErr(null);
+    unlockAudio(); // must run inside this tap so iOS lets the AI speak
     runningRef.current = true;
     if (mref.current.length > 0) {
       const lastA = [...mref.current].reverse().find((m) => m.role === "assistant");
@@ -275,6 +298,7 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
   function keepTalking() {
     setBuild("idle");
     setErr(null);
+    unlockAudio();
     runningRef.current = true;
     turnDoneRef.current = false;
     startListening();
@@ -368,6 +392,11 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
               <button onClick={start} className="btn-primary mt-6 px-8 py-3 text-base">{messages.length ? "Resume the interview" : "Start the interview"} →</button>
             </div>
             <p className="mt-3 text-xs text-slate-400">Voices marked ★ are the highest quality. Your mic is used only while you&apos;re answering.</p>
+            {isIOS && (
+              <p className="mx-auto mt-2 max-w-xs rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                On iPhone: flip the side Silent switch off and turn the volume up, or you won&apos;t hear the {cfg.speaker}.
+              </p>
+            )}
           </div>
         ) : (
           <div className="w-full max-w-2xl">
