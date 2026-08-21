@@ -17,8 +17,8 @@ const STEPS = [
   },
   {
     eyebrow: "Step 3",
-    title: "They engage — and you see it roll up",
-    body: "Participants work through AI-run exercises and each leaves with something concrete. You watch completion and insight roll up across the cohort, live, so your program stays alive long after the last session.",
+    title: "They engage — and your program stays alive",
+    body: "Participants work through the exercises and each leaves with something that's theirs to keep. You see the cohort's energy and the themes rising across the room — enough to know it's landing and keep the community connected, without looking over anyone's shoulder.",
   },
 ];
 

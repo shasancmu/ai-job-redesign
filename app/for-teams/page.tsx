@@ -13,11 +13,11 @@ const CONTACT = "mailto:shasanx@gmail.com?subject=Superadditive%20for%20our%20or
 
 const FEATURES = [
   { icon: "🎨", title: "Your brand, your space", body: "Your logo, colors, hero, and a private address — superadditive.app/your-org. It feels like your program, not a vendor." },
-  { icon: "🧩", title: "A library of AI-run exercises", body: "Dozens of hands-on exercises where an AI runs the interview, plays a partner or counterpart, and coaches the debrief." },
-  { icon: "👥", title: "Cohorts, directors & instructors", body: "Organize people into cohorts and sections. Directors run the org; instructors run their groups. You only see your own people." },
+  { icon: "🧩", title: "30+ AI-run exercises", body: "More than thirty hands-on exercises — and growing — where an AI runs the interview, plays a partner or counterpart, and coaches the debrief." },
+  { icon: "👥", title: "Cohorts, directors & instructors", body: "Organize people into cohorts and sections. Directors run the space; instructors run their groups. You only see your own people." },
   { icon: "📡", title: "Live, in-room activities", body: "Run a live word cloud, benchmark, or network map your whole room joins from their phones — no sign-in for them." },
-  { icon: "📄", title: "Everyone keeps something", body: "Each exercise ends in a concrete artifact — a plan, a scorecard, a map — participants can share and act on." },
-  { icon: "📈", title: "See it roll up", body: "Completion and insight aggregate across a cohort, live, so your team stays engaged with participants over time." },
+  { icon: "📄", title: "Their work is theirs", body: "Each exercise ends in a concrete artifact — a plan, a scorecard, a map — that belongs to the participant, to keep and share on their own terms." },
+  { icon: "🌱", title: "Know it's landing", body: "See how the cohort is engaging and the themes rising across the room — the pulse of your program, so you can keep the community connected." },
 ];
 
 const RESEARCH = [
@@ -44,13 +44,13 @@ export default function ForTeams() {
           </nav>
 
           <div className="relative z-10 max-w-3xl pb-28 pt-16 sm:pb-36 sm:pt-24">
-            <span className="eyebrow">For executive education, fellowships & alumni programs</span>
+            <span className="eyebrow">For programs, teams & organizations</span>
             <h1 className="display mt-4 text-[2.75rem] leading-[1.05] text-ink sm:text-[4.25rem]">
-              Keep your people thinking, long after the program ends.
+              Keep your people thinking, long after the session ends.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate2">
-              Give your cohort a private, branded space full of AI-run exercises grounded in real research. They keep
-              practicing the ideas; you stay connected to the community you built.
+              Give your team or cohort a private, branded space with 30+ AI-run exercises grounded in real research.
+              They keep practicing the ideas; you stay connected to the people you brought together.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a href={CONTACT} className="btn-primary">Bring it to your organization <span aria-hidden>→</span></a>
@@ -60,8 +60,26 @@ export default function ForTeams() {
         </div>
       </div>
 
+      {/* Numbers — the wow moment */}
+      <section className="mx-auto -mt-6 max-w-4xl px-6">
+        <Reveal>
+          <div className="grid gap-6 rounded-2xl border border-line bg-white p-8 text-center shadow-soft sm:grid-cols-3">
+            {[
+              ["30+", "AI-run exercises, and growing"],
+              ["~30 min", "each — start to a real artifact"],
+              ["1", "branded space that's yours"],
+            ].map(([n, l]) => (
+              <div key={l}>
+                <div className="text-4xl font-bold tracking-tight text-ink sm:text-5xl">{n}</div>
+                <div className="mt-1 text-sm text-slate2">{l}</div>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </section>
+
       {/* Thesis */}
-      <section className="mx-auto mt-4 max-w-4xl px-6 text-center sm:mt-12">
+      <section className="mx-auto mt-20 max-w-4xl px-6 text-center sm:mt-28">
         <Reveal>
           <p className="text-2xl font-semibold leading-snug tracking-tight text-ink sm:text-[2.2rem]">
             The insight peaks on the last day — then fades. <span className="text-sage">Superadditive keeps it alive</span>, with exercises your people actually want to return to.
@@ -169,8 +187,11 @@ export default function ForTeams() {
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
           {[
             ["Executive education", "Extend a program past the classroom and give participants a reason to keep coming back."],
-            ["Fellowships & accelerators", "Keep a cohort practicing the frameworks between sessions, and see who's engaging."],
+            ["Teams inside companies", "A manager equips their team to work smarter with AI — no IT project, just a link."],
+            ["Company-wide (site license)", "Roll it out across the organization under your brand, with as many cohorts as you need."],
+            ["Fellowships & accelerators", "Keep a cohort practicing the frameworks between sessions, as a connected group."],
             ["Alumni & membership", "Turn a one-time experience into an ongoing, branded relationship with your community."],
+            ["Networks & communities", "Give the people you convene a reason — and a shared space — to keep thinking together."],
           ].map(([t, b], i) => (
             <Reveal key={t} delay={i * 80}>
               <div className="card h-full p-6">
