@@ -42,6 +42,8 @@ export type ModuleDef = {
     | "vendor-deal"
     | "lease"
     | "hard-convo"
+    | "vision"
+    | "vision-voice"
     | "career-xray"
     | "jd-xray"
     | "career-roadmap"
@@ -350,6 +352,36 @@ export const MODULES: ModuleDef[] = [
     emoji: "🗣️",
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_NEGOTIATION",
+  },
+  {
+    slug: "define-vision",
+    exercise: "vision",
+    name: "Shape Your Company Vision",
+    tagline: "Think through a lasting vision for your organization with an AI facilitator — what it stands for, why it exists, and the bold future it's working toward. Leave with your vision written back to you.",
+    description:
+      "A guided conversation, grounded in the vision framework of Collins and Porras, that separates your organization's enduring core (its values and purpose) from its envisioned future (a bold long-term goal and a vivid picture of reaching it). An AI facilitator draws out your thinking one question at a time, then synthesizes it into a clear, usable vision you can pressure-test and share.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 25,
+    ai: true,
+    emoji: "🧭",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_SOLO",
+  },
+  {
+    slug: "define-vision-voice",
+    exercise: "vision-voice",
+    name: "Talk Through Your Vision",
+    tagline: "The vision conversation as a hands-free voice session. Just talk while an AI facilitator draws out what your organization stands for and where it's headed, then get your vision written up.",
+    description:
+      "Shape Your Company Vision as a spoken conversation. A facilitator interviews you out loud, drawing out your core values and purpose and the bold future you're building toward, then synthesizes it — grounded in the Collins and Porras vision framework — into a clear vision. Uses your browser's speech; nothing is recorded, only the transcript is kept.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 25,
+    ai: true,
+    emoji: "🎙️",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_SOLO",
   },
   {
     slug: "good-business",
@@ -685,6 +717,8 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "business-myopia": "strategy",
   "career-myopia": "redesign",
   "personal-network": "redesign",
+  "define-vision": "strategy",
+  "define-vision-voice": "strategy",
   "domain-brief": "strategy",
   "find-collaborators": "redesign",
   "licensing-brief": "strategy",
@@ -750,6 +784,8 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "find-collaborators": ["deeptech", "innovation", "ai"],
   "licensing-brief": ["deeptech", "strategy", "entrepreneurship", "innovation"],
   "business-myopia": ["strategy", "innovation", "leadership"],
+  "define-vision": ["strategy", "leadership", "entrepreneurship"],
+  "define-vision-voice": ["strategy", "leadership", "entrepreneurship"],
   // Negotiation
   "close-the-offer": ["negotiation", "career"],
   "name-your-price": ["negotiation"],
@@ -798,7 +834,7 @@ export const FEATURES: { key: FeatureKey; label: string }[] = [
   { key: "camera", label: "Photo" },
 ];
 
-const VOICE_MODULES = new Set(["voice-consult", "refresh-resume-voice", "rehearse-hard-conversation"]);
+const VOICE_MODULES = new Set(["voice-consult", "refresh-resume-voice", "rehearse-hard-conversation", "define-vision-voice"]);
 const CAMERA_MODULES = new Set(["business-consult"]); // has a photograph-the-operation step
 
 export function moduleFeatures(slug: string): FeatureKey[] {

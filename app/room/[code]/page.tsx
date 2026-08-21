@@ -18,6 +18,8 @@ import ConsultRoom from "@/components/ConsultRoom";
 import SuperpowerRoom from "@/components/SuperpowerRoom";
 import BoardRoom from "@/components/BoardRoom";
 import VoiceConsultRoom from "@/components/VoiceConsultRoom";
+import VisionRoom from "@/components/VisionRoom";
+import VoiceVisionRoom from "@/components/VoiceVisionRoom";
 import DisclosureRoom from "@/components/DisclosureRoom";
 import EmpathyRoom from "@/components/EmpathyRoom";
 import ResumeRoom from "@/components/ResumeRoom";
@@ -268,6 +270,17 @@ export default async function RoomPage({
       .eq("author_id", user.id)
       .maybeSingle();
     return <VoiceConsultRoom me={user.id} session={session} initialWorkspace={workspace || { session_id: session.id, author_id: user.id }} />;
+  }
+
+  // Vision (typed) and Talk Through Your Vision (voice): single-user, host only.
+  if (session.exercise === "vision" || session.exercise === "vision-voice") {
+    if (!amHost) redirect("/dashboard");
+    await supabase.from("workspaces").upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase.from("workspaces").select("*").eq("session_id", session.id).eq("author_id", user.id).maybeSingle();
+    const ws = workspace || { session_id: session.id, author_id: user.id };
+    return session.exercise === "vision-voice"
+      ? <VoiceVisionRoom me={user.id} session={session} initialWorkspace={ws} />
+      : <VisionRoom me={user.id} session={session} initialWorkspace={ws} />;
   }
 
   // Vendor Disclosure (general or HAIP healthcare): buyer-side room. The vendor

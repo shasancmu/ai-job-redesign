@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { boardMember, type BoardEntry } from "@/lib/board";
 import { canvasByExercise } from "@/lib/canvases";
 import ConsultReport from "@/components/ConsultReport";
+import VisionReport from "@/components/VisionReport";
 import SuperpowerReport from "@/components/SuperpowerReport";
 import PersonalNetworkReport from "@/components/PersonalNetworkReport";
 import DomainBriefReport from "@/components/DomainBriefReport";
@@ -104,6 +105,16 @@ async function renderSession(admin: any, s: any) {
 
   const { data: ws } = await admin.from("workspaces").select("canvas, plan").eq("session_id", s.id).eq("author_id", s.host_id).maybeSingle();
   const canvas = (ws?.canvas as any) || {};
+
+  if (ex === "vision" || ex === "vision-voice") {
+    if (!canvas.report) return null;
+    return (
+      <>
+        <Head eyebrow="Company vision" title={canvas.intake?.name || "Our vision"} />
+        <VisionReport report={canvas.report} org={canvas.intake?.name} />
+      </>
+    );
+  }
 
   if (ex === "consult" || ex === "voice-consult") {
     if (!canvas.report) return null;
