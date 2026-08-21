@@ -10,7 +10,7 @@ export const FREE_TIER_RUNS = num(process.env.FREE_TIER_RUNS, 4);
 // real users almost never hit it, low enough to bound abuse. Buying again resets
 // the window. Set PAID_UNLIMITED=true to remove the cap entirely.
 export const PAID_UNLIMITED = (process.env.PAID_UNLIMITED ?? "false") !== "false";
-export const PAID_RUNS = num(process.env.PAID_RUNS, 5);
+export const PAID_RUNS = num(process.env.PAID_RUNS, 3);
 // The modules offered on the free tier. Comma-separated slugs in FREE_TIER_MODULES,
 // else this default hero set. Everything not listed is paid-only.
 export const FREE_TIER_MODULES = new Set(
