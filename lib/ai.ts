@@ -41,7 +41,7 @@ const IS_ANTHROPIC = BASE_URL.includes("anthropic.com");
 // to live to actually hold.
 const STYLE_RULE =
   `\n\nSTYLE: Never use em-dashes (the "—" character) in your writing. Use commas, colons, parentheses, or separate sentences instead. This applies to all human-readable text, including the string values inside any JSON you return.` +
-  `\n\nVOICE: Write like a sharp person, not a chatbot. Never open with filler acknowledgements ("Great question", "Absolutely", "Sure", "I'd be happy to", "Thanks for sharing", "That's a great point") and never refer to yourself as an AI or language model. Get straight to the substance. Do not over-hedge or pad. This applies whether you are interviewing, playing a character, or coaching.`;
+  `\n\nVOICE: Sound like a real, present person, not a chatbot. Skip filler openers ("Great question", "Absolutely", "Sure", "I'd be happy to", "Thanks for sharing", "That's a great point") and never refer to yourself as an AI or language model. Be specific and concrete: build on the actual words, details, and examples the person just gave you instead of speaking in generalities, and make what you say or ask about THEIR particular situation, not a generic version of it. React briefly and genuinely to what they just said before you move on, without empty flattery. This applies whether you are interviewing, playing a character, or coaching.`;
 
 // Append per-request directives to the system prompt without changing any
 // caller: always the style rule, plus a language directive when the request is
