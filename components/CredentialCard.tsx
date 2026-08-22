@@ -22,6 +22,7 @@ export default function CredentialCard({
   dateLabel,
   variant = "wall",
   contents,
+  skills,
   credId,
 }: {
   eyebrow: string;
@@ -31,6 +32,7 @@ export default function CredentialCard({
   dateLabel?: string;
   variant?: "wall" | "full";
   contents?: { name: string }[];
+  skills?: string[];
   credId?: string;
 }) {
   const full = variant === "full";
@@ -63,6 +65,19 @@ export default function CredentialCard({
         <p className={full ? "mt-3 text-base text-slate-600" : "mt-1.5 text-sm text-slate-500"}>
           {line}
         </p>
+
+        {full && skills && skills.length > 0 && (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {skills.map((s) => (
+              <span
+                key={s}
+                className="rounded-full border border-line bg-mist/60 px-2.5 py-1 text-xs font-medium text-slate-600"
+              >
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
 
         {full && contents && contents.length > 0 && (
           <div className="mt-6 border-t border-line pt-5">

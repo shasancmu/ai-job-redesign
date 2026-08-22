@@ -111,10 +111,11 @@ export default async function CredentialPage({ params }: { params: { id: string 
         dateLabel={fullDate(cred.earned_at)}
         variant="full"
         contents={view.contents}
+        skills={view.skills}
         credId={cred.id.slice(0, 8).toUpperCase()}
       />
 
-      <CredentialActions linkedinUrl={linkedinUrl} shareUrl={shareUrl} />
+      <CredentialActions linkedinUrl={linkedinUrl} shareUrl={shareUrl} skills={view.skills} />
 
       {/* Viral loop: a visitor who lands here is a prospect. */}
       <div className="mt-12 rounded-2xl border border-line bg-mist/50 p-6 text-center">

@@ -7,6 +7,7 @@ import {
   earnedFrom,
   materializeCredentials,
   linkedInAddUrl,
+  credentialName,
   TRACKS,
 } from "@/lib/credentials";
 
@@ -53,13 +54,14 @@ export async function POST(request: Request) {
     if (!exRow) return Response.json({ credential: null });
 
     const abs = (id: string) => `${BRAND.siteUrl}/c/${id}`;
+    const exName = credentialName(mod.slug);
     const d = exRow.earned_at ? new Date(exRow.earned_at) : null;
     const credential = {
       id: exRow.id,
-      title: mod.name,
+      title: exName,
       viewUrl: `/c/${exRow.id}`,
       linkedinUrl: linkedInAddUrl({
-        name: mod.name,
+        name: exName,
         certUrl: abs(exRow.id),
         certId: exRow.id,
         year: d ? d.getFullYear() : undefined,
