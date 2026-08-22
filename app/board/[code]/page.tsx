@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { boardMember, type BoardEntry } from "@/lib/board";
 import { loadOwnerReport } from "@/lib/reportPage";
+import ReportShell from "@/components/ReportShell";
 import BoardVerdict from "@/components/BoardVerdict";
-import ShareReport from "@/components/ShareReport";
-import Logo from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
 
@@ -14,21 +12,18 @@ export default async function BoardView({ params }: { params: { code: string } }
   const verdict = canvas.verdict;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-      <header className="mb-6 flex items-center justify-between">
-        <Logo href="/dashboard" />
-        <div className="flex items-center gap-2">
-          {verdict && <ShareReport code={code} title="An AI Board verdict" text="Here's what my AI Board decided, on Superadditive:" />}
-          <Link href={`/room/${code}`} className="btn-ghost text-sm">← Back to the board</Link>
-        </div>
-      </header>
-
-      <div className="mb-6">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Your AI Board</div>
-        <h1 className="mt-1 text-3xl text-ink">{decision || "Your decision"}</h1>
-      </div>
-
-      {verdict && <BoardVerdict verdict={verdict} />}
+    <ReportShell
+      code={code}
+      eyebrow="Your AI Board"
+      title={decision || "Your decision"}
+      backLabel="← Back to the board"
+      shareTitle="An AI Board verdict"
+      shareText="Here's what my AI Board decided, on Superadditive:"
+      hasReport={!!verdict}
+      emptyText="Your board hasn't reached a verdict yet."
+      openLabel="Back to the board"
+    >
+      <BoardVerdict verdict={verdict} />
 
       {transcript.length > 0 && (
         <div className="mt-8">
@@ -58,6 +53,6 @@ export default async function BoardView({ params }: { params: { code: string } }
           </div>
         </div>
       )}
-    </main>
+    </ReportShell>
   );
 }

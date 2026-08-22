@@ -13,7 +13,7 @@ export default function RoadmapFullView({ roadmap, code }: { roadmap: any; code:
   return (
     <main className="mx-auto max-w-3xl px-6 py-8 print:py-0">
       <div className="mb-6 flex items-center justify-between print:hidden">
-        <Logo />
+        <Logo href="/dashboard" />
         <div className="flex items-center gap-2">
           <ShareReport code={code} title="A career roadmap" text="Here's my career roadmap from Superadditive:" />
           <Link href={`/room/${code}`} className="btn-ghost text-sm">{t("roadmap.backExercise")}</Link>

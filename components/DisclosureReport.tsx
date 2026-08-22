@@ -30,7 +30,7 @@ export default function DisclosureReport({
   return (
     <main className="mx-auto max-w-3xl px-6 py-8 print:py-0">
       <div className="mb-6 flex items-center justify-between print:hidden">
-        <Logo />
+        <Logo href="/dashboard" />
         <div className="flex items-center gap-2">
           <Link href={`/room/${code}`} className="btn-ghost text-sm">← Back</Link>
           <button onClick={() => window.print()} className="btn-primary text-sm">Print / Save PDF</button>

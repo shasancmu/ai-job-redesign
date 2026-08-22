@@ -34,7 +34,7 @@ export default function CanvasView({
         <div className={"relative mx-auto max-w-4xl px-6 " + (embedded ? "py-8" : "py-12")}>
           {!embedded && (
             <div className="flex items-center justify-between">
-              <Logo />
+              <Logo href="/dashboard" />
               <div className="flex items-center gap-2">
                 {code && <ShareReport code={code} title={def?.name || "A strategy canvas"} text={`Here's my ${def?.name || "canvas"} from Superadditive:`} />}
                 <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Done</Link>

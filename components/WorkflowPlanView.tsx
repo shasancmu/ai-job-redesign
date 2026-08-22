@@ -30,7 +30,7 @@ export default function WorkflowPlanView({ doc, code, embedded = false }: { doc:
         <div className={"relative mx-auto max-w-4xl px-6 " + (embedded ? "py-10" : "py-14")}>
           {!embedded && (
             <div className="flex items-center justify-between">
-              <Logo />
+              <Logo href="/dashboard" />
               <div className="flex items-center gap-2">
                 {code && <ShareReport code={code} title="A redesigned workflow" text="Here's my redesigned workflow from Superadditive:" />}
                 <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">

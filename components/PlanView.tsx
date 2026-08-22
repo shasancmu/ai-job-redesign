@@ -35,7 +35,7 @@ export default function PlanView({ plan, code, embedded = false }: { plan: Plan;
         <div className={"relative mx-auto max-w-4xl px-6 " + (embedded ? "py-10" : "py-14")}>
           {!embedded && (
             <div className="flex items-center justify-between">
-              <Logo />
+              <Logo href="/dashboard" />
               <div className="flex items-center gap-2">
                 {code && <ShareReport code={code} title="A reimagined role" text="Here's my reimagined role from Superadditive:" />}
                 <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
