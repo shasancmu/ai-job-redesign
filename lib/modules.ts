@@ -61,7 +61,11 @@ export type ModuleDef = {
     | "domain-brief"
     | "collaborators"
     | "licensing-brief"
-    | "voice-consult"; // which room engine renders it
+    | "voice-consult"
+    | "paper-idea"
+    | "paper-structure"
+    | "paper-points"
+    | "interaction"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -668,6 +672,71 @@ export const MODULES: ModuleDef[] = [
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_MYOPIA",
   },
+  // --- Research modules (from "Research, Strategy" by Sharique Hasan) ---------
+  {
+    slug: "what-is-a-paper",
+    exercise: "paper-idea",
+    name: "Make the Invisible Visible",
+    tagline: "Turn your study into one sharp insight: the invisible force it makes visible, and why the facts are what they are.",
+    description:
+      "The opening idea from Research, Strategy: research uncovers the visible and invisible forces that govern our world, and a research idea is a unique insight into why the facts are what they are, either establishing a new fact or explaining a known one. An AI partner interviews you about your study, then helps you name the phenomenon, the hidden force behind it, what prior work overlooked, and the single insight that makes the invisible visible. You leave with a one-sentence idea sharp enough to put in front of a coauthor.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 12,
+    ai: true,
+    emoji: "🔍",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "paper-structure",
+    exercise: "paper-structure",
+    name: "Structure Your Paper",
+    tagline: "Lay your paper out as an hourglass, from motivation to contribution, with a clear job for every section.",
+    description:
+      "The hourglass from Research, Strategy: a paper opens broad with motivation, narrows to the problem, approach, and findings, then widens to the contribution, and its five sections each do one job. An AI partner interviews you about your paper and lays it out that way, mapping Introduction, Theory, Data & Methods, Results, and Discussion to what each must accomplish for your specific paper. You leave with a structural skeleton you can write straight into.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 14,
+    ai: true,
+    emoji: "⏳",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "making-points",
+    exercise: "paper-points",
+    name: "Make Your Points",
+    tagline: "Reduce your paper to a sequence of points, one per paragraph, that lead to a single conclusion.",
+    description:
+      "The craft of persuasion from Research, Strategy: an academic article is a sequence of points that lead to a larger conclusion, and each paragraph makes exactly one. A ruthless-editor AI helps you write the five topic sentences of your introduction, it matters, the alternative view, your evidence, the finding, and why it matters, then names the single conclusion they build to. You leave with the spine of your argument as crisp topic sentences.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 13,
+    ai: true,
+    emoji: "🎯",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "read-the-interaction",
+    exercise: "interaction",
+    name: "Read the Interaction",
+    tagline: "Read the interaction term as a research idea: if X1 then Y, especially or except when X2, because a mechanism.",
+    description:
+      "The bridge from Research, Strategy between the classic regression and the research idea. In Y = b0 + b1 X1 + b2 X2 + b3 (X1 times X2), the interaction b3 is usually where the idea lives: it says the effect of X1 changes with X2. An AI partner helps you pin down Y, X1, X2, and the sign of b3, then assemble the canvas sentence, if X1 then Y, especially or except when X2, because a mechanism, and name what the main effect alone would miss. You leave with your interaction stated as a theoretical contribution.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 13,
+    ai: true,
+    emoji: "📈",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
 ];
 
 // The all-access bundle uses the existing single price env for backward compat.
@@ -683,12 +752,13 @@ export const SALEABLE_MODULES = MODULES.filter((m) => m.forSale !== false);
 
 // Thematic categories — how the exercises are grouped on the marketing page
 // (the dashboard groups by partner instead: how you run each one).
-export type CategoryKey = "redesign" | "strategy" | "negotiate" | "live";
+export type CategoryKey = "redesign" | "strategy" | "negotiate" | "live" | "research";
 export const CATEGORIES: { key: CategoryKey; title: string; blurb: string; chip: string; dot: string }[] = [
   { key: "redesign", title: "Work & AI", blurb: "Redesign your job or a workflow, and X-ray a résumé or role to see what AI can do, and what only a human can.", chip: "bg-sage-soft text-sage", dot: "#3F7A52" },
   { key: "strategy", title: "Sharpen a decision", blurb: "Pressure-test a strategy, a bet, or a whole business with a real framework and real numbers. AI interviews you, then builds the analysis.", chip: "bg-amber-soft text-amber", dot: "#C98A2B" },
   { key: "negotiate", title: "Negotiate", blurb: "Bargain live against an AI counterpart, then get scored on the value you claimed, and the value you created.", chip: "bg-sky-soft text-sky", dot: "#4E79C9" },
   { key: "live", title: "Run it live in class", blurb: "Whole-room diagnostics that draw themselves as your cohort responds.", chip: "bg-clay-soft text-clay", dot: "#C06A47" },
+  { key: "research", title: "Research & scholarship", blurb: "Frame, structure, and argue a research paper, and read your regressions as ideas. Frameworks from Sharique Hasan's “Research, Strategy.” For PhD students and researchers.", chip: "bg-sage-soft text-sage", dot: "#3F7A52" },
 ];
 const CATEGORY_OF: Record<string, CategoryKey> = {
   "reimagine-job": "redesign",
@@ -730,6 +800,10 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "rehearse-hard-conversation": "negotiate",
   benchmark: "live",
   network: "live",
+  "what-is-a-paper": "research",
+  "paper-structure": "research",
+  "making-points": "research",
+  "read-the-interaction": "research",
 };
 export function moduleCategory(slug: string): CategoryKey {
   return CATEGORY_OF[slug] || "strategy";

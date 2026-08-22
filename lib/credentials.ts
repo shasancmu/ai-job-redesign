@@ -57,6 +57,13 @@ export const TRACKS: Track[] = [
     slugs: ["good-business", "customer-empathy", "name-your-price"],
     skills: ["Entrepreneurship", "Business Model Design", "Customer Discovery", "Pricing Strategy"],
   },
+  {
+    key: "research",
+    name: "Social Science Research Foundations",
+    line: "Framed, structured, argued, and modeled a research paper.",
+    slugs: ["what-is-a-paper", "paper-structure", "making-points", "read-the-interaction"],
+    skills: ["Academic Writing", "Research Design", "Scholarly Communication"],
+  },
 ];
 
 // Serious, accurate credential names + the skills each demonstrates. The module
@@ -103,6 +110,10 @@ const CRED_META: Record<string, CredMeta> = {
   "domain-brief": { name: "Domain Expertise Brief", skills: ["Research", "Domain Analysis"] },
   "find-collaborators": { name: "Collaborator Identification", skills: ["Networking", "Partnership Development"] },
   "licensing-brief": { name: "Technology Licensing Analysis", skills: ["IP Strategy", "Licensing"] },
+  "what-is-a-paper": { name: "Research Idea Articulation", skills: ["Research Design", "Scholarly Writing"] },
+  "paper-structure": { name: "Academic Paper Structure", skills: ["Academic Writing", "Scholarly Communication"] },
+  "making-points": { name: "Argument & Positioning", skills: ["Academic Writing", "Persuasive Communication"] },
+  "read-the-interaction": { name: "Interaction Effects & Theory", skills: ["Econometrics", "Causal Reasoning", "Research Design"] },
 };
 
 export function credentialName(slug: string): string {

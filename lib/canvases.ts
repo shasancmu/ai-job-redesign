@@ -418,7 +418,148 @@ After about 7 exchanges, reflect the dual-uncertainty picture back, ask what you
   },
 };
 
-export const CANVASES: CanvasDef[] = [FOURA, SCORECARD, VENTURE, GAS, OCFIT, EXPERIMENT, DEEPTECH];
+// ===========================================================================
+// Research modules — frameworks from Sharique Hasan's "Research, Strategy"
+// turned into the same Solo + AI canvas exercise. Audience: PhD students and
+// early-career researchers.
+// ===========================================================================
+
+// (b) What is a research paper? — make the invisible visible
+const PAPER_IDEA: CanvasDef = {
+  slug: "what-is-a-paper",
+  exercise: "paper-idea",
+  name: "Make the Invisible Visible",
+  subjectLabel: "study",
+  setupTitle: "The study or idea you're working on",
+  setupHint:
+    "A paper you're writing, or a hunch you're chasing. Your AI partner will interview you to find the invisible force it makes visible.",
+  setupPlaceholder: "e.g. Whether startups that adopt A/B testing grow faster than those that don't",
+  interviewSystem: `You are a seasoned social-science advisor helping a researcher articulate what their paper actually IS, using Hasan's frame from "Research, Strategy":
+- Research uncovers and explains the forces that govern our social and physical worlds, both VISIBLE and INVISIBLE. A research idea is a UNIQUE INSIGHT into why the facts are what they are: it addresses something previously UNEXPLAINED, OVERLOOKED, or MISUNDERSTOOD.
+- An idea takes one of two forms: (1) ESTABLISHING A NEW FACT (e.g. the large productivity dispersion across firms), or (2) EXPLAINING A KNOWN FACT (e.g. management practices, or resource access, explain that dispersion).
+- The strongest insight names an INVISIBLE force and makes it visible through evidence.
+Interview to surface: the phenomenon they observe; the hidden force or mechanism behind it; whether they are establishing a new fact or explaining a known one; what prior work overlooked or got wrong; and the single insight in one sentence. Ask exactly ONE short, open question at a time; follow their lead; pull concrete detail. Do not fill the canvas or lecture.`,
+  draftSystem: `You fill a canvas that states what a paper IS, using Hasan's frame (an idea is a unique insight into why the facts are what they are; it establishes a new fact or explains a known one; it makes an invisible force visible). Be specific to THEIR study. The one-sentence insight must be sharp, falsifiable, and non-generic: name the invisible force and what becomes visible.`,
+  fields: [
+    { key: "phenomenon", label: "The phenomenon", hint: "What you observe in the world that puzzles you", kind: "long", group: "What you see", accent: "sage" },
+    { key: "invisible_force", label: "The invisible force", hint: "The hidden force or mechanism you think shapes it", kind: "long", group: "What you see", accent: "gold" },
+    { key: "idea_type", label: "New fact, or known fact explained?", hint: "Are you establishing a fact people don't know, or explaining one they do?", kind: "text", group: "Why it's an idea", accent: "plum" },
+    { key: "overlooked", label: "What's been overlooked or misunderstood", hint: "What prior work missed, ignored, or got wrong", kind: "long", group: "Why it's an idea", accent: "plum" },
+    { key: "insight", label: "Your insight, in one sentence", hint: "Why the facts are what they are, the invisible made visible", kind: "long", group: "The insight", accent: "sage" },
+    { key: "who_cares", label: "Who should care, and why", hint: "The scholars, and the world, this changes something for", kind: "list", group: "The insight", accent: "sage" },
+  ],
+  hasVerdict: { label: "The invisible force you make visible" },
+  about:
+    'Hasan, "Research, Strategy": research uncovers the visible and invisible forces that govern our world. A research idea is a unique insight into why the facts are what they are, it establishes a new fact or explains a known one. This canvas turns your study into that one insight.',
+  groupNotes: {
+    "What you see": "The puzzle in the world, and the hidden force you suspect is behind it.",
+    "Why it's an idea": "An idea addresses something unexplained, overlooked, or misunderstood.",
+    "The insight": "One sharp sentence: the invisible force, made visible.",
+  },
+};
+
+// (d) The structure of an academic paper — the hourglass
+const PAPER_STRUCTURE: CanvasDef = {
+  slug: "paper-structure",
+  exercise: "paper-structure",
+  name: "Structure Your Paper",
+  subjectLabel: "paper",
+  setupTitle: "The paper you're structuring",
+  setupHint:
+    "The paper you're writing or rewriting. Your AI partner will interview you and lay it out as an hourglass.",
+  setupPlaceholder: "e.g. Experimentation and startup performance: evidence from A/B testing",
+  interviewSystem: `You are a writing coach helping a researcher structure a paper using Hasan's HOURGLASS from "Research, Strategy":
+- A paper opens BROAD (motivation: the big question, why anyone cares), narrows to the PROBLEM (the specific gap), states the APPROACH (method and data in a sentence) and the FINDINGS, then widens back out to the CONTRIBUTION (what we learn and who should pay attention).
+- The body has five sections, each with a job: INTRODUCTION (motivate and state the question), THEORY / HYPOTHESES (a null model, then non-obvious claims), DATA & METHODS (context, measures, estimation), RESULTS (main findings, mechanism checks, robustness), DISCUSSION (summary, meaning and contribution, limitations).
+Interview to pull, for THIS paper: the big question and why it matters; the specific gap; the approach in one line; the headline finding; the contribution; and anything unusual about its theory, data, or results. Ask exactly ONE short, open question at a time; follow their lead. Do not lecture or fill the canvas.`,
+  draftSystem: `You lay out a paper as an hourglass (motivation, problem, approach, findings, contribution) and map its five sections (Intro, Theory, Data & Methods, Results, Discussion) to what each must accomplish for THIS paper. Be concrete and paper-specific, never generic boilerplate.`,
+  fields: [
+    { key: "motivation", label: "Motivation", hint: "The big question, and why anyone should care", kind: "long", group: "The hourglass", accent: "sage" },
+    { key: "problem", label: "Problem", hint: "The specific gap this paper addresses", kind: "long", group: "The hourglass", accent: "gold" },
+    { key: "approach", label: "Approach", hint: "What you do, data and method in a sentence", kind: "long", group: "The hourglass", accent: "gold" },
+    { key: "findings", label: "Findings", hint: "What you find, the headline result", kind: "long", group: "The hourglass", accent: "gold" },
+    { key: "contribution", label: "Contribution", hint: "What we learn, and who should pay attention", kind: "long", group: "The hourglass", accent: "sage" },
+    { key: "section_jobs", label: "What each section must do", hint: "Intro, Theory, Data & Methods, Results, Discussion: the job of each for this paper", kind: "pairs", group: "The section map", accent: "plum", leftLabel: "Section", rightLabel: "Its job in this paper" },
+  ],
+  hasVerdict: { label: "Your paper in one line" },
+  about:
+    'Hasan, "Research, Strategy": think of a paper as an hourglass, broad motivation narrowing to the problem, approach, and findings, then widening to the contribution. Five sections, each with one job. This canvas lays your paper out that way.',
+  groupNotes: {
+    "The hourglass": "Broad, then narrow, then broad: motivation, problem, approach, findings, contribution.",
+    "The section map": "Intro motivates; Theory makes a non-obvious claim; Data & Methods earns trust; Results show the pattern; Discussion says what we learn.",
+  },
+};
+
+// (e) Making points — one paragraph, one point
+const PAPER_POINTS: CanvasDef = {
+  slug: "making-points",
+  exercise: "paper-points",
+  name: "Make Your Points",
+  subjectLabel: "paper",
+  setupTitle: "The paper whose argument you're sharpening",
+  setupHint:
+    "A paper you're writing. Your AI partner will help you reduce it to a sequence of points, one per paragraph, that lead to a conclusion.",
+  setupPlaceholder: "e.g. My paper on how A/B testing changes which startups succeed",
+  interviewSystem: `You are a ruthless editor, in the spirit of a Wall Street Journal writing coach, helping a researcher MAKE THEIR POINTS using Hasan's principle from "Research, Strategy":
+- An academic article is a PERSUASIVE text: a SEQUENCE OF POINTS that lead to a larger conclusion. Each PARAGRAPH makes ONE point, and its topic sentence IS that point. Cut everything extraneous. The recurring question is: "What is your point?"
+- The five-paragraph INTRODUCTION is the model: (1) the topic and question MATTER; (2) the commonly-accepted / ALTERNATIVE view; (3) your EVIDENCE that things are otherwise; (4) the FINDING; (5) why it MATTERS.
+Interview to extract crisp topic sentences for each of the five, plus the single larger conclusion they build to. Push for ONE clear point per paragraph; if a sentence hedges or carries two ideas, make them split it. Ask exactly ONE short question at a time. Do not lecture or fill the canvas.`,
+  draftSystem: `You write a paper's argument as a sequence of POINTS, one per paragraph, each a sharp topic sentence, following Hasan's five-paragraph intro model (it matters, the alternative view, your evidence, the finding, why it matters) and the single larger conclusion they build to. Each point must be ONE assertable claim, not a summary. No hedging, no two-in-one sentences.`,
+  fields: [
+    { key: "p1_importance", label: "1 · Why it matters", hint: "The topic and question are important", kind: "long", group: "Your five points", accent: "sage" },
+    { key: "p2_alternative", label: "2 · The alternative view", hint: "The commonly-accepted view you push against", kind: "long", group: "Your five points", accent: "gold" },
+    { key: "p3_evidence", label: "3 · Your evidence", hint: "Why we should believe things are otherwise", kind: "long", group: "Your five points", accent: "gold" },
+    { key: "p4_finding", label: "4 · The finding", hint: "What you find", kind: "long", group: "Your five points", accent: "gold" },
+    { key: "p5_sowhat", label: "5 · Why it matters", hint: "What the finding means, and for whom", kind: "long", group: "Your five points", accent: "sage" },
+    { key: "conclusion", label: "The one conclusion", hint: "The single larger point these five build to", kind: "long", group: "The through-line", accent: "plum" },
+  ],
+  hasVerdict: { label: "The one point above all points" },
+  about:
+    'Hasan, "Research, Strategy": an article is a sequence of points that lead to a conclusion, and each paragraph makes exactly one. This canvas reduces your paper to its five topic sentences and the conclusion they build to.',
+  groupNotes: {
+    "Your five points": "The intro model: it matters, then the alternative view, then your evidence, then the finding, then why it matters.",
+    "The through-line": "One larger conclusion. If your five points don't lead here, cut or reorder.",
+  },
+};
+
+// (f) The classic regression — reading the interaction term as an idea
+const INTERACTION: CanvasDef = {
+  slug: "read-the-interaction",
+  exercise: "interaction",
+  name: "Read the Interaction",
+  subjectLabel: "hypothesis",
+  setupTitle: "The relationship you're testing",
+  setupHint:
+    "The effect at the heart of your paper. Your AI partner will help you read its interaction term as a research idea.",
+  setupPlaceholder: "e.g. A/B testing raises startup performance, especially for startups with more products",
+  interviewSystem: `You help a researcher read the classic interaction regression as a RESEARCH IDEA, using Hasan's Research Idea Canvas from "Research, Strategy". The model is:
+  Y = b0 + b1*X1 + b2*X2 + b3*(X1 x X2)
+- b1 is the baseline effect of X1 on Y. b3, the INTERACTION, is usually where the idea lives: it says the effect of X1 CHANGES with X2. A positive b3 means "ESPECIALLY WHEN X2"; a negative b3 means "EXCEPT WHEN X2".
+- In canvas form: IF X1, THEN Y, ESPECIALLY / EXCEPT WHEN X2, BECAUSE [mechanism]. The BECAUSE, the mechanism for why X2 moves the effect, is the theoretical contribution. b1 alone is often already known; b3 plus its mechanism is the paper.
+Interview to pin down: the outcome Y; the main cause X1; the moderator X2; whether b3 is positive (especially) or negative (except) and why; and the MECHANISM that makes X2 change the effect. Ask exactly ONE short question at a time; follow their lead. Do not lecture or fill the canvas.`,
+  draftSystem: `You translate an interaction regression (Y = b0 + b1*X1 + b2*X2 + b3*X1*X2) into a research idea using Hasan's canvas: IF X1 then THEN Y, ESPECIALLY/EXCEPT WHEN X2, BECAUSE [mechanism]. Assemble the one-sentence canvas claim; state the sign and meaning of b3; name the mechanism; and say plainly what b1 alone would miss. Be specific to their variables; the mechanism must be a real causal story, not a restatement of the finding.`,
+  fields: [
+    { key: "y", label: "Y — the outcome", hint: "What you're explaining", kind: "text", group: "The equation", accent: "sage" },
+    { key: "x1", label: "X1 — the main cause", hint: "The treatment or driver (b1)", kind: "text", group: "The equation", accent: "gold" },
+    { key: "x2", label: "X2 — the moderator", hint: "What changes X1's effect (the interaction, b3)", kind: "text", group: "The equation", accent: "plum" },
+    { key: "sign", label: "b3: especially, or except?", hint: "Positive, the effect is stronger when X2; negative, weaker or absent when X2", kind: "text", group: "The equation", accent: "plum" },
+    { key: "canvas_sentence", label: "The idea, in one sentence", hint: "IF X1 then THEN Y, ESPECIALLY/EXCEPT WHEN X2, BECAUSE ...", kind: "long", group: "The idea", accent: "sage" },
+    { key: "mechanism", label: "The mechanism (the BECAUSE)", hint: "Why X2 changes the effect of X1, the theoretical contribution", kind: "long", group: "The idea", accent: "gold" },
+    { key: "beta1_misses", label: "What b1 alone would miss", hint: "Why the interaction, not the main effect, is the paper", kind: "long", group: "The idea", accent: "gold" },
+  ],
+  hasVerdict: { label: "Your interaction, as a research idea" },
+  about:
+    'Hasan, "Research, Strategy": in Y = b0 + b1*X1 + b2*X2 + b3*(X1 x X2), the interaction b3 is usually where the idea lives, IF X1 then THEN Y, ESPECIALLY/EXCEPT WHEN X2, BECAUSE a mechanism. This canvas turns your interaction into that claim.',
+  groupNotes: {
+    "The equation": "Name Y, X1, X2, and whether b3 is positive (especially) or negative (except).",
+    "The idea": "The interaction is the contribution: the moderator, the mechanism, and what the main effect alone misses.",
+  },
+};
+
+export const CANVASES: CanvasDef[] = [
+  FOURA, SCORECARD, VENTURE, GAS, OCFIT, EXPERIMENT, DEEPTECH,
+  PAPER_IDEA, PAPER_STRUCTURE, PAPER_POINTS, INTERACTION,
+];
 
 export function canvasByExercise(exercise: string): CanvasDef | undefined {
   return CANVASES.find((c) => c.exercise === exercise);
