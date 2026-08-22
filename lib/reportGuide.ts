@@ -101,6 +101,32 @@ const GUIDES: Record<string, ReportGuide> = {
       { anchor: "ai", title: "What AI takes on", body: "What it tells you: the work to delegate, and how to do it well. How it was built: the AI matched your busywork to what it can reliably handle, with a starter for each." },
     ],
   },
+
+  pipeline: {
+    predictPrompt: "Before you see the model: how many papers do you think you'll have to WRITE to end up with your target number published?",
+    predictPlaceholder: "Your honest guess, as a number.",
+    ratingLabel: "How sure are you about that number?",
+    walkthrough: [
+      { anchor: "delta", title: "Your guess vs. the model", body: "You named a number. Peer review is a lottery, so most people guess low. See how far the simulation lands from your instinct." },
+      { anchor: "headline", title: "The reality", body: "What it tells you: the candid one-line read on your odds. How it was built: from the acceptance model plus your own inputs, not a pep talk." },
+      { anchor: "odds", title: "Your odds", body: "What it tells you: acceptance at one journal, the chance a paper ever lands, and how many you must write. How it was built: a few reviewers each say yes with a probability set by your paper strength; an editor aggregates their votes; a paper cycles through journals until it lands or you kill it." },
+      { anchor: "curve", title: "Papers written vs. publications", body: "What it tells you: each paper is worth a fraction of a publication, so output is a pipeline, not a bet. How it was built: your per-paper publication odds, extended across many papers." },
+      { anchor: "plan", title: "Your pipeline strategy", body: "What it tells you: how many to keep in flight, how to pace starts, and when to kill a paper. How it was built: the AI read your simulated numbers and turned them into concrete moves." },
+    ],
+  },
+
+  "paper-study": {
+    predictPrompt: "Before you see the breakdown: in one sentence, what do you think this paper's core idea actually is?",
+    predictPlaceholder: "Your honest read of the paper.",
+    walkthrough: [
+      { anchor: "delta", title: "Your read vs. the breakdown", body: "You named the idea as you saw it. Compare it to the deconstruction, the gap is where the paper's craft is hiding." },
+      { anchor: "headline", title: "The paper, in a line", body: "What it tells you: the title and the one thing to remember about how it's built. How it was built: the AI read your text through four frameworks at once." },
+      { anchor: "idea", title: "The idea", body: "What it tells you: the invisible force it makes visible, and whether it establishes a new fact or explains a known one. How it was built: by asking what unexplained thing the paper is really about." },
+      { anchor: "hourglass", title: "The structure", body: "What it tells you: how the paper moves from broad motivation to a narrow finding and back out to a contribution. How it was built: by mapping the paper onto the five-beat hourglass." },
+      { anchor: "points", title: "The five points", body: "What it tells you: the paper's argument as five topic sentences, one point each. How it was built: by reducing the introduction to its assertable claims." },
+      { anchor: "interaction", title: "The key interaction", body: "What it tells you: where the contribution lives, read as if X1 then Y, especially or except when X2, because a mechanism. How it was built: by finding the paper's central moderation and naming the mechanism behind it." },
+    ],
+  },
 };
 
 export function reportGuide(key?: string | null): ReportGuide | null {

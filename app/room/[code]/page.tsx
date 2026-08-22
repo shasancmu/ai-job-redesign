@@ -29,6 +29,8 @@ import PersonalNetworkRoom from "@/components/PersonalNetworkRoom";
 import DomainBriefRoom from "@/components/DomainBriefRoom";
 import FindCollaboratorsRoom from "@/components/FindCollaboratorsRoom";
 import LicensingBriefRoom from "@/components/LicensingBriefRoom";
+import PipelineRoom from "@/components/PipelineRoom";
+import PaperStudyRoom from "@/components/PaperStudyRoom";
 import { variantForExercise } from "@/lib/disclosure";
 import { canvasByExercise } from "@/lib/canvases";
 import { scenarioByExercise } from "@/lib/negotiation";
@@ -240,6 +242,26 @@ export default async function RoomPage({
       .eq("author_id", user.id)
       .maybeSingle();
     return <SuperpowerRoom me={user.id} session={session} initialWorkspace={workspace || { session_id: session.id, author_id: user.id }} />;
+  }
+
+  // Research: Publication Pipeline (simulation) and Understand a Paper. Host only.
+  if (session.exercise === "pipeline" || session.exercise === "paper-study") {
+    if (!amHost) redirect("/dashboard");
+    await supabase
+      .from("workspaces")
+      .upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
+    const iw = workspace || { session_id: session.id, author_id: user.id };
+    return session.exercise === "pipeline" ? (
+      <PipelineRoom me={user.id} session={session} initialWorkspace={iw} />
+    ) : (
+      <PaperStudyRoom me={user.id} session={session} initialWorkspace={iw} />
+    );
   }
 
   // Your AI Board: single-user, host only. A live advisory-board debate.

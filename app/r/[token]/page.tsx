@@ -16,6 +16,9 @@ import CareerXrayView from "@/components/CareerXrayView";
 import CareerRoadmapView from "@/components/CareerRoadmapView";
 import PlanView from "@/components/PlanView";
 import CanvasView from "@/components/CanvasView";
+import PipelineReport from "@/components/PipelineReport";
+import PaperStudyReport from "@/components/PaperStudyReport";
+import { DEFAULT_INPUTS } from "@/lib/pipeline";
 import WorkflowPlanView from "@/components/WorkflowPlanView";
 import EmpathyAggregate from "@/components/EmpathyAggregate";
 import Logo from "@/components/Logo";
@@ -149,6 +152,26 @@ async function renderSession(admin: any, s: any) {
       <>
         <Head eyebrow="Find Your Superpower" title="A superpower profile" />
         <SuperpowerReport report={canvas.report} />
+      </>
+    );
+  }
+
+  if (ex === "pipeline") {
+    if (!canvas.result) return null;
+    return (
+      <>
+        <Head eyebrow="Publication Pipeline" title="A publication pipeline plan" />
+        <PipelineReport inputs={{ ...DEFAULT_INPUTS, ...(canvas.inputs || {}) }} result={canvas.result} advice={canvas.advice} />
+      </>
+    );
+  }
+
+  if (ex === "paper-study") {
+    if (!canvas.study) return null;
+    return (
+      <>
+        <Head eyebrow="Understand a Paper" title="A paper deconstruction" />
+        <PaperStudyReport study={canvas.study} />
       </>
     );
   }

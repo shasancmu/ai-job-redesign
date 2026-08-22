@@ -65,7 +65,9 @@ export type ModuleDef = {
     | "paper-idea"
     | "paper-structure"
     | "paper-points"
-    | "interaction"; // which room engine renders it
+    | "interaction"
+    | "pipeline"
+    | "paper-study"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -737,6 +739,38 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_RESEARCH",
     forSale: false,
   },
+  {
+    slug: "publication-pipeline",
+    exercise: "pipeline",
+    name: "Publication Pipeline",
+    tagline: "Simulate the odds of getting published, and size the pipeline it actually takes to hit your target.",
+    description:
+      "The numbers game behind publishing, from Sharique Hasan's strategy lecture. Peer review is a lottery: a few reviewers, a variable editor, and a paper that cycles through journals until it lands or you kill it. Set your target, your pace, and how strong your papers are, then a live simulation shows your real acceptance odds, how many papers you must write to bank your target, how many to keep in flight, and when to kill one. An AI advisor turns the numbers into a candid pipeline strategy. You leave knowing what productivity really requires.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 12,
+    ai: true,
+    emoji: "🎲",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "understand-a-paper",
+    exercise: "paper-study",
+    name: "Understand a Paper",
+    tagline: "Take any paper apart through four lenses: its idea, its structure, its points, and its key interaction.",
+    description:
+      "A guided deconstruction that runs the research frameworks against a real paper. Paste a paper (or use the built-in example, Experimentation and Startup Performance) and predict its core idea, then an AI mentor reverse-engineers it: the invisible force it makes visible, its hourglass structure, its five topic sentences, and the interaction where the contribution lives, read as if X1 then Y, especially or except when X2, because a mechanism. A walkthrough shows how each part was built. You leave able to read any paper this way.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 16,
+    ai: true,
+    emoji: "🔬",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
 ];
 
 // The all-access bundle uses the existing single price env for backward compat.
@@ -804,6 +838,8 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "paper-structure": "research",
   "making-points": "research",
   "read-the-interaction": "research",
+  "publication-pipeline": "research",
+  "understand-a-paper": "research",
 };
 export function moduleCategory(slug: string): CategoryKey {
   return CATEGORY_OF[slug] || "strategy";

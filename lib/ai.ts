@@ -1057,6 +1057,76 @@ Return STRICT JSON only, no prose outside it:
   return extractJson(raw);
 }
 
+// ---- Publication Pipeline --------------------------------------------------
+// Interpret the simulated numbers into a candid, human pipeline strategy. The
+// math is done client-side; the AI only advises on it.
+export async function pipelineAdviceAI(input: {
+  inputs: any;
+  result: any;
+  context?: string;
+}): Promise<any> {
+  const i = input.inputs || {};
+  const r = input.result || {};
+  const facts = `Their situation: wants ${i.target} publications in ${i.years} years; starts about ${i.pace} papers/year; paper strength "${i.quality}"; will try up to ${i.maxJournals} journals before killing a paper; each review cycle ~${i.cycleMonths} months.
+Simulated numbers: single-journal acceptance ${Math.round((r.singleJournal || 0) * 100)}%; probability a paper ever lands (within ${i.maxJournals} journals) ${Math.round((r.everPublished || 0) * 100)}%; papers they must WRITE to bank ${i.target} ≈ ${r.papersToWrite}; average submissions per paper ${Number(r.avgSubmissions || 0).toFixed(1)}; ~${Math.round(r.monthsPerPaper || 0)} months in review per paper; keep ~${r.inFlight} in flight at once; pace needed ${Number(r.paceNeeded || 0).toFixed(1)}/year vs their ${i.pace}/year (${r.onTrack ? "on track" : "behind"}).`;
+
+  const system = `You are a candid, been-there advisor on the academic publishing grind, in the spirit of Sharique Hasan's "Topics in Strategy" lecture. Peer review is a lottery: top journals accept under 10%; a paper takes multiple journals and years; most published papers survived several rejections and at least one Revise & Resubmit. Productivity comes from a PIPELINE, not a single bet: keep several papers moving, know when to kill one, and treat rejection as the base rate, not a verdict on you.
+
+Given their situation and the simulated numbers, give a short, honest, specific strategy. Do not restate every number; interpret them. Be direct about the grind without being discouraging. No hedging, no platitudes.
+
+Return STRICT JSON only, no prose outside it:
+{
+  "headline": "one candid sentence that captures their reality",
+  "reality": "2-3 sentences on what the numbers mean for how they should work (pipeline, not lottery-ticket)",
+  "moves": ["3-4 concrete moves: how many to keep in flight, how to pace starts, how to treat R&Rs, portfolio thinking"],
+  "killRule": "one clear rule for when to stop shopping a paper and reallocate the effort",
+  "watchout": "the trap most people in their position fall into"
+}`;
+
+  const raw = await complete(
+    [
+      { role: "system", content: system },
+      { role: "user", content: `${facts}${input.context ? `\n\nThey added: ${input.context}` : ""}` },
+    ],
+    { json: true, temperature: 0.5, maxTokens: 1600 },
+  );
+  return extractJson(raw);
+}
+
+// ---- Understand a Paper ----------------------------------------------------
+// Deconstruct a real paper through the four frameworks the research modules
+// teach: the idea (invisible force), the hourglass structure, the five points,
+// and the key interaction. Used as a worked example / reading exercise.
+export async function paperStudyAI(input: { paper: string; context?: string }): Promise<any> {
+  const paper = String(input.paper || "").slice(0, 14000);
+  const system = `You are a masterful research mentor deconstructing an academic paper for a PhD student, using Sharique Hasan's frameworks from "Research, Strategy". Read the provided paper text (title/abstract/intro, and more if given) and reverse-engineer it through four lenses. Ground EVERY claim in what the paper actually says; if the text is thin on a lens, infer carefully and say so briefly rather than inventing specifics.
+
+The four lenses:
+1) THE IDEA — the invisible force it makes visible; whether it ESTABLISHES A NEW FACT or EXPLAINS A KNOWN one; and the one-sentence insight (why the facts are what they are).
+2) THE HOURGLASS — motivation, problem, approach, findings, contribution.
+3) THE FIVE POINTS — the five intro topic sentences (it matters; the alternative view; the evidence; the finding; why it matters), one sharp assertable claim each.
+4) THE INTERACTION — if the paper has a key moderation/contingency, read it as Y = b0 + b1 X1 + b2 X2 + b3 (X1 x X2): name Y, X1, X2, whether the effect is stronger (especially) or weaker (except) with X2, and the mechanism (the BECAUSE). If there is no clear interaction, say what the main effect is and note that the contribution is a main effect, not a moderation.
+
+Return STRICT JSON only, no prose outside it:
+{
+  "title": "the paper's title as best you can read it",
+  "idea": { "invisibleForce": "...", "kind": "new fact" | "explains a known fact", "insight": "one sharp sentence" },
+  "hourglass": { "motivation": "...", "problem": "...", "approach": "...", "findings": "...", "contribution": "..." },
+  "points": ["five topic sentences, one point each"],
+  "interaction": { "hasInteraction": true | false, "y": "...", "x1": "...", "x2": "...", "direction": "especially" | "except" | "n/a", "mechanism": "...", "mainEffectNote": "if no interaction, what the main effect is" },
+  "takeaway": "one sentence a student should remember about how this paper is built"
+}`;
+
+  const raw = await complete(
+    [
+      { role: "system", content: system },
+      { role: "user", content: `PAPER:\n${paper}${input.context ? `\n\nThe student notes: ${input.context}` : ""}` },
+    ],
+    { json: true, temperature: 0.4, maxTokens: 2600 },
+  );
+  return extractJson(raw);
+}
+
 // ---- Map Your Personal Network --------------------------------------------
 // A short, optional interview that adds qualitative texture on top of the
 // structured roster the person already built. It never asks them to re-list

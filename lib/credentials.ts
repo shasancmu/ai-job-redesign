@@ -61,8 +61,8 @@ export const TRACKS: Track[] = [
     key: "research",
     name: "Social Science Research Foundations",
     line: "Framed, structured, argued, and modeled a research paper.",
-    slugs: ["what-is-a-paper", "paper-structure", "making-points", "read-the-interaction"],
-    skills: ["Academic Writing", "Research Design", "Scholarly Communication"],
+    slugs: ["what-is-a-paper", "paper-structure", "making-points", "read-the-interaction", "publication-pipeline", "understand-a-paper"],
+    skills: ["Academic Writing", "Research Design", "Scholarly Communication", "Scholarly Publishing"],
   },
 ];
 
@@ -114,6 +114,8 @@ const CRED_META: Record<string, CredMeta> = {
   "paper-structure": { name: "Academic Paper Structure", skills: ["Academic Writing", "Scholarly Communication"] },
   "making-points": { name: "Argument & Positioning", skills: ["Academic Writing", "Persuasive Communication"] },
   "read-the-interaction": { name: "Interaction Effects & Theory", skills: ["Econometrics", "Causal Reasoning", "Research Design"] },
+  "publication-pipeline": { name: "Research Portfolio Strategy", skills: ["Scholarly Publishing", "Research Productivity"] },
+  "understand-a-paper": { name: "Critical Reading of Research", skills: ["Literature Review", "Research Design", "Critical Analysis"] },
 };
 
 export function credentialName(slug: string): string {
