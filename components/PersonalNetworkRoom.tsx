@@ -5,6 +5,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
 import InterviewHelper from "@/components/InterviewHelper";
+import ReportReveal from "@/components/ReportReveal";
+import { usePredictGate } from "@/components/usePredictGate";
 import Timer from "@/components/Timer";
 import PersonalNetworkReport from "@/components/PersonalNetworkReport";
 import { DOMAINS, STRENGTHS, ENERGY, domainMeta, tieKey, hasTie, computeEgoMetrics, type Contact, type Domain, type Energy, type Strength, type Ties } from "@/lib/egonet";
@@ -325,6 +327,7 @@ function ReportStep({ state, setState, code, sessionId, contacts, ties }: { stat
   const named = contacts.filter((c) => c.name.trim());
   const enough = named.length >= 3;
   const preview = enough ? computeEgoMetrics(contacts, ties) : null;
+  const gate = usePredictGate({ guideKey: "personal-network", existing: state.prediction, save: (p) => setState({ prediction: p }), run: () => run(), revealLabel: "Map my network" });
 
   async function run() {
     setBusy(true); setErr(null);
@@ -343,17 +346,20 @@ function ReportStep({ state, setState, code, sessionId, contacts, ties }: { stat
 
   return (
     <div className="space-y-4">
+      {gate.modal}
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
         <div className="text-sm text-slate-500">
           {!enough ? "Add at least 3 contacts to see your network read." : report ? "Your network is mapped. Regenerate any time you update it." : `Ready: ${preview?.size} contacts across ${preview?.domainsPresent} of 4 worlds.`}
         </div>
-        <button onClick={run} disabled={busy || !enough} className="btn-primary text-sm">{busy ? "Reading your network…" : report ? "Rebuild" : "Map my network"}</button>
+        <button onClick={report ? run : gate.start} disabled={busy || !enough} className="btn-primary text-sm">{busy ? "Reading your network…" : report ? "Rebuild" : "Map my network"}</button>
       </div>
       {err && <p className="text-sm text-clay">{err}</p>}
       {report && (
         <>
-          <PersonalNetworkReport report={report} metrics={metrics} contacts={contacts} ties={ties} />
-          <Link href={`/network-map/${code}`} className="btn-primary block text-center">View the full write-up →</Link>
+          <ReportReveal guideKey="personal-network" prediction={gate.prediction} code={code}>
+            <PersonalNetworkReport report={report} metrics={metrics} contacts={contacts} ties={ties} />
+          </ReportReveal>
+          <Link href={`/network-map/${code}`} className="btn-primary block text-center no-print">View the full write-up →</Link>
         </>
       )}
     </div>

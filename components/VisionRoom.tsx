@@ -5,6 +5,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
 import InterviewHelper from "@/components/InterviewHelper";
+import ReportReveal from "@/components/ReportReveal";
+import { usePredictGate } from "@/components/usePredictGate";
 import Timer from "@/components/Timer";
 import VisionReport from "@/components/VisionReport";
 
@@ -176,6 +178,7 @@ function ReportStep({ state, setState, ctx, code }: { state: any; setState: (p: 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const report = state.report;
+  const gate = usePredictGate({ guideKey: "vision", existing: state.prediction, save: (p) => setState({ prediction: p }), run: () => run(), revealLabel: "Build my vision" });
 
   async function run() {
     setBusy(true); setErr(null);
@@ -190,15 +193,18 @@ function ReportStep({ state, setState, ctx, code }: { state: any; setState: (p: 
 
   return (
     <div className="space-y-4">
+      {gate.modal}
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
         <div className="text-sm text-slate-500">{report ? "Your vision is ready. Rebuild any time." : "Pull the conversation together into your vision."}</div>
-        <button onClick={run} disabled={busy} className="btn-primary text-sm">{busy ? "Shaping…" : report ? "Rebuild" : "Build my vision"}</button>
+        <button onClick={report ? run : gate.start} disabled={busy} className="btn-primary text-sm">{busy ? "Shaping…" : report ? "Rebuild" : "Build my vision"}</button>
       </div>
       {err && <p className="text-sm text-clay">{err}</p>}
       {report && (
         <>
-          <VisionReport report={report} org={ctx?.name} />
-          <Link href={`/vision/${code}`} className="btn-primary block text-center">View the full vision →</Link>
+          <ReportReveal guideKey="vision" prediction={gate.prediction} code={code}>
+            <VisionReport report={report} org={ctx?.name} />
+          </ReportReveal>
+          <Link href={`/vision/${code}`} className="btn-primary block text-center no-print">View the full vision →</Link>
         </>
       )}
     </div>

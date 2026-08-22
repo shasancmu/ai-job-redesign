@@ -5,6 +5,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
 import InterviewHelper from "@/components/InterviewHelper";
+import ReportReveal from "@/components/ReportReveal";
+import { usePredictGate } from "@/components/usePredictGate";
 import { CAREER_ROADMAP_STEPS } from "@/lib/careerRoadmap";
 import Timer from "@/components/Timer";
 import CareerRoadmapView from "@/components/CareerRoadmapView";
@@ -234,6 +236,7 @@ function Roadmap({ state, setState, code, intent }: { state: any; setState: (p: 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const roadmap = state.roadmap;
+  const gate = usePredictGate({ guideKey: "career-roadmap", existing: state.prediction, save: (p) => setState({ prediction: p }), run: () => run(), revealLabel: t("roadmap.build") });
 
   async function run() {
     setBusy(true); setErr(null);
@@ -248,15 +251,18 @@ function Roadmap({ state, setState, code, intent }: { state: any; setState: (p: 
 
   return (
     <div className="space-y-4">
+      {gate.modal}
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
         <div className="text-sm text-slate-500">{(state.text || "").length < 60 ? t("roadmap.addResume") : t("roadmap.runIntro")}</div>
-        <button onClick={run} disabled={busy || (state.text || "").length < 60} className="btn-primary text-sm">{busy ? t("roadmap.building") : roadmap ? t("roadmap.rebuild") : t("roadmap.build")}</button>
+        <button onClick={roadmap ? run : gate.start} disabled={busy || (state.text || "").length < 60} className="btn-primary text-sm">{busy ? t("roadmap.building") : roadmap ? t("roadmap.rebuild") : t("roadmap.build")}</button>
       </div>
       {err && <p className="text-sm text-clay">{err}</p>}
       {roadmap && (
         <>
-          <CareerRoadmapView roadmap={roadmap} />
-          <Link href={`/roadmap/${code}`} className="btn-primary block text-center">{t("roadmap.viewFull")}</Link>
+          <ReportReveal guideKey="career-roadmap" prediction={gate.prediction} code={code}>
+            <CareerRoadmapView roadmap={roadmap} />
+          </ReportReveal>
+          <Link href={`/roadmap/${code}`} className="btn-primary block text-center no-print">{t("roadmap.viewFull")}</Link>
         </>
       )}
     </div>

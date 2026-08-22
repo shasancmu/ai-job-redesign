@@ -11,14 +11,16 @@ export default function ConsultReport({ report, wms }: { report: Report; wms?: {
   return (
     <div className="space-y-6">
       {/* The bottom line: what should shift, up top */}
-      {report.bottomLine ? (
-        <BottomLine b={report.bottomLine} />
-      ) : (
-        <div className="rounded-3xl border border-line bg-gradient-to-br from-white to-mist p-6">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">The one thing</div>
-          <p className="mt-1 text-xl font-bold leading-snug text-ink">{report.headline}</p>
-        </div>
-      )}
+      <div data-guide="headline">
+        {report.bottomLine ? (
+          <BottomLine b={report.bottomLine} />
+        ) : (
+          <div className="rounded-3xl border border-line bg-gradient-to-br from-white to-mist p-6">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">The one thing</div>
+            <p className="mt-1 text-xl font-bold leading-snug text-ink">{report.headline}</p>
+          </div>
+        )}
+      </div>
 
       {/* The full diagnosis */}
       <div className="eyebrow pt-1">The full picture</div>
@@ -37,7 +39,7 @@ export default function ConsultReport({ report, wms }: { report: Report; wms?: {
       </Section>
 
       {/* Margin engine */}
-      <Section title="What drives your margin">
+      <Section title="What drives your margin" anchor="engine">
         <p className="text-sm leading-relaxed text-slate-600">{report.marginEngine?.summary}</p>
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
           {(report.marginEngine?.drivers || []).map((d, i) => (
@@ -103,7 +105,7 @@ export default function ConsultReport({ report, wms }: { report: Report; wms?: {
 
       {/* Upstream */}
       {(report.upstream || []).length > 0 && (
-        <Section title="Where you're getting stuck">
+        <Section title="Where you're getting stuck" anchor="constraint">
           <ul className="space-y-1">
             {report.upstream.map((u, i) => (
               <li key={i} className="flex gap-2 text-sm text-slate-600"><span className="text-clay">▸</span><span>{u}</span></li>
@@ -131,9 +133,9 @@ export default function ConsultReport({ report, wms }: { report: Report; wms?: {
   );
 }
 
-function Section({ title, children }: { title: string; children: any }) {
+function Section({ title, children, anchor }: { title: string; children: any; anchor?: string }) {
   return (
-    <div>
+    <div data-guide={anchor}>
       <h2 className="eyebrow mb-2">{title}</h2>
       <div className="card p-5">{children}</div>
     </div>

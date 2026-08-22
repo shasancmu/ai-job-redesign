@@ -21,17 +21,19 @@ export default function SuperpowerReport({ report }: { report: Report }) {
   const moat = MOAT[report.moatStrength] || MOAT.solid;
   return (
     <div className="space-y-6">
-      {report.bottomLine ? (
-        <BottomLine b={report.bottomLine} />
-      ) : (
-        <div className="rounded-3xl border border-line bg-gradient-to-br from-white to-mist p-6">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Your superpower</div>
-          <p className="mt-1 text-2xl font-bold leading-snug text-ink">{report.headline}</p>
-        </div>
-      )}
+      <div data-guide="headline">
+        {report.bottomLine ? (
+          <BottomLine b={report.bottomLine} />
+        ) : (
+          <div className="rounded-3xl border border-line bg-gradient-to-br from-white to-mist p-6">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Your superpower</div>
+            <p className="mt-1 text-2xl font-bold leading-snug text-ink">{report.headline}</p>
+          </div>
+        )}
+      </div>
 
       {/* The stack */}
-      <div>
+      <div data-guide="evidence">
         <h2 className="eyebrow mb-2">Your stack</h2>
         <div className="space-y-3">
           {(report.stack || []).map((s) => (

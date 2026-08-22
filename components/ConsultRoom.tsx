@@ -5,6 +5,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
 import InterviewHelper from "@/components/InterviewHelper";
+import ReportReveal from "@/components/ReportReveal";
+import { usePredictGate } from "@/components/usePredictGate";
 import { CONSULT_STEPS, WMS, WMS_AREAS } from "@/lib/business";
 import Timer from "@/components/Timer";
 import ConsultReport from "@/components/ConsultReport";
@@ -314,6 +316,7 @@ function ReportStep({ state, setState, code, sessionId }: { state: any; setState
   const [err, setErr] = useState<string | null>(null);
   const report = state.report;
   const wms = state.wmsScore;
+  const gate = usePredictGate({ guideKey: "consult", existing: state.prediction, save: (p) => setState({ prediction: p }), run: () => run(), revealLabel: "Build my consult" });
 
   async function run() {
     setBusy(true); setErr(null);
@@ -340,15 +343,18 @@ function ReportStep({ state, setState, code, sessionId }: { state: any; setState
 
   return (
     <div className="space-y-4">
+      {gate.modal}
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
         <div className="text-sm text-slate-500">{report ? "Your consult is ready. Regenerate any time." : "Pull it all together into your consult."}</div>
-        <button onClick={run} disabled={busy} className="btn-primary text-sm">{busy ? "Consulting…" : report ? "Rebuild" : "Build my consult"}</button>
+        <button onClick={report ? run : gate.start} disabled={busy} className="btn-primary text-sm">{busy ? "Consulting…" : report ? "Rebuild" : "Build my consult"}</button>
       </div>
       {err && <p className="text-sm text-clay">{err}</p>}
       {report && (
         <>
-          <ConsultReport report={report} wms={wms} />
-          <Link href={`/consult/${code}`} className="btn-primary block text-center">View the full consult →</Link>
+          <ReportReveal guideKey="consult" prediction={gate.prediction} code={code}>
+            <ConsultReport report={report} wms={wms} />
+          </ReportReveal>
+          <Link href={`/consult/${code}`} className="btn-primary block text-center no-print">View the full consult →</Link>
         </>
       )}
     </div>

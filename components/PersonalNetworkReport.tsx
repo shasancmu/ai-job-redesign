@@ -53,17 +53,19 @@ export default function PersonalNetworkReport({
 
   return (
     <div className="space-y-6">
-      {report.bottomLine ? (
-        <BottomLine b={report.bottomLine} />
-      ) : report.headline ? (
-        <div className="rounded-3xl border border-line bg-gradient-to-br from-white to-mist p-6">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Your network</div>
-          <p className="mt-1 text-2xl font-bold leading-snug text-ink">{report.headline}</p>
-        </div>
-      ) : null}
+      <div data-guide="headline">
+        {report.bottomLine ? (
+          <BottomLine b={report.bottomLine} />
+        ) : report.headline ? (
+          <div className="rounded-3xl border border-line bg-gradient-to-br from-white to-mist p-6">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Your network</div>
+            <p className="mt-1 text-2xl font-bold leading-snug text-ink">{report.headline}</p>
+          </div>
+        ) : null}
+      </div>
 
       {/* The graph */}
-      <div>
+      <div data-guide="metrics">
         <h2 className="eyebrow mb-2">Your network, mapped</h2>
         <EgoNetworkGraph contacts={contacts} ties={ties} />
       </div>

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
 import InterviewHelper from "@/components/InterviewHelper";
+import ReportReveal from "@/components/ReportReveal";
+import { usePredictGate } from "@/components/usePredictGate";
 import { SUPERPOWER_STEPS } from "@/lib/superpower";
 import Timer from "@/components/Timer";
 import SuperpowerReport from "@/components/SuperpowerReport";
@@ -175,6 +177,7 @@ function ReportStep({ state, setState, code, sessionId }: { state: any; setState
   const [err, setErr] = useState<string | null>(null);
   const report = state.report;
   const enough = (state.interview_chat || []).filter((m: Msg) => m.role === "user").length >= 2 || (state.seeds || "").length > 40;
+  const gate = usePredictGate({ guideKey: "superpower", existing: state.prediction, save: (p) => setState({ prediction: p }), run: () => run(), revealLabel: "Reveal my superpower" });
 
   async function run() {
     setBusy(true); setErr(null);
@@ -193,15 +196,18 @@ function ReportStep({ state, setState, code, sessionId }: { state: any; setState
 
   return (
     <div className="space-y-4">
+      {gate.modal}
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
         <div className="text-sm text-slate-500">{!enough ? "Share a couple of stories first, then reveal your superpower." : report ? "Your superpower is named. Regenerate any time." : "Ready. Let's find the thread across your stories."}</div>
-        <button onClick={run} disabled={busy || !enough} className="btn-primary text-sm">{busy ? "Reading the thread…" : report ? "Rebuild" : "Reveal my superpower"}</button>
+        <button onClick={report ? run : gate.start} disabled={busy || !enough} className="btn-primary text-sm">{busy ? "Reading the thread…" : report ? "Rebuild" : "Reveal my superpower"}</button>
       </div>
       {err && <p className="text-sm text-clay">{err}</p>}
       {report && (
         <>
-          <SuperpowerReport report={report} />
-          <Link href={`/superpower/${code}`} className="btn-primary block text-center">View the full write-up →</Link>
+          <ReportReveal guideKey="superpower" prediction={gate.prediction} code={code}>
+            <SuperpowerReport report={report} />
+          </ReportReveal>
+          <Link href={`/superpower/${code}`} className="btn-primary block text-center no-print">View the full write-up →</Link>
         </>
       )}
     </div>

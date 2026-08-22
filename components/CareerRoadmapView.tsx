@@ -165,7 +165,7 @@ function GrowthReport({ roadmap }: { roadmap: any }) {
         </div>
       )}
 
-      <div>
+      <div data-guide="targets">
         <div className="eyebrow mb-2">Ways to grow</div>
         <div className="space-y-3">
           {targets.map((tg, i) => (

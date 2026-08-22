@@ -6,14 +6,16 @@ export default function VisionReport({ report, org }: { report: V; org?: string 
   if (!report) return null;
   return (
     <div className="space-y-6">
-      {report.oneLiner && (
-        <div className="rounded-2xl p-6 text-white" style={{ background: "var(--brand, #14283A)" }}>
-          <div className="text-xs font-semibold uppercase tracking-wide text-white/60">{org ? `${org} — the vision` : "The vision"}</div>
-          <p className="mt-2 text-xl font-semibold leading-snug">{report.oneLiner}</p>
-        </div>
-      )}
+      <div data-guide="headline">
+        {report.oneLiner && (
+          <div className="rounded-2xl p-6 text-white" style={{ background: "var(--brand, #14283A)" }}>
+            <div className="text-xs font-semibold uppercase tracking-wide text-white/60">{org ? `${org} — the vision` : "The vision"}</div>
+            <p className="mt-2 text-xl font-semibold leading-snug">{report.oneLiner}</p>
+          </div>
+        )}
+      </div>
 
-      <section>
+      <section data-guide="core">
         <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">The enduring core</div>
         <div className="mt-3 grid gap-4 lg:grid-cols-2">
           <div className="card p-5">
@@ -37,7 +39,7 @@ export default function VisionReport({ report, org }: { report: V; org?: string 
         </div>
       </section>
 
-      <section>
+      <section data-guide="future">
         <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">The envisioned future</div>
         <div className="mt-3 space-y-4">
           <div className="card p-5">
