@@ -191,6 +191,7 @@ export default async function Dashboard({
             dataTour="reports"
             labels={{
               reports: "Reports",
+              achievements: "Achievements",
               profile: t("nav.profile"),
               facilitator: "My Cohorts",
               orgs: "Manage Organizations",

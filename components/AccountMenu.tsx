@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-type Labels = { reports: string; profile: string; facilitator: string; orgs: string; signOut: string; tour: string };
+type Labels = { reports: string; achievements: string; profile: string; facilitator: string; orgs: string; signOut: string; tour: string };
 
 // One dropdown for every account/nav action, so the header stays a brand on the
 // left and a single control on the right instead of a row of pills.
@@ -78,6 +78,7 @@ export default function AccountMenu({
             <div className="mb-1 border-t border-line" />
             {dashboard && <a href="/dashboard" className={item}>Dashboard</a>}
             <a href="/reports" className={item}>{labels.reports}</a>
+            <a href="/achievements" className={item}>{labels.achievements}</a>
             <a href="/profile" className={item}>{labels.profile}</a>
             {tour && <button onClick={() => { setOpen(false); window.dispatchEvent(new Event("app:start-tour")); }} className={item}>{labels.tour}</button>}
             {(facilitator || director || superadmin) && (

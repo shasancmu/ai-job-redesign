@@ -50,6 +50,7 @@ export default async function HeaderNav({ showDashboard = true, tour = false }: 
         tour={tour}
         labels={{
           reports: "Reports",
+          achievements: "Achievements",
           profile: "Profile",
           facilitator: "My Cohorts",
           orgs: "Manage Organizations",

@@ -778,3 +778,24 @@ create table if not exists public.ai_events (
 );
 create index if not exists ai_events_created_idx on public.ai_events (created_at desc);
 alter table public.ai_events enable row level security;
+
+-- ============================================================================
+-- Credentials: earned, verifiable badges + track certificates for completed
+-- exercises. Rows are materialized (idempotent upsert) from real completions on
+-- the /achievements page; each row backs a public verify page at /c/<id> and a
+-- LinkedIn "Add to profile" credential. RLS lets owners read their own; the
+-- public verify page + OG image read via the service-role admin client.
+-- ============================================================================
+create table if not exists public.credentials (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  kind text not null,           -- 'exercise' | 'track'
+  ckey text not null,           -- module slug (exercise) or track key (track)
+  title text not null,          -- human-readable credential name (snapshot)
+  earned_at timestamptz not null default now(),
+  unique (user_id, kind, ckey)
+);
+create index if not exists credentials_user_idx on public.credentials (user_id, earned_at desc);
+alter table public.credentials enable row level security;
+create policy "credentials owner read" on public.credentials
+  for select using (auth.uid() = user_id);
