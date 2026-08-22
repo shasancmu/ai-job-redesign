@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import PlanView from "@/components/PlanView";
+import ReportReveal from "@/components/ReportReveal";
+import { usePredictGate } from "@/components/usePredictGate";
 
 // Generates the structured implementation plan (both halves). By default it
 // links to the stunning /plan/[code] page; with `inline` it renders the plan
@@ -15,7 +17,9 @@ export default function BuildPlan({
   grid,
   inline = false,
   initialPlan = null,
+  initialPrediction = null,
   onPlan,
+  onPrediction,
 }: {
   sessionId: string;
   code: string;
@@ -24,11 +28,14 @@ export default function BuildPlan({
   grid: Record<string, string[]>;
   inline?: boolean;
   initialPlan?: any;
+  initialPrediction?: any;
   onPlan?: (plan: any) => void;
+  onPrediction?: (p: any) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [plan, setPlan] = useState<any>(hasPlanContent(initialPlan) ? initialPlan : null);
   const [err, setErr] = useState<string | null>(null);
+  const gate = usePredictGate({ guideKey: "job-redesign", existing: initialPrediction, save: (p) => onPrediction?.(p), run: () => build(), revealLabel: "Build implementation plan" });
 
   const hasContent = ["search", "structure", "think", "translate", "lead", "own", "judge", "integrate"].some(
     (k) => (grid[k] || []).length > 0
@@ -59,6 +66,7 @@ export default function BuildPlan({
 
   return (
     <div className="space-y-5">
+      {gate.modal}
       <div className="card p-6 text-center">
         <div className="text-lg font-bold text-ink">Make it real</div>
         <p className="mx-auto mt-1 max-w-md text-sm text-slate2">
@@ -68,7 +76,7 @@ export default function BuildPlan({
         {err && <p className="mt-3 text-sm text-clay">{err}</p>}
         <div className="mt-4 flex flex-wrap justify-center gap-3">
           {!ready ? (
-            <button onClick={build} disabled={busy || !hasContent} className="btn-primary">
+            <button onClick={gate.start} disabled={busy || !hasContent} className="btn-primary">
               {busy ? "Building your plan…" : "✨ Build implementation plan"}
             </button>
           ) : (
@@ -86,7 +94,11 @@ export default function BuildPlan({
         </div>
       </div>
 
-      {inline && plan && <PlanView plan={plan} embedded />}
+      {inline && plan && (
+        <ReportReveal guideKey="job-redesign" prediction={gate.prediction} code={code}>
+          <PlanView plan={plan} embedded />
+        </ReportReveal>
+      )}
     </div>
   );
 }

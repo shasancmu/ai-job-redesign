@@ -80,7 +80,7 @@ export default function PlanView({ plan, code, embedded = false }: { plan: Plan;
       <section className="mx-auto max-w-5xl px-6 py-12">
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Human */}
-          <div>
+          <div data-guide="human">
             <ColumnHeader color={SAGE} title="You lead" sub="The value only you create" />
             <div className="mt-4 space-y-4">
               {plan.human.map((h, i) => (
@@ -98,7 +98,7 @@ export default function PlanView({ plan, code, embedded = false }: { plan: Plan;
           </div>
 
           {/* AI */}
-          <div>
+          <div data-guide="ai">
             <ColumnHeader color={GOLD} title="AI powers" sub="What you delegate, and how" />
             <div className="mt-4 space-y-4">
               {plan.ai.map((a, i) => (

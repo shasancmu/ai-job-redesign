@@ -39,6 +39,7 @@ export default function VoiceResumeRoom({ session, initialWorkspace, prefill, pr
       session={session}
       ws={ws}
       apiPath="/api/resume"
+      guideKey="resume"
       chatExtra={{ source }}
       reportExtra={{ source }}
       renderReport={(r) => <ResumeReport report={r} />}

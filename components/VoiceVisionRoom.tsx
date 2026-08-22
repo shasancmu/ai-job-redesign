@@ -14,6 +14,7 @@ export default function VoiceVisionRoom({ session, initialWorkspace }: { me?: st
       session={session}
       ws={ws}
       apiPath="/api/vision"
+      guideKey="vision"
       chatExtra={{ ctx }}
       reportExtra={{ ctx }}
       renderReport={(r) => <VisionReport report={r} org={ctx.name} />}

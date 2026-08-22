@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
+import ReportReveal from "@/components/ReportReveal";
+import { usePredictGate } from "@/components/usePredictGate";
 import { pickBestVoice } from "@/lib/voices";
 import { useVoices } from "@/components/useVoices";
 import VoicePicker from "@/components/VoicePicker";
@@ -22,6 +24,7 @@ export type VoiceInterviewConfig = {
   apiPath: string;
   chatExtra: Record<string, any>;
   reportExtra: Record<string, any>;
+  guideKey?: string;
   renderReport: (report: any, extra: any) => ReactNode;
   reportHref: (code: string) => string;
   reportLinkLabel: string;
@@ -60,6 +63,7 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
   }, []);
 
   const { voices, voiceName, voiceRef, chooseVoice } = useVoices(mutedRef);
+  const gate = usePredictGate({ guideKey: cfg.guideKey, existing: ws.canvas?.prediction || null, save: (p) => saveCanvas({ prediction: p }), run: () => buildReport(), revealLabel: cfg.buildButtonLabel });
 
   const recRef = useRef<any>(null);
   const finalRef = useRef("");
@@ -350,8 +354,10 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{cfg.reportPill}</span>
           <Link href="/dashboard" className="btn-ghost text-sm">Done</Link>
         </div>
-        {cfg.renderReport(report, reportExtraData)}
-        <Link href={cfg.reportHref(session.code)} className="btn-primary mt-4 block text-center">{cfg.reportLinkLabel}</Link>
+        <ReportReveal guideKey={cfg.guideKey} prediction={gate.prediction} code={session.code}>
+          {cfg.renderReport(report, reportExtraData)}
+        </ReportReveal>
+        <Link href={cfg.reportHref(session.code)} className="btn-primary mt-4 block text-center no-print">{cfg.reportLinkLabel}</Link>
       </main>
     );
   }
@@ -375,6 +381,7 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
 
   return (
     <div className="relative flex min-h-screen flex-col bg-paper">
+      {gate.modal}
       <header className="flex items-center justify-between px-6 py-3">
         <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Exit</Link>
         <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{cfg.headerPill}</span>
@@ -413,7 +420,7 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
 
       {phase !== "intro" && (
         <div className="flex flex-col items-center gap-2 px-6 pb-8">
-          <button onClick={buildReport} disabled={exchanges < 2} className="btn-dark px-6 py-2.5 text-sm disabled:opacity-40">
+          <button onClick={gate.start} disabled={exchanges < 2} className="btn-dark px-6 py-2.5 text-sm disabled:opacity-40">
             {exchanges < 2 ? "Answer a couple of questions first" : cfg.buildButtonLabel}
           </button>
           <span className="text-xs text-slate-400">{exchanges} answered</span>

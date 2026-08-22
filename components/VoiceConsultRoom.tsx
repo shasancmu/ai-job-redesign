@@ -13,6 +13,7 @@ export default function VoiceConsultRoom({ session, initialWorkspace }: { me?: s
       session={session}
       ws={ws}
       apiPath="/api/consult"
+      guideKey="consult"
       chatExtra={{ ctx: {} }}
       reportExtra={{ intake: {}, wms: { answers: {} }, eighty: {}, photos: [] }}
       renderReport={(r, extra) => <ConsultReport report={r} wms={extra} />}

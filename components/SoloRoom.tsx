@@ -155,7 +155,9 @@ export default function SoloRoom({
               jobDescription={ws.owner_job_description}
               grid={ws.grid || {}}
               initialPlan={ws.plan || null}
+              initialPrediction={ws.canvas?.prediction || null}
               onPlan={(plan) => update({ plan })}
+              onPrediction={(prediction) => update({ canvas: { ...(ws.canvas || {}), prediction } })}
             />
           </div>
         )}
