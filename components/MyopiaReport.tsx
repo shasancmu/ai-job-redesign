@@ -14,12 +14,12 @@ const TYPE_LABEL: Record<string, string> = {
 export default function MyopiaReport({ report, subjectWord = "business" }: { report: Report; subjectWord?: string }) {
   return (
     <div className="space-y-6">
-      {report.bottomLine && <BottomLine b={report.bottomLine} />}
+      <div data-guide="headline">{report.bottomLine && <BottomLine b={report.bottomLine} />}</div>
 
       <div className="eyebrow pt-1">The diagnosis</div>
 
       {/* Bundle of choices, as a vector */}
-      <Section title="Your bundle of choices">
+      <Section title="Your bundle of choices" anchor="bundle">
         <p className="text-sm leading-relaxed text-slate-600">{report.bundle?.summary}</p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {(report.bundle?.choices || []).map((c, i) => (
@@ -32,7 +32,7 @@ export default function MyopiaReport({ report, subjectWord = "business" }: { rep
       </Section>
 
       {/* How success narrowed you */}
-      <Section title="How success narrowed your world">
+      <Section title="How success narrowed your world" anchor="narrowed">
         <p className="text-sm leading-relaxed text-slate-600">{report.simplification}</p>
         {report.competencyTrap && (
           <div className="mt-3 rounded-2xl bg-amber-soft p-4">
@@ -43,7 +43,7 @@ export default function MyopiaReport({ report, subjectWord = "business" }: { rep
       </Section>
 
       {/* The three blind spots */}
-      <div>
+      <div data-guide="blindspots">
         <h2 className="eyebrow mb-2">Your three blind spots</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           <Blind icon="🧭" tone="text-sky" label="Spatial · distant places" body={report.spatial?.blindSpot} items={report.spatial?.examples} />
@@ -78,7 +78,7 @@ export default function MyopiaReport({ report, subjectWord = "business" }: { rep
       )}
 
       {/* Exploration plan */}
-      <Section title="Your exploration plan">
+      <Section title="Your exploration plan" anchor="plan">
         <p className="mb-3 text-xs text-slate-400">Design for exploration before you need it. Small, deliberate moves outside the boundary.</p>
         <div className="space-y-3">
           {(report.exploration || []).map((m, i) => (
@@ -115,9 +115,9 @@ function Blind({ icon, tone, label, body, items, itemLabel, note }: { icon: stri
   );
 }
 
-function Section({ title, children }: { title: string; children: any }) {
+function Section({ title, children, anchor }: { title: string; children: any; anchor?: string }) {
   return (
-    <div>
+    <div data-guide={anchor}>
       <h2 className="eyebrow mb-2">{title}</h2>
       <div className="card p-5">{children}</div>
     </div>

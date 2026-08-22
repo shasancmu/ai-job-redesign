@@ -12,7 +12,7 @@ export function TourButton({ className = "btn-ghost text-sm", label = "Take a to
 // A dependency-free coach-mark tour: dims the screen, spotlights one element at
 // a time via a box-shadow cutout, and floats a tooltip next to it. Auto-runs
 // once (localStorage), and replays when any element dispatches "app:start-tour".
-export default function Tour({ steps, storageKey, welcomeTitle, welcomeBody }: { steps: TourStep[]; storageKey: string; welcomeTitle: string; welcomeBody: string }) {
+export default function Tour({ steps, storageKey, welcomeTitle, welcomeBody, auto = true }: { steps: TourStep[]; storageKey: string; welcomeTitle: string; welcomeBody: string; auto?: boolean }) {
   const [stage, setStage] = useState<"off" | "welcome" | number>("off");
   const [rect, setRect] = useState<DOMRect | null>(null);
 
@@ -29,12 +29,14 @@ export default function Tour({ steps, storageKey, welcomeTitle, welcomeBody }: {
     if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [steps, finish]);
 
-  // Auto-run once, and allow replay via a window event.
+  // Auto-run once (unless auto is off — e.g. a walkthrough you open on demand),
+  // and allow replay via a window event.
   useEffect(() => {
+    if (!auto) return;
     let seen = "1";
     try { seen = localStorage.getItem(storageKey) || ""; } catch {}
     if (!seen) { const id = setTimeout(() => setStage("welcome"), 700); return () => clearTimeout(id); }
-  }, [storageKey]);
+  }, [storageKey, auto]);
 
   useEffect(() => {
     const start = () => setStage("welcome");
