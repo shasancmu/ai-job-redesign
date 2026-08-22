@@ -1,6 +1,7 @@
 "use client";
 
 import Tour, { TourButton } from "@/components/Tour";
+import CredentialMoment from "@/components/CredentialMoment";
 import { reportGuide, walkthroughSteps } from "@/lib/reportGuide";
 import type { Prediction } from "@/components/PredictReveal";
 
@@ -26,6 +27,8 @@ export default function ReportReveal({
 
   return (
     <>
+      <CredentialMoment code={code} />
+
       {prediction?.text && (
         <div data-guide="delta" className="mb-5 rounded-2xl border border-line bg-mist/60 p-4">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">You predicted</div>

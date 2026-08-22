@@ -9,6 +9,7 @@ import AccountMenu from "@/components/AccountMenu";
 import FacilitatorWelcome from "@/components/FacilitatorWelcome";
 import { titleCaseName } from "@/lib/name";
 import { MODULES } from "@/lib/modules";
+import { levelFor } from "@/lib/credentials";
 import Catalog from "@/components/Catalog";
 import SessionsPanel from "@/components/SessionsPanel";
 import LanguagePicker from "@/components/LanguagePicker";
@@ -127,6 +128,10 @@ export default async function Dashboard({
           : runs.some((s: any) => s.status === "done");
   }
 
+  // Level: how many exercises finished → status ladder (links to /achievements).
+  const credCount = MODULES.filter((m) => m.partner !== "group" && completed[m.slug]).length;
+  const level = levelFor(credCount);
+
   const t = makeT(await getServerLocale());
 
   // "Recommended for you" — from their onboarding segment + goal.
@@ -172,6 +177,17 @@ export default async function Dashboard({
             <h1 className="text-2xl">{t("dash.greeting", { name: profile?.display_name || "there" })}</h1>
             {streak.current > 0 && (
               <span className="rounded-full bg-mist px-2.5 py-0.5 text-xs font-medium text-slate2">🔥 {streak.current}-week streak</span>
+            )}
+            {level.title && (
+              <a
+                href="/achievements"
+                title="View your achievements"
+                className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-2.5 py-0.5 text-xs font-medium text-slate2 transition hover:border-slate-300"
+              >
+                <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#3F7A52" }} />
+                {level.title}
+                <span className="text-slate-400">· {credCount}</span>
+              </a>
             )}
           </div>
         </div>
