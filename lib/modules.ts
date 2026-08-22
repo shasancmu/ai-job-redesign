@@ -858,7 +858,8 @@ export type PillKey =
   | "entrepreneurship"
   | "innovation"
   | "deeptech"
-  | "negotiation";
+  | "negotiation"
+  | "research";
 
 // Topic pills: what an exercise is *about*. (How you run it — partner, AI, live,
 // voice, camera — is the separate FEATURES axis below.)
@@ -872,6 +873,7 @@ export const PILLS: { key: PillKey; label: string }[] = [
   { key: "innovation", label: "Innovation" },
   { key: "deeptech", label: "Deep Tech Innovation" },
   { key: "negotiation", label: "Negotiation" },
+  { key: "research", label: "Research" },
 ];
 
 const PILLS_OF: Record<string, PillKey[]> = {
@@ -920,6 +922,13 @@ const PILLS_OF: Record<string, PillKey[]> = {
   // Live
   benchmark: ["ai"],
   network: ["leadership"],
+  // Research & scholarship
+  "what-is-a-paper": ["research"],
+  "paper-structure": ["research"],
+  "making-points": ["research"],
+  "read-the-interaction": ["research"],
+  "publication-pipeline": ["research"],
+  "understand-a-paper": ["research"],
 };
 
 export function modulePills(slug: string): PillKey[] {
