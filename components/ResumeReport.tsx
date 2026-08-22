@@ -6,7 +6,7 @@ import BottomLine from "@/components/BottomLine";
 export default function ResumeReport({ report }: { report: Report }) {
   return (
     <div className="space-y-6">
-      {report.bottomLine && <BottomLine b={report.bottomLine} />}
+      <div data-guide="headline">{report.bottomLine && <BottomLine b={report.bottomLine} />}</div>
 
       {/* Make it yours: the authenticity guardrail, up top and unmissable */}
       <div className="rounded-2xl border border-amber/40 bg-amber-soft p-4">
@@ -17,7 +17,7 @@ export default function ResumeReport({ report }: { report: Report }) {
       </div>
 
       {report.summary && (
-        <Section title="Where your résumé stands">
+        <Section title="Where your résumé stands" anchor="standing">
           <p className="text-sm leading-relaxed text-slate-600">{report.summary}</p>
         </Section>
       )}
@@ -29,7 +29,7 @@ export default function ResumeReport({ report }: { report: Report }) {
       )}
 
       {(report.accomplishments || []).length > 0 && (
-        <Section title="New accomplishments to add">
+        <Section title="New accomplishments to add" anchor="accomplishments">
           <div className="space-y-3">
             {report.accomplishments.map((a, i) => (
               <div key={i} className="rounded-2xl border border-line bg-white p-4">
@@ -46,7 +46,7 @@ export default function ResumeReport({ report }: { report: Report }) {
       )}
 
       {(report.rewrites || []).length > 0 && (
-        <Section title="Lines to rewrite">
+        <Section title="Lines to rewrite" anchor="rewrites">
           <div className="space-y-3">
             {report.rewrites.map((r, i) => (
               <div key={i} className="rounded-2xl border border-line bg-white p-4">
@@ -96,9 +96,9 @@ function SkillCol({ label, tone, items }: { label: string; tone: string; items?:
   );
 }
 
-function Section({ title, children }: { title: string; children: any }) {
+function Section({ title, children, anchor }: { title: string; children: any; anchor?: string }) {
   return (
-    <div>
+    <div data-guide={anchor}>
       <h2 className="eyebrow mb-2">{title}</h2>
       <div className="card p-5">{children}</div>
     </div>

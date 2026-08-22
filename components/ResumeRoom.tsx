@@ -48,6 +48,7 @@ export default function ResumeRoom({
       ws={ws}
       apiPath="/api/resume"
       helpKey="resume"
+      guideKey="resume"
       extraBody={{ source }}
       renderReport={(r) => <ResumeReport report={r} />}
       reportHref={(c) => `/resume/${c}`}

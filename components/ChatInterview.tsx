@@ -6,9 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
 import ShareReport from "@/components/ShareReport";
 import InterviewHelper from "@/components/InterviewHelper";
-import PredictReveal, { type Prediction } from "@/components/PredictReveal";
-import Tour, { TourButton } from "@/components/Tour";
-import { reportGuide, walkthroughSteps } from "@/lib/reportGuide";
+import ReportReveal from "@/components/ReportReveal";
+import { usePredictGate } from "@/components/usePredictGate";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -50,9 +49,13 @@ export default function ChatInterview({
   const supabase = createClient();
   const [messages, setMessages] = useState<Msg[]>(ws.canvas?.interview_chat || []);
   const [report, setReport] = useState<any>(ws.canvas?.report || null);
-  const [prediction, setPrediction] = useState<Prediction | null>(ws.canvas?.prediction || null);
-  const [predicting, setPredicting] = useState(false);
-  const guide = reportGuide(guideKey);
+  const gate = usePredictGate({
+    guideKey,
+    existing: ws.canvas?.prediction || null,
+    save: (p) => { saveCanvas({ prediction: p }); },
+    run: () => build(),
+    revealLabel: buildLabel,
+  });
   const [input, setInput] = useState("");
   const [waiting, setWaiting] = useState(false);
   const [streaming, setStreaming] = useState("");
@@ -100,20 +103,6 @@ export default function ChatInterview({
     ask(next);
   }
 
-  // Predict-then-reveal: on the first build, capture the learner's own guess
-  // before the report generates. Skip if they've already predicted (revisiting)
-  // or the module has no guide.
-  function startBuild() {
-    if (guide?.predictPrompt && !prediction) { setErr(null); setPredicting(true); return; }
-    build();
-  }
-  async function onPredict(p: Prediction) {
-    setPrediction(p);
-    setPredicting(false);
-    try { await saveCanvas({ prediction: p }); } catch {}
-    build();
-  }
-
   async function build() {
     setBuilding(true); setErr(null);
     try {
@@ -127,7 +116,6 @@ export default function ChatInterview({
 
   // ---- Report ----
   if (report) {
-    const steps = guide ? walkthroughSteps(guide) : [];
     return (
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <header className="mb-6 flex items-center justify-between">
@@ -137,34 +125,10 @@ export default function ChatInterview({
             <Link href="/dashboard" className="btn-ghost text-sm">Done</Link>
           </div>
         </header>
-
-        {/* Predict-then-reveal: their own guess, held next to the result. */}
-        {prediction && (
-          <div data-guide="delta" className="mb-5 rounded-2xl border border-line bg-mist/60 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">You predicted</div>
-            <p className="mt-1 text-[15px] italic leading-relaxed text-slate-700">&ldquo;{prediction.text}&rdquo;</p>
-            <p className="mt-2 text-xs text-slate-400">Hold that next to what the diagnosis found below. The gap is the lesson.</p>
-          </div>
-        )}
-
-        {steps.length > 0 && (
-          <div className="mb-6 no-print">
-            <TourButton label="Walk me through this report →" className="btn-primary text-sm" />
-          </div>
-        )}
-
-        {renderReport(report)}
+        <ReportReveal guideKey={guideKey} prediction={gate.prediction} code={session.code}>
+          {renderReport(report)}
+        </ReportReveal>
         <Link href={reportHref(session.code)} className="btn-primary mt-6 block text-center no-print">Open the full write-up →</Link>
-
-        {steps.length > 0 && (
-          <Tour
-            steps={steps}
-            storageKey={`walk-${guideKey}-${session.code}`}
-            auto={false}
-            welcomeTitle="A quick walkthrough"
-            welcomeBody="I'll point out what each part of this tells you, and how it was built from your own answers."
-          />
-        )}
       </main>
     );
   }
@@ -172,19 +136,11 @@ export default function ChatInterview({
   // ---- Chat ----
   return (
     <div className="mx-auto flex h-[100dvh] max-w-2xl flex-col">
-      {predicting && guide && (
-        <PredictReveal
-          prompt={guide.predictPrompt}
-          placeholder={guide.predictPlaceholder}
-          ratingLabel={guide.ratingLabel}
-          onSubmit={onPredict}
-          revealLabel={buildLabel + " →"}
-        />
-      )}
+      {gate.modal}
       <header className="flex items-center justify-between border-b border-line px-4 py-3">
         <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Exit</Link>
         <span className="text-sm font-semibold text-ink">{chatTitle}</span>
-        <button onClick={startBuild} disabled={answered < 3 || building} className="btn-dark px-3 py-1.5 text-xs disabled:opacity-40">{building ? buildingLabel : answered < 3 ? "Keep going" : buildLabel}</button>
+        <button onClick={gate.start} disabled={answered < 3 || building} className="btn-dark px-3 py-1.5 text-xs disabled:opacity-40">{building ? buildingLabel : answered < 3 ? "Keep going" : buildLabel}</button>
       </header>
 
       <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto px-4 py-5">
