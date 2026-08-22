@@ -97,8 +97,8 @@ export default async function Home() {
               debrief. You bring the judgment.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/login" className="btn-primary">
-                Start your first exercise <span aria-hidden>→</span>
+              <Link href="/try" className="btn-primary">
+                Get your 90-second read <span aria-hidden>→</span>
               </Link>
             </div>
             <div className="mt-4">
@@ -238,7 +238,7 @@ export default async function Home() {
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-[2.6rem]">Start with the thing you&apos;re actually working on.</h2>
             <p className="mx-auto mt-3 max-w-xl text-lg text-white/70">Create an account and finish your first exercise in minutes. It&apos;s free to start.</p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Link href="/login?mode=signup" className="btn-primary">Start your first exercise <span aria-hidden>→</span></Link>
+              <Link href="/try" className="btn-primary">Get your 90-second read <span aria-hidden>→</span></Link>
               <ShareApp />
               <Link href="/for-teams" className="rounded-full px-5 py-2.5 text-sm font-semibold text-white/85 hover:text-white">Running this for a team? →</Link>
             </div>

@@ -1452,6 +1452,39 @@ export async function coachReply(system: string, user: string, temperature = 0.6
   );
 }
 
+// The 90-second onboarding "quick take": from one line about what someone does
+// all day plus their own guess at their AI exposure, hand back an uncannily
+// specific, slightly surprising read. This is the front-door aha, so the whole
+// value hinges on it being SPECIFIC, never a horoscope.
+const QUICK_TAKE_SYSTEM = `You give someone a 20-second, uncannily specific read on how AI is changing THEIR job, from a single sentence about what they do all day and their own guess for how much of it AI could already do.
+
+Return STRICT JSON only:
+{
+  "headline": "one punchy, specific, slightly provocative sentence naming the real tension in their work. Reference what they actually described.",
+  "aiPart": "one sentence: the specific part of THEIR work AI can already do well today, concrete and tied to what they said.",
+  "yourEdge": "one sentence: the part that is now their real job, the judgment, taste, relationships, or calls only a person brings here, concrete.",
+  "nudge": "one short sentence reacting to their guess: if they guessed low, note they're likely underestimating; if high, note what's safer than they think."
+}
+
+Rules: Be specific to what they actually said. NEVER generic ("AI can help with routine tasks", "focus on strategic work") and no lists or hedging. Warm and sharp, like a clear-eyed friend. If their description is too vague to say anything real, set headline to a friendly one-line re-ask like "Tell me one concrete thing you did today" and keep the other fields short.`;
+
+export type QuickTake = { headline: string; aiPart: string; yourEdge: string; nudge: string };
+
+export async function quickTakeAI(input: { role: string; share: string }): Promise<QuickTake> {
+  const user = `What they do all day: ${input.role}\nTheir own guess for how much of that AI could already do: ${input.share}`;
+  const raw = await complete(
+    [{ role: "system", content: QUICK_TAKE_SYSTEM }, { role: "user", content: user }],
+    { temperature: 0.7, maxTokens: 500, json: true }
+  );
+  const j = extractJson(raw);
+  return {
+    headline: String(j?.headline || ""),
+    aiPart: String(j?.aiPart || ""),
+    yourEdge: String(j?.yourEdge || ""),
+    nudge: String(j?.nudge || ""),
+  };
+}
+
 // ============================================================================
 // Career X-ray, task-based AI-exposure analysis of a resume or job description.
 // ============================================================================
