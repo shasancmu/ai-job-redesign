@@ -103,14 +103,18 @@ export default function LessonShell({
       </div>
 
       {/* Bottom nav */}
-      <div className="mt-3 flex items-center justify-between gap-3 border-t border-line pt-3">
-        <button onClick={() => setI((k) => clamp(k - 1))} disabled={i === 0} className="btn-ghost text-sm disabled:opacity-30">← Back</button>
-        <span className="text-xs tabular-nums text-slate-400">{i + 1} / {n}</span>
-        {last ? (
-          <button onClick={finish} disabled={busy} className="btn-primary whitespace-nowrap text-sm">{busy ? "Saving…" : next ? "Next module →" : "Finish →"}</button>
-        ) : (
-          <button onClick={() => setI((k) => clamp(k + 1))} className="btn-primary text-sm">Next →</button>
-        )}
+      <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-t border-line pt-3">
+        <div className="justify-self-start">
+          <button onClick={() => setI((k) => clamp(k - 1))} disabled={i === 0} className="whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium text-slate2 transition hover:text-ink disabled:opacity-30">← Back</button>
+        </div>
+        <span className="whitespace-nowrap text-xs tabular-nums text-slate-400">{i + 1} / {n}</span>
+        <div className="justify-self-end">
+          {last ? (
+            <button onClick={finish} disabled={busy} className="btn-primary whitespace-nowrap text-sm">{busy ? "Saving…" : next ? "Next module →" : "Finish →"}</button>
+          ) : (
+            <button onClick={() => setI((k) => clamp(k + 1))} className="btn-primary whitespace-nowrap text-sm">Next →</button>
+          )}
+        </div>
       </div>
 
       {/* Tutor bottom sheet */}
