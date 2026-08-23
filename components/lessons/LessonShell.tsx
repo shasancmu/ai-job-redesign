@@ -92,11 +92,13 @@ export default function LessonShell({
 
       {/* Slide viewport — a horizontal track that slides between panels */}
       <div className="relative mt-2 min-h-0 flex-1 overflow-hidden" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        <div className="flex h-full transition-transform duration-300 ease-out motion-reduce:transition-none" style={{ transform: `translateX(-${i * 100}%)` }}>
+        <div className="absolute inset-0 flex transition-transform duration-300 ease-out motion-reduce:transition-none" style={{ transform: `translateX(-${i * 100}%)` }}>
           {slides.map((group, k) => (
-            <div key={k} className="h-full w-full flex-none overflow-y-auto pb-4" aria-hidden={k !== i}>
-              {k === 0 && <h1 className="pt-2 text-2xl font-bold leading-tight text-ink sm:text-3xl">{title}</h1>}
-              <article className="lesson mt-4 space-y-4 text-[15px] leading-relaxed text-slate-700">{group}</article>
+            <div key={k} className="h-full w-full flex-none overflow-y-auto" aria-hidden={k !== i}>
+              <div className="flex min-h-full flex-col justify-center py-4">
+                {k === 0 && <h1 className="text-2xl font-bold leading-tight text-ink sm:text-3xl">{title}</h1>}
+                <article className="lesson mt-4 space-y-4 text-[15px] leading-relaxed text-slate-700">{group}</article>
+              </div>
             </div>
           ))}
         </div>
