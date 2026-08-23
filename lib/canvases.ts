@@ -956,12 +956,236 @@ const RESEARCH_TEAM: CanvasDef = {
   },
 };
 
+// ===========================================================================
+// The PhD path — getting into, through, and out of a business PhD.
+// From the "Getting in and out of a PhD program" chapters of Hasan's
+// "Research, Strategy" and his strategy lecture.
+// ===========================================================================
+
+// (u) Is a business PhD for you?
+const PHD_WHAT: CanvasDef = {
+  slug: "what-is-a-phd",
+  exercise: "phd-what",
+  name: "Is a Business PhD for You?",
+  subjectLabel: "goal",
+  setupTitle: "What draws you to a PhD",
+  setupHint: "Why you're considering a business PhD, and what you want from it. Your AI partner will give you an honest read on the fit.",
+  setupPlaceholder: "e.g. I love research and want to become a professor, but I'm not sure what a PhD actually involves",
+  interviewSystem: `You help someone decide whether a business PhD is right for them, grounded in Hasan's "Research, Strategy". Key truths to convey honestly:
+- A business PhD is RESEARCH TRAINING to become a professor. It is not an advanced MBA and not a credential for industry. You produce KNOWLEDGE.
+- The two tangible products of the job are PAPERS and PRESENTATIONS. Research is a process, like a job — even like making widgets — that you learn to run.
+- It is a five-to-six-year, funded apprenticeship (~$300k the school invests in you), and the career after is teaching plus research.
+- The path is hard and the odds are humbling (publishing is a lottery), so the people who thrive genuinely want to produce research, not just hold the title.
+Interview to surface what they think it is, what they actually want, and whether the reality fits. Ask ONE short, open question at a time; be candid, not discouraging.`,
+  draftSystem: `You give an honest read on whether a business PhD fits this person. Correct any misconception about what it is; state the reality plainly (research training, the two products, the funded apprenticeship, the odds); and judge the fit against what they actually want. If it is not a fit, say so and name what would be a better path. No hype.`,
+  fields: [
+    { key: "think_it_is", label: "What you think it is", hint: "your current picture of a business PhD", kind: "long", group: "The picture", accent: "gold" },
+    { key: "what_it_is", label: "What it actually is", hint: "research training to become a professor; the two products; the apprenticeship", kind: "long", group: "The reality", accent: "sage" },
+    { key: "what_you_want", label: "What you want from it", hint: "the outcome you're really after", kind: "long", group: "The picture", accent: "plum" },
+    { key: "reality", label: "The reality check", hint: "the grind, the odds, and the payoff", kind: "long", group: "The reality", accent: "clay" },
+    { key: "fit", label: "The fit, honestly", hint: "whether it matches what you want, and what would be a better path if not", kind: "long", group: "The call", accent: "gold" },
+  ],
+  hasVerdict: { label: "Is a PhD the right path for you?" },
+  about:
+    'Hasan, "Research, Strategy": a business PhD is research training to become a professor — you produce knowledge, and the two products are papers and presentations. It is a funded, multi-year apprenticeship, and the people who thrive genuinely want to do research.',
+  groupNotes: {
+    "The picture": "What you think a PhD is, and what you actually want from it.",
+    "The reality": "What it really is, and the honest grind and odds.",
+    "The call": "Whether it fits — and a better path if it does not.",
+  },
+};
+
+// (v) Choose a PhD program
+const PHD_CHOOSE: CanvasDef = {
+  slug: "choose-phd-program",
+  exercise: "phd-choose",
+  name: "Choose a PhD Program",
+  subjectLabel: "programs",
+  setupTitle: "The programs you're weighing",
+  setupHint: "Your area, and the programs you're considering. Your AI partner will help you judge them on what actually matters.",
+  setupPlaceholder: "e.g. Strategy PhD; considering schools A, B, and C; interested in entrepreneurship and AI",
+  interviewSystem: `You help someone judge business PhD programs, grounded in Hasan's "Research, Strategy". What actually matters, in order:
+- PLACEMENT is the number-one signal: where do this program's graduates get jobs? Top programs place students at top departments, because research-active professors train students who carry their approach to the very top — and getting there means convincing another department to make a multi-million-dollar bet on the student. A program's job-market record predicts your own outcome better than its overall prestige.
+- FIT WITH FACULTY: are there research-active professors in YOUR area who could advise you and put their name behind you?
+- FUNDING & SUPPORT: five to six years guaranteed, plus real mentoring (the program invests ~$300k in you).
+- METHODS TRAINING, CULTURE, and the COHORT you'll learn alongside.
+Interview about their area and the programs they're weighing. Ask ONE short question at a time.`,
+  draftSystem: `You help judge PhD programs on placement first, then faculty fit, funding, methods, and culture. Score each dimension 0-100 where comparison is possible. Be blunt that placement record, not general prestige, is the signal that predicts their outcome. Recommend the best fit and why.`,
+  fields: [
+    { key: "area", label: "Your area", hint: "the research area and advisors you'd want", kind: "long", group: "You", accent: "sage" },
+    { key: "placement", label: "Placement record", hint: "where the program's graduates actually get jobs — the #1 signal", kind: "long", group: "What matters", accent: "gold" },
+    { key: "faculty", label: "Faculty fit", hint: "research-active professors in your area who could advise you", kind: "long", group: "What matters", accent: "sage" },
+    { key: "funding", label: "Funding & support", hint: "years guaranteed, mentoring, resources", kind: "long", group: "What matters", accent: "plum" },
+    { key: "culture", label: "Culture & cohort", hint: "the environment and the people you'd learn alongside", kind: "long", group: "What matters", accent: "clay" },
+    { key: "call", label: "The call", hint: "the best fit for you, and why", kind: "long", group: "The call", accent: "gold" },
+  ],
+  ratings: [
+    { key: "placement", label: "Placement" },
+    { key: "faculty", label: "Faculty fit" },
+    { key: "funding", label: "Funding" },
+    { key: "culture", label: "Culture" },
+  ],
+  hasVerdict: { label: "Which program, and why" },
+  about:
+    'Hasan, "Research, Strategy": judge a PhD program on PLACEMENT above all — where its graduates get jobs predicts your outcome better than prestige — then faculty fit in your area, funding, methods, and culture.',
+  groupNotes: {
+    "You": "Your area and the advisors you would want.",
+    "What matters": "Placement first, then faculty fit, funding, and culture.",
+    "The call": "The best fit for you.",
+  },
+};
+
+// (w) Get into a PhD program — from the committee's side
+const PHD_APPLY: CanvasDef = {
+  slug: "phd-application",
+  exercise: "phd-apply",
+  name: "Get Into a PhD Program",
+  subjectLabel: "application",
+  setupTitle: "Your PhD application",
+  setupHint: "Where you are in applying. Your AI partner will help you build it, and see it from the admissions committee's side.",
+  setupPlaceholder: "e.g. Applying to strategy PhDs; I have a finance background and one RA project",
+  interviewSystem: `You help someone get into a business PhD by showing them the ADMISSIONS COMMITTEE'S problem, from Hasan's "Research, Strategy". The committee is de-risking an investment: they will spend ~$300k on you, betting you will become a researcher who publishes 5-6 papers in 8-10 years and gets tenure — and publishing is a lottery (3-7% per paper), so P(five for five) is basically zero. The only way to make that bet pay off is a candidate with high E[p] (quality: well-trained, creative, capable of genuinely good research) AND high E[n] (drive: someone who WILL write, works hard — high n conditional on high p is simply who they are). So everything in the application should SIGNAL E[p] and E[n]:
+- Evidence of research ability (E[p]): an RA-ship, a working paper, a strong writing sample — the writing sample is the best single signal of p.
+- Evidence of drive (E[n]): a track record of finishing hard things, quantitative and methods preparation (math, coding, statistics).
+- Letters from RESEARCHERS who can speak to your research potential, not just your grades.
+- A research statement that shows you think like a researcher: a real question and why it matters.
+- FIT: specific faculty whose work you know, and who could advise you.
+Interview to build the application and pressure-test the signals. Ask ONE short question at a time.`,
+  draftSystem: `You assess a PhD application from the committee's seat. Frame it as their bet on E[p] (quality) and E[n] (drive). Name their strongest evidence of each, the weakest signal to shore up, the faculty fit, and the one move that would most strengthen the application. Be honest about how the committee will read it.`,
+  fields: [
+    { key: "the_bet", label: "What the committee is betting on", hint: "high E[p] (quality) and E[n] (drive) — a future researcher who will publish", kind: "long", group: "Their view", accent: "gold" },
+    { key: "evidence_p", label: "Your evidence of research ability (E[p])", hint: "RA work, a working paper, the writing sample (the best signal)", kind: "long", group: "Your signals", accent: "sage" },
+    { key: "evidence_n", label: "Your evidence of drive (E[n])", hint: "finishing hard things, math and methods prep", kind: "long", group: "Your signals", accent: "sage" },
+    { key: "fit", label: "The fit", hint: "specific faculty whose work you know and who could advise you", kind: "long", group: "Your signals", accent: "plum" },
+    { key: "statement", label: "Your research statement's core", hint: "a real question, and why it matters", kind: "long", group: "Your signals", accent: "gold" },
+    { key: "shore_up", label: "The gaps to close", hint: "the weakest signal, and how to strengthen it before you apply", kind: "list", group: "The move", accent: "clay" },
+  ],
+  hasVerdict: { label: "How strong is your bet, from the committee's seat?" },
+  about:
+    'Hasan, "Research, Strategy": admissions committees de-risk a ~$300k investment by predicting whether you will become a researcher who publishes and earns tenure. They read the whole application as evidence of E[p] (quality) and E[n] (drive) — so signal both.',
+  groupNotes: {
+    "Their view": "The committee is betting on your future research productivity.",
+    "Your signals": "Everything you submit is evidence of quality and drive.",
+    "The move": "The weakest signal to strengthen before you apply.",
+  },
+};
+
+// (x) How a PhD works
+const PHD_STRUCTURE: CanvasDef = {
+  slug: "phd-structure",
+  exercise: "phd-structure",
+  name: "How a PhD Works",
+  subjectLabel: "path",
+  setupTitle: "Where you are on the path",
+  setupHint: "Just starting, or mid-program. Your AI partner will map the phases and what to nail in the one you're in.",
+  setupPlaceholder: "e.g. Second-year strategy PhD, finishing coursework, looking for a dissertation topic",
+  interviewSystem: `You orient someone to the STRUCTURE of a business PhD, from Hasan's "Research, Strategy". The phases, roughly:
+- COURSEWORK (years 1-2): methods, theory, and seminars that build your toolkit — plus COMPREHENSIVE / QUALIFYING EXAMS.
+- The QUALIFYING / SECOND-YEAR PAPER: your first real research, and where you find an ADVISOR.
+- The RESEARCH phase: multiple projects, building a pipeline, developing the dissertation.
+- The JOB-MARKET PAPER: the single best paper that becomes your calling card.
+- The JOB MARKET: applications, the job talk, fly-outs, and placement.
+Each phase has a job: coursework builds the toolkit; the qualifying paper proves you can do research; the JMP proves you can do it at the level a top department will bet on. Interview about where they are and what is next. Ask ONE short question at a time.`,
+  draftSystem: `You map a PhD as phases (coursework and comps, qualifying paper and advisor, research and pipeline, job-market paper, job market), say what each demands, locate where this person is, and name the next milestone and how to hit it. Concrete to their situation.`,
+  fields: [
+    { key: "phases", label: "The phases", hint: "coursework → comps → qualifying paper → research → JMP → job market", kind: "list", group: "The map", accent: "sage" },
+    { key: "where_now", label: "Where you are now", hint: "the phase you're in", kind: "long", group: "You", accent: "gold" },
+    { key: "phase_job", label: "The job of your phase", hint: "what this phase is really for", kind: "long", group: "You", accent: "plum" },
+    { key: "next_milestone", label: "Your next milestone", hint: "advisor, first paper, JMP — whichever is next", kind: "long", group: "The move", accent: "clay" },
+    { key: "how", label: "How to hit it", hint: "the concrete moves for the next few months", kind: "list", group: "The move", accent: "gold" },
+  ],
+  hasVerdict: { label: "Your next milestone, and how to hit it" },
+  about:
+    'Hasan, "Research, Strategy": a PhD moves through phases — coursework and comps, a qualifying paper and finding an advisor, the research pipeline, the job-market paper, and the job market — each with its own job to accomplish.',
+  groupNotes: {
+    "The map": "The phases of the degree, end to end.",
+    "You": "Where you are, and what your phase is really for.",
+    "The move": "The next milestone and how to reach it.",
+  },
+};
+
+// (y) Succeed in your PhD
+const PHD_SUCCEED: CanvasDef = {
+  slug: "phd-succeed",
+  exercise: "phd-succeed",
+  name: "Succeed in Your PhD",
+  subjectLabel: "PhD",
+  setupTitle: "Your PhD, honestly",
+  setupHint: "Where you're thriving and where you're stuck. Your AI partner will find the highest-leverage change.",
+  setupPlaceholder: "e.g. I have ideas but I'm isolated, rarely on campus, and haven't finished a paper",
+  interviewSystem: `You help a PhD student succeed, grounded in the "Getting Out of a PhD Program" advice in Hasan's "Research, Strategy". The core lessons:
+- The two tangible products are PAPERS and PRESENTATIONS. Writing good papers requires reading good papers; giving good talks requires going to talks.
+- VISIBILITY matters (the visibility hypothesis): be on campus, present in the intellectual life. Attend talks AND give them. The "mindless" chitchat carries tips, gossip, and the network links that guide you.
+- TAKE ADVICE, explicit and implicit — model yourself after the best students in the cohorts above you. Do not reinvent the wheel.
+- Work consistently (a real 5-6 hours a day beats heroic bursts), and manage your ADVISOR relationship deliberately.
+- The students who do worst are absent, isolated, and ignore advice.
+Interview about their situation. Ask ONE short question at a time; find the pattern, not a checklist.`,
+  draftSystem: `You diagnose a PhD student's trajectory and name the highest-leverage change. Cover the two products (papers, presentations), visibility, the advisor relationship, who to model, and the work pattern. Be specific and honest about what is holding them back; end on the single change that would most raise their trajectory.`,
+  fields: [
+    { key: "products", label: "Papers & presentations", hint: "where you stand on the two tangible products", kind: "long", group: "The work", accent: "sage" },
+    { key: "visibility", label: "Visibility", hint: "are you on campus, in the intellectual life, giving and attending talks?", kind: "long", group: "The habits", accent: "gold" },
+    { key: "advisor", label: "Your advisor relationship", hint: "how you manage it — the most important one you have", kind: "long", group: "The habits", accent: "plum" },
+    { key: "model", label: "Who to model", hint: "the best students in the cohorts above you", kind: "long", group: "The habits", accent: "sage" },
+    { key: "biggest_change", label: "The one change", hint: "the highest-leverage thing to fix", kind: "long", group: "The move", accent: "clay" },
+  ],
+  hasVerdict: { label: "The change that would most raise your trajectory" },
+  about:
+    'From the "Getting Out of a PhD Program" advice in Hasan\'s "Research, Strategy": the two products are papers and presentations; visibility and being present matter; take advice and model the best students above you; and work consistently rather than in heroic bursts.',
+  groupNotes: {
+    "The work": "Your two tangible products: papers and presentations.",
+    "The habits": "Visibility, the advisor relationship, and modeling the best.",
+    "The move": "The single highest-leverage change.",
+  },
+};
+
+// (z) Land an academic job
+const PHD_PLACEMENT: CanvasDef = {
+  slug: "phd-placement",
+  exercise: "phd-placement",
+  name: "Land an Academic Job",
+  subjectLabel: "job market",
+  setupTitle: "Your job-market paper and market",
+  setupHint: "The paper you'll go on the market with. Your AI partner will judge whether it's a bet a top department will make.",
+  setupPlaceholder: "e.g. My JMP on how A/B testing changes which startups scale; targeting strategy groups",
+  interviewSystem: `You help a PhD student land an academic job, grounded in Hasan's "Research, Strategy" and his strategy lecture. The core:
+- Your JOB-MARKET PAPER is the calling card. A hiring department is making a 2 to 2.5 million dollar bet on you, so the JMP must signal high E[p] (quality) and be backed by E[n] (a pipeline of other work). It must be:
+  - IMPORTANT: it solves a real, pressing problem — adults care.
+  - INTERESTING: it is novel and non-obvious, deep enough to sustain a long conversation.
+  - AMBITIOUS: very few people could have done it — it took rare data, skill, or creativity.
+- The rest of the packet supports the bet: the CV and a pipeline of projects (E[n]), research and teaching statements, and references who vouch that you will succeed.
+- The JOB TALK must land, and you target schools where the fit and the level are right.
+Interview about their JMP and market. Ask ONE short question at a time.`,
+  draftSystem: `You judge whether a job-market paper is a bet a top department will make. Score it on Important, Interesting, and Ambitious 0-100. Name the pipeline behind it (E[n]), the packet and talk, target schools, and the one move that would most strengthen the case. Honest and specific.`,
+  fields: [
+    { key: "jmp", label: "Your job-market paper", hint: "the calling card, in one line", kind: "long", group: "The paper", accent: "sage" },
+    { key: "important", label: "Important — do adults care?", hint: "the real, pressing problem it solves", kind: "long", group: "The three tests", accent: "sage" },
+    { key: "interesting", label: "Interesting — novel and deep?", hint: "why it's non-obvious and worth a long conversation", kind: "long", group: "The three tests", accent: "gold" },
+    { key: "ambitious", label: "Ambitious — could few do it?", hint: "the rare data, skill, or creativity it took", kind: "long", group: "The three tests", accent: "plum" },
+    { key: "pipeline", label: "The pipeline behind it (E[n])", hint: "the other projects that show you will keep producing", kind: "long", group: "The bet", accent: "sage" },
+    { key: "packet", label: "The packet, talk, and targets", hint: "CV, statements, references, the job talk, and which schools", kind: "list", group: "The bet", accent: "gold" },
+  ],
+  ratings: [
+    { key: "important", label: "Important" },
+    { key: "interesting", label: "Interesting" },
+    { key: "ambitious", label: "Ambitious" },
+  ],
+  hasVerdict: { label: "Is your JMP a bet a top department will make?" },
+  about:
+    'Hasan, "Research, Strategy" and his strategy lecture: an academic job is won on the job-market paper — it must be Important (adults care), Interesting (novel, non-obvious), and Ambitious (few could do it) — backed by a pipeline, because a department is making a multi-million-dollar bet on you.',
+  groupNotes: {
+    "The paper": "The job-market paper, your calling card.",
+    "The three tests": "Important, Interesting, Ambitious.",
+    "The bet": "The pipeline, packet, talk, and targets that support the hire.",
+  },
+};
+
 export const CANVASES: CanvasDef[] = [
   FOURA, SCORECARD, VENTURE, GAS, OCFIT, EXPERIMENT, DEEPTECH,
   PAPER_IDEA, PAPER_STRUCTURE, PAPER_POINTS, GOODNESS,
   REG_TABLES, RESEARCH_GRAPHS, LIT_REVIEW,
   DATA_MOAT, DATA_STRATEGY, IDENTIFICATION, REFEREE, RNR,
   JOURNAL_FIT, THEORY, ABSTRACT, RESEARCH_SYSTEM, RESEARCH_TEAM,
+  PHD_WHAT, PHD_CHOOSE, PHD_APPLY, PHD_STRUCTURE, PHD_SUCCEED, PHD_PLACEMENT,
 ];
 
 export function canvasByExercise(exercise: string): CanvasDef | undefined {

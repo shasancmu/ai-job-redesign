@@ -37,7 +37,7 @@ export function computeStreak(timestamps: (string | number | Date)[]): { current
 export function artifactHref(exercise: string, code: string): string {
   if (exercise === "workflow" || exercise === "workflow-solo") return `/workflow-plan/${code}`;
   if (exercise === "solo") return `/plan/${code}`;
-  if (["gas", "ocfit", "experiment", "four-a", "scorecard", "venture", "deeptech", "paper-idea", "paper-structure", "paper-points", "research-quality", "reg-tables", "research-graphs", "lit-review", "vrino", "data-strategy", "identification", "referee", "rnr", "journal-fit", "theory", "abstract", "research-system", "research-team"].includes(exercise)) return `/canvas/${code}`;
+  if (["gas", "ocfit", "experiment", "four-a", "scorecard", "venture", "deeptech", "paper-idea", "paper-structure", "paper-points", "research-quality", "reg-tables", "research-graphs", "lit-review", "vrino", "data-strategy", "identification", "referee", "rnr", "journal-fit", "theory", "abstract", "research-system", "research-team", "phd-what", "phd-choose", "phd-apply", "phd-structure", "phd-succeed", "phd-placement"].includes(exercise)) return `/canvas/${code}`;
   if (exercise === "interaction") return `/interaction/${code}`;
   if (exercise === "career-xray" || exercise === "jd-xray") return `/career/${code}`;
   if (exercise === "career-roadmap") return `/roadmap/${code}`;
@@ -93,6 +93,12 @@ const NEXT_AFTER: Record<string, string> = {
   "revise-resubmit": "journal-fit",
   "journal-fit": "research-system",
   "research-system": "research-team",
+  // The PhD path.
+  "what-is-a-phd": "choose-phd-program",
+  "choose-phd-program": "phd-application",
+  "phd-application": "phd-structure",
+  "phd-structure": "phd-succeed",
+  "phd-succeed": "phd-placement",
 };
 
 export function nextStep(completed: Set<string>, recommended: string[], valid: Set<string>): string | null {

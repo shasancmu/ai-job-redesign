@@ -81,7 +81,13 @@ export type ModuleDef = {
     | "theory"
     | "abstract"
     | "research-system"
-    | "research-team"; // which room engine renders it
+    | "research-team"
+    | "phd-what"
+    | "phd-choose"
+    | "phd-apply"
+    | "phd-structure"
+    | "phd-succeed"
+    | "phd-placement"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -1010,6 +1016,102 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_RESEARCH",
     forSale: false,
   },
+  {
+    slug: "what-is-a-phd",
+    exercise: "phd-what",
+    name: "Is a Business PhD for You?",
+    tagline: "An honest read on what a business PhD actually is, research training to become a professor, and whether it fits what you want.",
+    description:
+      "The orientation, from the getting-in-and-out-of-a-PhD chapters of Research, Strategy. A business PhD is research training to become a professor, not an advanced MBA: you produce knowledge, the two tangible products are papers and presentations, and it's a five-to-six-year funded apprenticeship followed by a career of teaching and research. An AI partner interviews you about why you're drawn to it and what you want, then gives a candid read on the reality, the odds, and whether the path fits you, or what would be a better one.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 12,
+    ai: true,
+    emoji: "🎓",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "choose-phd-program",
+    exercise: "phd-choose",
+    name: "Choose a PhD Program",
+    tagline: "Judge programs on what actually matters: placement above all, then faculty fit in your area, funding, and culture.",
+    description:
+      "How to tell which PhD program is good, from Research, Strategy. The number-one signal is placement, where a program's graduates actually get jobs, because top programs place students at top departments and that predicts your outcome better than general prestige. An AI partner helps you weigh your options on placement, then faculty fit in your area, funding and support, and culture and cohort, and calls the best fit for you.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 14,
+    ai: true,
+    emoji: "🔎",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "phd-application",
+    exercise: "phd-apply",
+    name: "Get Into a PhD Program",
+    tagline: "Build your application by seeing it from the committee's side: they're betting ~$300k that you'll become a researcher who publishes.",
+    description:
+      "How to apply, seen from the admissions committee's seat, from Research, Strategy. The committee is de-risking a ~$300k investment: they're betting you'll become a researcher who publishes 5-6 papers and earns tenure, and since publishing is a lottery, they need a candidate with high E[p] (quality) and E[n] (drive). An AI partner helps you build the application so every part, the writing sample, research experience, methods prep, letters, statement, and faculty fit, signals both, and names the weakest signal to shore up before you apply.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 16,
+    ai: true,
+    emoji: "📨",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "phd-structure",
+    exercise: "phd-structure",
+    name: "How a PhD Works",
+    tagline: "Map the phases, coursework, comps, qualifying paper, research, job-market paper, job market, and nail the one you're in.",
+    description:
+      "The structure of a business PhD, from Research, Strategy. It moves through phases, each with its own job: coursework and comprehensive exams build the toolkit; a qualifying paper and an advisor prove you can do research; the research pipeline develops the dissertation; the job-market paper becomes your calling card; then the job market. An AI partner maps the path, locates where you are, and names your next milestone and how to hit it.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 12,
+    ai: true,
+    emoji: "🗺️",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "phd-succeed",
+    exercise: "phd-succeed",
+    name: "Succeed in Your PhD",
+    tagline: "The habits that separate thriving students: papers and presentations, visibility, taking advice, and modeling the best above you.",
+    description:
+      "How to succeed, from the getting-out-of-a-PhD advice in Research, Strategy. The two tangible products are papers and presentations; visibility matters, be on campus and in the intellectual life, attend talks and give them; take advice and model the best students in the cohorts above you; and work consistently rather than in heroic bursts. An AI partner diagnoses your trajectory and names the single highest-leverage change.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 14,
+    ai: true,
+    emoji: "📈",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "phd-placement",
+    exercise: "phd-placement",
+    name: "Land an Academic Job",
+    tagline: "Judge your job-market paper the way a hiring department will: Important, Interesting, Ambitious, backed by a pipeline.",
+    description:
+      "How to get a good placement, from Research, Strategy and the strategy lecture. Your job-market paper is the calling card, and a department is making a $2 to 2.5 million bet on you, so the JMP must be Important (adults care), Interesting (novel and non-obvious), and Ambitious (few could do it), backed by a pipeline of other work. An AI partner scores your JMP on the three tests, weighs the packet, talk, references, and targets, and names the one move that would most strengthen the case.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 16,
+    ai: true,
+    emoji: "🏛️",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
 ];
 
 // The all-access bundle uses the existing single price env for backward compat.
@@ -1025,13 +1127,14 @@ export const SALEABLE_MODULES = MODULES.filter((m) => m.forSale !== false);
 
 // Thematic categories — how the exercises are grouped on the marketing page
 // (the dashboard groups by partner instead: how you run each one).
-export type CategoryKey = "redesign" | "strategy" | "negotiate" | "live" | "research";
+export type CategoryKey = "redesign" | "strategy" | "negotiate" | "live" | "research" | "phd";
 export const CATEGORIES: { key: CategoryKey; title: string; blurb: string; chip: string; dot: string }[] = [
   { key: "redesign", title: "Work & AI", blurb: "Redesign your job or a workflow, and X-ray a résumé or role to see what AI can do, and what only a human can.", chip: "bg-sage-soft text-sage", dot: "#3F7A52" },
   { key: "strategy", title: "Sharpen a decision", blurb: "Pressure-test a strategy, a bet, or a whole business with a real framework and real numbers. AI interviews you, then builds the analysis.", chip: "bg-amber-soft text-amber", dot: "#C98A2B" },
   { key: "negotiate", title: "Negotiate", blurb: "Bargain live against an AI counterpart, then get scored on the value you claimed, and the value you created.", chip: "bg-sky-soft text-sky", dot: "#4E79C9" },
   { key: "live", title: "Run it live in class", blurb: "Whole-room diagnostics that draw themselves as your cohort responds.", chip: "bg-clay-soft text-clay", dot: "#C06A47" },
   { key: "research", title: "Research & scholarship", blurb: "Frame, structure, and argue a research paper, and read your regressions as ideas. Frameworks from Sharique Hasan's “Research, Strategy.” For PhD students and researchers.", chip: "bg-sage-soft text-sage", dot: "#3F7A52" },
+  { key: "phd", title: "The PhD path", blurb: "From deciding on a business PhD to landing an academic job: what it is, how to get in (from the committee's side), how it works, how to succeed, and how to place. From Sharique Hasan's “Research, Strategy.”", chip: "bg-sky-soft text-sky", dot: "#4E79C9" },
 ];
 const CATEGORY_OF: Record<string, CategoryKey> = {
   "reimagine-job": "redesign",
@@ -1093,6 +1196,12 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "abstract-title": "research",
   "research-system": "research",
   "research-team": "research",
+  "what-is-a-phd": "phd",
+  "choose-phd-program": "phd",
+  "phd-application": "phd",
+  "phd-structure": "phd",
+  "phd-succeed": "phd",
+  "phd-placement": "phd",
 };
 export function moduleCategory(slug: string): CategoryKey {
   return CATEGORY_OF[slug] || "strategy";
@@ -1120,6 +1229,8 @@ const CATALOG_ORDER: string[] = [
   "data-moat", "data-strategy", "identification", "regression-tables", "research-graphs",
   "the-referee", "revise-resubmit", "journal-fit",
   "research-system", "research-team",
+  // The PhD path
+  "what-is-a-phd", "choose-phd-program", "phd-application", "phd-structure", "phd-succeed", "phd-placement",
   // Live
   "benchmark", "network",
 ];
@@ -1229,6 +1340,12 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "abstract-title": ["research"],
   "research-system": ["research"],
   "research-team": ["research"],
+  "what-is-a-phd": ["research", "career"],
+  "choose-phd-program": ["research", "career"],
+  "phd-application": ["research", "career"],
+  "phd-structure": ["research", "career"],
+  "phd-succeed": ["research", "career"],
+  "phd-placement": ["research", "career"],
 };
 
 export function modulePills(slug: string): PillKey[] {

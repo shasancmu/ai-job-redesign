@@ -87,6 +87,15 @@ export const BUNDLES: Bundle[] = [
     electivesNeeded: 3,
     skills: ["Academic Writing", "Research Design", "Scholarly Communication", "Scholarly Publishing"],
   },
+  {
+    key: "phd-path",
+    name: "The Business PhD Path",
+    line: "Navigated the path from choosing a business PhD to landing an academic job.",
+    core: ["phd-application", "phd-succeed", "phd-placement"],
+    electives: ["what-is-a-phd", "choose-phd-program", "phd-structure"],
+    electivesNeeded: 1,
+    skills: ["Academic Career Planning", "Research Strategy", "Scholarly Communication"],
+  },
 ];
 
 export function bundleByKey(key: string, list: Bundle[] = BUNDLES): Bundle | undefined {
@@ -232,6 +241,12 @@ const CRED_META: Record<string, CredMeta> = {
   "abstract-title": { name: "Abstract & Title Writing", skills: ["Academic Writing", "Scholarly Communication"] },
   "research-system": { name: "Research Operations", skills: ["Research Productivity", "Workflow Design", "Automation"] },
   "research-team": { name: "Research Collaboration", skills: ["Collaboration", "Team Building", "Research Management"] },
+  "what-is-a-phd": { name: "PhD Readiness", skills: ["Academic Career Planning"] },
+  "choose-phd-program": { name: "PhD Program Evaluation", skills: ["Academic Career Planning", "Decision Analysis"] },
+  "phd-application": { name: "PhD Application Strategy", skills: ["Academic Career Planning", "Persuasive Communication"] },
+  "phd-structure": { name: "Doctoral Program Navigation", skills: ["Academic Career Planning"] },
+  "phd-succeed": { name: "Doctoral Success Strategy", skills: ["Research Productivity", "Academic Career Planning"] },
+  "phd-placement": { name: "Academic Job Market Strategy", skills: ["Academic Career Planning", "Research Communication"] },
 };
 
 export function credentialName(slug: string): string {

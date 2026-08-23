@@ -130,6 +130,24 @@ export const FRAMEWORKS: Record<string, Framework[]> = {
   "research-team": [
     { name: "The architect, builder, electrician", finding: "Strong papers are coauthored by complements: big-picture framing, the writer, and the data/analysis lead.", cite: "Hasan, Topics in Strategy (lecture)" },
   ],
+  "phd-what": [
+    { name: "A PhD is research training", finding: "A business PhD trains you to become a professor who produces knowledge; the two tangible products are papers and presentations.", cite: "Hasan, Research, Strategy" },
+  ],
+  "phd-choose": [
+    { name: "Placement is the signal", finding: "Where a program's graduates get jobs predicts your outcome better than general prestige, because top programs place students at top departments.", cite: "Hasan, Research, Strategy" },
+  ],
+  "phd-apply": [
+    { name: "Admissions is a de-risked bet", finding: "The committee invests ~$300k betting you'll become a researcher who publishes; they read the application as evidence of E[p] (quality) and E[n] (drive).", cite: "Hasan, Research, Strategy" },
+  ],
+  "phd-structure": [
+    { name: "The phases of a PhD", finding: "Coursework and comps, a qualifying paper and advisor, the research pipeline, the job-market paper, then the job market — each with its own job.", cite: "Hasan, Research, Strategy" },
+  ],
+  "phd-succeed": [
+    { name: "Visibility and the two products", finding: "The students who thrive are present in the intellectual life, produce papers and presentations, take advice, and model the best above them.", cite: "Hasan, Research, Strategy (Getting Out)" },
+  ],
+  "phd-placement": [
+    { name: "Important, Interesting, Ambitious", finding: "A job-market paper wins a hire when it solves a real problem, is novel and non-obvious, and few could have done it — backed by a pipeline.", cite: "Hasan, Topics in Strategy (lecture)" },
+  ],
 };
 
 export function frameworksFor(key?: string | null): Framework[] {
@@ -173,6 +191,12 @@ export const GUIDE_LABELS: Record<string, string> = {
   abstract: "The Abstract & Title",
   "research-system": "Design Your Research System",
   "research-team": "Build Your Research Team",
+  "phd-what": "Is a Business PhD for You?",
+  "phd-choose": "Choose a PhD Program",
+  "phd-apply": "Get Into a PhD Program",
+  "phd-structure": "How a PhD Works",
+  "phd-succeed": "Succeed in Your PhD",
+  "phd-placement": "Land an Academic Job",
 };
 
 export function allFrameworkGroups(): { key: string; label: string; items: Framework[] }[] {
