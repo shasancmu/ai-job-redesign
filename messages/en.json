@@ -19,7 +19,8 @@
     "negotiate": "Negotiate",
     "live": "Run it live in class",
     "research": "Research & scholarship",
-    "phd": "The PhD path"
+    "phd": "The PhD path",
+    "foundations": "How AI works"
   },
   "catalog": {
     "start": "Start",

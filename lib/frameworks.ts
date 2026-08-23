@@ -148,6 +148,20 @@ export const FRAMEWORKS: Record<string, Framework[]> = {
   "phd-placement": [
     { name: "Important, Interesting, Ambitious", finding: "A job-market paper wins a hire when it solves a real problem, is novel and non-obvious, and few could have done it — backed by a pipeline.", cite: "Hasan, Topics in Strategy (lecture)" },
   ],
+  "ai-rules": [
+    { name: "Expert systems and the knowledge bottleneck", finding: "Hand-coded IF-THEN rules (e.g. MYCIN) could match experts, but a human had to foresee and encode every case — brittle and unscalable.", cite: "MYCIN, Shortliffe (1976)" },
+  ],
+  "ai-learning": [
+    { name: "Statistical beats clinical judgment", finding: "Simple actuarial models fit to data routinely match or beat expert judgment on the same inputs.", cite: "Meehl (1954); Dawes, Faust & Meehl (1989)" },
+    { name: "Neural nets are learned functions", finding: "Deep networks are flexible function approximators; AlexNet (2012) showed the bottleneck was data and compute, not the idea.", cite: "Krizhevsky, Sutskever & Hinton (2012)" },
+  ],
+  "ai-language": [
+    { name: "Next-word prediction, from n-grams to attention", finding: "Early models predicted the next word from the last few (Markov/n-grams); the Transformer's attention gave a long, learned memory.", cite: "Shannon (1948); Vaswani et al., “Attention Is All You Need” (2017)" },
+  ],
+  "ai-scale": [
+    { name: "The bitter lesson and scaling laws", finding: "General methods that leverage compute win, and error falls predictably with scale — empirically robust, with real caveats.", cite: "Sutton (2019); Kaplan et al. (2020); Hoffmann et al. / Chinchilla (2022)" },
+    { name: "Self-play needs a verifiable signal", finding: "AlphaZero learned by self-play; self-generated data helps only when the result can be checked, or quality degrades.", cite: "Silver et al. (2017); Shumailov et al. (2024)" },
+  ],
 };
 
 export function frameworksFor(key?: string | null): Framework[] {
@@ -197,6 +211,10 @@ export const GUIDE_LABELS: Record<string, string> = {
   "phd-structure": "How a PhD Works",
   "phd-succeed": "Succeed in Your PhD",
   "phd-placement": "Land an Academic Job",
+  "ai-rules": "How AI Works: Rules",
+  "ai-learning": "How AI Works: Learning",
+  "ai-language": "How AI Works: Language",
+  "ai-scale": "How AI Works: Scale & Limits",
 };
 
 export function allFrameworkGroups(): { key: string; label: string; items: Framework[] }[] {

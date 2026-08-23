@@ -1174,6 +1174,22 @@ ${input.guess ? `Their guess at what else would move if the mechanism holds: ${i
   return extractJson(raw);
 }
 
+// ---- Lesson tutor ----------------------------------------------------------
+// A clear, accurate teacher for the "How AI works" lessons. Grounded in the
+// lesson topic; honest about what is known, contested, and what AI can't do.
+export async function tutorReply(
+  topic: string,
+  history: { role: "user" | "assistant"; content: string }[],
+  onToken?: (d: string) => void,
+): Promise<string> {
+  const system = `You are a sharp, plain-spoken teacher helping someone understand how AI actually works. The current lesson is about: ${topic}.
+
+Explain simply and CORRECTLY — accuracy matters more than sounding impressive. Use concrete examples and real milestones (e.g. MYCIN, AlexNet 2012, the Transformer 2017, Chinchilla scaling, AlphaZero) where they help. Be honest about what is well-established, what is genuinely contested (e.g. how far scaling goes), and what AI cannot reliably do (novelty beyond its training distribution, reliable reasoning without a way to check the answer, real-world grounding and agency). Correct misconceptions gently. Do not overclaim or hype. Keep answers short — a few sentences — unless asked to go deeper. If a question is outside how-AI-works, answer briefly and steer back.`;
+
+  const convo: ChatMsg[] = history.length ? history : [{ role: "user", content: "(Ask me what I'm curious about.)" }];
+  return complete([{ role: "system", content: system }, ...convo], { temperature: 0.4, maxTokens: 500, onToken });
+}
+
 // ---- Map Your Personal Network --------------------------------------------
 // A short, optional interview that adds qualitative texture on top of the
 // structured roster the person already built. It never asks them to re-list

@@ -32,6 +32,10 @@ import LicensingBriefRoom from "@/components/LicensingBriefRoom";
 import PipelineRoom from "@/components/PipelineRoom";
 import PaperStudyRoom from "@/components/PaperStudyRoom";
 import InteractionRoom from "@/components/InteractionRoom";
+import Lesson1Rules from "@/components/lessons/Lesson1Rules";
+import Lesson2Learning from "@/components/lessons/Lesson2Learning";
+import Lesson3Language from "@/components/lessons/Lesson3Language";
+import Lesson4Scale from "@/components/lessons/Lesson4Scale";
 import { variantForExercise } from "@/lib/disclosure";
 import { canvasByExercise } from "@/lib/canvases";
 import { scenarioByExercise } from "@/lib/negotiation";
@@ -263,6 +267,16 @@ export default async function RoomPage({
     ) : (
       <PaperStudyRoom me={user.id} session={session} initialWorkspace={iw} />
     );
+  }
+
+  // "How AI works" lessons — interactive teaching, no workspace needed. Host only.
+  if (["ai-rules", "ai-learning", "ai-language", "ai-scale"].includes(session.exercise || "")) {
+    if (!amHost) redirect("/dashboard");
+    const Lesson =
+      session.exercise === "ai-rules" ? Lesson1Rules :
+      session.exercise === "ai-learning" ? Lesson2Learning :
+      session.exercise === "ai-language" ? Lesson3Language : Lesson4Scale;
+    return <Lesson me={user.id} session={session} initialWorkspace={null} />;
   }
 
   // The Anatomy of an Idea: bespoke interaction-plot room. Host only.

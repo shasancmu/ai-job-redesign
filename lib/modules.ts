@@ -87,7 +87,11 @@ export type ModuleDef = {
     | "phd-apply"
     | "phd-structure"
     | "phd-succeed"
-    | "phd-placement"; // which room engine renders it
+    | "phd-placement"
+    | "ai-rules"
+    | "ai-learning"
+    | "ai-language"
+    | "ai-scale"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -1112,6 +1116,70 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_RESEARCH",
     forSale: false,
   },
+  {
+    slug: "ai-rules",
+    exercise: "ai-rules",
+    name: "1 · When Humans Wrote the Logic",
+    tagline: "The first era of AI: expert systems and hand-written rules, and the wall that stopped them.",
+    description:
+      "Part one of a plain-language series on how AI actually works. For decades, AI meant a person writing the rules by hand: expert systems like MYCIN encoded human knowledge as hundreds of IF-THEN rules. Run a rule-based system yourself, see it hit a case nobody wrote a rule for, and understand the knowledge-acquisition bottleneck that ended the era. Interactive, with a tutor you can ask anything.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 8,
+    ai: true,
+    emoji: "📐",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "ai-learning",
+    exercise: "ai-learning",
+    name: "2 · Letting the Data Learn",
+    tagline: "Statistical learning and neural networks: stop writing rules, learn the function from examples.",
+    description:
+      "Part two of the how-AI-works series. The breakthrough was to learn patterns from data instead of coding them: the Meehl–Dawes result that simple formulas beat expert judgment, a live demo of a machine fitting a function to data, and neural networks as flexible function approximators (AlexNet, 2012). You leave understanding why data and compute, not cleverness, became the bottleneck. Interactive, with a tutor.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 9,
+    ai: true,
+    emoji: "📉",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "ai-language",
+    exercise: "ai-language",
+    name: "3 · Predicting the Next Word",
+    tagline: "From Markov chains to Transformers: how predicting the next word became large language models.",
+    description:
+      "Part three of the how-AI-works series. Language got cracked by a simple trick: predict the next word. Run a working Markov (n-gram) text generator and feel its short-memory limit, then see how attention and the Transformer (2017) gave models a long, learned memory. You leave understanding what a modern LLM really is, and why it's both fluent and prone to confident nonsense. Interactive, with a tutor.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 10,
+    ai: true,
+    emoji: "🔤",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "ai-scale",
+    exercise: "ai-scale",
+    name: "4 · Scale, Self-Play & the Limits",
+    tagline: "The bitter lesson, scaling laws, self-play, and an honest account of what AI can and can't do.",
+    description:
+      "The finale of the how-AI-works series. Why did AI suddenly work? Scale. Sutton's bitter lesson, a live scaling-law curve (and an honest look at whether it holds), self-play and synthetic data (AlphaZero, and why a verifiable signal is essential), and the payoff: what AI is genuinely good at (search, structure, think, translate) and where it's unreliable. By the end you understand the whole machine. Interactive, with a tutor.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 10,
+    ai: true,
+    emoji: "📈",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
 ];
 
 // The all-access bundle uses the existing single price env for backward compat.
@@ -1127,9 +1195,10 @@ export const SALEABLE_MODULES = MODULES.filter((m) => m.forSale !== false);
 
 // Thematic categories — how the exercises are grouped on the marketing page
 // (the dashboard groups by partner instead: how you run each one).
-export type CategoryKey = "redesign" | "strategy" | "negotiate" | "live" | "research" | "phd";
+export type CategoryKey = "redesign" | "strategy" | "negotiate" | "live" | "research" | "phd" | "foundations";
 export const CATEGORIES: { key: CategoryKey; title: string; blurb: string; chip: string; dot: string }[] = [
   { key: "redesign", title: "Work & AI", blurb: "Redesign your job or a workflow, and X-ray a résumé or role to see what AI can do, and what only a human can.", chip: "bg-sage-soft text-sage", dot: "#3F7A52" },
+  { key: "foundations", title: "How AI works", blurb: "A plain-language, interactive series on how AI actually works, from expert systems to modern LLMs, so you understand what it can and can't do. With live demos and a tutor.", chip: "bg-amber-soft text-amber", dot: "#C98A2B" },
   { key: "strategy", title: "Sharpen a decision", blurb: "Pressure-test a strategy, a bet, or a whole business with a real framework and real numbers. AI interviews you, then builds the analysis.", chip: "bg-amber-soft text-amber", dot: "#C98A2B" },
   { key: "negotiate", title: "Negotiate", blurb: "Bargain live against an AI counterpart, then get scored on the value you claimed, and the value you created.", chip: "bg-sky-soft text-sky", dot: "#4E79C9" },
   { key: "live", title: "Run it live in class", blurb: "Whole-room diagnostics that draw themselves as your cohort responds.", chip: "bg-clay-soft text-clay", dot: "#C06A47" },
@@ -1202,6 +1271,10 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "phd-structure": "phd",
   "phd-succeed": "phd",
   "phd-placement": "phd",
+  "ai-rules": "foundations",
+  "ai-learning": "foundations",
+  "ai-language": "foundations",
+  "ai-scale": "foundations",
 };
 export function moduleCategory(slug: string): CategoryKey {
   return CATEGORY_OF[slug] || "strategy";
@@ -1211,6 +1284,8 @@ export function moduleCategory(slug: string): CategoryKey {
 // catalog (foundational → advanced, following the learning path). Slugs not
 // listed fall to the end of their category. Used to sort the grouped catalog.
 const CATALOG_ORDER: string[] = [
+  // How AI works (a series, in order)
+  "ai-rules", "ai-learning", "ai-language", "ai-scale",
   // Work & AI
   "solo-ai", "workflow-solo", "reimagine-job", "reimagine-workflow",
   "career-x-ray", "jd-x-ray", "career-roadmap", "refresh-resume", "refresh-resume-voice",
@@ -1346,6 +1421,10 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "phd-structure": ["research", "career"],
   "phd-succeed": ["research", "career"],
   "phd-placement": ["research", "career"],
+  "ai-rules": ["ai"],
+  "ai-learning": ["ai"],
+  "ai-language": ["ai"],
+  "ai-scale": ["ai"],
 };
 
 export function modulePills(slug: string): PillKey[] {

@@ -99,6 +99,10 @@ const NEXT_AFTER: Record<string, string> = {
   "phd-application": "phd-structure",
   "phd-structure": "phd-succeed",
   "phd-succeed": "phd-placement",
+  // How AI works (the series).
+  "ai-rules": "ai-learning",
+  "ai-learning": "ai-language",
+  "ai-language": "ai-scale",
 };
 
 export function nextStep(completed: Set<string>, recommended: string[], valid: Set<string>): string | null {

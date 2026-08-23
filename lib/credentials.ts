@@ -96,6 +96,15 @@ export const BUNDLES: Bundle[] = [
     electivesNeeded: 1,
     skills: ["Academic Career Planning", "Research Strategy", "Scholarly Communication"],
   },
+  {
+    key: "ai-literacy",
+    name: "How AI Works",
+    line: "Understood how AI works, from rule-based systems to modern large language models.",
+    core: ["ai-rules", "ai-learning", "ai-language", "ai-scale"],
+    electives: [],
+    electivesNeeded: 0,
+    skills: ["AI Literacy", "AI Strategy"],
+  },
 ];
 
 export function bundleByKey(key: string, list: Bundle[] = BUNDLES): Bundle | undefined {
@@ -247,6 +256,10 @@ const CRED_META: Record<string, CredMeta> = {
   "phd-structure": { name: "Doctoral Program Navigation", skills: ["Academic Career Planning"] },
   "phd-succeed": { name: "Doctoral Success Strategy", skills: ["Research Productivity", "Academic Career Planning"] },
   "phd-placement": { name: "Academic Job Market Strategy", skills: ["Academic Career Planning", "Research Communication"] },
+  "ai-rules": { name: "AI Foundations: Rule-Based Systems", skills: ["AI Literacy"] },
+  "ai-learning": { name: "AI Foundations: Machine Learning", skills: ["AI Literacy"] },
+  "ai-language": { name: "AI Foundations: Language Models", skills: ["AI Literacy"] },
+  "ai-scale": { name: "AI Foundations: Scaling & Limits", skills: ["AI Literacy", "AI Strategy"] },
 };
 
 export function credentialName(slug: string): string {
