@@ -115,7 +115,7 @@ export const GUIDE_LABELS: Record<string, string> = {
   "paper-idea": "Make the Invisible Visible",
   "paper-structure": "Structure Your Paper",
   "paper-points": "Make Your Points",
-  interaction: "Read the Interaction",
+  interaction: "The Anatomy of an Idea",
 };
 
 export function allFrameworkGroups(): { key: string; label: string; items: Framework[] }[] {

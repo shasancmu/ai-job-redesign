@@ -31,6 +31,7 @@ import FindCollaboratorsRoom from "@/components/FindCollaboratorsRoom";
 import LicensingBriefRoom from "@/components/LicensingBriefRoom";
 import PipelineRoom from "@/components/PipelineRoom";
 import PaperStudyRoom from "@/components/PaperStudyRoom";
+import InteractionRoom from "@/components/InteractionRoom";
 import { variantForExercise } from "@/lib/disclosure";
 import { canvasByExercise } from "@/lib/canvases";
 import { scenarioByExercise } from "@/lib/negotiation";
@@ -262,6 +263,19 @@ export default async function RoomPage({
     ) : (
       <PaperStudyRoom me={user.id} session={session} initialWorkspace={iw} />
     );
+  }
+
+  // The Anatomy of an Idea: bespoke interaction-plot room. Host only.
+  if (session.exercise === "interaction") {
+    if (!amHost) redirect("/dashboard");
+    await supabase.from("workspaces").upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
+    return <InteractionRoom me={user.id} session={session} initialWorkspace={workspace || { session_id: session.id, author_id: user.id }} />;
   }
 
   // Your AI Board: single-user, host only. A live advisory-board debate.

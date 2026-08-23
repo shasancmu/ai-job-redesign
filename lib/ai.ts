@@ -1125,6 +1125,55 @@ Return STRICT JSON only, no prose outside it:
   return extractJson(raw);
 }
 
+// ---- The Anatomy of an Idea ------------------------------------------------
+// Assemble the idea (IF X then Y, especially/except when Z, because R), assess
+// the mechanism, and derive the discriminating test: which OTHER outcomes should
+// move if the mechanism is true, versus a rival explanation.
+export async function interactionIdeaAI(input: {
+  x: string;
+  y: string;
+  z: string;
+  direction: string;
+  mechanism?: string;
+  model?: string;
+  guess?: string;
+}): Promise<any> {
+  const system = `You help a researcher sharpen a research idea using Sharique Hasan's "Research, Strategy". An idea is: IF X then Y, ESPECIALLY or EXCEPT when Z, BECAUSE R — which is the regression Y = b0 + b1·X + b2·Z + b3·(X·Z), where b3 (the interaction) is usually the contribution and R is the mechanism. A mechanism is only real if it (a) rests on a MODEL of why Z changes X's effect, and (b) makes DISCRIMINATING predictions: other outcomes that should move if the mechanism is true, and would NOT move (or move differently) under a plausible rival mechanism. That is how you test a mechanism.
+
+Be specific to their variables. Do not restate the finding as the mechanism. The additional outcomes must genuinely discriminate — if a rival mechanism predicts the same thing, it is not a good test; find ones that separate them.
+
+Return STRICT JSON only, no prose outside it:
+{
+  "sentence": "the idea in one clean sentence: If X, then Y, especially/except when Z, because [mechanism]",
+  "mechanismRead": "1-2 sentences: is R a real causal story grounded in a model, or a restatement of the finding? What would make it sharper?",
+  "rivalMechanism": "one plausible alternative mechanism that could produce the same interaction",
+  "additionalOutcomes": [
+    { "outcome": "another outcome (a different Y) you could measure", "ifYours": "how it should move if YOUR mechanism is true", "ifRival": "how it would move under the rival mechanism instead" }
+  ],
+  "scopeCheck": "one sentence on whether Z is a genuine scope condition (changes the effect) or just another main effect",
+  "sharper": "a sharpened one-line version of the whole idea"
+}
+Give 2 to 3 additionalOutcomes.`;
+
+  const dir = input.direction === "except" ? "except (b3 negative: the effect weakens/vanishes when Z)" : "especially (b3 positive: the effect is stronger when Z)";
+  const user = `X (main cause): ${input.x}
+Y (outcome): ${input.y}
+Z (scope condition): ${input.z}
+Interaction direction: ${dir}
+Mechanism R (their words): ${input.mechanism || "(not given)"}
+The model it comes from: ${input.model || "(not given)"}
+${input.guess ? `Their guess at what else would move if the mechanism holds: ${input.guess}` : ""}`;
+
+  const raw = await complete(
+    [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+    { json: true, temperature: 0.5, maxTokens: 2000 },
+  );
+  return extractJson(raw);
+}
+
 // ---- Map Your Personal Network --------------------------------------------
 // A short, optional interview that adds qualitative texture on top of the
 // structured roster the person already built. It never asks them to re-list

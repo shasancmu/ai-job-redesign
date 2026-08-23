@@ -522,43 +522,9 @@ Interview to extract crisp topic sentences for each of the five, plus the single
   },
 };
 
-// (f) The classic regression — reading the interaction term as an idea
-const INTERACTION: CanvasDef = {
-  slug: "read-the-interaction",
-  exercise: "interaction",
-  name: "Read the Interaction",
-  subjectLabel: "hypothesis",
-  setupTitle: "The relationship you're testing",
-  setupHint:
-    "The effect at the heart of your paper. Your AI partner will help you read its interaction term as a research idea.",
-  setupPlaceholder: "e.g. A/B testing raises startup performance, especially for startups with more products",
-  interviewSystem: `You help a researcher read the classic interaction regression as a RESEARCH IDEA, using Hasan's Research Idea Canvas from "Research, Strategy". The model is:
-  Y = b0 + b1*X1 + b2*X2 + b3*(X1 x X2)
-- b1 is the baseline effect of X1 on Y. b3, the INTERACTION, is usually where the idea lives: it says the effect of X1 CHANGES with X2. A positive b3 means "ESPECIALLY WHEN X2"; a negative b3 means "EXCEPT WHEN X2".
-- In canvas form: IF X1, THEN Y, ESPECIALLY / EXCEPT WHEN X2, BECAUSE [mechanism]. The BECAUSE, the mechanism for why X2 moves the effect, is the theoretical contribution. b1 alone is often already known; b3 plus its mechanism is the paper.
-Interview to pin down: the outcome Y; the main cause X1; the moderator X2; whether b3 is positive (especially) or negative (except) and why; and the MECHANISM that makes X2 change the effect. Ask exactly ONE short question at a time; follow their lead. Do not lecture or fill the canvas.`,
-  draftSystem: `You translate an interaction regression (Y = b0 + b1*X1 + b2*X2 + b3*X1*X2) into a research idea using Hasan's canvas: IF X1 then THEN Y, ESPECIALLY/EXCEPT WHEN X2, BECAUSE [mechanism]. Assemble the one-sentence canvas claim; state the sign and meaning of b3; name the mechanism; and say plainly what b1 alone would miss. Be specific to their variables; the mechanism must be a real causal story, not a restatement of the finding.`,
-  fields: [
-    { key: "y", label: "Y — the outcome", hint: "What you're explaining", kind: "text", group: "The equation", accent: "sage" },
-    { key: "x1", label: "X1 — the main cause", hint: "The treatment or driver (b1)", kind: "text", group: "The equation", accent: "gold" },
-    { key: "x2", label: "X2 — the moderator", hint: "What changes X1's effect (the interaction, b3)", kind: "text", group: "The equation", accent: "plum" },
-    { key: "sign", label: "b3: especially, or except?", hint: "Positive, the effect is stronger when X2; negative, weaker or absent when X2", kind: "text", group: "The equation", accent: "plum" },
-    { key: "canvas_sentence", label: "The idea, in one sentence", hint: "IF X1 then THEN Y, ESPECIALLY/EXCEPT WHEN X2, BECAUSE ...", kind: "long", group: "The idea", accent: "sage" },
-    { key: "mechanism", label: "The mechanism (the BECAUSE)", hint: "Why X2 changes the effect of X1, the theoretical contribution", kind: "long", group: "The idea", accent: "gold" },
-    { key: "beta1_misses", label: "What b1 alone would miss", hint: "Why the interaction, not the main effect, is the paper", kind: "long", group: "The idea", accent: "gold" },
-  ],
-  hasVerdict: { label: "Your interaction, as a research idea" },
-  about:
-    'Hasan, "Research, Strategy": in Y = b0 + b1*X1 + b2*X2 + b3*(X1 x X2), the interaction b3 is usually where the idea lives, IF X1 then THEN Y, ESPECIALLY/EXCEPT WHEN X2, BECAUSE a mechanism. This canvas turns your interaction into that claim.',
-  groupNotes: {
-    "The equation": "Name Y, X1, X2, and whether b3 is positive (especially) or negative (except).",
-    "The idea": "The interaction is the contribution: the moderator, the mechanism, and what the main effect alone misses.",
-  },
-};
-
 export const CANVASES: CanvasDef[] = [
   FOURA, SCORECARD, VENTURE, GAS, OCFIT, EXPERIMENT, DEEPTECH,
-  PAPER_IDEA, PAPER_STRUCTURE, PAPER_POINTS, INTERACTION,
+  PAPER_IDEA, PAPER_STRUCTURE, PAPER_POINTS,
 ];
 
 export function canvasByExercise(exercise: string): CanvasDef | undefined {

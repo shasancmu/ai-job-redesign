@@ -114,6 +114,19 @@ const GUIDES: Record<string, ReportGuide> = {
     ],
   },
 
+  interaction: {
+    predictPrompt: "If your mechanism is right, what OTHER outcome should also move — one that a rival explanation would NOT predict?",
+    predictPlaceholder: "The discriminating outcome, in a few words.",
+    walkthrough: [
+      { anchor: "delta", title: "Your test vs. the sharper one", body: "You named an outcome your mechanism predicts. See whether it actually discriminates your explanation from a rival, or whether a sharper test exists." },
+      { anchor: "idea", title: "Your idea, in one sentence", body: "What it tells you: the whole idea as IF X → Y, especially/except when Z, because a mechanism. How it was built: from the four pieces you named." },
+      { anchor: "regression", title: "The same idea, as a regression", body: "What it tells you: your idea IS Y = β0 + β1X + β2Z + β3(X·Z); β1 is the main effect, β3 is the interaction — your contribution." },
+      { anchor: "plot", title: "The shape of the idea", body: "What it tells you: an interaction is two slopes. The gap between the low-Z and high-Z lines is β3 — the effect amplifies or fades with Z." },
+      { anchor: "mechanism", title: "The mechanism, tested", body: "What it tells you: whether your BECAUSE is a real causal story or a restatement, and a rival explanation that could produce the same interaction." },
+      { anchor: "test", title: "What else should move", body: "What it tells you: the outcomes that separate your mechanism from the rival. Measuring them is how you actually test the mechanism, not just the effect." },
+    ],
+  },
+
   "paper-study": {
     predictPrompt: "Before you see the breakdown: in one sentence, what do you think this paper's core idea actually is?",
     predictPlaceholder: "Your honest read of the paper.",

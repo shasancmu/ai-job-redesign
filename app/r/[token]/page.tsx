@@ -18,7 +18,9 @@ import PlanView from "@/components/PlanView";
 import CanvasView from "@/components/CanvasView";
 import PipelineReport from "@/components/PipelineReport";
 import PaperStudyReport from "@/components/PaperStudyReport";
+import InteractionReport from "@/components/InteractionReport";
 import { DEFAULT_INPUTS } from "@/lib/pipeline";
+import { DEFAULT_IDEA } from "@/lib/interaction";
 import WorkflowPlanView from "@/components/WorkflowPlanView";
 import EmpathyAggregate from "@/components/EmpathyAggregate";
 import Logo from "@/components/Logo";
@@ -172,6 +174,16 @@ async function renderSession(admin: any, s: any) {
       <>
         <Head eyebrow="Understand a Paper" title="A paper deconstruction" />
         <PaperStudyReport study={canvas.study} />
+      </>
+    );
+  }
+
+  if (ex === "interaction") {
+    if (!canvas.result) return null;
+    return (
+      <>
+        <Head eyebrow="The Anatomy of an Idea" title="A research idea" />
+        <InteractionReport inputs={{ ...DEFAULT_IDEA, ...(canvas.idea || {}) }} idea={canvas.result} />
       </>
     );
   }

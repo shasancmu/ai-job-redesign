@@ -726,13 +726,13 @@ export const MODULES: ModuleDef[] = [
   {
     slug: "read-the-interaction",
     exercise: "interaction",
-    name: "Read the Interaction",
-    tagline: "Read the interaction term as a research idea: if X1 then Y, especially or except when X2, because a mechanism.",
+    name: "The Anatomy of an Idea",
+    tagline: "Build a research idea and see its shape: IF X then Y, especially or except when Z, because a mechanism, drawn as a graph and a regression.",
     description:
-      "The bridge from Research, Strategy between the classic regression and the research idea. In Y = b0 + b1 X1 + b2 X2 + b3 (X1 times X2), the interaction b3 is usually where the idea lives: it says the effect of X1 changes with X2. An AI partner helps you pin down Y, X1, X2, and the sign of b3, then assemble the canvas sentence, if X1 then Y, especially or except when X2, because a mechanism, and name what the main effect alone would miss. You leave with your interaction stated as a theoretical contribution.",
+      "The core of Research, Strategy: an idea is a statement, IF X then Y, especially or except when Z, because a mechanism, where X is the main cause, Z is the scope condition, Y is the outcome, and the mechanism is the because. It is the regression Y = b0 + b1 X + b2 Z + b3 (X times Z), and the interaction b3 is usually the contribution. You name the pieces and watch the idea take shape as a live Cartesian plot (two slopes, low Z vs high Z). Then you write the mechanism, and, since a real mechanism comes from a model and predicts which other outcomes should move, an AI partner derives the discriminating test: what else should move if your mechanism is true, and how a rival explanation would differ. You leave with an idea you can defend, not just a finding.",
     partner: "ai",
     mode: "With AI",
-    minutes: 13,
+    minutes: 15,
     ai: true,
     emoji: "📈",
     priceCents: 0,
