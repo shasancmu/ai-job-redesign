@@ -37,7 +37,7 @@ export function computeStreak(timestamps: (string | number | Date)[]): { current
 export function artifactHref(exercise: string, code: string): string {
   if (exercise === "workflow" || exercise === "workflow-solo") return `/workflow-plan/${code}`;
   if (exercise === "solo") return `/plan/${code}`;
-  if (["gas", "ocfit", "experiment", "four-a", "scorecard", "venture", "deeptech", "paper-idea", "paper-structure", "paper-points", "research-quality"].includes(exercise)) return `/canvas/${code}`;
+  if (["gas", "ocfit", "experiment", "four-a", "scorecard", "venture", "deeptech", "paper-idea", "paper-structure", "paper-points", "research-quality", "reg-tables", "research-graphs", "lit-review"].includes(exercise)) return `/canvas/${code}`;
   if (exercise === "interaction") return `/interaction/${code}`;
   if (exercise === "career-xray" || exercise === "jd-xray") return `/career/${code}`;
   if (exercise === "career-roadmap") return `/roadmap/${code}`;
@@ -74,6 +74,14 @@ const NEXT_AFTER: Record<string, string> = {
   "execution-4a": "opportunity-capability",
   "deeptech-canvas": "good-business",
   "close-the-offer": "name-your-price",
+  // Research & scholarship — the curriculum order.
+  "publication-pipeline": "read-the-interaction",
+  "read-the-interaction": "good-research",
+  "good-research": "understand-a-paper",
+  "understand-a-paper": "paper-structure",
+  "paper-structure": "regression-tables",
+  "regression-tables": "research-graphs",
+  "research-graphs": "literature-reviews",
 };
 
 export function nextStep(completed: Set<string>, recommended: string[], valid: Set<string>): string | null {

@@ -68,7 +68,10 @@ export type ModuleDef = {
     | "interaction"
     | "pipeline"
     | "paper-study"
-    | "research-quality"; // which room engine renders it
+    | "research-quality"
+    | "reg-tables"
+    | "research-graphs"
+    | "lit-review"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -691,6 +694,7 @@ export const MODULES: ModuleDef[] = [
     priceCents: 0,
     priceEnv: "STRIPE_PRICE_RESEARCH",
     forSale: false,
+    hidden: true,
   },
   {
     slug: "paper-structure",
@@ -788,6 +792,54 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_RESEARCH",
     forSale: false,
   },
+  {
+    slug: "regression-tables",
+    exercise: "reg-tables",
+    name: "Clear Regression Tables",
+    tagline: "Make your main table readable at a glance: one idea, the key coefficient spotlighted, columns that build a narrative.",
+    description:
+      "The craft of the results table, from Research, Strategy. A clear regression table shows the finding in seconds: one idea per table, the key coefficient (usually the interaction) spotlighted rather than buried, columns that build a narrative from baseline to the full model, plain-language variable names, and only the numbers that matter with a clean note. An AI partner interviews you about your table, then returns a layout plan: what to spotlight, how to order the columns, what to report, what to cut, and the note to write. You leave with a table a reader can read in ten seconds.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 12,
+    ai: true,
+    emoji: "📋",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "research-graphs",
+    exercise: "research-graphs",
+    name: "Elegant Research Graphs",
+    tagline: "Design a graph that is the argument: it shows the finding directly and elegantly, with nothing wasted.",
+    description:
+      "The craft of the figure, from Research, Strategy, with Tufte's principles. A good research graph is the argument, it shows the finding directly: one message per graph, the encoding that fits the claim (an interaction shown as two lines or a marginal-effects plot), maximal data-ink and no chartjunk, honest axes and uncertainty, readable even in grayscale. An AI partner interviews you about what you want to show, then recommends the right chart, what goes on each axis, what to strip, how to keep it honest, and the caption. You leave with a figure that makes the finding obvious.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 12,
+    ai: true,
+    emoji: "📊",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "literature-reviews",
+    exercise: "lit-review",
+    name: "Position Your Literature Review",
+    tagline: "Turn the review from a summary dump into a setup for your contribution: the support, the gap, organized by ideas.",
+    description:
+      "The literature review, from Research, Strategy. A review does two jobs: it supports your claims with prior research (anchoring your work in the ongoing conversation and citing the foundational assumptions your argument rests on), and it highlights the gap where prior work falls short, which sets up your contribution. Organized by ideas and tensions, not paper by paper. An AI partner interviews you about your contribution and the literatures you sit in, then structures the review around what prior work established, the gap you fill, and the foundations to cite. You leave with a review that sets up your paper instead of just summarizing.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 14,
+    ai: true,
+    emoji: "📚",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
 ];
 
 // The all-access bundle uses the existing single price env for backward compat.
@@ -858,6 +910,9 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "publication-pipeline": "research",
   "understand-a-paper": "research",
   "good-research": "research",
+  "regression-tables": "research",
+  "research-graphs": "research",
+  "literature-reviews": "research",
 };
 export function moduleCategory(slug: string): CategoryKey {
   return CATEGORY_OF[slug] || "strategy";
@@ -948,6 +1003,9 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "publication-pipeline": ["research"],
   "understand-a-paper": ["research"],
   "good-research": ["research"],
+  "regression-tables": ["research"],
+  "research-graphs": ["research"],
+  "literature-reviews": ["research"],
 };
 
 export function modulePills(slug: string): PillKey[] {

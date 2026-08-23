@@ -567,9 +567,94 @@ Interview to surface: the null (what's the conventional wisdom here?), the hidde
   },
 };
 
+// (h) Clear regression tables
+const REG_TABLES: CanvasDef = {
+  slug: "regression-tables",
+  exercise: "reg-tables",
+  name: "Clear Regression Tables",
+  subjectLabel: "table",
+  setupTitle: "The regression table you want to make clear",
+  setupHint: "Describe the finding your main table reports. Your AI partner will help you make it readable at a glance.",
+  setupPlaceholder: "e.g. A/B testing raises product launches, and the effect is larger for experienced founders",
+  interviewSystem: `You help a researcher make a regression table CLEAR, so a reader sees the finding in seconds. Principles: one idea per table; spotlight the key coefficient (usually the interaction), don't bury it in a wall of numbers; build the columns as a narrative (baseline → add controls → add the interaction) so the reader watches the result survive; use human variable names, not code; report only what matters (coefficient, standard error or stars, N, R², fixed effects) and cut the rest; put the sample, the standard-error type, and units in a clear note. Interview to learn: the outcome, the key coefficient to spotlight, the columns/specifications, the controls and fixed effects, the sample, and what a reader should take away in ten seconds. Ask ONE short question at a time; do not lecture.`,
+  draftSystem: `You lay out a clear regression-table PLAN (not the numbers). Spotlight the key coefficient; design the columns as a narrative; name variables in plain language; specify exactly what to report and what to cut; write the table note (N, R², fixed effects, SE type, stars, units). Be specific to their finding, never generic.`,
+  fields: [
+    { key: "finding", label: "The finding the table must show", hint: "the one result a reader should leave with", kind: "long", group: "The point", accent: "sage" },
+    { key: "key_coef", label: "The coefficient to spotlight", hint: "usually the interaction — the number that IS the idea", kind: "long", group: "The point", accent: "gold" },
+    { key: "columns", label: "The columns, as a narrative", hint: "baseline → add controls → add the interaction, so the result survives each step", kind: "list", group: "The layout", accent: "plum" },
+    { key: "report", label: "What to report", hint: "coefficient, SE or stars, N, R², fixed effects, and units", kind: "list", group: "The layout", accent: "sage" },
+    { key: "cut", label: "What to cut", hint: "control coefficients and rows that only add noise", kind: "list", group: "The layout", accent: "clay" },
+    { key: "note", label: "The table note", hint: "sample, SE type, stars, fixed effects, units — everything a reader needs", kind: "long", group: "The layout", accent: "gold" },
+  ],
+  hasVerdict: { label: "Can a reader see the finding in ten seconds?" },
+  about:
+    'A clear regression table shows the finding at a glance: one idea, the key coefficient spotlighted, columns that build a narrative, human variable names, and only what matters. Part of the craft that separates good papers from the rest (Hasan, "Research, Strategy").',
+  groupNotes: {
+    "The point": "One idea per table, with the key coefficient (usually the interaction) spotlighted.",
+    "The layout": "Columns that build a narrative, plain variable names, and only the numbers that matter.",
+  },
+};
+
+// (i) Elegant research graphs
+const RESEARCH_GRAPHS: CanvasDef = {
+  slug: "research-graphs",
+  exercise: "research-graphs",
+  name: "Elegant Research Graphs",
+  subjectLabel: "graph",
+  setupTitle: "The finding you want to show in a graph",
+  setupHint: "Describe the one thing your graph must prove. Your AI partner will help you design it so the finding is obvious.",
+  setupPlaceholder: "e.g. The effect of A/B testing on growth, and how it depends on managerial experience",
+  interviewSystem: `You help a researcher design a research graph where the GRAPH IS THE ARGUMENT — a reader sees the finding directly. Principles (Tufte): maximize the data-ink ratio and cut chartjunk; one message per graph; choose the encoding that shows the claim (an interaction → two lines or a marginal-effects plot; a distribution → a histogram; a trend → a line); label axes and series clearly and directly; keep it honest (no truncated axes, show baselines and uncertainty); make it readable in grayscale. Interview to learn: the single message, the data behind it, and what shape would show it. Ask ONE short question at a time.`,
+  draftSystem: `You recommend ONE graph that makes the finding obvious. Name the chart type and WHY it fits the claim; put the right thing on each axis; name the single message; say what to strip (chartjunk) and how to keep it honest (uncertainty, baselines, no truncated axes); write the caption. Prefer showing an interaction as slopes or marginal effects when relevant.`,
+  fields: [
+    { key: "message", label: "The one message", hint: "the single thing the graph must prove", kind: "long", group: "The point", accent: "sage" },
+    { key: "chart", label: "The right chart, and why", hint: "e.g. an interaction → two lines or a marginal-effects plot", kind: "long", group: "The design", accent: "gold" },
+    { key: "axes", label: "What goes on each axis", hint: "x, y, and how the groups are shown", kind: "long", group: "The design", accent: "plum" },
+    { key: "strip", label: "What to strip", hint: "chartjunk: gridlines, 3D, boxes, legends you could label directly (Tufte)", kind: "list", group: "The design", accent: "clay" },
+    { key: "honest", label: "Keep it honest", hint: "show uncertainty, don't truncate axes, mark the baseline", kind: "list", group: "The design", accent: "sage" },
+    { key: "caption", label: "The caption", hint: "what the reader is looking at, in a sentence or two", kind: "long", group: "The design", accent: "gold" },
+  ],
+  hasVerdict: { label: "Does the graph make the finding obvious?" },
+  about:
+    'A good research graph is the argument: it shows the finding directly and elegantly, with nothing wasted (Tufte\'s data-ink ratio). Part of the craft of elegant figures (Hasan, "Research, Strategy").',
+  groupNotes: {
+    "The point": "One message per graph — the single thing it must prove.",
+    "The design": "The encoding that shows the claim, stripped of chartjunk, and honest about uncertainty.",
+  },
+};
+
+// (j) Position your literature review
+const LIT_REVIEW: CanvasDef = {
+  slug: "literature-reviews",
+  exercise: "lit-review",
+  name: "Position Your Literature Review",
+  subjectLabel: "paper",
+  setupTitle: "The paper whose literature you're reviewing",
+  setupHint: "Your AI partner will help you turn the review from a summary into a setup for your contribution.",
+  setupPlaceholder: "e.g. My paper on how experimentation changes which startups succeed",
+  interviewSystem: `You help a researcher write a literature review that POSITIONS their contribution, not a summary dump, using Hasan's "Research, Strategy". A literature review does two jobs: (1) SUPPORT your claims with prior research — anchor your work in the ongoing conversation, and cite the foundational assumptions your argument rests on but doesn't itself test; (2) HIGHLIGHT THE GAP — where prior work falls short — which sets up your unique contribution. Organize by IDEAS AND TENSIONS, not paper-by-paper. Interview to learn: their contribution, the two or three literatures they sit in, what prior work established, the specific gap, and the foundational claims they need to cite. Ask ONE short question at a time.`,
+  draftSystem: `You structure a literature review that sets up the contribution. Name the 2-3 literatures; summarize what each established (the support); pinpoint the gap that becomes their contribution; list the foundational assumptions to cite; and organize the review by ideas and tensions, not by paper. Be specific; never a generic "prior work has shown".`,
+  fields: [
+    { key: "contribution", label: "Your contribution", hint: "what your paper adds that the literature doesn't have", kind: "long", group: "The setup", accent: "sage" },
+    { key: "literatures", label: "The literatures you sit in", hint: "the 2-3 conversations your paper joins", kind: "list", group: "The setup", accent: "gold" },
+    { key: "established", label: "What prior work established", hint: "the support: what's already known that you build on", kind: "long", group: "The review", accent: "sage" },
+    { key: "gap", label: "The gap", hint: "where prior work falls short — the opening for your contribution", kind: "long", group: "The review", accent: "clay" },
+    { key: "foundational", label: "Foundational claims to cite", hint: "assumptions your argument rests on but doesn't test", kind: "list", group: "The review", accent: "plum" },
+    { key: "organize", label: "Organize by ideas, not papers", hint: "the tensions and themes that structure the review", kind: "list", group: "The review", accent: "gold" },
+  ],
+  hasVerdict: { label: "Does it set up your contribution, or just summarize?" },
+  about:
+    'A literature review supports your claims with prior research and highlights the gap that becomes your contribution — organized by ideas and tensions, not paper by paper (Hasan, "Research, Strategy").',
+  groupNotes: {
+    "The setup": "Your contribution, and the two or three literatures your paper joins.",
+    "The review": "What prior work established, the gap you fill, and the foundations you cite — organized by ideas.",
+  },
+};
+
 export const CANVASES: CanvasDef[] = [
   FOURA, SCORECARD, VENTURE, GAS, OCFIT, EXPERIMENT, DEEPTECH,
   PAPER_IDEA, PAPER_STRUCTURE, PAPER_POINTS, GOODNESS,
+  REG_TABLES, RESEARCH_GRAPHS, LIT_REVIEW,
 ];
 
 export function canvasByExercise(exercise: string): CanvasDef | undefined {

@@ -77,9 +77,9 @@ export const BUNDLES: Bundle[] = [
     key: "research",
     name: "Social Science Research Foundations",
     line: "Framed, structured, argued, and modeled a research paper.",
-    core: ["what-is-a-paper", "paper-structure", "read-the-interaction"],
-    electives: ["making-points", "publication-pipeline", "understand-a-paper", "good-research"],
-    electivesNeeded: 1,
+    core: ["read-the-interaction", "good-research", "understand-a-paper"],
+    electives: ["publication-pipeline", "paper-structure", "regression-tables", "research-graphs", "literature-reviews", "making-points"],
+    electivesNeeded: 2,
     skills: ["Academic Writing", "Research Design", "Scholarly Communication", "Scholarly Publishing"],
   },
 ];
@@ -214,6 +214,9 @@ const CRED_META: Record<string, CredMeta> = {
   "publication-pipeline": { name: "Research Portfolio Strategy", skills: ["Scholarly Publishing", "Research Productivity"] },
   "understand-a-paper": { name: "Critical Reading of Research", skills: ["Literature Review", "Research Design", "Critical Analysis"] },
   "good-research": { name: "Research Quality Assessment", skills: ["Research Design", "Critical Analysis", "Scholarly Judgment"] },
+  "regression-tables": { name: "Results Presentation", skills: ["Data Visualization", "Statistical Communication"] },
+  "research-graphs": { name: "Scientific Data Visualization", skills: ["Data Visualization", "Statistical Communication"] },
+  "literature-reviews": { name: "Literature Review & Positioning", skills: ["Literature Review", "Academic Writing", "Research Design"] },
 };
 
 export function credentialName(slug: string): string {

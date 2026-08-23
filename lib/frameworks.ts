@@ -91,6 +91,15 @@ export const FRAMEWORKS: Record<string, Framework[]> = {
     { name: "Make the invisible visible against a null", finding: "A good idea overturns a clear conventional wisdom (the null) and reveals a hidden factor others miss.", cite: "Hasan, Research, Strategy" },
     { name: "Important, Interesting, Ambitious, Craft", finding: "Execution is judged on whether adults care, whether it's deep enough to debate, whether few could do it, and whether every detail is right.", cite: "Hasan, Research, Strategy" },
   ],
+  "reg-tables": [
+    { name: "One idea per table", finding: "A clear table spotlights the key coefficient and builds columns as a narrative, so the reader sees the finding survive each specification.", cite: "Hasan, Research, Strategy (craft)" },
+  ],
+  "research-graphs": [
+    { name: "The graph is the argument", finding: "Maximize the data-ink ratio and cut chartjunk; the right encoding shows the finding directly.", cite: "Tufte, The Visual Display of Quantitative Information" },
+  ],
+  "lit-review": [
+    { name: "Support and gap, not summary", finding: "A literature review grounds your claims in prior work and highlights the gap that becomes your contribution — organized by ideas, not paper by paper.", cite: "Hasan, Research, Strategy" },
+  ],
 };
 
 export function frameworksFor(key?: string | null): Framework[] {
@@ -121,6 +130,9 @@ export const GUIDE_LABELS: Record<string, string> = {
   "paper-points": "Make Your Points",
   interaction: "The Anatomy of an Idea",
   "research-quality": "What Makes a Paper Good",
+  "reg-tables": "Clear Regression Tables",
+  "research-graphs": "Elegant Research Graphs",
+  "lit-review": "Position Your Literature Review",
 };
 
 export function allFrameworkGroups(): { key: string; label: string; items: Framework[] }[] {
