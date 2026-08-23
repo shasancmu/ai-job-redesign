@@ -9,6 +9,7 @@ const nameOf = (slug: string) => MODULES.find((m) => m.slug === slug)?.name || s
 
 type Row = {
   id: string;
+  key: string;
   name: string;
   line: string | null;
   core: string[];
@@ -22,11 +23,14 @@ export default function CertificatesManager({
   scope,
   orgId,
   bundles,
+  builtinKeys = [],
 }: {
   scope: "global" | "org";
   orgId?: string;
   bundles: Row[];
+  builtinKeys?: string[];
 }) {
+  const builtin = new Set(builtinKeys);
   const router = useRouter();
   const [creating, setCreating] = useState(false);
   const endpoint = scope === "global" ? "/api/admin/certificates" : "/api/team/certificates";
@@ -55,7 +59,7 @@ export default function CertificatesManager({
       )}
 
       {bundles.map((b) => (
-        <BundleCard key={b.id} row={b} post={post} onChanged={() => router.refresh()} />
+        <BundleCard key={b.id} row={b} isBuiltin={builtin.has(b.key)} post={post} onChanged={() => router.refresh()} />
       ))}
     </div>
   );
@@ -170,13 +174,16 @@ function ModulePicker({ label, hint, selected, otherSet, onToggle }: { label: st
   );
 }
 
-function BundleCard({ row, post, onChanged }: { row: Row; post: (b: any) => Promise<any>; onChanged: () => void }) {
+function BundleCard({ row, isBuiltin, post, onChanged }: { row: Row; isBuiltin?: boolean; post: (b: any) => Promise<any>; onChanged: () => void }) {
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   async function del() {
-    if (!confirm(`Delete the "${row.name}" certificate? People who already earned it keep their record, but it stops being awarded.`)) return;
+    const msg = isBuiltin
+      ? `Reset "${row.name}" to its shipped default? Your edits will be discarded.`
+      : `Delete the "${row.name}" certificate? People who already earned it keep their record, but it stops being awarded.`;
+    if (!confirm(msg)) return;
     setBusy(true); setErr(null);
     try { await post({ action: "delete", id: row.id }); onChanged(); } catch (e: any) { setErr(e.message); setBusy(false); }
   }
@@ -187,12 +194,15 @@ function BundleCard({ row, post, onChanged }: { row: Row; post: (b: any) => Prom
     <div className="card p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="font-bold text-ink">{row.name}</div>
+          <div className="flex items-center gap-2">
+            <div className="font-bold text-ink">{row.name}</div>
+            {isBuiltin && <span className="rounded-full bg-mist px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Default</span>}
+          </div>
           {row.line && <div className="text-sm text-slate-500">{row.line}</div>}
         </div>
         <div className="flex gap-2">
           <button onClick={() => setEditing(true)} className="btn-ghost text-sm">Edit</button>
-          <button onClick={del} disabled={busy} className="text-sm text-slate-400 hover:text-clay">Delete</button>
+          <button onClick={del} disabled={busy} className="text-sm text-slate-400 hover:text-clay">{isBuiltin ? "Reset" : "Delete"}</button>
         </div>
       </div>
       <div className="mt-3 text-xs text-slate-500">

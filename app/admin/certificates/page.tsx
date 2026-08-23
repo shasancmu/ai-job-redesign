@@ -6,7 +6,7 @@ import { isSuperadmin } from "@/lib/orgs";
 import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
 import CertificatesManager from "@/components/CertificatesManager";
-import { BUNDLES } from "@/lib/credentials";
+import { BUNDLES, seedBuiltinBundles } from "@/lib/credentials";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Certificates" };
@@ -20,12 +20,22 @@ export default async function AdminCertificatesPage() {
   if (!user) redirect("/login");
   if (!(await isSuperadmin(user))) redirect("/dashboard");
 
+  // Seed the built-in defaults as editable rows (once), then list all global
+  // bundles — the six defaults plus any custom ones.
   const admin = createAdminClient();
-  const { data: rows } = await admin
-    .from("bundles")
-    .select("*")
-    .is("org_id", null)
-    .order("created_at", { ascending: true });
+  let rows: any[] = [];
+  let dbOk = true;
+  try {
+    await seedBuiltinBundles(admin);
+    const { data } = await admin
+      .from("bundles")
+      .select("*")
+      .is("org_id", null)
+      .order("created_at", { ascending: true });
+    rows = data || [];
+  } catch {
+    dbOk = false;
+  }
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
@@ -39,15 +49,17 @@ export default async function AdminCertificatesPage() {
         <h1 className="mt-1 text-3xl text-ink">Certificates</h1>
         <p className="mt-1 max-w-xl text-sm text-slate2">
           Platform-wide certificates, earned by anyone who completes the bundle. Each is a set of modules (core plus a choice of electives).
+          The six defaults are editable here; your edits override the shipped versions.
         </p>
       </div>
 
-      <CertificatesManager scope="global" bundles={(rows as any[]) || []} />
-
-      <section className="mt-10">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">Built-in certificates</h2>
-        <p className="mt-1 text-sm text-slate-400">Shipped in the product. Shown for reference; edit these in code.</p>
-        <div className="mt-3 space-y-2">
+      {dbOk ? (
+        <CertificatesManager scope="global" bundles={rows} builtinKeys={BUNDLES.map((b) => b.key)} />
+      ) : (
+        <div className="space-y-3">
+          <div className="rounded-xl border border-amber/40 bg-amber-soft p-3 text-sm text-ink">
+            Apply the <b>bundles</b> table migration to manage certificates here. The built-in defaults below are active in the meantime.
+          </div>
           {BUNDLES.map((b) => (
             <div key={b.key} className="rounded-xl border border-line bg-mist/30 p-3">
               <div className="text-sm font-semibold text-ink">{b.name}</div>
@@ -57,7 +69,7 @@ export default async function AdminCertificatesPage() {
             </div>
           ))}
         </div>
-      </section>
+      )}
     </main>
   );
 }

@@ -120,26 +120,47 @@ export async function loadBundles(admin: SB, opts: { orgIds?: string[] } = {}): 
   try {
     const { data } = await admin.from("bundles").select("*").eq("active", true);
     const rows = ((data as any[]) || []).filter((r) => r.org_id === null || orgIds.includes(r.org_id));
-    const builtinKeys = new Set(BUNDLES.map((b) => b.key));
-    const extra = rows.map(rowToBundle).filter((b) => !builtinKeys.has(b.key));
-    return [...BUNDLES, ...extra];
+    // Start from the code built-ins, then let DB rows OVERRIDE by key (so a
+    // superadmin's edits to a default win) and ADD new keys.
+    const map = new Map<string, Bundle>(BUNDLES.map((b) => [b.key, b]));
+    for (const r of rows) {
+      const b = rowToBundle(r);
+      map.set(b.key, b);
+    }
+    return [...map.values()];
   } catch {
     return [...BUNDLES];
   }
 }
 
-// One bundle by key, built-in or DB (no org filter — the credential already
-// proves it was earned). For the verify page + OG image.
+// One bundle by key, DB first (so an edited default wins) then the code
+// built-in. No org filter — the credential already proves it was earned.
 export async function loadBundleByKey(admin: SB, key: string): Promise<Bundle | undefined> {
-  const built = BUNDLES.find((b) => b.key === key);
-  if (built) return built;
   try {
     const { data } = await admin.from("bundles").select("*").eq("key", key).maybeSingle();
     if (data) return rowToBundle(data);
   } catch {
-    /* fall through */
+    /* fall through to the code default */
   }
-  return undefined;
+  return BUNDLES.find((b) => b.key === key);
+}
+
+// Seed the code built-ins into the table as editable global rows, once. Uses
+// ignoreDuplicates so it never overwrites a superadmin's later edits. Call from
+// the superadmin certificates page so the defaults show up as editable.
+export async function seedBuiltinBundles(admin: SB): Promise<void> {
+  const rows = BUNDLES.map((b) => ({
+    key: b.key,
+    name: b.name,
+    line: b.line,
+    core: b.core,
+    electives: b.electives,
+    electives_needed: b.electivesNeeded,
+    skills: b.skills,
+    org_id: null,
+    active: true,
+  }));
+  await admin.from("bundles").upsert(rows, { onConflict: "key", ignoreDuplicates: true });
 }
 
 // Serious, accurate credential names + the skills each demonstrates. The module
