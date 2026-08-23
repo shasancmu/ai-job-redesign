@@ -1114,11 +1114,10 @@ const CATALOG_ORDER: string[] = [
   // Negotiate
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
   "lease-the-space", "rehearse-hard-conversation",
-  // Research & scholarship (the curriculum sequence)
+  // Research & scholarship (the curriculum sequence: idea → writing → data → publish → ops)
   "publication-pipeline", "read-the-interaction", "good-research", "theory-section",
-  "data-moat", "data-strategy", "identification",
-  "understand-a-paper", "paper-structure", "abstract-title", "literature-reviews",
-  "making-points", "regression-tables", "research-graphs",
+  "understand-a-paper", "paper-structure", "making-points", "abstract-title", "literature-reviews",
+  "data-moat", "data-strategy", "identification", "regression-tables", "research-graphs",
   "the-referee", "revise-resubmit", "journal-fit",
   "research-system", "research-team",
   // Live

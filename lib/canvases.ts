@@ -498,27 +498,34 @@ const PAPER_POINTS: CanvasDef = {
   subjectLabel: "paper",
   setupTitle: "The paper whose argument you're sharpening",
   setupHint:
-    "A paper you're writing. Your AI partner will help you reduce it to a sequence of points, one per paragraph, that lead to a conclusion.",
+    "A paper you're writing. Your AI partner will help you reduce it to the five points every paper makes, in parallel.",
   setupPlaceholder: "e.g. My paper on how A/B testing changes which startups succeed",
-  interviewSystem: `You are a ruthless editor, in the spirit of a Wall Street Journal writing coach, helping a researcher MAKE THEIR POINTS using Hasan's principle from "Research, Strategy":
-- An academic article is a PERSUASIVE text: a SEQUENCE OF POINTS that lead to a larger conclusion. Each PARAGRAPH makes ONE point, and its topic sentence IS that point. Cut everything extraneous. The recurring question is: "What is your point?"
-- The five-paragraph INTRODUCTION is the model: (1) the topic and question MATTER; (2) the commonly-accepted / ALTERNATIVE view; (3) your EVIDENCE that things are otherwise; (4) the FINDING; (5) why it MATTERS.
-Interview to extract crisp topic sentences for each of the five, plus the single larger conclusion they build to. Push for ONE clear point per paragraph; if a sentence hedges or carries two ideas, make them split it. Ask exactly ONE short question at a time. Do not lecture or fill the canvas.`,
-  draftSystem: `You write a paper's argument as a sequence of POINTS, one per paragraph, each a sharp topic sentence, following Hasan's five-paragraph intro model (it matters, the alternative view, your evidence, the finding, why it matters) and the single larger conclusion they build to. Each point must be ONE assertable claim, not a summary. No hedging, no two-in-one sentences.`,
+  interviewSystem: `You help a researcher make their FIVE POINTS, using Hasan's "Research, Strategy". A paper is FIVE POINTS in a repeated, parallel structure — they appear in the abstract, again in the introduction, and again across the paper, always in the same order:
+1. MOTIVATION — motivate the study; why the topic matters.
+2. THE PUZZLE — stated as a violated expectation: "We believe X about the world. If that were true, we would see Z. But we actually see R." The gap between Z (what the conventional view predicts) and R (what we observe) IS the puzzle.
+3. YOUR SOLUTION — the key thing people are missing about the world; your insight that resolves the puzzle.
+4. EVIDENCE — what data you used, and what evidence you found.
+5. IMPLICATIONS — who cares, what changes because we know this, which literatures it speaks to, and how we should see the world differently.
+Interview to pull each point, and especially to sharpen the puzzle into the belief → prediction → observation form. Ask exactly ONE short question at a time; make them state each point as ONE crisp sentence, no hedging.`,
+  draftSystem: `You write a paper's argument as FIVE PARALLEL POINTS (Hasan): motivation; the puzzle as "We believe X; if true we'd see Z; but we see R"; your solution (the insight people miss); the evidence (data + finding); and the implications (who cares, what changes, which literatures, how to see the world differently). Each point is ONE sharp assertable sentence. The puzzle MUST use the belief → prediction → observation structure. No hedging, no summaries.`,
   fields: [
-    { key: "p1_importance", label: "1 · Why it matters", hint: "The topic and question are important", kind: "long", group: "Your five points", accent: "sage" },
-    { key: "p2_alternative", label: "2 · The alternative view", hint: "The commonly-accepted view you push against", kind: "long", group: "Your five points", accent: "gold" },
-    { key: "p3_evidence", label: "3 · Your evidence", hint: "Why we should believe things are otherwise", kind: "long", group: "Your five points", accent: "gold" },
-    { key: "p4_finding", label: "4 · The finding", hint: "What you find", kind: "long", group: "Your five points", accent: "gold" },
-    { key: "p5_sowhat", label: "5 · Why it matters", hint: "What the finding means, and for whom", kind: "long", group: "Your five points", accent: "sage" },
-    { key: "conclusion", label: "The one conclusion", hint: "The single larger point these five build to", kind: "long", group: "The through-line", accent: "plum" },
+    { key: "motivation", label: "1 · Motivation", hint: "Motivate the study — why the topic matters", kind: "long", group: "1 · Motivation", accent: "sage" },
+    { key: "belief", label: "We believe…", hint: "The conventional view of how the world works", kind: "long", group: "2 · The puzzle", accent: "gold" },
+    { key: "predict", label: "…if true, we'd see…", hint: "What that view predicts we should observe (Z)", kind: "long", group: "2 · The puzzle", accent: "gold" },
+    { key: "observe", label: "…but we actually see", hint: "What we really observe (R) — the gap is the puzzle", kind: "long", group: "2 · The puzzle", accent: "clay" },
+    { key: "solution", label: "3 · Your solution", hint: "The key thing people miss about the world — your insight", kind: "long", group: "3 · The solution", accent: "plum" },
+    { key: "evidence", label: "4 · Evidence", hint: "What data you used, and what you found", kind: "long", group: "4 · Evidence", accent: "sage" },
+    { key: "implications", label: "5 · Implications", hint: "Who cares, what changes, which literatures, how to see the world differently", kind: "long", group: "5 · Implications", accent: "gold" },
   ],
-  hasVerdict: { label: "The one point above all points" },
+  hasVerdict: { label: "Your paper in one sentence" },
   about:
-    'Hasan, "Research, Strategy": an article is a sequence of points that lead to a conclusion, and each paragraph makes exactly one. This canvas reduces your paper to its five topic sentences and the conclusion they build to.',
+    'Hasan, "Research, Strategy": a paper is five points in a repeated, parallel structure — motivation, the puzzle (we believe X; if true we\'d see Z; but we see R), your solution, the evidence, and the implications. This canvas reduces your paper to those five.',
   groupNotes: {
-    "Your five points": "The intro model: it matters, then the alternative view, then your evidence, then the finding, then why it matters.",
-    "The through-line": "One larger conclusion. If your five points don't lead here, cut or reorder.",
+    "1 · Motivation": "Why the topic matters — the reason to read on.",
+    "2 · The puzzle": "A violated expectation: we believe X, which predicts Z, but we see R.",
+    "3 · The solution": "The insight people are missing that resolves the puzzle.",
+    "4 · Evidence": "The data, and what it showed.",
+    "5 · Implications": "Who cares, what changes, and how to see the world differently.",
   },
 };
 

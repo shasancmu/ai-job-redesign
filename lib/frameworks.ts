@@ -82,7 +82,7 @@ export const FRAMEWORKS: Record<string, Framework[]> = {
     { name: "The hourglass", finding: "A paper opens broad, narrows to the problem, approach, and findings, then widens to the contribution; five sections, each with one job.", cite: "Hasan, Research, Strategy" },
   ],
   "paper-points": [
-    { name: "Making points", finding: "An article is a sequence of points that lead to a conclusion, and each paragraph makes exactly one.", cite: "Hasan, Research, Strategy" },
+    { name: "A paper is five parallel points", finding: "Motivation, the puzzle (we believe X; if true we'd see Z; but we see R), your solution, the evidence, and the implications — repeated in parallel through the paper.", cite: "Hasan, Research, Strategy" },
   ],
   interaction: [
     { name: "The interaction is the idea", finding: "In Y = β0 + β1X1 + β2X2 + β3(X1×X2), β3 is usually the contribution: IF X1 → Y, especially/except when X2, because a mechanism.", cite: "Hasan, Research, Strategy" },
