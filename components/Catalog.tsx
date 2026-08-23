@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { MODULES, PARTNER_META, CATEGORIES, moduleCategory, formatPrice, modulePills, pillLabel, moduleMatches, hasActiveFilters } from "@/lib/modules";
+import { MODULES, PARTNER_META, CATEGORIES, moduleCategory, formatPrice, modulePills, pillLabel, moduleMatches, hasActiveFilters, byCatalogOrder } from "@/lib/modules";
 import ModuleIcon from "@/components/ModuleIcon";
 import ModuleFilters from "@/components/ModuleFilters";
 import FeatureBadges from "@/components/FeatureBadges";
@@ -253,7 +253,7 @@ export default function Catalog({
           {(() => {
             const filterState = { query, topics: activePills, features: activeFeatures };
             const filtering = hasActiveFilters(filterState);
-            const mods = filtering ? shown.filter((m) => moduleMatches(m, filterState)) : shown;
+            const mods = (filtering ? shown.filter((m) => moduleMatches(m, filterState)) : shown).slice().sort(byCatalogOrder);
             return (
               <>
                 <ModuleFilters
@@ -286,7 +286,7 @@ export default function Catalog({
                 </div>
               )}
               {CATEGORIES.map((cat) => {
-                const mods = shown.filter((m) => moduleCategory(m.slug) === cat.key);
+                const mods = shown.filter((m) => moduleCategory(m.slug) === cat.key).sort(byCatalogOrder);
                 if (mods.length === 0) return null;
                 return (
                   <div key={cat.key}>

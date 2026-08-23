@@ -10,6 +10,7 @@ import {
   pillLabel,
   moduleMatches,
   hasActiveFilters,
+  byCatalogOrder,
 } from "@/lib/modules";
 import ModuleIcon from "@/components/ModuleIcon";
 import ModuleFilters from "@/components/ModuleFilters";
@@ -102,7 +103,7 @@ export default function LandingLibrary() {
       ) : (
         <div className="space-y-12">
           {CATEGORIES.map((cat) => {
-            const catMods = VISIBLE.filter((m) => moduleCategory(m.slug) === cat.key);
+            const catMods = VISIBLE.filter((m) => moduleCategory(m.slug) === cat.key).sort(byCatalogOrder);
             if (catMods.length === 0) return null;
             return (
               <div key={cat.key}>

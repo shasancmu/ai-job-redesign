@@ -918,6 +918,36 @@ export function moduleCategory(slug: string): CategoryKey {
   return CATEGORY_OF[slug] || "strategy";
 }
 
+// Curriculum order — how modules are sequenced within each category in the
+// catalog (foundational → advanced, following the learning path). Slugs not
+// listed fall to the end of their category. Used to sort the grouped catalog.
+const CATALOG_ORDER: string[] = [
+  // Work & AI
+  "solo-ai", "workflow-solo", "reimagine-job", "reimagine-workflow",
+  "career-x-ray", "jd-x-ray", "career-roadmap", "refresh-resume", "refresh-resume-voice",
+  "find-superpower", "personal-network", "career-myopia", "find-collaborators",
+  // Sharpen a decision
+  "good-business", "customer-empathy", "opportunity-capability", "test-the-bet",
+  "ai-canvas", "balanced-scorecard", "execution-4a", "business-consult", "voice-consult",
+  "ai-board", "business-myopia", "define-vision", "define-vision-voice", "deeptech-canvas",
+  "domain-brief", "licensing-brief", "vendor-disclosure",
+  // Negotiate
+  "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
+  "lease-the-space", "rehearse-hard-conversation",
+  // Research & scholarship (the curriculum sequence)
+  "publication-pipeline", "read-the-interaction", "good-research", "understand-a-paper",
+  "paper-structure", "regression-tables", "research-graphs", "literature-reviews", "making-points",
+  // Live
+  "benchmark", "network",
+];
+const CATALOG_RANK: Record<string, number> = Object.fromEntries(CATALOG_ORDER.map((s, i) => [s, i]));
+export function catalogRank(slug: string): number {
+  return CATALOG_RANK[slug] ?? 9999;
+}
+export function byCatalogOrder<T extends { slug: string }>(a: T, b: T): number {
+  return catalogRank(a.slug) - catalogRank(b.slug);
+}
+
 // ---------------------------------------------------------------------------
 // Pills — a finite set of cross-cutting themes. A module can carry several; the
 // catalog shows them on each card and lets people filter by them.
