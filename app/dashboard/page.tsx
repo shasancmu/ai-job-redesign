@@ -16,6 +16,8 @@ import LanguagePicker from "@/components/LanguagePicker";
 import { I18N_ENABLED } from "@/lib/flags";
 import EnrichOnce from "@/components/EnrichOnce";
 import YourWork, { type WorkItem } from "@/components/YourWork";
+import FollowUps from "@/components/FollowUps";
+import { dueFollowUps } from "@/lib/followups";
 import { computeStreak, artifactHref, nextStep } from "@/lib/momentum";
 import { recommendedSlugs } from "@/lib/segments";
 import { getServerLocale } from "@/lib/i18n-server";
@@ -167,6 +169,7 @@ export default async function Dashboard({
   const recents = [...workItems].sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, 4);
 
   const runsLeft = await runsLeftByModule(supabase, user.id, instructor);
+  const followUps = await dueFollowUps(supabase, user.id).catch(() => []);
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
@@ -221,6 +224,8 @@ export default async function Dashboard({
       <FacilitatorWelcome orgs={myOrgs.filter((m) => m.role !== "member").map((m) => ({ slug: m.org.slug, name: m.org.name, role: m.role }))} />
 
       <EnrichOnce />
+
+      <FollowUps items={followUps} />
 
       <div data-tour="your-work">
         <YourWork recents={recents} reportsCount={reportsCount} />
