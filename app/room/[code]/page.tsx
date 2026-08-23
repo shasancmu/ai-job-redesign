@@ -36,6 +36,12 @@ import Lesson1Rules from "@/components/lessons/Lesson1Rules";
 import Lesson2Learning from "@/components/lessons/Lesson2Learning";
 import Lesson3Language from "@/components/lessons/Lesson3Language";
 import Lesson4Scale from "@/components/lessons/Lesson4Scale";
+import PhdLesson1What from "@/components/lessons/PhdLesson1What";
+import PhdLesson2Choose from "@/components/lessons/PhdLesson2Choose";
+import PhdLesson3Apply from "@/components/lessons/PhdLesson3Apply";
+import PhdLesson4Structure from "@/components/lessons/PhdLesson4Structure";
+import PhdLesson5Succeed from "@/components/lessons/PhdLesson5Succeed";
+import PhdLesson6Placement from "@/components/lessons/PhdLesson6Placement";
 import { variantForExercise } from "@/lib/disclosure";
 import { canvasByExercise } from "@/lib/canvases";
 import { scenarioByExercise } from "@/lib/negotiation";
@@ -276,6 +282,18 @@ export default async function RoomPage({
       session.exercise === "ai-rules" ? Lesson1Rules :
       session.exercise === "ai-learning" ? Lesson2Learning :
       session.exercise === "ai-language" ? Lesson3Language : Lesson4Scale;
+    return <Lesson me={user.id} session={session} initialWorkspace={null} />;
+  }
+
+  // The PhD path — explainer lessons. Host only.
+  if (["phd-what", "phd-choose", "phd-apply", "phd-structure", "phd-succeed", "phd-placement"].includes(session.exercise || "")) {
+    if (!amHost) redirect("/dashboard");
+    const Lesson =
+      session.exercise === "phd-what" ? PhdLesson1What :
+      session.exercise === "phd-choose" ? PhdLesson2Choose :
+      session.exercise === "phd-apply" ? PhdLesson3Apply :
+      session.exercise === "phd-structure" ? PhdLesson4Structure :
+      session.exercise === "phd-succeed" ? PhdLesson5Succeed : PhdLesson6Placement;
     return <Lesson me={user.id} session={session} initialWorkspace={null} />;
   }
 

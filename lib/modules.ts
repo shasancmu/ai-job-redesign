@@ -1026,7 +1026,7 @@ export const MODULES: ModuleDef[] = [
     name: "Is a Business PhD for You?",
     tagline: "An honest read on what a business PhD actually is, research training to become a professor, and whether it fits what you want.",
     description:
-      "The orientation, from the getting-in-and-out-of-a-PhD chapters of Research, Strategy. A business PhD is research training to become a professor, not an advanced MBA: you produce knowledge, the two tangible products are papers and presentations, and it's a five-to-six-year funded apprenticeship followed by a career of teaching and research. An AI partner interviews you about why you're drawn to it and what you want, then gives a candid read on the reality, the odds, and whether the path fits you, or what would be a better one.",
+      "The orientation, from the getting-in-and-out-of-a-PhD chapters of Research, Strategy. A business PhD is research training to become a professor, not an advanced MBA: you produce knowledge, the two tangible products are papers and presentations, and it's a five-to-six-year funded apprenticeship followed by a career of teaching and research. A plain-language, interactive explainer, with predict-then-reveal and a tutor you can ask anything. You leave with a clear-eyed picture of the reality and the odds, and whether the path fits what you actually want.",
     partner: "ai",
     mode: "With AI",
     minutes: 12,
@@ -1042,7 +1042,7 @@ export const MODULES: ModuleDef[] = [
     name: "Choose a PhD Program",
     tagline: "Judge programs on what actually matters: placement above all, then faculty fit in your area, funding, and culture.",
     description:
-      "How to tell which PhD program is good, from Research, Strategy. The number-one signal is placement, where a program's graduates actually get jobs, because top programs place students at top departments and that predicts your outcome better than general prestige. An AI partner helps you weigh your options on placement, then faculty fit in your area, funding and support, and culture and cohort, and calls the best fit for you.",
+      "How to tell which PhD program is good, from Research, Strategy. The number-one signal is placement, where a program's graduates actually get jobs, because top programs place students at top departments and that predicts your outcome better than general prestige. A plain-language, interactive explainer, with predict-then-reveal and a tutor. You leave knowing what actually matters, placement first, then faculty fit, funding, and culture, and how to read a program.",
     partner: "ai",
     mode: "With AI",
     minutes: 14,
@@ -1058,7 +1058,7 @@ export const MODULES: ModuleDef[] = [
     name: "Get Into a PhD Program",
     tagline: "Build your application by seeing it from the committee's side: they're betting ~$300k that you'll become a researcher who publishes.",
     description:
-      "How to apply, seen from the admissions committee's seat, from Research, Strategy. The committee is de-risking a ~$300k investment: they're betting you'll become a researcher who publishes 5-6 papers and earns tenure, and since publishing is a lottery, they need a candidate with high E[p] (quality) and E[n] (drive). An AI partner helps you build the application so every part, the writing sample, research experience, methods prep, letters, statement, and faculty fit, signals both, and names the weakest signal to shore up before you apply.",
+      "How to apply, seen from the admissions committee's seat, from Research, Strategy. The committee is de-risking a ~$300k investment: they're betting you'll become a researcher who publishes 5-6 papers and earns tenure, and since publishing is a lottery, they need a candidate with high E[p] (quality) and E[n] (drive). A plain-language, interactive explainer, with a live demo of the committee's bet, predict-then-reveal, and a tutor. You leave knowing how to make every part of your application, the writing sample, research experience, methods prep, letters, statement, and fit, signal both.",
     partner: "ai",
     mode: "With AI",
     minutes: 16,
@@ -1074,7 +1074,7 @@ export const MODULES: ModuleDef[] = [
     name: "How a PhD Works",
     tagline: "Map the phases, coursework, comps, qualifying paper, research, job-market paper, job market, and nail the one you're in.",
     description:
-      "The structure of a business PhD, from Research, Strategy. It moves through phases, each with its own job: coursework and comprehensive exams build the toolkit; a qualifying paper and an advisor prove you can do research; the research pipeline develops the dissertation; the job-market paper becomes your calling card; then the job market. An AI partner maps the path, locates where you are, and names your next milestone and how to hit it.",
+      "The structure of a business PhD, from Research, Strategy. It moves through phases, each with its own job: coursework and comprehensive exams build the toolkit; a qualifying paper and an advisor prove you can do research; the research pipeline develops the dissertation; the job-market paper becomes your calling card; then the job market. A plain-language, interactive explainer, with a phase-by-phase map, predict-then-reveal, and a tutor. You leave knowing what each phase is for and what to optimize in the one you're in.",
     partner: "ai",
     mode: "With AI",
     minutes: 12,
@@ -1090,7 +1090,7 @@ export const MODULES: ModuleDef[] = [
     name: "Succeed in Your PhD",
     tagline: "The habits that separate thriving students: papers and presentations, visibility, taking advice, and modeling the best above you.",
     description:
-      "How to succeed, from the getting-out-of-a-PhD advice in Research, Strategy. The two tangible products are papers and presentations; visibility matters, be on campus and in the intellectual life, attend talks and give them; take advice and model the best students in the cohorts above you; and work consistently rather than in heroic bursts. An AI partner diagnoses your trajectory and names the single highest-leverage change.",
+      "How to succeed, from the getting-out-of-a-PhD advice in Research, Strategy. The two tangible products are papers and presentations; visibility matters, be on campus and in the intellectual life, attend talks and give them; take advice and model the best students in the cohorts above you; and work consistently rather than in heroic bursts. A plain-language, interactive explainer, with predict-then-reveal and a tutor. You leave knowing the mundane behaviors that actually separate thriving students from struggling ones.",
     partner: "ai",
     mode: "With AI",
     minutes: 14,
@@ -1106,7 +1106,7 @@ export const MODULES: ModuleDef[] = [
     name: "Land an Academic Job",
     tagline: "Judge your job-market paper the way a hiring department will: Important, Interesting, Ambitious, backed by a pipeline.",
     description:
-      "How to get a good placement, from Research, Strategy and the strategy lecture. Your job-market paper is the calling card, and a department is making a $2 to 2.5 million bet on you, so the JMP must be Important (adults care), Interesting (novel and non-obvious), and Ambitious (few could do it), backed by a pipeline of other work. An AI partner scores your JMP on the three tests, weighs the packet, talk, references, and targets, and names the one move that would most strengthen the case.",
+      "How to get a good placement, from Research, Strategy and the strategy lecture. Your job-market paper is the calling card, and a department is making a $2 to 2.5 million bet on you, so the JMP must be Important (adults care), Interesting (novel and non-obvious), and Ambitious (few could do it), backed by a pipeline of other work. A plain-language, interactive explainer, with predict-then-reveal and a tutor. You leave knowing what makes a job-market paper win a top job, and how the rest of the packet supports it.",
     partner: "ai",
     mode: "With AI",
     minutes: 16,
