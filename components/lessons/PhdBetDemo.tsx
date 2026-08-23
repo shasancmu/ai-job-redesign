@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 // The admissions bet, live. A committee is betting you'll publish ~5 papers to
-// earn tenure. Publishing is a lottery, so P(5 of 5) is basically zero — the only
+// earn tenure. Publishing is a lottery, so P(5 of 5) is basically zero, the only
 // way the bet pays off is a candidate with high quality (p per paper) AND high
 // output (n papers). This is why the whole application is read as evidence of both.
 function nCr(n: number, k: number) { let r = 1; for (let i = 0; i < k; i++) r = (r * (n - i)) / (i + 1); return r; }
@@ -17,20 +17,20 @@ export default function PhdBetDemo() {
 
   return (
     <div className="my-6 rounded-2xl border border-line bg-white p-5">
-      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Try it — the committee's bet</div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Try it: the committee's bet</div>
       <p className="mt-1 text-sm text-slate-500">They need you to publish about 5 papers to earn tenure. What are the odds you clear that bar?</p>
 
       <div className="mt-4 space-y-4">
         <div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-600">Quality — odds any one paper gets in <span className="text-slate-400">(E[p])</span></span>
+            <span className="text-slate-600">Quality: odds any one paper gets in <span className="text-slate-400">(E[p])</span></span>
             <span className="font-semibold tabular-nums text-ink">{p}%</span>
           </div>
           <input type="range" min={5} max={60} value={p} onChange={(e) => setP(parseInt(e.target.value, 10))} className="mt-1 w-full" aria-label="Per-paper quality" />
         </div>
         <div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-600">Drive — papers you actually write <span className="text-slate-400">(E[n])</span></span>
+            <span className="text-slate-600">Drive: papers you actually write <span className="text-slate-400">(E[n])</span></span>
             <span className="font-semibold tabular-nums text-ink">{n}</span>
           </div>
           <input type="range" min={5} max={15} value={n} onChange={(e) => setN(parseInt(e.target.value, 10))} className="mt-1 w-full" aria-label="Papers written" />
@@ -43,7 +43,7 @@ export default function PhdBetDemo() {
       </div>
 
       <p className="mt-3 text-xs text-slate-400">
-        Notice: raising <span className="font-semibold text-ink">either</span> quality or output alone barely rescues the bet — you need both high. That is exactly what the committee is reading your application for: evidence of E[p] (you can do good work) and E[n] (you will keep writing).
+        Notice: raising <span className="font-semibold text-ink">either</span> quality or output alone barely rescues the bet, you need both high. That is exactly what the committee is reading your application for: evidence of E[p] (you can do good work) and E[n] (you will keep writing).
       </p>
     </div>
   );

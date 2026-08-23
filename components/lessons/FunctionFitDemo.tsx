@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-// Learning a function from examples. The machine isn't told the rule — it finds
+// Learning a function from examples. The machine isn't told the rule, it finds
 // the line that best fits the data. With few points the line is shaky; with more,
 // it locks in. That's statistical learning, and why data is the bottleneck.
 const POINTS: [number, number][] = [
@@ -32,7 +32,7 @@ export default function FunctionFitDemo() {
 
   return (
     <div className="my-6 rounded-2xl border border-line bg-white p-5">
-      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Try it — learning the line from data</div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Try it: learning the line from data</div>
       <p className="mt-1 text-sm text-slate-500">Nobody told the machine the rule. It just finds the line that best fits the dots.</p>
 
       <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 w-full">
@@ -48,7 +48,7 @@ export default function FunctionFitDemo() {
         <span className="text-xs text-slate-400 tabular-nums">learned rule: y ≈ {slope.toFixed(2)}·x + {intercept.toFixed(0)} &nbsp;·&nbsp; {pts.length} examples</span>
       </div>
       <p className="mt-3 text-xs text-slate-400">
-        With four dots the line wobbles; with more it settles. The machine learned the rule <span className="italic">from the data</span> — so its ceiling is the data. A neural network does the same thing, just with a far more flexible curve than a straight line.
+        With four dots the line wobbles; with more it settles. The machine learned the rule <span className="italic">from the data</span>, so its ceiling is the data. A neural network does the same thing, just with a far more flexible curve than a straight line.
       </p>
     </div>
   );

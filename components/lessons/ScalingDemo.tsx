@@ -4,7 +4,7 @@ import { useState } from "react";
 
 // The scaling law, live: as you pour in more compute (and data and parameters),
 // the model's error drops in a straight, predictable line on a log-log plot.
-// True within the range we've measured — with real caveats shown below.
+// True within the range we've measured, with real caveats shown below.
 export default function ScalingDemo() {
   const [s, setS] = useState(30); // 0..100 → log10(compute) 0..8
   const logC = (s / 100) * 8;
@@ -18,7 +18,7 @@ export default function ScalingDemo() {
 
   return (
     <div className="my-6 rounded-2xl border border-line bg-white p-5">
-      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Try it — the scaling law</div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Try it: the scaling law</div>
       <p className="mt-1 text-sm text-slate-500">Slide up the compute. The error falls in a straight, predictable line.</p>
 
       <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 w-full">
@@ -33,11 +33,11 @@ export default function ScalingDemo() {
 
       <input type="range" min={0} max={100} value={s} onChange={(e) => setS(parseInt(e.target.value, 10))} className="mt-2 w-full" aria-label="Compute" />
       <div className="mt-1 text-sm font-medium" style={{ color: emerge ? "#3F7A52" : "#6E7A70" }}>
-        {emerge ? "At this scale, new abilities show up that weren't there at smaller sizes." : "More compute, lower error — smoothly and predictably."}
+        {emerge ? "At this scale, new abilities show up that weren't there at smaller sizes." : "More compute, lower error, smoothly and predictably."}
       </div>
 
       <p className="mt-3 text-xs text-slate-400">
-        This straight line holds remarkably well over many orders of magnitude — but it's an empirical pattern, not a guarantee. Lower loss is not the same as more capability, high-quality data is finite, returns diminish, and how far it goes is genuinely debated.
+        This straight line holds remarkably well over many orders of magnitude, but it's an empirical pattern, not a guarantee. Lower loss is not the same as more capability, high-quality data is finite, returns diminish, and how far it goes is genuinely debated.
       </p>
     </div>
   );

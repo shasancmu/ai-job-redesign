@@ -159,8 +159,8 @@ export function Note({ children }: { children: React.ReactNode }) {
 }
 export function Milestone({ year, children }: { year: string; children: React.ReactNode }) {
   return (
-    <div className="flex gap-3 rounded-xl border border-line bg-white p-3">
-      <span className="flex-none rounded-full bg-ink px-2 py-0.5 text-xs font-bold text-white">{year}</span>
+    <div className="flex items-start gap-3 rounded-xl border border-line bg-white p-3">
+      <span className="flex-none rounded-md bg-ink px-2 py-1 text-xs font-bold tabular-nums text-white">{year}</span>
       <span className="text-sm text-slate-700">{children}</span>
     </div>
   );

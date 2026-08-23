@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 // A working n-gram (Markov) text generator. Given a small corpus, it predicts
 // the next word by sampling from what followed the last `order` words in the
 // text. Order 1 = gibberish-ish; higher order = more coherent but, on a tiny
-// corpus, it starts to just copy the source — the data bottleneck, live.
+// corpus, it starts to just copy the source, the data bottleneck, live.
 const CORPUS = `A startup that runs experiments learns faster than one that guesses.
 The founders who test their ideas early avoid building things nobody wants.
 A good experiment changes a belief, so a startup that runs experiments changes its mind when the data says so.
@@ -53,7 +53,7 @@ export default function MarkovDemo() {
 
   return (
     <div className="my-6 rounded-2xl border border-line bg-white p-5">
-      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Try it — a Markov text generator</div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Try it: a Markov text generator</div>
       <p className="mt-1 text-sm text-slate-500">It only ever looks at the last {order} word{order === 1 ? "" : "s"} to pick the next one. That short, fixed memory is the whole idea, and the whole limit.</p>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -70,7 +70,7 @@ export default function MarkovDemo() {
 
       <p className="mt-3 text-xs text-slate-400">
         1 word: mostly nonsense. 2–3 words: more fluent, but on this tiny corpus it soon just copies whole sentences. Real language needs a
-        far longer memory and far more text — which is exactly what a Transformer and a huge dataset provide.
+        far longer memory and far more text, which is exactly what a Transformer and a huge dataset provide.
       </p>
     </div>
   );
