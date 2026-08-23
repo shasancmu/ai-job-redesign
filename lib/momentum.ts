@@ -105,6 +105,12 @@ const NEXT_AFTER: Record<string, string> = {
   "ai-language": "ai-scale",
 };
 
+// The very next module in an explicit learning path (used by the explainer
+// lessons to push straight into the next one when a lesson is finished).
+export function nextAfter(slug: string): string | null {
+  return NEXT_AFTER[slug] || null;
+}
+
 export function nextStep(completed: Set<string>, recommended: string[], valid: Set<string>): string | null {
   for (const slug of completed) {
     const nxt = NEXT_AFTER[slug];

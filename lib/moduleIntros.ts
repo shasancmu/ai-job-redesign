@@ -208,15 +208,18 @@ const INTROS: Record<string, ModuleIntro> = {
   ] },
 };
 
+// Explainer lessons (How AI works, The PhD path) teach as you read them, so a
+// pop-up intro is just noise — they get no intro at all.
+const LESSON_EXERCISES = new Set([
+  "ai-rules", "ai-learning", "ai-language", "ai-scale",
+  "phd-what", "phd-choose", "phd-apply", "phd-structure", "phd-succeed", "phd-placement",
+]);
+
 export function getModuleIntro(m: ModuleDef): ModuleIntro {
   const bespoke = INTROS[m.slug];
   if (bespoke) return bespoke;
-  // Non-spoiler fallback for modules without a bespoke intro.
-  return {
-    steps: [
-      { title: "What you'll do", body: `${m.name} is a hands-on exercise run by AI — it interviews, partners with, or coaches you through your real situation, one step at a time.` },
-      { title: "Grounded in research", body: "It's built on an established framework, not generic advice — the kind of thinking that holds up on a real decision." },
-      { title: "What you'll leave with", body: "A concrete result you can act on, built from what you bring in." },
-    ],
-  };
+  if (LESSON_EXERCISES.has(m.exercise)) return { steps: [] };
+  // For everything else without a bespoke intro, a single short card built from
+  // the module's own tagline — specific to the exercise, not boilerplate.
+  return { steps: [{ title: "Before you start", body: m.tagline }] };
 }
