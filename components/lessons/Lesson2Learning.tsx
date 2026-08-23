@@ -13,6 +13,16 @@ export default function Lesson2Learning({ session }: { me: string; session: any;
       <p>How well could a mere formula really do against a seasoned human expert? Surprisingly well. Across decades of studies, clinical diagnoses, parole decisions, graduate admissions, a simple statistical model, fit to past data, reliably <em>matched or beat</em> the expert&apos;s judgment.</p>
       <Milestone year="1954–1989">Paul Meehl, then Robyn Dawes, showed that simple actuarial models routinely outperform expert &ldquo;clinical&rdquo; judgment. The expert has the same information, but the formula weighs it consistently, while the human is swayed by the last case, the mood, the story.</Milestone>
 
+      <div className="rounded-xl border border-line bg-mist/40 p-4">
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">The same story, over and over</div>
+        <div className="mt-2 space-y-2 text-sm text-slate-700">
+          <p><span className="font-semibold text-ink">Wine.</span> A one-line formula from winter rainfall and summer heat predicted Bordeaux vintage quality, and prices, better than the expert critics tasting it (Ashenfelter).</p>
+          <p><span className="font-semibold text-ink">Credit.</span> A credit score, just a formula, approves loans more accurately, and far more consistently, than a loan officer reading each file by hand.</p>
+          <p><span className="font-semibold text-ink">Hiring.</span> A short structured score on a few job-relevant facts predicts who will perform better than a manager&rsquo;s gut read from an interview.</p>
+          <p><span className="font-semibold text-ink">Medicine.</span> Simple risk scores and checklists match or beat physicians&rsquo; unaided judgment on many diagnoses and prognoses.</p>
+        </div>
+      </div>
+
       <LessonPredict
         prompt="An experienced expert vs. a simple formula built from past data, whose predictions tend to be more accurate?"
         choices={["The expert, by a wide margin", "The formula, or a tie", "They're never comparable"]}
