@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Tutor from "@/components/lessons/Tutor";
 import LessonPredict from "@/components/lessons/LessonPredict";
+import CredentialMoment from "@/components/CredentialMoment";
 import { CATEGORIES, moduleByExercise, moduleBySlug, moduleCategory } from "@/lib/modules";
 import { nextAfter } from "@/lib/momentum";
 
@@ -30,6 +31,7 @@ export default function LessonShell({
   const [i, setI] = useState(0);
   const [busy, setBusy] = useState(false);
   const [askOpen, setAskOpen] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
 
   // Badge + next module derive from the current module.
   const mod = moduleByExercise(session.exercise);
@@ -45,7 +47,10 @@ export default function LessonShell({
   async function finish() {
     setBusy(true);
     await supabase.from("sessions").update({ status: "done" }).eq("id", session.id);
-    router.push(next ? `/start/${next.slug}` : "/dashboard");
+    if (next) { router.push(`/start/${next.slug}`); return; }
+    // Last module in the series: celebrate here instead of bouncing away.
+    setCelebrate(true);
+    setBusy(false);
   }
 
   // Keyboard arrows on desktop (ignored while the tutor sheet is open).
@@ -70,6 +75,23 @@ export default function LessonShell({
     touch.current = null;
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) setI((k) => clamp(dx < 0 ? k + 1 : k - 1));
   };
+
+  if (celebrate) {
+    return (
+      <main className="mx-auto flex min-h-[100dvh] max-w-lg flex-col items-center justify-center px-5 py-10 text-center sm:px-6">
+        <div className="text-5xl" aria-hidden>🎉</div>
+        <h1 className="mt-4 text-2xl font-bold text-ink sm:text-3xl">{cat ? `You finished ${cat.title}!` : "Series complete!"}</h1>
+        <p className="mt-2 text-slate-600">That&rsquo;s the last lesson in the series. Nicely done.</p>
+        <div className="mt-6 w-full text-left">
+          <CredentialMoment code={session.code} />
+        </div>
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+          <Link href="/dashboard" className="btn-primary">Back to dashboard</Link>
+          <button onClick={() => { setCelebrate(false); setI(0); }} className="text-sm text-slate2 hover:text-ink">Review from the start</button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto flex min-h-[100dvh] max-w-2xl flex-col px-5 py-4 sm:px-6">
