@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export type Prediction = { text: string; rating?: number; at: string };
+export type Prediction = { text: string; why?: string; rating?: number; at: string };
 
 // The predict step: shown once, right before the AI report generates. The
 // learner commits their own answer first (a soft gate: Reveal stays disabled
@@ -22,12 +22,13 @@ export default function PredictReveal({
   revealLabel?: string;
 }) {
   const [text, setText] = useState("");
+  const [why, setWhy] = useState("");
   const [rating, setRating] = useState<number | null>(null);
   const ok = text.trim().length > 0;
 
   function submit() {
     if (!ok) return;
-    onSubmit({ text: text.trim(), rating: rating ?? undefined, at: new Date().toISOString() });
+    onSubmit({ text: text.trim(), why: why.trim() || undefined, rating: rating ?? undefined, at: new Date().toISOString() });
   }
 
   return (
@@ -45,6 +46,14 @@ export default function PredictReveal({
           autoFocus
           placeholder={placeholder}
           className="field mt-3 w-full resize-none"
+        />
+
+        <input
+          value={why}
+          onChange={(e) => setWhy(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit(); }}
+          placeholder="In your own words, why? (optional, but it makes the reveal land harder)"
+          className="field mt-2 w-full text-sm"
         />
 
         {ratingLabel && (

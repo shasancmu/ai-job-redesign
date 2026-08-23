@@ -2,6 +2,8 @@
 
 import Tour, { TourButton } from "@/components/Tour";
 import CredentialMoment from "@/components/CredentialMoment";
+import ResearchBehind from "@/components/ResearchBehind";
+import ReflectCommit from "@/components/ReflectCommit";
 import { reportGuide, walkthroughSteps } from "@/lib/reportGuide";
 import type { Prediction } from "@/components/PredictReveal";
 
@@ -33,6 +35,7 @@ export default function ReportReveal({
         <div data-guide="delta" className="mb-5 rounded-2xl border border-line bg-mist/60 p-4">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">You predicted</div>
           <p className="mt-1 text-[15px] italic leading-relaxed text-slate-700">&ldquo;{prediction.text}&rdquo;</p>
+          {prediction.why && <p className="mt-1.5 text-sm text-slate-500">Your reasoning: {prediction.why}</p>}
           <p className="mt-2 text-xs text-slate-400">Hold that next to what emerged below. The gap is the lesson.</p>
         </div>
       )}
@@ -44,6 +47,9 @@ export default function ReportReveal({
       )}
 
       {children}
+
+      <ReflectCommit code={code} hasPrediction={!!prediction?.text} />
+      <ResearchBehind guideKey={guideKey} />
 
       {steps.length > 0 && (
         <Tour
