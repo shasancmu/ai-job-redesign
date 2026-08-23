@@ -7,9 +7,9 @@ import { useState } from "react";
 // every path had to be written by a human, so anything unforeseen breaks it.
 type Q = { q: string; yes: number | string; no: number | string };
 const RULES: Q[] = [
-  { q: "Credit score above 650?", yes: 1, no: "Deny: score too low" },
-  { q: "Debt-to-income under 40%?", yes: 2, no: "Deny: too much debt" },
-  { q: "Employed for over 2 years?", yes: "Approve", no: "Refer to a human" },
+  { q: "Is your credit score above 650?", yes: 1, no: "Deny: score too low" },
+  { q: "Is your debt-to-income under 40%?", yes: 2, no: "Deny: too much debt" },
+  { q: "Have you been employed for over 2 years?", yes: "Approve", no: "Refer to a human" },
 ];
 
 export default function RuleFlowDemo() {
@@ -32,7 +32,7 @@ export default function RuleFlowDemo() {
       <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Try it: an expert system for a loan</div>
 
       {step === 0 && path.length === 0 && !broke && (
-        <p className="mt-2 text-sm text-slate-500">You&rsquo;re a hand-built loan approver. Answer each rule either way, there are no wrong answers, and watch it follow the rules a person wrote to reach a decision.</p>
+        <p className="mt-2 text-sm text-slate-500">Answer as if you were applying for a loan, either way is fine, and watch the system follow the rules a person wrote by hand to reach a decision.</p>
       )}
 
       {path.length > 0 && (
