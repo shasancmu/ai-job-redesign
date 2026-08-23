@@ -87,6 +87,11 @@ export const FRAMEWORKS: Record<string, Framework[]> = {
   interaction: [
     { name: "The interaction is the idea", finding: "In Y = β0 + β1X1 + β2X2 + β3(X1×X2), β3 is usually the contribution: IF X1 → Y, especially/except when X2, because a mechanism.", cite: "Hasan, Research, Strategy" },
   ],
+  "field-experiment": [
+    { name: "The Strategy Experiment Canvas", finding: "Design a field experiment in eight parts: setup, setting & subjects, friction, insight, solution (treatment), why & when it works, the null, and impact on the business.", cite: "Hasan, Kim & Koning" },
+    { name: "The experiment is a regression", finding: "Y = b0 + b1·T + b2·X + b3·(T·X): b1 is the average treatment effect, b3 the heterogeneous effect (works more or less for whom); design for power, watch attrition and the credibility of the null.", cite: "Hasan, Kim & Koning" },
+    { name: "Six intervention patterns", finding: "Most strategy treatments are one of Training, Information, Incentives, Spillovers, Process, or Resource, each with a canonical field-experiment exemplar.", cite: "Hasan, Kim & Koning" },
+  ],
   "research-quality": [
     { name: "Make the invisible visible against a null", finding: "A good idea overturns a clear conventional wisdom (the null) and reveals a hidden factor others miss.", cite: "Hasan, Research, Strategy" },
     { name: "Important, Interesting, Ambitious, Craft", finding: "Execution is judged on whether adults care, whether it's deep enough to debate, whether few could do it, and whether every detail is right.", cite: "Hasan, Research, Strategy" },
@@ -191,6 +196,7 @@ export const GUIDE_LABELS: Record<string, string> = {
   "paper-structure": "Structure Your Paper",
   "paper-points": "Make Your Points",
   interaction: "The Anatomy of an Idea",
+  "field-experiment": "The Strategy Experiment",
   "research-quality": "What Makes a Paper Good",
   "reg-tables": "Clear Regression Tables",
   "research-graphs": "Elegant Research Graphs",

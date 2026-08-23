@@ -32,6 +32,7 @@ import LicensingBriefRoom from "@/components/LicensingBriefRoom";
 import PipelineRoom from "@/components/PipelineRoom";
 import PaperStudyRoom from "@/components/PaperStudyRoom";
 import InteractionRoom from "@/components/InteractionRoom";
+import ExperimentRoom from "@/components/ExperimentRoom";
 import Lesson1Rules from "@/components/lessons/Lesson1Rules";
 import Lesson2Learning from "@/components/lessons/Lesson2Learning";
 import Lesson3Language from "@/components/lessons/Lesson3Language";
@@ -308,6 +309,19 @@ export default async function RoomPage({
       .eq("author_id", user.id)
       .maybeSingle();
     return <InteractionRoom me={user.id} session={session} initialWorkspace={workspace || { session_id: session.id, author_id: user.id }} />;
+  }
+
+  // The Strategy Experiment: design the 8-part canvas, then simulate it in silico.
+  if (session.exercise === "field-experiment") {
+    if (!amHost) redirect("/dashboard");
+    await supabase.from("workspaces").upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
+    return <ExperimentRoom me={user.id} session={session} initialWorkspace={workspace || { session_id: session.id, author_id: user.id }} />;
   }
 
   // Your AI Board: single-user, host only. A live advisory-board debate.

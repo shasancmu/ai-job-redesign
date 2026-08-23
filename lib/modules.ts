@@ -66,6 +66,7 @@ export type ModuleDef = {
     | "paper-structure"
     | "paper-points"
     | "interaction"
+    | "field-experiment"
     | "pipeline"
     | "paper-study"
     | "research-quality"
@@ -765,6 +766,22 @@ export const MODULES: ModuleDef[] = [
     forSale: false,
   },
   {
+    slug: "strategy-experiment",
+    exercise: "field-experiment",
+    name: "The Strategy Experiment",
+    tagline: "Design a strategy field experiment on the eight-part canvas, then run it in silico: AI proposes the data-generating process and the app actually simulates the trial.",
+    description:
+      "The Strategy Experiment Canvas (Sharique Hasan, Hyunjin Kim and Rembrand Koning). You design a field experiment in eight parts, the setup, the setting and subjects, the friction, your insight, the treatment, why and when it works, the null, and the impact on the business, then run it in silico. AI classifies your intervention into one of six patterns (Training, Information, Incentives, Spillovers, Process, Resource), scores the idea on Important, Interesting, Ambitious, and Craft, flags design risks, and proposes a realistic data-generating process. The app then actually simulates the randomized trial, fits Y = b0 + b1 treatment + b2 pre-treatment X + b3 (treatment times X), and reports honest coefficients, standard errors, p-values, and power, with a summary graph. A power playground lets you drag the sample size and the true effect to watch significance and power move.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "🔬",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
     slug: "publication-pipeline",
     exercise: "pipeline",
     name: "Publication Pipeline",
@@ -1249,6 +1266,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "paper-structure": "research",
   "making-points": "research",
   "read-the-interaction": "research",
+  "strategy-experiment": "research",
   "publication-pipeline": "research",
   "understand-a-paper": "research",
   "good-research": "research",
@@ -1299,7 +1317,7 @@ const CATALOG_ORDER: string[] = [
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
   "lease-the-space", "rehearse-hard-conversation",
   // Research & scholarship (the curriculum sequence: idea → writing → data → publish → ops)
-  "publication-pipeline", "read-the-interaction", "good-research", "theory-section",
+  "publication-pipeline", "read-the-interaction", "strategy-experiment", "good-research", "theory-section",
   "understand-a-paper", "paper-structure", "making-points", "abstract-title", "literature-reviews",
   "data-moat", "data-strategy", "identification", "regression-tables", "research-graphs",
   "the-referee", "revise-resubmit", "journal-fit",
@@ -1399,6 +1417,7 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "paper-structure": ["research"],
   "making-points": ["research"],
   "read-the-interaction": ["research"],
+  "strategy-experiment": ["research"],
   "publication-pipeline": ["research"],
   "understand-a-paper": ["research"],
   "good-research": ["research"],

@@ -39,6 +39,7 @@ export function artifactHref(exercise: string, code: string): string {
   if (exercise === "solo") return `/plan/${code}`;
   if (["gas", "ocfit", "experiment", "four-a", "scorecard", "venture", "deeptech", "paper-idea", "paper-structure", "paper-points", "research-quality", "reg-tables", "research-graphs", "lit-review", "vrino", "data-strategy", "identification", "referee", "rnr", "journal-fit", "theory", "abstract", "research-system", "research-team"].includes(exercise)) return `/canvas/${code}`;
   if (exercise === "interaction") return `/interaction/${code}`;
+  if (exercise === "field-experiment") return `/experiment/${code}`;
   if (exercise === "career-xray" || exercise === "jd-xray") return `/career/${code}`;
   if (exercise === "career-roadmap") return `/roadmap/${code}`;
   if (exercise === "consult" || exercise === "voice-consult") return `/consult/${code}`;
@@ -76,7 +77,8 @@ const NEXT_AFTER: Record<string, string> = {
   "close-the-offer": "name-your-price",
   // Research & scholarship — the curriculum order.
   "publication-pipeline": "read-the-interaction",
-  "read-the-interaction": "good-research",
+  "read-the-interaction": "strategy-experiment",
+  "strategy-experiment": "good-research",
   "good-research": "theory-section",
   "theory-section": "understand-a-paper",
   "understand-a-paper": "paper-structure",

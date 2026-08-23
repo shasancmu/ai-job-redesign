@@ -1174,6 +1174,69 @@ ${input.guess ? `Their guess at what else would move if the mechanism holds: ${i
   return extractJson(raw);
 }
 
+// ---- The Strategy Experiment ----------------------------------------------
+// Two calls: draft the 8-part canvas from a rough description, and turn a
+// finished canvas into (a) a critique — intervention pattern, Important/
+// Interesting/Ambitious/Craft, design warnings — and (b) a realistic data-
+// generating process the app then actually simulates. Grounded in the Strategy
+// Experiment Canvas (Hasan, Kim & Koning).
+const EXPERIMENT_SYSTEM = `You help a strategy researcher design and pressure-test a FIELD EXPERIMENT using the Strategy Experiment Canvas (Sharique Hasan, Hyunjin Kim, Rembrand Koning). A strategy experiment improves the performance of firms/teams/individuals by changing one thing and seeing how the system reacts. It is the regression Y = b0 + b1·T + b2·X + b3·(T·X): T is the treatment, X a pre-treatment moderator, b1 the average treatment effect, b3 the heterogeneous effect (works more or less for whom).
+
+Be concrete and honest. Field-experiment effects are usually MODEST: standardized effects (Cohen's d) are typically 0.1 to 0.5; larger than 0.6 is rare and should be flagged as optimistic. Do not inflate. The six intervention patterns are Training, Information, Incentives, Spillovers, Process, Resource.`;
+
+export async function experimentDraftAI(input: { idea: string }): Promise<any> {
+  const system = `${EXPERIMENT_SYSTEM}
+
+From the researcher's rough description, draft the eight canvas parts. Keep each to 1-2 tight sentences, specific to their idea. Return STRICT JSON only:
+{
+  "setup": "the phenomenon and why it's interesting/important",
+  "subjects": "who/what the subjects are, where, and roughly how many",
+  "friction": "the challenge they face in improving performance",
+  "insight": "the unique insight about how to address it",
+  "solution": "the treatment you'd design",
+  "mechanism": "why it works, and when it will and won't",
+  "nullComparison": "what the control gets, and why it's a credible comparison",
+  "impact": "the behavior/performance that changes, and how you'd measure it"
+}`;
+  const raw = await complete(
+    [ { role: "system", content: system }, { role: "user", content: `Rough idea:\n${input.idea.slice(0, 1500)}` } ],
+    { json: true, temperature: 0.6, maxTokens: 900 },
+  );
+  return extractJson(raw);
+}
+
+export async function experimentDesignAI(input: { canvas: Record<string, string> }): Promise<any> {
+  const system = `${EXPERIMENT_SYSTEM}
+
+Read the canvas and return two things: a critique, and a realistic data-generating process the app will SIMULATE (so the numbers must be plausible field-experiment magnitudes, not wishful). Express treatment effects as standardized effects (Cohen's d). Return STRICT JSON only, no prose outside it:
+{
+  "pattern": "one of: Training | Information | Incentives | Spillovers | Process | Resource",
+  "patternWhy": "one sentence on why the treatment fits that pattern",
+  "iia": { "important": 1-5, "interesting": 1-5, "ambitious": 1-5, "craft": 1-5, "note": "2-3 sentences of honest critique on Important/Interesting/Ambitious/Craft" },
+  "warnings": ["specific design risks: e.g. underpowered N, attrition, weak/confounded null, moderator measured post-treatment, ceiling effects — 2 to 4 items"],
+  "dgp": {
+    "outcomeName": "the main outcome Y in plain words",
+    "outcomeUnit": "short axis unit, e.g. 'rating' or '$k'",
+    "baseline": "control-group mean of Y (a number)",
+    "sd": "within-group standard deviation of Y (a number > 0)",
+    "effectD": "average treatment effect as Cohen's d (0.1-0.5 typical; be honest)",
+    "moderatorName": "the pre-treatment moderator X in a few words",
+    "moderatorShare": "fraction of subjects who are 'high' on the moderator (0-1)",
+    "hetD": "EXTRA effect (in d) for the high-moderator group; can be negative",
+    "n": "total sample across both arms (use the canvas number if given, else a realistic default)",
+    "attrition": "fraction lost before measurement (0-0.3)",
+    "secondary": { "name": "a mechanism/secondary outcome", "unit": "unit", "effectD": "its d" },
+    "longTerm": { "name": "a downstream/long-run outcome", "unit": "unit", "effectD": "its d (usually smaller)" }
+  }
+}`;
+  const parts = Object.entries(input.canvas).map(([k, v]) => `${k}: ${v}`).join("\n");
+  const raw = await complete(
+    [ { role: "system", content: system }, { role: "user", content: `The canvas:\n${parts.slice(0, 3000)}` } ],
+    { json: true, temperature: 0.4, maxTokens: 1400 },
+  );
+  return extractJson(raw);
+}
+
 // ---- Lesson tutor ----------------------------------------------------------
 // A clear, accurate teacher for the "How AI works" lessons. Grounded in the
 // lesson topic; honest about what is known, contested, and what AI can't do.
