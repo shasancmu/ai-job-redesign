@@ -85,8 +85,10 @@ export default function AccountMenu({
               <>
                 <div className="my-1 border-t border-line" />
                 {director && <a href="/team" className={item}>My Organizations</a>}
+                {director && <a href="/team/certificates" className={item}>Org certificates</a>}
                 {facilitator && <a href="/facilitator" className={item}>{labels.facilitator}</a>}
                 {superadmin && <a href="/admin/orgs" className={item}>{labels.orgs}</a>}
+                {superadmin && <a href="/admin/certificates" className={item}>Certificates</a>}
               </>
             )}
             <a href="/contact" className={item}>Send feedback</a>

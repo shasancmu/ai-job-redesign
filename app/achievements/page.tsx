@@ -4,10 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
+import { getMyOrgs } from "@/lib/orgs";
 import {
   completedSlugs,
   transcriptFrom,
   bundlesFor,
+  loadBundles,
   materializeBundles,
   levelFor,
   type BundleView,
@@ -32,19 +34,26 @@ export default async function AchievementsPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/achievements");
 
+  const myOrgs = await getMyOrgs(user.id).catch(() => []);
+  const orgIds = myOrgs.map((m) => m.org.id);
+
   const completed = await completedSlugs(supabase, user.id);
   const transcript = transcriptFrom(completed);
-  const bundles = bundlesFor(completed);
   const count = transcript.length;
   const level = levelFor(count);
 
-  // Materialize earned bundle certificates so each has a stable id + verify page.
+  // Load applicable bundles (built-in + global + this user's orgs') and
+  // materialize the earned ones. Falls back to built-ins if the table/admin
+  // client isn't available.
+  let bundles: BundleView[] = bundlesFor(completed);
   let idMap: Awaited<ReturnType<typeof materializeBundles>> = new Map();
   try {
     const admin = createAdminClient();
+    const defs = await loadBundles(admin, { orgIds });
+    bundles = bundlesFor(completed, defs);
     idMap = await materializeBundles(admin, user.id, bundles);
   } catch {
-    /* credentials table not available — render unlinked */
+    /* credentials table not available — render built-ins, unlinked */
   }
   const idFor = (key: string) => idMap.get(`track:${key}`)?.id;
 

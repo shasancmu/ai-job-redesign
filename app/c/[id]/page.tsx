@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BRAND } from "@/lib/brand";
-import { describeCredential, linkedInAddUrl, completedSlugs, bundlesFor } from "@/lib/credentials";
+import { describeCredential, linkedInAddUrl, completedSlugs, bundlesFor, loadBundleByKey, bundleByKey } from "@/lib/credentials";
 import Logo from "@/components/Logo";
 import CredentialCard from "@/components/CredentialCard";
 import CredentialActions from "@/components/CredentialActions";
@@ -27,6 +27,7 @@ async function load(id: string) {
         earned_at: "2026-08-15T00:00:00.000Z",
       },
       holder: "Alex Morgan",
+      bundle: bundleByKey("strategist"),
     };
   }
   if (!isId(id)) return null;
@@ -44,7 +45,8 @@ async function load(id: string) {
       .eq("id", (cred as any).user_id)
       .maybeSingle();
     const holder = (prof as any)?.display_name || "A Superadditive member";
-    return { cred: cred as any, holder };
+    const bundle = await loadBundleByKey(admin, (cred as any).ckey);
+    return { cred: cred as any, holder, bundle };
   } catch {
     return null; // missing service key / DB hiccup → 404, not a 500
   }
@@ -57,7 +59,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const data = await load(params.id);
   if (!data) return { title: "Credential" };
-  const view = describeCredential(data.cred.kind, data.cred.ckey, data.cred.title);
+  const view = describeCredential(data.cred.ckey, data.cred.title, data.bundle);
   const title = `${data.holder} · ${view.title}`;
   return {
     title,
@@ -82,8 +84,8 @@ function fullDate(iso: string): string {
 export default async function CredentialPage({ params }: { params: { id: string } }) {
   const data = await load(params.id);
   if (!data) notFound();
-  const { cred, holder } = data;
-  const view = describeCredential(cred.kind, cred.ckey, cred.title);
+  const { cred, holder, bundle } = data;
+  const view = describeCredential(cred.ckey, cred.title, bundle);
 
   // "Earned by completing" = the modules this holder actually finished in the
   // bundle (core + whichever electives they chose), not the full curriculum.
@@ -94,12 +96,12 @@ export default async function CredentialPage({ params }: { params: { id: string 
       { name: "Strategic Execution Assessment" },
       { name: "Strategic Experiment Design" },
     ];
-  } else if (cred.user_id) {
+  } else if (cred.user_id && bundle) {
     try {
       const admin = createAdminClient();
       const completed = await completedSlugs(admin, cred.user_id);
-      const bundle = bundlesFor(completed).find((b) => b.key === cred.ckey);
-      if (bundle && bundle.completedNames.length) contents = bundle.completedNames.map((n) => ({ name: n }));
+      const view2 = bundlesFor(completed, [bundle])[0];
+      if (view2 && view2.completedNames.length) contents = view2.completedNames.map((n) => ({ name: n }));
     } catch {
       /* fall back to the full curriculum */
     }

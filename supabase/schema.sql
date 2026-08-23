@@ -799,3 +799,32 @@ create index if not exists credentials_user_idx on public.credentials (user_id, 
 alter table public.credentials enable row level security;
 create policy "credentials owner read" on public.credentials
   for select using (auth.uid() = user_id);
+
+-- ============================================================================
+-- Bundles: author-defined credential certificates. A bundle is a coherent set
+-- of modules (core + choose-N electives) that earns a certificate. Built-in
+-- bundles live in code (lib/credentials.ts BUNDLES); this table holds ones
+-- created via UI: org_id NULL = a platform/global bundle (superadmin), org_id
+-- set = an org bundle (director), visible to and earned by that org's members.
+-- Writes go through service-role admin routes only (gated in app code).
+-- ============================================================================
+create table if not exists public.bundles (
+  id uuid primary key default gen_random_uuid(),
+  key text not null unique,           -- slug; the credential ckey + /c verify lookup
+  name text not null,                 -- the certificate name (postable)
+  line text,                          -- one-line capability it certifies
+  core jsonb not null default '[]'::jsonb,        -- required module slugs
+  electives jsonb not null default '[]'::jsonb,   -- elective module slugs
+  electives_needed int not null default 0,        -- how many electives to earn
+  skills jsonb not null default '[]'::jsonb,       -- professional skills
+  org_id uuid references public.organizations (id) on delete cascade, -- null = global
+  active boolean not null default true,
+  created_by uuid references auth.users (id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists bundles_org_idx on public.bundles (org_id);
+alter table public.bundles enable row level security;
+create policy "bundles read" on public.bundles
+  for select using (auth.role() = 'authenticated');
+-- writes go through service-role admin/director routes only

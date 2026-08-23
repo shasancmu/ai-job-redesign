@@ -23,6 +23,8 @@ export type Bundle = {
   electives: string[]; // choose electivesNeeded of these
   electivesNeeded: number;
   skills: string[]; // professional skills the certificate demonstrates
+  orgId?: string | null; // set = an org bundle; null/undefined = built-in or global
+  id?: string; // DB id, for author-created bundles
 };
 
 export const BUNDLES: Bundle[] = [
@@ -82,11 +84,62 @@ export const BUNDLES: Bundle[] = [
   },
 ];
 
-export function bundleByKey(key: string): Bundle | undefined {
-  return BUNDLES.find((b) => b.key === key);
+export function bundleByKey(key: string, list: Bundle[] = BUNDLES): Bundle | undefined {
+  return list.find((b) => b.key === key);
 }
 export function bundleSlugs(b: Bundle): string[] {
   return [...b.core, ...b.electives];
+}
+
+// ---- Author-created bundles (DB) ---------------------------------------------
+// Built-in BUNDLES live in code; the `bundles` table holds ones created via UI.
+// A row with org_id NULL is a global bundle (superadmin); org_id set is an org
+// bundle (director), earned only by that org's members.
+
+function rowToBundle(r: any): Bundle {
+  return {
+    key: r.key,
+    name: r.name,
+    line: r.line || "",
+    core: Array.isArray(r.core) ? r.core : [],
+    electives: Array.isArray(r.electives) ? r.electives : [],
+    electivesNeeded: r.electives_needed || 0,
+    skills: Array.isArray(r.skills) ? r.skills : [],
+    orgId: r.org_id || null,
+    id: r.id,
+  };
+}
+
+/**
+ * All bundles that apply to a user: the built-ins, all global DB bundles, and
+ * the bundles of the orgs they belong to. Service-role client. Falls back to
+ * the built-ins if the table isn't available.
+ */
+export async function loadBundles(admin: SB, opts: { orgIds?: string[] } = {}): Promise<Bundle[]> {
+  const orgIds = opts.orgIds || [];
+  try {
+    const { data } = await admin.from("bundles").select("*").eq("active", true);
+    const rows = ((data as any[]) || []).filter((r) => r.org_id === null || orgIds.includes(r.org_id));
+    const builtinKeys = new Set(BUNDLES.map((b) => b.key));
+    const extra = rows.map(rowToBundle).filter((b) => !builtinKeys.has(b.key));
+    return [...BUNDLES, ...extra];
+  } catch {
+    return [...BUNDLES];
+  }
+}
+
+// One bundle by key, built-in or DB (no org filter — the credential already
+// proves it was earned). For the verify page + OG image.
+export async function loadBundleByKey(admin: SB, key: string): Promise<Bundle | undefined> {
+  const built = BUNDLES.find((b) => b.key === key);
+  if (built) return built;
+  try {
+    const { data } = await admin.from("bundles").select("*").eq("key", key).maybeSingle();
+    if (data) return rowToBundle(data);
+  } catch {
+    /* fall through */
+  }
+  return undefined;
 }
 
 // Serious, accurate credential names + the skills each demonstrates. The module
@@ -262,11 +315,11 @@ export type BundleView = {
   completedNames: string[]; // the modules actually completed (for the certificate)
 };
 
-export function bundlesFor(completed: { slug: string; at: string }[]): BundleView[] {
+export function bundlesFor(completed: { slug: string; at: string }[], list: Bundle[] = BUNDLES): BundleView[] {
   const at = new Map(completed.map((c) => [c.slug, c.at]));
   const done = new Set(completed.map((c) => c.slug));
 
-  return BUNDLES.map((b) => {
+  return list.map((b) => {
     const items: CurriculumItem[] = [
       ...b.core.map((s) => ({ slug: s, name: credentialName(s), kind: "core" as const, done: done.has(s), at: at.get(s) })),
       ...b.electives.map((s) => ({ slug: s, name: credentialName(s), kind: "elective" as const, done: done.has(s), at: at.get(s) })),
@@ -303,8 +356,8 @@ export function bundlesFor(completed: { slug: string; at: string }[]): BundleVie
 }
 
 // The bundles a given module contributes to (for the completion-moment nudge).
-export function bundlesForSlug(slug: string): Bundle[] {
-  return BUNDLES.filter((b) => b.core.includes(slug) || b.electives.includes(slug));
+export function bundlesForSlug(slug: string, list: Bundle[] = BUNDLES): Bundle[] {
+  return list.filter((b) => b.core.includes(slug) || b.electives.includes(slug));
 }
 
 // ---- Materialization (stable ids for verify pages) ---------------------------
@@ -359,10 +412,11 @@ export type CredentialView = {
   contents?: { name: string }[]; // the curriculum (overridden per-user on the verify page)
 };
 
-// Describe a stored bundle certificate from its key, for rendering. The verify
-// page overrides `contents` with the modules the holder actually completed.
-export function describeCredential(_kind: string, ckey: string, title: string): CredentialView {
-  const b = bundleByKey(ckey);
+// Describe a stored bundle certificate for rendering. Pass the loaded `bundle`
+// (built-in or DB); falls back to built-ins by key. The verify page overrides
+// `contents` with the modules the holder actually completed.
+export function describeCredential(ckey: string, title: string, bundle?: Bundle): CredentialView {
+  const b = bundle || bundleByKey(ckey);
   return {
     title: b?.name || title,
     line: b?.line || "A completed Superadditive program.",

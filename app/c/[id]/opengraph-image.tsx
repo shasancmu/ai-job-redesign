@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { describeCredential } from "@/lib/credentials";
+import { describeCredential, loadBundleByKey } from "@/lib/credentials";
 
 export const runtime = "nodejs";
 export const alt = "A Superadditive credential";
@@ -21,7 +21,7 @@ export default async function Image({ params }: { params: { id: string } }) {
 
   if (params.id === "sample") {
     holder = "Alex Morgan";
-    const v = describeCredential("track", "strategist", "The Strategist");
+    const v = describeCredential("strategist", "The Strategist");
     eyebrow = v.eyebrow;
     title = v.title;
     line = v.line;
@@ -34,7 +34,8 @@ export default async function Image({ params }: { params: { id: string } }) {
         .eq("id", params.id)
         .maybeSingle();
       if (cred) {
-        const v = describeCredential((cred as any).kind, (cred as any).ckey, (cred as any).title);
+        const bundle = await loadBundleByKey(admin, (cred as any).ckey);
+        const v = describeCredential((cred as any).ckey, (cred as any).title, bundle);
         eyebrow = v.eyebrow;
         title = v.title.slice(0, 80);
         line = v.line.slice(0, 150);

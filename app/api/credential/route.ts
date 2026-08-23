@@ -2,10 +2,12 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { moduleByExercise } from "@/lib/modules";
 import { BRAND } from "@/lib/brand";
+import { getMyOrgs } from "@/lib/orgs";
 import {
   completedSlugs,
   bundlesFor,
   bundlesForSlug,
+  loadBundles,
   materializeBundles,
   linkedInAddUrl,
 } from "@/lib/credentials";
@@ -42,14 +44,17 @@ export async function POST(request: Request) {
     const mod = moduleByExercise((session as any).exercise);
     if (!mod || mod.partner === "group") return Response.json({ certificate: null, progress: null });
 
+    const admin = createAdminClient();
+    const myOrgs = await getMyOrgs(user.id).catch(() => []);
+    const defs = await loadBundles(admin, { orgIds: myOrgs.map((m) => m.org.id) });
+
     // Which bundles does this module even belong to?
-    const memberBundleKeys = new Set(bundlesForSlug(mod.slug).map((b) => b.key));
+    const memberBundleKeys = new Set(bundlesForSlug(mod.slug, defs).map((b) => b.key));
     if (memberBundleKeys.size === 0) return Response.json({ certificate: null, progress: null });
 
     const completed = await completedSlugs(supabase, user.id);
-    const bundles = bundlesFor(completed);
+    const bundles = bundlesFor(completed, defs);
 
-    const admin = createAdminClient();
     const idMap = await materializeBundles(admin, user.id, bundles);
     const abs = (id: string) => `${BRAND.siteUrl}/c/${id}`;
 
