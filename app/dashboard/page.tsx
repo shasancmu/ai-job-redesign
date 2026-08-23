@@ -225,8 +225,6 @@ export default async function Dashboard({
               reports: "Reports",
               achievements: "Achievements",
               profile: t("nav.profile"),
-              facilitator: "My Cohorts",
-              orgs: "Manage Organizations",
               signOut: t("nav.signOut"),
               tour: "Take a tour",
             }}

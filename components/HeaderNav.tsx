@@ -52,8 +52,6 @@ export default async function HeaderNav({ showDashboard = true, tour = false }: 
           reports: "Reports",
           achievements: "Achievements",
           profile: "Profile",
-          facilitator: "My Cohorts",
-          orgs: "Manage Organizations",
           signOut: "Sign out",
           tour: "Take a tour",
         }}

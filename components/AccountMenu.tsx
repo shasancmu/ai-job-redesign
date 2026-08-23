@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-type Labels = { reports: string; achievements: string; profile: string; facilitator: string; orgs: string; signOut: string; tour: string };
+type Labels = { reports: string; achievements: string; profile: string; signOut: string; tour: string };
 
 // One dropdown for every account/nav action, so the header stays a brand on the
 // left and a single control on the right instead of a row of pills.
@@ -65,6 +65,16 @@ export default function AccountMenu({
     .join("") || "Y";
 
   const item = "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-slate-700 transition hover:bg-mist";
+  const section = "px-2.5 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400";
+  // A role group: a divider, then a small uppercase header, so each scope
+  // (teaching, your org, platform admin) reads as its own separate block.
+  const group = (label: string, children: React.ReactNode) => (
+    <>
+      <div className="my-1 border-t border-line" />
+      <div className={section}>{label}</div>
+      {children}
+    </>
+  );
 
   const menu = open && pos && mounted
     ? createPortal(
@@ -81,16 +91,26 @@ export default function AccountMenu({
             <a href="/achievements" className={item}>{labels.achievements}</a>
             <a href="/profile" className={item}>{labels.profile}</a>
             {tour && <button onClick={() => { setOpen(false); window.dispatchEvent(new Event("app:start-tour")); }} className={item}>{labels.tour}</button>}
-            {(facilitator || director || superadmin) && (
+
+            {facilitator && group("Teaching", (
+              <a href="/facilitator" className={item}>Cohorts</a>
+            ))}
+
+            {director && group("Your organization", (
               <>
-                <div className="my-1 border-t border-line" />
-                {director && <a href="/team" className={item}>My Organizations</a>}
-                {director && <a href="/team/certificates" className={item}>Org certificates</a>}
-                {facilitator && <a href="/facilitator" className={item}>{labels.facilitator}</a>}
-                {superadmin && <a href="/admin/orgs" className={item}>{labels.orgs}</a>}
-                {superadmin && <a href="/admin/certificates" className={item}>Certificates</a>}
+                <a href="/team" className={item}>Overview</a>
+                <a href="/team/certificates" className={item}>Certificates</a>
               </>
-            )}
+            ))}
+
+            {superadmin && group("Platform admin", (
+              <>
+                <a href="/admin/orgs" className={item}>Organizations</a>
+                <a href="/admin/certificates" className={item}>Certificates</a>
+              </>
+            ))}
+
+            <div className="my-1 border-t border-line" />
             <a href="/contact" className={item}>Send feedback</a>
             <div className="my-1 border-t border-line" />
             <form action="/auth/signout" method="post">
