@@ -87,6 +87,10 @@ export const FRAMEWORKS: Record<string, Framework[]> = {
   interaction: [
     { name: "The interaction is the idea", finding: "In Y = β0 + β1X1 + β2X2 + β3(X1×X2), β3 is usually the contribution: IF X1 → Y, especially/except when X2, because a mechanism.", cite: "Hasan, Research, Strategy" },
   ],
+  "research-quality": [
+    { name: "Make the invisible visible against a null", finding: "A good idea overturns a clear conventional wisdom (the null) and reveals a hidden factor others miss.", cite: "Hasan, Research, Strategy" },
+    { name: "Important, Interesting, Ambitious, Craft", finding: "Execution is judged on whether adults care, whether it's deep enough to debate, whether few could do it, and whether every detail is right.", cite: "Hasan, Research, Strategy" },
+  ],
 };
 
 export function frameworksFor(key?: string | null): Framework[] {
@@ -116,6 +120,7 @@ export const GUIDE_LABELS: Record<string, string> = {
   "paper-structure": "Structure Your Paper",
   "paper-points": "Make Your Points",
   interaction: "The Anatomy of an Idea",
+  "research-quality": "What Makes a Paper Good",
 };
 
 export function allFrameworkGroups(): { key: string; label: string; items: Framework[] }[] {

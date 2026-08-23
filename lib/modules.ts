@@ -67,7 +67,8 @@ export type ModuleDef = {
     | "paper-points"
     | "interaction"
     | "pipeline"
-    | "paper-study"; // which room engine renders it
+    | "paper-study"
+    | "research-quality"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -771,6 +772,22 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_RESEARCH",
     forSale: false,
   },
+  {
+    slug: "good-research",
+    exercise: "research-quality",
+    name: "What Makes a Paper Good",
+    tagline: "Judge an idea honestly: a clear null, a hidden factor others miss, and four tests, important, interesting, ambitious, and craft.",
+    description:
+      "The capstone of the research track, from Research, Strategy. A good idea makes the invisible visible against a clear null (the conventional wisdom it overturns), sees a hidden factor others miss (an interaction: if X then Y, especially or except when Z), and is executed to be important (do adults care), interesting (deep enough to sustain a long debate), ambitious (few could do it), and full of craft (pristine data, elegant figures, every detail right). An AI partner interviews you about your idea or paper, then scores it honestly on the four tests, names the null and the hidden factor, and points to the one weakest link to fix first. You leave with a candid read on whether it's good, and how to make it better.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 18,
+    ai: true,
+    emoji: "🏆",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
 ];
 
 // The all-access bundle uses the existing single price env for backward compat.
@@ -840,6 +857,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "read-the-interaction": "research",
   "publication-pipeline": "research",
   "understand-a-paper": "research",
+  "good-research": "research",
 };
 export function moduleCategory(slug: string): CategoryKey {
   return CATEGORY_OF[slug] || "strategy";
@@ -929,6 +947,7 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "read-the-interaction": ["research"],
   "publication-pipeline": ["research"],
   "understand-a-paper": ["research"],
+  "good-research": ["research"],
 };
 
 export function modulePills(slug: string): PillKey[] {

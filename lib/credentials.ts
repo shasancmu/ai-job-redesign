@@ -78,7 +78,7 @@ export const BUNDLES: Bundle[] = [
     name: "Social Science Research Foundations",
     line: "Framed, structured, argued, and modeled a research paper.",
     core: ["what-is-a-paper", "paper-structure", "read-the-interaction"],
-    electives: ["making-points", "publication-pipeline", "understand-a-paper"],
+    electives: ["making-points", "publication-pipeline", "understand-a-paper", "good-research"],
     electivesNeeded: 1,
     skills: ["Academic Writing", "Research Design", "Scholarly Communication", "Scholarly Publishing"],
   },
@@ -213,6 +213,7 @@ const CRED_META: Record<string, CredMeta> = {
   "read-the-interaction": { name: "Interaction Effects & Theory", skills: ["Econometrics", "Causal Reasoning", "Research Design"] },
   "publication-pipeline": { name: "Research Portfolio Strategy", skills: ["Scholarly Publishing", "Research Productivity"] },
   "understand-a-paper": { name: "Critical Reading of Research", skills: ["Literature Review", "Research Design", "Critical Analysis"] },
+  "good-research": { name: "Research Quality Assessment", skills: ["Research Design", "Critical Analysis", "Scholarly Judgment"] },
 };
 
 export function credentialName(slug: string): string {

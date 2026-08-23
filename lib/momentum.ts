@@ -37,7 +37,7 @@ export function computeStreak(timestamps: (string | number | Date)[]): { current
 export function artifactHref(exercise: string, code: string): string {
   if (exercise === "workflow" || exercise === "workflow-solo") return `/workflow-plan/${code}`;
   if (exercise === "solo") return `/plan/${code}`;
-  if (["gas", "ocfit", "experiment", "four-a", "scorecard", "venture", "deeptech", "paper-idea", "paper-structure", "paper-points"].includes(exercise)) return `/canvas/${code}`;
+  if (["gas", "ocfit", "experiment", "four-a", "scorecard", "venture", "deeptech", "paper-idea", "paper-structure", "paper-points", "research-quality"].includes(exercise)) return `/canvas/${code}`;
   if (exercise === "interaction") return `/interaction/${code}`;
   if (exercise === "career-xray" || exercise === "jd-xray") return `/career/${code}`;
   if (exercise === "career-roadmap") return `/roadmap/${code}`;

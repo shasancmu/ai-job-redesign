@@ -522,9 +522,54 @@ Interview to extract crisp topic sentences for each of the five, plus the single
   },
 };
 
+// (g) What makes a paper good — the null, the hidden factor, and four tests
+const GOODNESS: CanvasDef = {
+  slug: "good-research",
+  exercise: "research-quality",
+  name: "What Makes a Paper Good",
+  subjectLabel: "idea",
+  setupTitle: "The idea or paper you want to judge",
+  setupHint:
+    "A paper you're writing, or an idea you're weighing. Your AI partner will interview you, then judge it honestly against what makes research good.",
+  setupPlaceholder: "e.g. Startups that adopt A/B testing grow faster, especially with experienced managers",
+  interviewSystem: `You are a seasoned advisor judging whether a research idea or paper is GOOD, using Sharique Hasan's frame from "Research, Strategy". A good idea does three things:
+- MAKES THE INVISIBLE VISIBLE against a clear NULL: there is a conventional wisdom, a way most people assume the world works, and the idea overturns or complicates it. If there is no clear null, the idea has nothing to push against.
+- SEES WHAT OTHERS DON'T: a hidden factor that works in some cases and not others, i.e. IF X then Y, especially or except when Z, because a mechanism (an interaction, not just a main effect).
+- Then the EXECUTION shows four qualities:
+  1. IMPORTANT — do adults care? Does it matter to real people and the world, not just to a niche literature?
+  2. INTERESTING — is it deep enough to sustain a long conversation or debate? Real nuance and contingency, not a one-line result.
+  3. AMBITIOUS — could hardly anyone else do this? Does it require rare data, skill, access, or creativity?
+  4. CRAFT — is every detail right? Pristine data, clean identification, elegant figures, every i dotted.
+Interview to surface: the null (what's the conventional wisdom here?), the hidden factor, and honest evidence for each of the four qualities. Ask ONE short, open question at a time; go breadth-first across the four; pull concrete detail, not self-praise. Do not score or lecture yet.`,
+  draftSystem: `You judge how good a research idea or paper is, using Hasan's frame (a clear null; a nonobvious hidden factor / interaction; and the four execution qualities Important, Interesting, Ambitious, Craft). Be honest and calibrated: most work is not a 90. Name the null and the hidden factor plainly. For each of the four qualities give a short, specific read (what's strong or weak) and the single highest-leverage move to raise it. Score each 0-100. The verdict names whether it's good and the ONE weakest link to fix first. No flattery.`,
+  fields: [
+    { key: "null_model", label: "The null (conventional wisdom)", hint: "What most people assume is true — the world-as-expected this pushes against", kind: "long", group: "The idea", accent: "sage" },
+    { key: "hidden_factor", label: "What you see that others don't", hint: "The hidden factor: IF X then Y, especially or except when Z, because a mechanism", kind: "long", group: "The idea", accent: "gold" },
+    { key: "important_read", label: "Important — do adults care?", hint: "Why it matters to real people and the world, or why it doesn't yet", kind: "long", group: "The four tests", accent: "sage" },
+    { key: "interesting_read", label: "Interesting — depth and debate", hint: "The nuance and contingency that could sustain a long conversation", kind: "long", group: "The four tests", accent: "gold" },
+    { key: "ambitious_read", label: "Ambitious — could anyone else do this?", hint: "The rare data, skill, access, or creativity it takes", kind: "long", group: "The four tests", accent: "plum" },
+    { key: "craft_read", label: "Craft — is every detail right?", hint: "Data quality, identification, figures, the finish", kind: "long", group: "The four tests", accent: "clay" },
+    { key: "fixes", label: "What to do first", hint: "The highest-leverage moves to raise the weakest tests", kind: "list", group: "The call", accent: "gold" },
+  ],
+  ratings: [
+    { key: "important", label: "Important" },
+    { key: "interesting", label: "Interesting" },
+    { key: "ambitious", label: "Ambitious" },
+    { key: "craft", label: "Craft" },
+  ],
+  hasVerdict: { label: "Is it good, honestly, and the weakest link" },
+  about:
+    'Hasan, "Research, Strategy": a good idea makes the invisible visible against a clear null, sees a hidden factor others miss (an interaction, not just a main effect), and is executed to be Important, Interesting, Ambitious, and full of Craft. This canvas judges yours against all of that, honestly.',
+  groupNotes: {
+    "The idea": "A clear null to push against, and the hidden factor you see that others don't.",
+    "The four tests": "Important (do adults care), Interesting (deep enough to debate), Ambitious (few could do it), Craft (every detail right).",
+    "The call": "The honest verdict and the one weakest link to fix first.",
+  },
+};
+
 export const CANVASES: CanvasDef[] = [
   FOURA, SCORECARD, VENTURE, GAS, OCFIT, EXPERIMENT, DEEPTECH,
-  PAPER_IDEA, PAPER_STRUCTURE, PAPER_POINTS,
+  PAPER_IDEA, PAPER_STRUCTURE, PAPER_POINTS, GOODNESS,
 ];
 
 export function canvasByExercise(exercise: string): CanvasDef | undefined {
