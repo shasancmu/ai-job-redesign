@@ -9,7 +9,8 @@ import AccountMenu from "@/components/AccountMenu";
 import FacilitatorWelcome from "@/components/FacilitatorWelcome";
 import { titleCaseName } from "@/lib/name";
 import { MODULES } from "@/lib/modules";
-import { levelFor } from "@/lib/credentials";
+import { levelFor, loadBundles, bundlesFor, nextCertificateStep } from "@/lib/credentials";
+import { createAdminClient } from "@/lib/supabase/admin";
 import Catalog from "@/components/Catalog";
 import SessionsPanel from "@/components/SessionsPanel";
 import LanguagePicker from "@/components/LanguagePicker";
@@ -171,6 +172,18 @@ export default async function Dashboard({
   const runsLeft = await runsLeftByModule(supabase, user.id, instructor);
   const followUps = await dueFollowUps(supabase, user.id).catch(() => []);
 
+  // Guided path: the next module toward the certificate you're closest to.
+  let nextStep: ReturnType<typeof nextCertificateStep> = null;
+  try {
+    const admin = createAdminClient();
+    const orgIds = myOrgs.map((m) => m.org.id);
+    const completedList = MODULES.filter((m) => m.partner !== "group" && completed[m.slug]).map((m) => ({ slug: m.slug, at: "" }));
+    const defs = await loadBundles(admin, { orgIds });
+    nextStep = nextCertificateStep(bundlesFor(completedList, defs));
+  } catch {
+    /* bundles unavailable — skip the nudge */
+  }
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <header className="mb-8 flex flex-wrap items-center justify-between gap-x-3 gap-y-4">
@@ -226,6 +239,17 @@ export default async function Dashboard({
       <EnrichOnce />
 
       <FollowUps items={followUps} />
+
+      {nextStep && (
+        <a href={`/start/${nextStep.nextSlug}`} className="mb-8 flex items-center justify-between gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-sage">Next toward the {nextStep.name} certificate</div>
+            <div className="mt-0.5 text-sm font-bold text-ink">{nextStep.nextName}</div>
+            <div className="text-xs text-slate-400">{nextStep.remaining} module{nextStep.remaining === 1 ? "" : "s"} to go</div>
+          </div>
+          <span className="shrink-0 text-sm font-semibold text-sage">Start &rarr;</span>
+        </a>
+      )}
 
       <div data-tour="your-work">
         <YourWork recents={recents} reportsCount={reportsCount} />

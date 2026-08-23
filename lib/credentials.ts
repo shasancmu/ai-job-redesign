@@ -381,6 +381,20 @@ export function bundlesForSlug(slug: string, list: Bundle[] = BUNDLES): Bundle[]
   return list.filter((b) => b.core.includes(slug) || b.electives.includes(slug));
 }
 
+// The single best "do this next" step: the started-but-unfinished certificate
+// closest to done, and the next module in it. Drives the guided-path nudge.
+export function nextCertificateStep(
+  bundles: BundleView[],
+): { name: string; remaining: number; nextSlug: string; nextName: string; progressPct: number } | null {
+  const inProgress = bundles.filter((b) => !b.earned && b.progressPct > 0);
+  if (!inProgress.length) return null;
+  inProgress.sort((a, b) => b.progressPct - a.progressPct);
+  const b = inProgress[0];
+  const next = b.items.find((i) => i.kind === "core" && !i.done) || b.items.find((i) => !i.done);
+  if (!next) return null;
+  return { name: b.name, remaining: b.remaining, nextSlug: next.slug, nextName: next.name, progressPct: b.progressPct };
+}
+
 // ---- Materialization (stable ids for verify pages) ---------------------------
 
 export type CredRow = {
