@@ -8,6 +8,8 @@ import InterviewHelper from "@/components/InterviewHelper";
 import { CANVAS_STEPS, accentColor, type CanvasDef, type CanvasField } from "@/lib/canvases";
 import Timer from "@/components/Timer";
 import CanvasView from "@/components/CanvasView";
+import ReflectCommit from "@/components/ReflectCommit";
+import ResearchBehind from "@/components/ResearchBehind";
 import FrontierPlot, { complexityLevel, QuadrantPlot } from "@/components/FrontierPlot";
 import UnitEconomics from "@/components/UnitEconomics";
 import { useT } from "@/components/I18nProvider";
@@ -130,6 +132,8 @@ export default function CanvasRoom({
         {step.key === "artifact" && (
           <div className="space-y-4">
             <CanvasView def={def} canvas={canvas} embedded />
+            <ReflectCommit code={session.code} hasPrediction={false} />
+            <ResearchBehind guideKey={def.exercise} />
             <Link href={`/canvas/${session.code}`} className="btn-primary block text-center">
               {t("canvas.viewFull")} →
             </Link>

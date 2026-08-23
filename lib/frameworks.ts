@@ -47,6 +47,46 @@ export const FRAMEWORKS: Record<string, Framework[]> = {
     { name: "A research idea makes the invisible visible", finding: "An idea is a unique insight into why the facts are what they are: a new fact, or a known one explained.", cite: "Hasan, Research, Strategy" },
     { name: "The hourglass & the interaction", finding: "Papers move broad→narrow→broad; the contribution often lives in the interaction: IF X1→Y, especially/except when X2, because a mechanism.", cite: "Hasan, Research, Strategy" },
   ],
+
+  // Canvas modules (keyed by exercise), so they get the same "research behind
+  // this" surface as the predict-then-reveal modules.
+  gas: [
+    { name: "The GAS framework", finding: "Generality, Accuracy and Simplicity trade off — you can't max all three; a simple experience for users just relocates complexity to data, infrastructure, and new roles.", cite: "Hasan, Oettl & Samila, “From Model Design to Organizational Design”" },
+    { name: "Predictability × cost of a mistake", finding: "Automate cheap-error, predictable work; keep humans as curators for mid-risk work and adjuncts for high-stakes decisions.", cite: "Dhar" },
+  ],
+  "four-a": [
+    { name: "The 4A execution framework", finding: "Execution rests on Alignment, Ability, Architecture, and Agility; the weakest of the four caps the whole plan.", cite: "Superadditive" },
+  ],
+  scorecard: [
+    { name: "The Balanced Scorecard", finding: "A strategy becomes measurable across four linked perspectives — Financial, Customer, Internal Process, Learning & Growth — as a cause-and-effect chain.", cite: "Kaplan & Norton" },
+    { name: "Gameable measures", finding: "Targets drive behavior, including the wrong behavior when a measure can be gamed (e.g. Wells Fargo's “Eight is Great”).", cite: "Goodhart's law" },
+  ],
+  venture: [
+    { name: "Five Forces", finding: "Industry attractiveness comes from rivalry, buyer and supplier power, substitutes, and barriers to entry.", cite: "Porter (1979)" },
+    { name: "VRIN resources", finding: "A durable advantage is Valuable, Rare, Inimitable, and Non-substitutable.", cite: "Barney (1991)" },
+    { name: "Profit pools", finding: "Where an industry earns its money is often not where it makes its sales.", cite: "Gadiesh & Gilbert" },
+  ],
+  ocfit: [
+    { name: "Organizational-capability fit", finding: "A bet succeeds only when Tasks, People, Formal Systems, and Culture actually support it; the honest gap is where it breaks.", cite: "Organizational design" },
+  ],
+  experiment: [
+    { name: "Discovery-driven planning", finding: "Test the assumptions a plan rests on with the smallest experiment that could disconfirm them, before you commit.", cite: "McGrath & MacMillan (1995)" },
+  ],
+  deeptech: [
+    { name: "The Dual Uncertainty Canvas", finding: "Deep tech faces technical and market uncertainty at once; resolve the dominant one with the smallest, fastest experiment.", cite: "Duke University" },
+  ],
+  "paper-idea": [
+    { name: "A research idea makes the invisible visible", finding: "An idea is a unique insight into why the facts are what they are — a new fact, or a known one explained.", cite: "Hasan, Research, Strategy" },
+  ],
+  "paper-structure": [
+    { name: "The hourglass", finding: "A paper opens broad, narrows to the problem, approach, and findings, then widens to the contribution; five sections, each with one job.", cite: "Hasan, Research, Strategy" },
+  ],
+  "paper-points": [
+    { name: "Making points", finding: "An article is a sequence of points that lead to a conclusion, and each paragraph makes exactly one.", cite: "Hasan, Research, Strategy" },
+  ],
+  interaction: [
+    { name: "The interaction is the idea", finding: "In Y = β0 + β1X1 + β2X2 + β3(X1×X2), β3 is usually the contribution: IF X1 → Y, especially/except when X2, because a mechanism.", cite: "Hasan, Research, Strategy" },
+  ],
 };
 
 export function frameworksFor(key?: string | null): Framework[] {
@@ -65,6 +105,17 @@ export const GUIDE_LABELS: Record<string, string> = {
   myopia: "Find Your Blind Spots",
   pipeline: "Publication Pipeline",
   "paper-study": "Understand a Paper",
+  gas: "Find Where AI Fits a Workflow",
+  "four-a": "Score Your Execution Plan",
+  scorecard: "Build a Balanced Scorecard",
+  venture: "Pressure-Test a Business Idea",
+  ocfit: "Should You Make This Bet?",
+  experiment: "Design a Test for Your Strategy",
+  deeptech: "Plan a Deep-Tech Venture",
+  "paper-idea": "Make the Invisible Visible",
+  "paper-structure": "Structure Your Paper",
+  "paper-points": "Make Your Points",
+  interaction: "Read the Interaction",
 };
 
 export function allFrameworkGroups(): { key: string; label: string; items: Framework[] }[] {
