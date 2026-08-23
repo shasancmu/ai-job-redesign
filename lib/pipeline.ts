@@ -9,22 +9,45 @@
 
 export type PipelineStep = { key: string; title: string; minutes: number };
 export const PIPELINE_STEPS: PipelineStep[] = [
-  { key: "inputs", title: "Your situation", minutes: 4 },
-  { key: "results", title: "The odds, and your pipeline", minutes: 8 },
+  { key: "process", title: "How publication actually works", minutes: 4 },
+  { key: "inputs", title: "Your situation", minutes: 3 },
+  { key: "results", title: "The lever", minutes: 6 },
 ];
 
+// The editorial process: a series of filters. Structure varies by journal, but
+// the shape is the same. This is the (a) "how it works" the module teaches
+// before any numbers.
+export type Stage = { role: string; what: string; filter: string };
+export const PIPELINE_STAGES: Stage[] = [
+  { role: "You submit", what: "You choose a journal and submit. Fit matters: the wrong venue is a fast rejection.", filter: "Fit" },
+  { role: "Managing editor", what: "Administrative checks and basic screens — scope, formatting, plagiarism. Off-topic papers are returned.", filter: "Scope & integrity" },
+  { role: "Deputy editor", what: "Assigns the paper to a handling editor, and can desk-reject anything that won't clear the bar.", filter: "Desk reject" },
+  { role: "Senior (handling) editor", what: "Reads it and decides whether it's worth reviewers' time, then recruits two to four referees.", filter: "Worth reviewing?" },
+  { role: "Reviewers", what: "Write detailed referee reports with a recommendation. This is where papers are truly won or lost.", filter: "The reports" },
+  { role: "Senior editor aggregates", what: "Weighs the reports and the paper, and makes a decision or recommendation: reject, revise & resubmit, or (rarely) accept.", filter: "Recommendation" },
+  { role: "Deputy editor decides", what: "Makes or confirms the final decision. Most accepted papers survived at least one revise & resubmit.", filter: "Final call" },
+];
+
+// At top journals, half or more are desk-rejected before review; the overall
+// acceptance rate is 3–5% or lower.
+export const FUNNEL_NOTE =
+  "At top journals, half or more never reach review, and the overall acceptance rate is 3 to 5 percent or lower. Every stage is a filter — and reviewers are the one you can most affect.";
+
 export type Quality = "solid" | "good" | "verygood" | "exceptional";
+// Quality = how likely reviewers are to champion the paper. This is p, and it is
+// the lever: raising it (convincing reviewers) is the only thing that moves the
+// numbers, because you cannot out-write a 3–5% acceptance rate.
 export const QUALITY: { key: Quality; label: string; p: number; note: string }[] = [
-  { key: "solid", label: "Solid, still developing", p: 0.12, note: "A real contribution that isn't yet a standout." },
-  { key: "good", label: "Good, competitive", p: 0.2, note: "Reviewed seriously at strong journals." },
-  { key: "verygood", label: "Very good", p: 0.3, note: "The kind reviewers argue to accept." },
-  { key: "exceptional", label: "Exceptional", p: 0.42, note: "A paper that helps define a field." },
+  { key: "solid", label: "Solid, not yet a standout", p: 0.12, note: "A real contribution reviewers respect but don't fight for." },
+  { key: "good", label: "Good — taken seriously", p: 0.2, note: "Reviewed carefully at strong journals." },
+  { key: "verygood", label: "Very good — reviewers argue to accept", p: 0.3, note: "A referee becomes an advocate." },
+  { key: "exceptional", label: "Exceptional — reviewers champion it", p: 0.42, note: "A paper that helps define a field." },
 ];
 
 export type PipelineInputs = {
-  target: number; // publications you want
-  years: number; // over how many years
-  quality: Quality; // maps to per-reviewer accept probability p
+  target: number; // publications you want (tenure ~ 6)
+  years: number; // over how many years (tenure ~ 8)
+  quality: Quality; // how likely reviewers are to champion it — the lever
   reviewers: number; // n
   maxJournals: number; // K: how many journals before you kill a paper
   cycleMonths: number; // one journal's submit-to-decision cycle
@@ -32,9 +55,9 @@ export type PipelineInputs = {
 };
 
 export const DEFAULT_INPUTS: PipelineInputs = {
-  target: 5,
-  years: 6,
-  quality: "verygood",
+  target: 6, // a common tenure bar
+  years: 8,
+  quality: "good",
   reviewers: 3,
   maxJournals: 4,
   cycleMonths: 6,
@@ -99,6 +122,21 @@ export function simulate(inp: PipelineInputs): PipelineResult {
 }
 
 export const pct = (x: number) => `${Math.round(x * 100)}%`;
+
+// The lever. Holding the target fixed, how many papers you'd have to WRITE
+// collapses as your per-paper odds rise (i.e. as you convince reviewers) — and
+// barely moves as you write faster. This is the module's whole point.
+export function leverTable(inp: PipelineInputs): { key: Quality; label: string; everPublished: number; papersToWrite: number }[] {
+  return QUALITY.map((q) => {
+    const r = simulate({ ...inp, quality: q.key });
+    return { key: q.key, label: q.label, everPublished: r.everPublished, papersToWrite: r.papersToWrite };
+  });
+}
+
+// Could you even physically write that many in the time you have, at your pace?
+export function feasibleByVolume(inp: PipelineInputs, papersToWrite: number): boolean {
+  return papersToWrite <= inp.pace * inp.years;
+}
 
 // The "papers written → publications" curve (the lecture's simulation figure):
 // expected cumulative publications as you write more papers, at this everPublished rate.

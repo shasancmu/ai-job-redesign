@@ -743,9 +743,9 @@ export const MODULES: ModuleDef[] = [
     slug: "publication-pipeline",
     exercise: "pipeline",
     name: "Publication Pipeline",
-    tagline: "Simulate the odds of getting published, and size the pipeline it actually takes to hit your target.",
+    tagline: "See how publishing actually works, why you can't out-write a 3 to 5 percent acceptance rate, and the one lever that moves it.",
     description:
-      "The numbers game behind publishing, from Sharique Hasan's strategy lecture. Peer review is a lottery: a few reviewers, a variable editor, and a paper that cycles through journals until it lands or you kill it. Set your target, your pace, and how strong your papers are, then a live simulation shows your real acceptance odds, how many papers you must write to bank your target, how many to keep in flight, and when to kill one. An AI advisor turns the numbers into a candid pipeline strategy. You leave knowing what productivity really requires.",
+      "The numbers game behind publishing, from Sharique Hasan's strategy lecture. First it walks you through how a paper actually gets published: submit, the managing editor screens, a deputy editor and a senior editor decide whether it's worth reviewing, reviewers write reports, the senior editor aggregates and recommends, and the deputy editor makes the final call. A series of filters that lets only 3 to 5 percent through at top journals. Then, against a tenure-style target, a live model shows the trap: you cannot write your way there, because volume barely moves the math. The one lever that does is raising the probability each paper gets in, which means convincing reviewers, and that sets up the next question: what are reviewers looking for?",
     partner: "ai",
     mode: "With AI",
     minutes: 12,

@@ -103,15 +103,14 @@ const GUIDES: Record<string, ReportGuide> = {
   },
 
   pipeline: {
-    predictPrompt: "Before you see the model: how many papers do you think you'll have to WRITE to end up with your target number published?",
+    predictPrompt: "Can you reach your target just by starting more projects? Guess how many papers you'd have to WRITE to bank your target.",
     predictPlaceholder: "Your honest guess, as a number.",
     ratingLabel: "How sure are you about that number?",
     walkthrough: [
-      { anchor: "delta", title: "Your guess vs. the model", body: "You named a number. Peer review is a lottery, so most people guess low. See how far the simulation lands from your instinct." },
-      { anchor: "headline", title: "The reality", body: "What it tells you: the candid one-line read on your odds. How it was built: from the acceptance model plus your own inputs, not a pep talk." },
-      { anchor: "odds", title: "Your odds", body: "What it tells you: acceptance at one journal, the chance a paper ever lands, and how many you must write. How it was built: a few reviewers each say yes with a probability set by your paper strength; an editor aggregates their votes; a paper cycles through journals until it lands or you kill it." },
-      { anchor: "curve", title: "Papers written vs. publications", body: "What it tells you: each paper is worth a fraction of a publication, so output is a pipeline, not a bet. How it was built: your per-paper publication odds, extended across many papers." },
-      { anchor: "plan", title: "Your pipeline strategy", body: "What it tells you: how many to keep in flight, how to pace starts, and when to kill a paper. How it was built: the AI read your simulated numbers and turned them into concrete moves." },
+      { anchor: "delta", title: "Your guess vs. the math", body: "You named a number. At a 3-to-5% acceptance rate most people guess far too low. See how far the math lands from your instinct." },
+      { anchor: "reality", title: "The reality", body: "What it tells you: how many papers you'd have to WRITE to bank your target, and whether you could even physically do it. How it was built: your target divided by the odds any one paper survives every filter in the process you just saw." },
+      { anchor: "lever", title: "The lever", body: "What it tells you: the papers-you'd-need collapses as your odds of convincing reviewers rise, and barely moves as you write faster. How it was built: the same target, recomputed at each level of reviewer conviction." },
+      { anchor: "pivot", title: "The takeaway", body: "What it tells you: you can't out-write the odds, so the game is raising the probability each paper gets in, which means convincing reviewers. That is the next thing to learn." },
     ],
   },
 

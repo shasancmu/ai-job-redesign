@@ -1070,17 +1070,15 @@ export async function pipelineAdviceAI(input: {
   const facts = `Their situation: wants ${i.target} publications in ${i.years} years; starts about ${i.pace} papers/year; paper strength "${i.quality}"; will try up to ${i.maxJournals} journals before killing a paper; each review cycle ~${i.cycleMonths} months.
 Simulated numbers: single-journal acceptance ${Math.round((r.singleJournal || 0) * 100)}%; probability a paper ever lands (within ${i.maxJournals} journals) ${Math.round((r.everPublished || 0) * 100)}%; papers they must WRITE to bank ${i.target} ≈ ${r.papersToWrite}; average submissions per paper ${Number(r.avgSubmissions || 0).toFixed(1)}; ~${Math.round(r.monthsPerPaper || 0)} months in review per paper; keep ~${r.inFlight} in flight at once; pace needed ${Number(r.paceNeeded || 0).toFixed(1)}/year vs their ${i.pace}/year (${r.onTrack ? "on track" : "behind"}).`;
 
-  const system = `You are a candid, been-there advisor on the academic publishing grind, in the spirit of Sharique Hasan's "Topics in Strategy" lecture. Peer review is a lottery: top journals accept under 10%; a paper takes multiple journals and years; most published papers survived several rejections and at least one Revise & Resubmit. Productivity comes from a PIPELINE, not a single bet: keep several papers moving, know when to kill one, and treat rejection as the base rate, not a verdict on you.
+  const system = `You are a candid, been-there advisor on academic publishing, in the spirit of Sharique Hasan's "Topics in Strategy" lecture. The core lesson is counterintuitive and you must land it: at a 3-to-5% acceptance rate, you CANNOT out-write the odds. Writing more papers does not build a portfolio; raising the PROBABILITY each paper gets in does — and that means convincing reviewers. Volume barely moves the math; reviewer conviction moves it a lot.
 
-Given their situation and the simulated numbers, give a short, honest, specific strategy. Do not restate every number; interpret them. Be direct about the grind without being discouraging. No hedging, no platitudes.
+Given their situation and the simulated numbers, give a short, honest, specific strategy centered on RAISING their per-paper odds, not on writing faster. Do not restate every number; interpret them. Point toward what makes reviewers champion a paper (clarity of the contribution, a convincing identification/mechanism, anticipating objections, journal fit), teeing up the next step: learning what reviewers look for. Be direct without being discouraging. No hedging, no platitudes.
 
 Return STRICT JSON only, no prose outside it:
 {
-  "headline": "one candid sentence that captures their reality",
-  "reality": "2-3 sentences on what the numbers mean for how they should work (pipeline, not lottery-ticket)",
-  "moves": ["3-4 concrete moves: how many to keep in flight, how to pace starts, how to treat R&Rs, portfolio thinking"],
-  "killRule": "one clear rule for when to stop shopping a paper and reallocate the effort",
-  "watchout": "the trap most people in their position fall into"
+  "reality": "2-3 sentences: what their numbers mean, and why volume is not the lever for them specifically",
+  "moves": ["3-4 concrete moves that RAISE the probability a paper gets in (convince reviewers, choose the right journal, handle R&Rs well) — not 'write more'"],
+  "watchout": "the trap: mistaking activity (more submissions) for progress (higher acceptance odds)"
 }`;
 
   const raw = await complete(

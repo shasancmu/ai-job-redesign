@@ -40,8 +40,8 @@ export const FRAMEWORKS: Record<string, Framework[]> = {
     { name: "Three blind spots", finding: "Myopia is spatial (distant options), temporal (distant futures), and failure-avoidant (too few bold bets).", cite: "Organizational myopia; Levitt, “Marketing Myopia” (1960)" },
   ],
   pipeline: [
-    { name: "Peer review is a lottery", finding: "Top journals accept under 10%; a few noisy reviewers plus a variable editor make any single submission a coin-flip.", cite: "Hasan, Topics in Strategy (lecture)" },
-    { name: "Productivity is a pipeline", finding: "Output comes from keeping several papers in flight and knowing when to kill one, not from a single bet.", cite: "Research-portfolio strategy" },
+    { name: "The editorial process is a funnel", finding: "Submit → managing editor → deputy & senior editor → reviewers → senior editor aggregates → deputy editor decides. A series of filters that passes only 3–5% at top journals.", cite: "Hasan, Topics in Strategy (lecture)" },
+    { name: "Raise the probability, not the volume", finding: "You can't out-write a 3–5% acceptance rate; the only lever that moves a portfolio is raising each paper's odds of getting in — convincing reviewers.", cite: "Hasan, Topics in Strategy" },
   ],
   "paper-study": [
     { name: "A research idea makes the invisible visible", finding: "An idea is a unique insight into why the facts are what they are: a new fact, or a known one explained.", cite: "Hasan, Research, Strategy" },
