@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
 import { getMyOrgs } from "@/lib/orgs";
+import { calibrationSummary } from "@/lib/followups";
 import {
   completedSlugs,
   transcriptFrom,
@@ -41,6 +42,7 @@ export default async function AchievementsPage() {
   const transcript = transcriptFrom(completed);
   const count = transcript.length;
   const level = levelFor(count);
+  const calib = await calibrationSummary(supabase, user.id).catch(() => ({ count: 0, avg: 0, recent: [] }));
 
   // Load applicable bundles (built-in + global + this user's orgs') and
   // materialize the earned ones. Falls back to built-ins if the table/admin
@@ -111,6 +113,29 @@ export default async function AchievementsPage() {
           </div>
         )}
       </section>
+
+      {/* Calibration (metacognition) */}
+      {calib.count > 0 && (
+        <section className="card mt-5 p-6">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex h-16 w-16 flex-none items-center justify-center rounded-2xl text-xl font-bold text-white" style={{ background: "#B07A1E" }}>
+              {calib.avg.toFixed(1)}
+            </div>
+            <div className="min-w-[200px] flex-1">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Prediction calibration</div>
+              <div className="text-lg font-bold text-ink">
+                {calib.avg >= 3.75 ? "Well-calibrated" : calib.avg >= 2.5 ? "Usefully surprised" : "Often surprised"}
+              </div>
+              <p className="mt-0.5 text-sm text-slate-500">
+                Across {calib.count} {calib.count === 1 ? "prediction" : "predictions"} you averaged {calib.avg.toFixed(1)} of 5.{" "}
+                {calib.avg >= 3.75
+                  ? "Your instincts track the analysis closely."
+                  : "The gap between your guess and the result is where the learning happens, so surprise is a good sign."}
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Certificates (bundles) */}
       <section className="mt-9">

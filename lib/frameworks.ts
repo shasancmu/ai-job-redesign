@@ -52,3 +52,21 @@ export const FRAMEWORKS: Record<string, Framework[]> = {
 export function frameworksFor(key?: string | null): Framework[] {
   return (key && FRAMEWORKS[key]) || [];
 }
+
+// Human labels for each report family, for the public research reference page.
+export const GUIDE_LABELS: Record<string, string> = {
+  "job-redesign": "Redesign Your Job with AI",
+  resume: "Refresh Your Résumé",
+  consult: "Diagnose Your Business",
+  superpower: "Find Your Superpower",
+  vision: "Shape Your Company Vision",
+  "personal-network": "Map Your Personal Network",
+  "career-roadmap": "Map Your Next Career Moves",
+  myopia: "Find Your Blind Spots",
+  pipeline: "Publication Pipeline",
+  "paper-study": "Understand a Paper",
+};
+
+export function allFrameworkGroups(): { key: string; label: string; items: Framework[] }[] {
+  return Object.keys(FRAMEWORKS).map((k) => ({ key: k, label: GUIDE_LABELS[k] || k, items: FRAMEWORKS[k] }));
+}

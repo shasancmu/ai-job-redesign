@@ -45,3 +45,44 @@ export async function dueFollowUps(supabase: SB, userId: string): Promise<Follow
   out.sort((a, b) => (a.when < b.when ? -1 : 1));
   return out.slice(0, 4);
 }
+
+// ---- Calibration (metacognition) --------------------------------------------
+// How close the learner's predictions have been across modules. Surfaces on
+// /achievements so the gap between guess and reality becomes visible over time.
+
+export type CalibrationSummary = {
+  count: number;
+  avg: number; // 1 (way off) .. 5 (spot on)
+  recent: { moduleName: string; slug: string; code: string; calibration: number }[];
+};
+
+export async function calibrationSummary(supabase: SB, userId: string): Promise<CalibrationSummary> {
+  const { data: wss } = await supabase
+    .from("workspaces")
+    .select("session_id, canvas")
+    .eq("author_id", userId)
+    .limit(400);
+
+  const rows = ((wss as any[]) || [])
+    .map((w) => ({ sid: w.session_id, cal: w.canvas?.reflection?.calibration }))
+    .filter((x) => Number.isFinite(x.cal));
+  if (!rows.length) return { count: 0, avg: 0, recent: [] };
+
+  const { data: sess } = await supabase
+    .from("sessions")
+    .select("id, code, exercise, created_at")
+    .in("id", rows.map((r) => r.sid).filter(Boolean));
+  const byId = new Map(((sess as any[]) || []).map((s) => [s.id, s]));
+
+  const recent = rows
+    .map((r) => {
+      const s = byId.get(r.sid);
+      const m = s && moduleByExercise(s.exercise);
+      return s && m ? { moduleName: m.name, slug: m.slug, code: s.code, calibration: r.cal, at: s.created_at } : null;
+    })
+    .filter(Boolean) as any[];
+  recent.sort((a, b) => (a.at < b.at ? 1 : -1));
+
+  const avg = rows.reduce((s, r) => s + r.cal, 0) / rows.length;
+  return { count: rows.length, avg, recent: recent.slice(0, 5) };
+}

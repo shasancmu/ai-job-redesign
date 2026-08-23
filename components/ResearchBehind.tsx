@@ -21,6 +21,9 @@ export default function ResearchBehind({ guideKey }: { guideKey?: string }) {
             <p className="mt-1 text-xs italic text-slate-400">{f.cite}</p>
           </div>
         ))}
+        <a href="/frameworks" className="inline-block border-t border-line pt-3 text-xs font-semibold text-sage hover:underline">
+          Browse the research behind every exercise &rarr;
+        </a>
       </div>
     </details>
   );
