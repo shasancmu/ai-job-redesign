@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
 import { getMyOrgs } from "@/lib/orgs";
-import { calibrationSummary } from "@/lib/followups";
+import { calibrationSummary, learningJournal } from "@/lib/followups";
 import {
   completedSlugs,
   transcriptFrom,
@@ -43,6 +43,7 @@ export default async function AchievementsPage() {
   const count = transcript.length;
   const level = levelFor(count);
   const calib = await calibrationSummary(supabase, user.id).catch(() => ({ count: 0, avg: 0, recent: [] }));
+  const journal = await learningJournal(supabase, user.id).catch(() => []);
 
   // Load applicable bundles (built-in + global + this user's orgs') and
   // materialize the earned ones. Falls back to built-ins if the table/admin
@@ -161,6 +162,30 @@ export default async function AchievementsPage() {
                   {t.name}
                 </div>
                 <div className="text-xs text-slate-400">{monthYear(t.at)}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Learning journal — the learner's own recalled takeaways */}
+      {journal.length > 0 && (
+        <section className="mt-9">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">Learning journal</h2>
+          <p className="mt-1 text-sm text-slate-400">What you took away, in your own words, from the check-ins.</p>
+          <div className="mt-4 space-y-3">
+            {journal.map((j) => (
+              <div key={j.code} className="rounded-2xl border border-line bg-white p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{j.moduleName}</div>
+                  {j.outcome && (
+                    <span className="rounded-full bg-mist px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                      {j.outcome === "done" ? "Followed through" : j.outcome === "partly" ? "Partly" : "Not yet"}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-sm text-ink">&ldquo;{j.recall}&rdquo;</p>
+                {j.commitment && <p className="mt-1 text-xs text-slate-400">Committed: {j.commitment}</p>}
               </div>
             ))}
           </div>

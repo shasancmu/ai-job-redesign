@@ -86,3 +86,49 @@ export async function calibrationSummary(supabase: SB, userId: string): Promise<
   const avg = rows.reduce((s, r) => s + r.cal, 0) / rows.length;
   return { count: rows.length, avg, recent: recent.slice(0, 5) };
 }
+
+// ---- Learning journal --------------------------------------------------------
+// The learner's own recalled takeaways from the spaced check-ins, in their
+// words. Makes learning visible and durable (a lightweight learner model,
+// surfaced to the person rather than injected into prompts).
+
+export type JournalEntry = { moduleName: string; slug: string; code: string; recall: string; outcome?: string; commitment?: string; at: string };
+
+export async function learningJournal(supabase: SB, userId: string): Promise<JournalEntry[]> {
+  const { data: wss } = await supabase
+    .from("workspaces")
+    .select("session_id, canvas")
+    .eq("author_id", userId)
+    .limit(400);
+
+  const withRecall = ((wss as any[]) || [])
+    .map((w) => ({ sid: w.session_id, r: w.canvas?.reflection }))
+    .filter((x) => x.r && typeof x.r.recall === "string" && x.r.recall.trim());
+  if (!withRecall.length) return [];
+
+  const { data: sess } = await supabase
+    .from("sessions")
+    .select("id, code, exercise")
+    .in("id", withRecall.map((x) => x.sid).filter(Boolean));
+  const byId = new Map(((sess as any[]) || []).map((s) => [s.id, s]));
+
+  const out = withRecall
+    .map((x) => {
+      const s = byId.get(x.sid);
+      const m = s && moduleByExercise(s.exercise);
+      if (!s || !m) return null;
+      return {
+        moduleName: m.name,
+        slug: m.slug,
+        code: s.code,
+        recall: x.r.recall.trim(),
+        outcome: x.r.outcome,
+        commitment: x.r.commitment?.text,
+        at: x.r.followedUpAt || x.r.at || "",
+      };
+    })
+    .filter(Boolean) as JournalEntry[];
+
+  out.sort((a, b) => (a.at < b.at ? 1 : -1));
+  return out.slice(0, 20);
+}
