@@ -651,10 +651,310 @@ const LIT_REVIEW: CanvasDef = {
   },
 };
 
+// (k) Is your data a moat? — VRIN+O for data
+const DATA_MOAT: CanvasDef = {
+  slug: "data-moat",
+  exercise: "vrino",
+  name: "Is Your Data a Moat?",
+  subjectLabel: "dataset",
+  setupTitle: "The dataset behind your research",
+  setupHint: "A dataset you have, or could build. Your AI partner will judge whether it's a real research advantage.",
+  setupPlaceholder: "e.g. A panel of startups' A/B-testing adoption linked to growth and product launches",
+  interviewSystem: `You judge whether a research dataset is a genuine advantage, using Hasan's VRIN+O framework from "Research, Strategy" — the resource-based view applied to data, with willingness-to-PUBLISH standing in for willingness-to-pay:
+- VALUABLE: does it let you publish what others can't — better MEASUREMENT, credible CAUSALITY, GENERALIZABILITY to an important population, fine DETAIL (a step-by-step causal chain), or LONG-TERM coverage?
+- RARE: do few others have it?
+- INIMITABLE: is it hard or costly for others to reproduce (path-dependent access, relationships, a one-time event)?
+- NON-SUBSTITUTABLE: could someone answer the same question with a different, easier dataset?
+- ORGANIZED: are you positioned to capture the value — the skills, coauthors, and pipeline to actually publish from it?
+Interview to surface honest evidence on each. Ask ONE short question at a time; pull specifics, not self-praise.`,
+  draftSystem: `You assess a dataset as a research moat with VRIN+O (willingness-to-publish for value). Score each dimension 0-100 honestly. Name what the data lets them publish that others can't, and the weakest dimension to shore up. No inflation.`,
+  fields: [
+    { key: "what_it_is", label: "What the data is", hint: "the unit, the coverage, how you got it", kind: "long", group: "The asset", accent: "sage" },
+    { key: "valuable_read", label: "Valuable — willingness to publish", hint: "measurement, causality, generalizability, detail, long-term", kind: "long", group: "The five tests", accent: "sage" },
+    { key: "rare_read", label: "Rare", hint: "how few others have it", kind: "long", group: "The five tests", accent: "gold" },
+    { key: "inimitable_read", label: "Inimitable", hint: "how hard it is to reproduce", kind: "long", group: "The five tests", accent: "plum" },
+    { key: "nonsub_read", label: "Non-substitutable", hint: "whether an easier dataset answers the same question", kind: "long", group: "The five tests", accent: "clay" },
+    { key: "organized_read", label: "Organized", hint: "are you positioned to publish from it (skills, coauthors, pipeline)", kind: "long", group: "The five tests", accent: "sage" },
+    { key: "edge", label: "The edge", hint: "what this data lets you publish that others can't", kind: "long", group: "The moat", accent: "gold" },
+    { key: "shore_up", label: "What to shore up", hint: "the weakest dimension, and how to strengthen it", kind: "list", group: "The moat", accent: "clay" },
+  ],
+  ratings: [
+    { key: "valuable", label: "Valuable" },
+    { key: "rare", label: "Rare" },
+    { key: "inimitable", label: "Inimitable" },
+    { key: "nonsub", label: "Non-substitutable" },
+    { key: "organized", label: "Organized" },
+  ],
+  hasVerdict: { label: "Is your data a real advantage?" },
+  about:
+    'Hasan, "Research, Strategy": treat data as a strategic resource. Using VRIN+O (the resource-based view) with willingness-to-publish for value, a dataset is a moat when it is Valuable, Rare, Inimitable, Non-substitutable, and you are Organized to publish from it.',
+  groupNotes: {
+    "The asset": "What the data is and how you got it.",
+    "The five tests": "VRIN+O: valuable to publish, rare, inimitable, non-substitutable, organized.",
+    "The moat": "What it lets you publish that others can't, and the weakest link.",
+  },
+};
+
+// (l) Choose your data strategy
+const DATA_STRATEGY: CanvasDef = {
+  slug: "data-strategy",
+  exercise: "data-strategy",
+  name: "Choose Your Data Strategy",
+  subjectLabel: "question",
+  setupTitle: "The question you need data for",
+  setupHint: "Your research question. Your AI partner will help you pick the data that can actually answer it.",
+  setupPlaceholder: "e.g. Does experimentation cause startups to grow, or do good startups just experiment?",
+  interviewSystem: `You help a researcher choose the right DATA STRATEGY for a question, using Hasan's "Research, Strategy". The main sources each buy something different:
+- PUBLIC datasets (cheap, generalizable, but crowded and coarse), ADMINISTRATIVE / TRACE data (real behavior at scale, but access and measurement are hard), SURVEY data (you design the measures, but self-report and effort), EXPERIMENTAL data (clean causality, but narrow and costly), QUALITATIVE data (rich mechanism, but not generalizable), SIMULATION (isolate a mechanism, but only as good as the model).
+- The pick follows the CLAIM: causality needs an experiment or a design; generalizability needs a broad population; a step-by-step mechanism needs detail or qualitative depth.
+Interview to learn the claim, what must be observed, and the constraints. Ask ONE short question at a time.`,
+  draftSystem: `You recommend a data strategy: weigh the main sources against what the CLAIM needs (causality vs. generalizability vs. detail vs. cost), pick the best fit, and lay out a concrete collection plan. Be specific to their question; name the honest trade-off of the pick.`,
+  fields: [
+    { key: "claim", label: "The claim you need to support", hint: "what you're trying to show, and the toughest challenge to it", kind: "long", group: "The question", accent: "sage" },
+    { key: "observe", label: "What must be observed", hint: "the outcome, the treatment, the population", kind: "long", group: "The question", accent: "gold" },
+    { key: "options", label: "The options, and what each buys", hint: "public, trace, survey, experiment, qualitative, simulation", kind: "pairs", group: "The choice", accent: "plum", leftLabel: "Source", rightLabel: "What it buys / costs" },
+    { key: "pick", label: "The pick, and why", hint: "the best fit for your claim, with its honest trade-off", kind: "long", group: "The choice", accent: "sage" },
+    { key: "plan", label: "The collection plan", hint: "how to actually get it", kind: "list", group: "The choice", accent: "gold" },
+  ],
+  hasVerdict: { label: "Your data strategy, in one line" },
+  about:
+    'Hasan, "Research, Strategy": the data you choose is a strategic decision. Public, administrative, survey, experimental, qualitative, and simulated data each buy something different — causality, generalizability, detail, or cost — and the right choice follows the claim you need to support.',
+  groupNotes: {
+    "The question": "The claim and what has to be observed to support it.",
+    "The choice": "Weigh the sources against the claim, pick one, and plan the collection.",
+  },
+};
+
+// (m) Is your identification credible?
+const IDENTIFICATION: CanvasDef = {
+  slug: "identification",
+  exercise: "identification",
+  name: "Is Your Identification Credible?",
+  subjectLabel: "claim",
+  setupTitle: "The causal claim you want to make",
+  setupHint: "The X causes Y at the heart of your paper. Your AI partner will stress-test whether you can actually claim it.",
+  setupPlaceholder: "e.g. Adopting A/B testing causes startups to launch more products",
+  interviewSystem: `You stress-test the IDENTIFICATION behind a causal claim, in the spirit of Hasan's "Research, Strategy" and modern causal inference. A credible causal claim survives the obvious threats:
+- SELECTION: who takes the treatment is not random (good firms adopt A/B testing anyway).
+- REVERSE CAUSALITY: Y could cause X.
+- OMITTED VARIABLES: a third factor drives both.
+- MEASUREMENT: X or Y is measured with error.
+The design answers the threat: a randomized EXPERIMENT, DIFFERENCE-IN-DIFFERENCES, an INSTRUMENT, a REGRESSION DISCONTINUITY, or MATCHING — each rests on an identifying ASSUMPTION you must defend, ideally with a placebo or falsification test.
+Interview to surface the claim, the biggest threat, and the design. Ask ONE short question at a time; do not lecture.`,
+  draftSystem: `You judge whether a causal claim is credibly identified. Name the biggest threat (selection, reverse causality, omitted variables, measurement), the design that addresses it, the identifying assumption and how to defend it, and a falsification/placebo test. Be honest: if it is really a correlation, say so and say what design would fix it.`,
+  fields: [
+    { key: "claim", label: "The causal claim", hint: "X causes Y — stated plainly", kind: "long", group: "The claim", accent: "sage" },
+    { key: "threat", label: "The biggest threat to identification", hint: "selection, reverse causality, omitted variables, or measurement", kind: "long", group: "The threats", accent: "clay" },
+    { key: "design", label: "The design that answers it", hint: "experiment, diff-in-diff, instrument, RD, matching — and why it fits", kind: "long", group: "The design", accent: "gold" },
+    { key: "assumption", label: "The identifying assumption", hint: "what must be true for the design to work, and how you'd defend it", kind: "long", group: "The design", accent: "plum" },
+    { key: "falsification", label: "The falsification test", hint: "a placebo or check that should fail if you're wrong", kind: "list", group: "The design", accent: "sage" },
+  ],
+  hasVerdict: { label: "Can you credibly claim cause, or only correlation?" },
+  about:
+    'A causal claim is only as good as its identification. Naming the biggest threat (selection, reverse causality, omitted variables, measurement) and the design that answers it (experiment, difference-in-differences, instrument, regression discontinuity, matching) separates a causal contribution from a correlation.',
+  groupNotes: {
+    "The claim": "The cause-and-effect statement, stated plainly.",
+    "The threats": "The obvious reasons the claim might be spurious.",
+    "The design": "The research design that answers the threat, its assumption, and a test that could falsify it.",
+  },
+};
+
+// (n) Meet your reviewers — a referee pre-mortem
+const REFEREE: CanvasDef = {
+  slug: "the-referee",
+  exercise: "referee",
+  name: "Meet Your Reviewers",
+  subjectLabel: "paper",
+  setupTitle: "The paper you want reviewed",
+  setupHint: "Paste your abstract (and intro, if you have it). Your AI partner will write the referee report you're likely to get.",
+  setupPlaceholder: "Paste the title and abstract here…",
+  interviewSystem: `You are a fair but demanding referee, in the spirit of the reviewing chapter of Hasan's "Research, Strategy". First impressions matter, and a good report separates the contribution from the execution. You judge: is the CONTRIBUTION real and clearly stated; is the identification / evidence CREDIBLE; is it well POSITIONED in the literature; and is the execution POLISHED (data, tables, figures, writing). Interview only to fill gaps the pasted text leaves; otherwise be ready to write the report. Ask ONE short question at a time.`,
+  draftSystem: `You write the referee report the author is likely to receive. Name what a reviewer will genuinely like; then the objections, ranked hardest first (the real reasons for rejection); then the concrete fixes; and the one "reviewer 2" worry that could sink it. Score contribution, credibility, positioning, and polish 0-100. End with the likely decision (reject / revise & resubmit / accept) and why. Be tough and specific, not encouraging-for-its-own-sake.`,
+  fields: [
+    { key: "likes", label: "What a reviewer will like", hint: "the genuine strengths", kind: "list", group: "The report", accent: "sage" },
+    { key: "objections", label: "The objections, ranked", hint: "hardest first — the real reasons for rejection", kind: "list", group: "The report", accent: "clay" },
+    { key: "fixes", label: "The fixes", hint: "what to do about each before you submit", kind: "list", group: "The report", accent: "gold" },
+    { key: "reviewer2", label: "The reviewer-2 worry", hint: "the one objection that could sink it", kind: "long", group: "The report", accent: "plum" },
+  ],
+  ratings: [
+    { key: "contribution", label: "Contribution" },
+    { key: "credibility", label: "Credibility" },
+    { key: "positioning", label: "Positioning" },
+    { key: "polish", label: "Polish" },
+  ],
+  hasVerdict: { label: "Likely decision, and why" },
+  about:
+    'The reviewing chapter of Hasan\'s "Research, Strategy": referees judge the contribution, the credibility of the evidence, the positioning, and the polish. Seeing the report you\'re likely to get lets you fix the paper before they do.',
+  groupNotes: {
+    "The report": "What reviewers will like, the objections ranked hardest-first, the fixes, and the worst worry.",
+  },
+};
+
+// (o) The R&R war room
+const RNR: CanvasDef = {
+  slug: "revise-resubmit",
+  exercise: "rnr",
+  name: "The R&R War Room",
+  subjectLabel: "R&R",
+  setupTitle: "Your revise & resubmit",
+  setupHint: "Paste the reviewer comments. Your AI partner will help you build a systematic response.",
+  setupPlaceholder: "Paste the reviewers' and editor's comments here…",
+  interviewSystem: `You help a researcher handle a Revise & Resubmit, using Hasan's "Research, Strategy": an R&R is an exam whose questions are the reviewers' comments. The winning approach is a REVISION DOCUMENT that lists every comment with your response, treats it as a DIALOGUE (engage even when you disagree, with clear reasoning), and stays organized and professional. Most accepted papers went through multiple rounds. Interview to understand the comments and where you agree or push back. Ask ONE short question at a time.`,
+  draftSystem: `You build the revision plan for an R&R. Identify the make-or-break comment; pair each substantive comment with a concrete response (what you'll change); flag what you won't change and the respectful reasoning; and draft the opening of the response letter. Systematic, professional, and specific. Never dismiss a reviewer.`,
+  fields: [
+    { key: "make_break", label: "The make-or-break comment", hint: "the one that decides the paper", kind: "long", group: "The exam", accent: "clay" },
+    { key: "responses", label: "Comment → response", hint: "every substantive comment paired with what you'll do", kind: "pairs", group: "The revision", accent: "sage", leftLabel: "Reviewer comment", rightLabel: "Your response / change" },
+    { key: "wont_change", label: "What you won't change, and why", hint: "the respectful pushback, with reasoning", kind: "list", group: "The revision", accent: "gold" },
+    { key: "letter", label: "The response-letter opener", hint: "the tone-setting first lines to the editor", kind: "long", group: "The revision", accent: "plum" },
+  ],
+  hasVerdict: { label: "Your revision, in one move" },
+  about:
+    'Hasan, "Research, Strategy": a Revise & Resubmit is an exam. You pass it with a revision document that answers every comment as a dialogue, engages even where you disagree, and stays organized. Most accepted papers survive several rounds.',
+  groupNotes: {
+    "The exam": "The comment that actually decides the paper.",
+    "The revision": "Every comment answered, the respectful pushback, and the letter that frames it.",
+  },
+};
+
+// (p) Journal fit & cover letter
+const JOURNAL_FIT: CanvasDef = {
+  slug: "journal-fit",
+  exercise: "journal-fit",
+  name: "Journal Fit & Cover Letter",
+  subjectLabel: "paper",
+  setupTitle: "The paper you're about to submit",
+  setupHint: "Your AI partner will help you pick the right venue and pitch it — fit is half the battle.",
+  setupPlaceholder: "e.g. My paper on how A/B testing changes which startups scale",
+  interviewSystem: `You help a researcher choose a JOURNAL and write a COVER LETTER, using Hasan's "Research, Strategy". Fit is half the battle: the right journal matches the paper's audience, scope, method, and ambition, and the wrong one is a fast desk-reject. Acceptance is a pipeline, so aim high but have a plan B. The cover letter briefly makes the case: what the paper shows, why it fits THIS journal, and why it matters now. Interview to learn the contribution, the audience, and the candidate journals. Ask ONE short question at a time.`,
+  draftSystem: `You recommend where to send the paper and draft the cover letter. Name the contribution and audience; list candidate journals with a one-line fit reason each; pick the best target and a plan B; then draft a tight cover letter (what it shows, why it fits this journal, why now). Be specific about fit, not generic praise.`,
+  fields: [
+    { key: "contribution", label: "The contribution and audience", hint: "what it shows, and who should read it", kind: "long", group: "The fit", accent: "sage" },
+    { key: "candidates", label: "Candidate journals", hint: "each with a one-line fit reason", kind: "pairs", group: "The fit", accent: "gold", leftLabel: "Journal", rightLabel: "Why it fits (or doesn't)" },
+    { key: "target", label: "Target, and plan B", hint: "aim high, with a fallback", kind: "long", group: "The fit", accent: "plum" },
+    { key: "cover_letter", label: "The cover letter", hint: "what it shows, why this journal, why now", kind: "long", group: "The pitch", accent: "sage" },
+  ],
+  hasVerdict: { label: "Where to send it, and the pitch" },
+  about:
+    'Hasan, "Research, Strategy": choosing a journal is strategic — fit is half the battle, and the wrong venue is a fast rejection. A tight cover letter makes the case for why the paper belongs in this journal, now.',
+  groupNotes: {
+    "The fit": "The audience, the candidate venues, and the target with a fallback.",
+    "The pitch": "A cover letter that argues the fit, not the paper's greatness.",
+  },
+};
+
+// (q) Build your theory section
+const THEORY: CanvasDef = {
+  slug: "theory-section",
+  exercise: "theory",
+  name: "Build Your Theory Section",
+  subjectLabel: "paper",
+  setupTitle: "The paper whose theory you're building",
+  setupHint: "Your AI partner will help you build the theory as a null model, then a non-obvious claim, then the reasons to believe it.",
+  setupPlaceholder: "e.g. Why experienced managers get more out of experimentation",
+  interviewSystem: `You help a researcher build a THEORY section, using Hasan's "Research, Strategy". A theory section starts with a NULL MODEL — the view of the world most people (or a skeptical economist) would hold. It then advances a NON-OBVIOUS CLAIM: not outlandish, but something a reasonable person might conclude the opposite of from first principles. Then it gives the REASONS TO BELIEVE — the logic and mechanism — leading to testable hypotheses. Interview to surface the null, the claim, and the mechanism. Ask ONE short question at a time.`,
+  draftSystem: `You draft the spine of a theory section: state the null model most people hold; the non-obvious claim that departs from it; why it is non-obvious (what a skeptic would conclude instead); the reasons to believe (the mechanism and logic); and the resulting hypotheses. Specific and grounded, never a literature-summary.`,
+  fields: [
+    { key: "null_model", label: "The null model", hint: "the world-as-most-assume-it, the view you push against", kind: "long", group: "The setup", accent: "sage" },
+    { key: "claim", label: "The non-obvious claim", hint: "what you argue instead — not outlandish, but not obvious", kind: "long", group: "The claim", accent: "gold" },
+    { key: "why_nonobvious", label: "Why it's non-obvious", hint: "what a smart skeptic would conclude from first principles", kind: "long", group: "The claim", accent: "clay" },
+    { key: "reasons", label: "Reasons to believe", hint: "the mechanism and logic that make the claim credible", kind: "long", group: "The argument", accent: "plum" },
+    { key: "hypotheses", label: "The hypotheses", hint: "the testable predictions that follow", kind: "list", group: "The argument", accent: "sage" },
+  ],
+  hasVerdict: { label: "Your theory in one non-obvious claim" },
+  about:
+    'Hasan, "Research, Strategy": a theory section sets up a null model most people believe, advances a non-obvious claim that departs from it, and gives the reasons to believe — the mechanism — that lead to testable hypotheses.',
+  groupNotes: {
+    "The setup": "The null model, the conventional view your theory pushes against.",
+    "The claim": "The non-obvious claim, and why a skeptic would expect otherwise.",
+    "The argument": "The mechanism that makes it credible, and the hypotheses that follow.",
+  },
+};
+
+// (r) The abstract & title
+const ABSTRACT: CanvasDef = {
+  slug: "abstract-title",
+  exercise: "abstract",
+  name: "The Abstract & Title",
+  subjectLabel: "paper",
+  setupTitle: "The paper you're titling",
+  setupHint: "Your AI partner will help you write the abstract as a microcosm of the paper, then test titles.",
+  setupPlaceholder: "e.g. Experimentation and startup performance",
+  interviewSystem: `You help a researcher write the ABSTRACT and TITLE, using Hasan's "Research, Strategy". The abstract is a microcosm of the paper, an hourglass: MOTIVATION (the big question, why anyone cares), PROBLEM (the specific gap), APPROACH (what you do), FINDINGS (what you find), and CONTRIBUTION (what we learn, who should care). The title should communicate the big idea and be findable — most readers arrive by search, so clear keywords beat clever jargon. Interview to pull the five beats and the big idea. Ask ONE short question at a time.`,
+  draftSystem: `You draft a tight abstract that moves motivation → problem → approach → findings → contribution, and propose three title options (one plain and descriptive, one that leads with the finding, one that names the mechanism), then recommend the best for clarity and searchability. Specific to their paper.`,
+  fields: [
+    { key: "beats", label: "The five beats", hint: "motivation, problem, approach, findings, contribution", kind: "list", group: "The abstract", accent: "gold" },
+    { key: "abstract", label: "The abstract", hint: "the five beats, written as one tight paragraph", kind: "long", group: "The abstract", accent: "sage" },
+    { key: "titles", label: "Three title options", hint: "plain, finding-first, and mechanism-named", kind: "list", group: "The title", accent: "plum" },
+    { key: "best_title", label: "The best title, and why", hint: "clarity and searchability win", kind: "long", group: "The title", accent: "sage" },
+  ],
+  hasVerdict: { label: "Your abstract and title" },
+  about:
+    'Hasan, "Research, Strategy": the abstract is a microcosm of the paper — an hourglass from motivation to contribution — and the title should communicate the big idea and be findable, since most readers arrive by search.',
+  groupNotes: {
+    "The abstract": "The five beats, written as one tight paragraph.",
+    "The title": "Options that communicate the idea and can be found.",
+  },
+};
+
+// (s) Design your research system
+const RESEARCH_SYSTEM: CanvasDef = {
+  slug: "research-system",
+  exercise: "research-system",
+  name: "Design Your Research System",
+  subjectLabel: "system",
+  setupTitle: "Your research workflow, honestly",
+  setupHint: "Your AI partner will help you redesign how you actually work, so you get to the creative part faster.",
+  setupPlaceholder: "e.g. I lose days to reformatting tables, chasing files, and redoing analyses by hand",
+  interviewSystem: `You help a researcher design their RESEARCH SYSTEM, using Hasan's "Research, Strategy". The goal is to spend less on drudgery and more on the creative work, by learning to AUTOMATE (scripts, linked tables and figures, a clean file structure and project directory) and DELEGATE (to RAs, coauthors, or AI), on a solid stack (analytics, writing, cloud, learning). Interview to find where their time actually goes and where the friction is. Ask ONE short question at a time.`,
+  draftSystem: `You redesign a researcher's system. Name where time is lost now; what to AUTOMATE (with the specific tool or habit); what to DELEGATE (and to whom); the stack to standardize (analytics, writing, cloud); a clean project directory; and the single change with the biggest payoff. Concrete, not aspirational.`,
+  fields: [
+    { key: "time_sinks", label: "Where your time goes now", hint: "the drudgery eating your week", kind: "list", group: "The audit", accent: "clay" },
+    { key: "automate", label: "What to automate", hint: "scripts, linked tables/figures, file structure — with the tool", kind: "list", group: "The redesign", accent: "sage" },
+    { key: "delegate", label: "What to delegate", hint: "to an RA, a coauthor, or AI", kind: "list", group: "The redesign", accent: "gold" },
+    { key: "stack", label: "Your stack", hint: "analytics, writing, cloud, and how they connect", kind: "long", group: "The redesign", accent: "plum" },
+    { key: "biggest_win", label: "The biggest win", hint: "the one change with the largest payoff", kind: "long", group: "The redesign", accent: "sage" },
+  ],
+  hasVerdict: { label: "Your research system, redesigned" },
+  about:
+    'Hasan, "Research, Strategy": build a research system so you reach the fun, creative work faster. Learn to automate the drudgery (scripts, linked tables, a clean project directory) and to delegate, on a stack you standardize.',
+  groupNotes: {
+    "The audit": "Where your time actually goes.",
+    "The redesign": "What to automate, what to delegate, the stack, and the biggest win.",
+  },
+};
+
+// (t) Build your research team
+const RESEARCH_TEAM: CanvasDef = {
+  slug: "research-team",
+  exercise: "research-team",
+  name: "Build Your Research Team",
+  subjectLabel: "project",
+  setupTitle: "The project you need collaborators for",
+  setupHint: "Your AI partner will help you find the complementary coauthors a strong paper needs.",
+  setupPlaceholder: "e.g. A field experiment on manager training that needs a strong empiricist",
+  interviewSystem: `You help a researcher build a TEAM, using the complementary-skills model from Hasan's strategy lecture. Most top-journal papers are coauthored, and the strongest teams combine three roles: the ARCHITECT (big-picture framing and positioning), the BUILDER (the writer who turns it into a paper), and the ELECTRICIAN (the data and analysis). You want competent, reliable, hungry collaborators whose strengths are DIFFERENT from yours. Interview to find which role the person plays best and which the project is missing. Ask ONE short question at a time.`,
+  draftSystem: `You map a project's team needs: the roles it requires (architect, builder, electrician); which the person is strongest at; the gaps to fill; the kind of collaborator to look for; how to divide the work; and a concrete ask. Specific about complementarity, not just "find coauthors".`,
+  fields: [
+    { key: "roles_needed", label: "The roles the project needs", hint: "architect (framing), builder (writing), electrician (data)", kind: "list", group: "The team", accent: "sage" },
+    { key: "you_are", label: "Which role you are", hint: "your strongest contribution", kind: "long", group: "The team", accent: "gold" },
+    { key: "gap", label: "The gap to fill", hint: "the role you most need a complement for", kind: "long", group: "The gap", accent: "clay" },
+    { key: "who", label: "Who to look for, and the ask", hint: "the kind of collaborator, and how to approach them", kind: "list", group: "The gap", accent: "plum" },
+  ],
+  hasVerdict: { label: "Your team, and the gap to fill" },
+  about:
+    'From Hasan\'s strategy lecture: top-journal papers are coauthored, and strong teams combine complementary roles — the architect (framing), the builder (writing), and the electrician (data and analysis). Find reliable, hungry collaborators whose strengths differ from yours.',
+  groupNotes: {
+    "The team": "The three roles a strong paper needs, and which you are.",
+    "The gap": "The role you most need a complement for, and who to ask.",
+  },
+};
+
 export const CANVASES: CanvasDef[] = [
   FOURA, SCORECARD, VENTURE, GAS, OCFIT, EXPERIMENT, DEEPTECH,
   PAPER_IDEA, PAPER_STRUCTURE, PAPER_POINTS, GOODNESS,
   REG_TABLES, RESEARCH_GRAPHS, LIT_REVIEW,
+  DATA_MOAT, DATA_STRATEGY, IDENTIFICATION, REFEREE, RNR,
+  JOURNAL_FIT, THEORY, ABSTRACT, RESEARCH_SYSTEM, RESEARCH_TEAM,
 ];
 
 export function canvasByExercise(exercise: string): CanvasDef | undefined {

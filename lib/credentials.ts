@@ -78,8 +78,13 @@ export const BUNDLES: Bundle[] = [
     name: "Social Science Research Foundations",
     line: "Framed, structured, argued, and modeled a research paper.",
     core: ["read-the-interaction", "good-research", "understand-a-paper"],
-    electives: ["publication-pipeline", "paper-structure", "regression-tables", "research-graphs", "literature-reviews", "making-points"],
-    electivesNeeded: 2,
+    electives: [
+      "publication-pipeline", "theory-section", "data-moat", "data-strategy", "identification",
+      "paper-structure", "abstract-title", "literature-reviews", "making-points",
+      "regression-tables", "research-graphs", "the-referee", "revise-resubmit", "journal-fit",
+      "research-system", "research-team",
+    ],
+    electivesNeeded: 3,
     skills: ["Academic Writing", "Research Design", "Scholarly Communication", "Scholarly Publishing"],
   },
 ];
@@ -217,6 +222,16 @@ const CRED_META: Record<string, CredMeta> = {
   "regression-tables": { name: "Results Presentation", skills: ["Data Visualization", "Statistical Communication"] },
   "research-graphs": { name: "Scientific Data Visualization", skills: ["Data Visualization", "Statistical Communication"] },
   "literature-reviews": { name: "Literature Review & Positioning", skills: ["Literature Review", "Academic Writing", "Research Design"] },
+  "data-moat": { name: "Research Data Strategy", skills: ["Research Design", "Data Strategy", "Competitive Analysis"] },
+  "data-strategy": { name: "Research Data Design", skills: ["Research Design", "Data Collection", "Research Methods"] },
+  "identification": { name: "Causal Identification", skills: ["Causal Inference", "Econometrics", "Research Design"] },
+  "the-referee": { name: "Peer Review — Refereeing", skills: ["Peer Review", "Critical Analysis", "Scholarly Judgment"] },
+  "revise-resubmit": { name: "Peer Review — Revision", skills: ["Academic Writing", "Peer Review", "Scholarly Communication"] },
+  "journal-fit": { name: "Scholarly Publishing Strategy", skills: ["Scholarly Publishing", "Academic Writing"] },
+  "theory-section": { name: "Theory Development", skills: ["Theory Building", "Academic Writing", "Research Design"] },
+  "abstract-title": { name: "Abstract & Title Writing", skills: ["Academic Writing", "Scholarly Communication"] },
+  "research-system": { name: "Research Operations", skills: ["Research Productivity", "Workflow Design", "Automation"] },
+  "research-team": { name: "Research Collaboration", skills: ["Collaboration", "Team Building", "Research Management"] },
 };
 
 export function credentialName(slug: string): string {

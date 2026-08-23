@@ -71,7 +71,17 @@ export type ModuleDef = {
     | "research-quality"
     | "reg-tables"
     | "research-graphs"
-    | "lit-review"; // which room engine renders it
+    | "lit-review"
+    | "vrino"
+    | "data-strategy"
+    | "identification"
+    | "referee"
+    | "rnr"
+    | "journal-fit"
+    | "theory"
+    | "abstract"
+    | "research-system"
+    | "research-team"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -840,6 +850,166 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_RESEARCH",
     forSale: false,
   },
+  {
+    slug: "data-moat",
+    exercise: "vrino",
+    name: "Is Your Data a Moat?",
+    tagline: "Judge your dataset as a research advantage with VRIN+O: valuable, rare, inimitable, non-substitutable, and organized to publish from.",
+    description:
+      "Treat data as a strategic resource, from Research, Strategy. Using the resource-based view (VRIN+O) with willingness-to-publish standing in for willingness-to-pay, an AI partner scores your dataset on whether it's Valuable (lets you publish better measurement, causality, generalizability, or detail), Rare, Inimitable, Non-substitutable, and whether you're Organized to capture the value. You leave knowing whether your data is a real moat, and the weakest dimension to shore up.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 16,
+    ai: true,
+    emoji: "🏰",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "data-strategy",
+    exercise: "data-strategy",
+    name: "Choose Your Data Strategy",
+    tagline: "Pick the data that can actually answer your question: public, trace, survey, experiment, qualitative, or simulation, and what each buys.",
+    description:
+      "The data you choose is a strategic decision, from Research, Strategy. Public, administrative or trace, survey, experimental, qualitative, and simulated data each buy something different, causality versus generalizability versus detail versus cost, and the right choice follows the claim you need to support. An AI partner interviews you about your question, weighs the sources, and returns a concrete collection plan. You leave with a data strategy matched to your claim.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 14,
+    ai: true,
+    emoji: "🗂️",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "identification",
+    exercise: "identification",
+    name: "Is Your Identification Credible?",
+    tagline: "Stress-test a causal claim: the biggest threat, the design that answers it, the identifying assumption, and a test that could falsify it.",
+    description:
+      "A causal claim is only as good as its identification. An AI partner stress-tests your X-causes-Y against the obvious threats, selection, reverse causality, omitted variables, and measurement, then helps you name the design that answers it (experiment, difference-in-differences, instrument, regression discontinuity, or matching), the identifying assumption and how to defend it, and a falsification test. You leave knowing whether you can claim cause, or only correlation.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 16,
+    ai: true,
+    emoji: "🎯",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "the-referee",
+    exercise: "referee",
+    name: "Meet Your Reviewers",
+    tagline: "See the referee report you're likely to get: what a reviewer likes, the objections ranked, the fixes, and the likely decision.",
+    description:
+      "The reviewing chapter of Research, Strategy, turned on your own paper. Paste your abstract and intro, and an AI plays a fair but demanding referee: what a reviewer will genuinely like, the objections ranked hardest first (the real reasons for rejection), the concrete fixes, and the one reviewer-2 worry that could sink it, scored on contribution, credibility, positioning, and polish, with the likely decision. You leave able to fix the paper before the referees do.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 16,
+    ai: true,
+    emoji: "🧐",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "revise-resubmit",
+    exercise: "rnr",
+    name: "The R&R War Room",
+    tagline: "Turn reviewer comments into a systematic response: every comment answered as a dialogue, with the respectful pushback and the letter.",
+    description:
+      "A Revise & Resubmit is an exam whose questions are the reviewers' comments, from Research, Strategy. Paste the comments, and an AI partner helps you build the revision document: the make-or-break comment, every substantive comment paired with a concrete response, what you won't change and the respectful reasoning, and the opening of the response letter. Systematic and professional, because most accepted papers survive several rounds. You leave with a revision plan ready to execute.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 16,
+    ai: true,
+    emoji: "⚔️",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "journal-fit",
+    exercise: "journal-fit",
+    name: "Journal Fit & Cover Letter",
+    tagline: "Pick the right venue and pitch it: fit is half the battle, and the wrong journal is a fast rejection.",
+    description:
+      "Choosing a journal is strategic, from Research, Strategy: fit is half the battle, and the wrong venue is a fast desk-reject. An AI partner helps you match the paper to the right audience, scope, and level, list candidate journals with a fit reason each, pick a target and a plan B, and draft a tight cover letter, what the paper shows, why it fits this journal, and why now. You leave knowing where to send it and how to pitch it.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 13,
+    ai: true,
+    emoji: "✉️",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "theory-section",
+    exercise: "theory",
+    name: "Build Your Theory Section",
+    tagline: "Set up a null model, advance a non-obvious claim, and give the reasons to believe it that lead to your hypotheses.",
+    description:
+      "The theory section, from Research, Strategy. A good one starts with a null model, the view most people or a skeptical economist would hold, advances a non-obvious claim that departs from it, and gives the reasons to believe, the mechanism, that lead to testable hypotheses. An AI partner interviews you and drafts that spine. You leave with your theory as one non-obvious claim, backed by a mechanism.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 15,
+    ai: true,
+    emoji: "🧩",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "abstract-title",
+    exercise: "abstract",
+    name: "The Abstract & Title",
+    tagline: "Write the abstract as a microcosm of the paper, motivation to contribution, then test titles that communicate and can be found.",
+    description:
+      "The abstract is a microcosm of the paper, from Research, Strategy, an hourglass from motivation to problem to approach to findings to contribution. An AI partner interviews you, drafts a tight abstract, and proposes three title options, one plain, one that leads with the finding, one that names the mechanism, then recommends the best for clarity and searchability, since most readers arrive by search. You leave with an abstract and a title ready to submit.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 12,
+    ai: true,
+    emoji: "✒️",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "research-system",
+    exercise: "research-system",
+    name: "Design Your Research System",
+    tagline: "Redesign how you actually work: automate the drudgery, delegate the rest, and standardize your stack, so you reach the creative work faster.",
+    description:
+      "Build a research system so you get to the fun, creative work faster, from Research, Strategy. An AI partner audits where your time actually goes, then helps you decide what to automate (scripts, linked tables and figures, a clean project directory), what to delegate (to an RA, a coauthor, or AI), the stack to standardize (analytics, writing, cloud), and the single change with the biggest payoff. You leave with a redesigned way of working.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 14,
+    ai: true,
+    emoji: "⚙️",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "research-team",
+    exercise: "research-team",
+    name: "Build Your Research Team",
+    tagline: "Find the complementary coauthors a strong paper needs: the architect, the builder, and the electrician.",
+    description:
+      "Top-journal papers are coauthored, and the strongest teams combine complementary roles, from Sharique Hasan's strategy lecture: the architect (big-picture framing), the builder (the writer), and the electrician (data and analysis). An AI partner helps you see which role you play best, the gap your project most needs filled, the kind of collaborator to look for, and a concrete ask. You leave knowing exactly the complement to add.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 12,
+    ai: true,
+    emoji: "🤝",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
 ];
 
 // The all-access bundle uses the existing single price env for backward compat.
@@ -913,6 +1083,16 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "regression-tables": "research",
   "research-graphs": "research",
   "literature-reviews": "research",
+  "data-moat": "research",
+  "data-strategy": "research",
+  "identification": "research",
+  "the-referee": "research",
+  "revise-resubmit": "research",
+  "journal-fit": "research",
+  "theory-section": "research",
+  "abstract-title": "research",
+  "research-system": "research",
+  "research-team": "research",
 };
 export function moduleCategory(slug: string): CategoryKey {
   return CATEGORY_OF[slug] || "strategy";
@@ -935,8 +1115,12 @@ const CATALOG_ORDER: string[] = [
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
   "lease-the-space", "rehearse-hard-conversation",
   // Research & scholarship (the curriculum sequence)
-  "publication-pipeline", "read-the-interaction", "good-research", "understand-a-paper",
-  "paper-structure", "regression-tables", "research-graphs", "literature-reviews", "making-points",
+  "publication-pipeline", "read-the-interaction", "good-research", "theory-section",
+  "data-moat", "data-strategy", "identification",
+  "understand-a-paper", "paper-structure", "abstract-title", "literature-reviews",
+  "making-points", "regression-tables", "research-graphs",
+  "the-referee", "revise-resubmit", "journal-fit",
+  "research-system", "research-team",
   // Live
   "benchmark", "network",
 ];
@@ -1036,6 +1220,16 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "regression-tables": ["research"],
   "research-graphs": ["research"],
   "literature-reviews": ["research"],
+  "data-moat": ["research", "strategy"],
+  "data-strategy": ["research"],
+  "identification": ["research"],
+  "the-referee": ["research"],
+  "revise-resubmit": ["research"],
+  "journal-fit": ["research"],
+  "theory-section": ["research"],
+  "abstract-title": ["research"],
+  "research-system": ["research"],
+  "research-team": ["research"],
 };
 
 export function modulePills(slug: string): PillKey[] {

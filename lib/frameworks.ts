@@ -100,6 +100,36 @@ export const FRAMEWORKS: Record<string, Framework[]> = {
   "lit-review": [
     { name: "Support and gap, not summary", finding: "A literature review grounds your claims in prior work and highlights the gap that becomes your contribution — organized by ideas, not paper by paper.", cite: "Hasan, Research, Strategy" },
   ],
+  vrino: [
+    { name: "VRIN+O for data", finding: "Data is a moat when it's Valuable (lets you publish what others can't), Rare, Inimitable, Non-substitutable, and you're Organized to capture the value.", cite: "Barney (1991), applied to data by Hasan, Research, Strategy" },
+  ],
+  "data-strategy": [
+    { name: "Every data source buys something different", finding: "Public, administrative/trace, survey, experimental, qualitative, and simulated data trade off causality, generalizability, detail, and cost; the choice follows the claim.", cite: "Hasan, Research, Strategy" },
+  ],
+  identification: [
+    { name: "Threats to identification", finding: "A causal claim must survive selection, reverse causality, omitted variables, and measurement error; a research design (experiment, DiD, IV, RD, matching) answers the threat.", cite: "Modern causal inference; Hasan, Research, Strategy" },
+  ],
+  referee: [
+    { name: "How referees judge", finding: "Reviewers weigh the contribution, the credibility of the evidence, the positioning, and the polish — and first impressions matter.", cite: "Hasan, Research, Strategy (reviewing)" },
+  ],
+  rnr: [
+    { name: "An R&R is a dialogue", finding: "Answer every comment in a revision document, engage even where you disagree with clear reasoning, and stay organized; most accepted papers survive several rounds.", cite: "Hasan, Research, Strategy" },
+  ],
+  "journal-fit": [
+    { name: "Fit is half the battle", finding: "The right journal matches the paper's audience, scope, and level; the wrong venue is a fast desk-reject, and a cover letter argues the fit.", cite: "Hasan, Research, Strategy" },
+  ],
+  theory: [
+    { name: "Null model → non-obvious claim", finding: "A theory section sets up the view most people hold, advances a claim that departs from it, and gives the mechanism — the reasons to believe.", cite: "Hasan, Research, Strategy" },
+  ],
+  abstract: [
+    { name: "The abstract is an hourglass", finding: "It moves from motivation to problem to approach to findings to contribution, and the title should communicate the idea and be findable.", cite: "Hasan, Research, Strategy" },
+  ],
+  "research-system": [
+    { name: "Automate and delegate", finding: "A research system that automates drudgery (scripts, linked tables, a clean directory) and delegates the rest gets you to the creative work faster.", cite: "Hasan, Research, Strategy" },
+  ],
+  "research-team": [
+    { name: "The architect, builder, electrician", finding: "Strong papers are coauthored by complements: big-picture framing, the writer, and the data/analysis lead.", cite: "Hasan, Topics in Strategy (lecture)" },
+  ],
 };
 
 export function frameworksFor(key?: string | null): Framework[] {
@@ -133,6 +163,16 @@ export const GUIDE_LABELS: Record<string, string> = {
   "reg-tables": "Clear Regression Tables",
   "research-graphs": "Elegant Research Graphs",
   "lit-review": "Position Your Literature Review",
+  vrino: "Is Your Data a Moat?",
+  "data-strategy": "Choose Your Data Strategy",
+  identification: "Is Your Identification Credible?",
+  referee: "Meet Your Reviewers",
+  rnr: "The R&R War Room",
+  "journal-fit": "Journal Fit & Cover Letter",
+  theory: "Build Your Theory Section",
+  abstract: "The Abstract & Title",
+  "research-system": "Design Your Research System",
+  "research-team": "Build Your Research Team",
 };
 
 export function allFrameworkGroups(): { key: string; label: string; items: Framework[] }[] {
