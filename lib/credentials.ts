@@ -10,61 +10,84 @@ import { BRAND } from "@/lib/brand";
 // exercises someone has finished. Tone: modern / minimal, distinguished.
 // ============================================================================
 
-export type Track = {
+// A BUNDLE is the unit that earns a credential: a coherent set of related
+// modules, not a single exercise. Completion is CORE + ELECTIVES — every core
+// module plus a choose-N-of-M elective set, like a concentration. The bundle
+// name IS the postable certificate; individual completions are only progress
+// toward one (and a transcript entry), never a standalone credential.
+export type Bundle = {
   key: string;
-  name: string; // the credential name (postable on LinkedIn)
-  line: string; // one-line capability it represents
-  slugs: string[]; // the module slugs that make up the track (all required)
+  name: string; // the certificate name (postable on LinkedIn)
+  line: string; // one-line capability it certifies
+  core: string[]; // all required
+  electives: string[]; // choose electivesNeeded of these
+  electivesNeeded: number;
   skills: string[]; // professional skills the certificate demonstrates
 };
 
-// Each track is a small, real accomplishment: three core exercises, all
-// required, so the certificate stays distinguished rather than a click-badge.
-// Names are professional and resume-grade, not playful.
-export const TRACKS: Track[] = [
+export const BUNDLES: Bundle[] = [
   {
     key: "ai-ready",
     name: "AI-Augmented Work Redesign",
     line: "Redesigned real work around AI, end to end.",
-    slugs: ["solo-ai", "workflow-solo", "career-x-ray"],
+    core: ["solo-ai", "workflow-solo"],
+    electives: ["career-x-ray", "ai-canvas", "reimagine-job", "reimagine-workflow", "jd-x-ray"],
+    electivesNeeded: 1,
     skills: ["AI Strategy", "Workflow Design", "Process Improvement", "Future of Work"],
   },
   {
     key: "strategist",
     name: "Business Strategy & Execution",
     line: "Pressure-tested a strategy from idea to a real test.",
-    slugs: ["good-business", "execution-4a", "test-the-bet"],
+    core: ["good-business", "execution-4a"],
+    electives: ["test-the-bet", "opportunity-capability", "balanced-scorecard", "business-consult", "ai-board", "business-myopia"],
+    electivesNeeded: 1,
     skills: ["Business Strategy", "Strategic Planning", "Execution", "Experimentation"],
   },
   {
     key: "negotiator",
     name: "Professional Negotiation",
     line: "Rehearsed and closed high-stakes negotiations.",
-    slugs: ["close-the-offer", "name-your-price", "rehearse-hard-conversation"],
+    core: ["close-the-offer", "name-your-price"],
+    electives: ["ask-for-a-raise", "close-the-vendor-deal", "lease-the-space", "rehearse-hard-conversation"],
+    electivesNeeded: 1,
     skills: ["Negotiation", "Persuasion", "Conflict Resolution", "Communication"],
   },
   {
     key: "career-navigator",
-    name: "Career Strategy & Planning",
+    name: "Career Strategy & Growth",
     line: "Mapped a career's AI exposure and the moves that follow.",
-    slugs: ["career-x-ray", "career-roadmap", "refresh-resume"],
+    core: ["career-x-ray", "career-roadmap"],
+    electives: ["refresh-resume", "find-superpower", "personal-network", "career-myopia"],
+    electivesNeeded: 1,
     skills: ["Career Development", "Strategic Planning", "Personal Branding"],
   },
   {
     key: "founder",
     name: "New Venture Development",
     line: "Took a venture from thesis to customer to price.",
-    slugs: ["good-business", "customer-empathy", "name-your-price"],
+    core: ["good-business", "customer-empathy"],
+    electives: ["name-your-price", "deeptech-canvas", "test-the-bet", "define-vision"],
+    electivesNeeded: 1,
     skills: ["Entrepreneurship", "Business Model Design", "Customer Discovery", "Pricing Strategy"],
   },
   {
     key: "research",
     name: "Social Science Research Foundations",
     line: "Framed, structured, argued, and modeled a research paper.",
-    slugs: ["what-is-a-paper", "paper-structure", "making-points", "read-the-interaction", "publication-pipeline", "understand-a-paper"],
+    core: ["what-is-a-paper", "paper-structure", "read-the-interaction"],
+    electives: ["making-points", "publication-pipeline", "understand-a-paper"],
+    electivesNeeded: 1,
     skills: ["Academic Writing", "Research Design", "Scholarly Communication", "Scholarly Publishing"],
   },
 ];
+
+export function bundleByKey(key: string): Bundle | undefined {
+  return BUNDLES.find((b) => b.key === key);
+}
+export function bundleSlugs(b: Bundle): string[] {
+  return [...b.core, ...b.electives];
+}
 
 // Serious, accurate credential names + the skills each demonstrates. The module
 // names are imperative task labels ("Negotiate a Job Offer"); a credential wants
@@ -123,10 +146,6 @@ export function credentialName(slug: string): string {
 }
 export function credentialSkills(slug: string): string[] {
   return CRED_META[slug]?.skills || [];
-}
-
-export function trackByKey(key: string): Track | undefined {
-  return TRACKS.find((t) => t.key === key);
 }
 
 // Overall status ladder, keyed on number of exercises completed. Kept distinct
@@ -209,82 +228,109 @@ function nowIso(doneAt: Map<string, string>): string {
   return "";
 }
 
-// ---- Earned credentials (derived) --------------------------------------------
+// ---- Transcript (the record of what you've done) -----------------------------
 
-export type EarnedExercise = { slug: string; name: string; line: string; at: string };
-export type EarnedTrack = { key: string; name: string; line: string; at: string };
+export type TranscriptItem = { slug: string; name: string; at: string };
 
-export type Earned = {
-  count: number;
-  exercises: EarnedExercise[];
-  tracks: EarnedTrack[];
-  level: LevelState;
+// The full activity log, newest first. Not a credential — a record, and the
+// raw material for bundle progress.
+export function transcriptFrom(completed: { slug: string; at: string }[]): TranscriptItem[] {
+  return completed
+    .map((c) => (moduleBySlug(c.slug) ? { slug: c.slug, name: credentialName(c.slug), at: c.at } : null))
+    .filter(Boolean)
+    .sort((a, b) => ((a as TranscriptItem).at < (b as TranscriptItem).at ? 1 : -1)) as TranscriptItem[];
+}
+
+// ---- Bundles (the credential unit) -------------------------------------------
+
+export type CurriculumItem = { slug: string; name: string; kind: "core" | "elective"; done: boolean; at?: string };
+export type BundleView = {
+  key: string;
+  name: string;
+  line: string;
+  skills: string[];
+  earned: boolean;
+  coreDone: number;
+  coreTotal: number;
+  elecDone: number;
+  elecNeeded: number;
+  elecTotal: number;
+  progressPct: number; // fraction of the requirement met, for a progress bar
+  remaining: number; // modules still needed to earn it
+  earnedAt?: string; // date the last required module completed
+  items: CurriculumItem[];
+  completedNames: string[]; // the modules actually completed (for the certificate)
 };
 
-export function earnedFrom(completed: { slug: string; at: string }[]): Earned {
-  const atBySlug = new Map(completed.map((c) => [c.slug, c.at]));
+export function bundlesFor(completed: { slug: string; at: string }[]): BundleView[] {
+  const at = new Map(completed.map((c) => [c.slug, c.at]));
+  const done = new Set(completed.map((c) => c.slug));
 
-  const exercises: EarnedExercise[] = completed
-    .map((c) => {
-      const m = moduleBySlug(c.slug);
-      if (!m) return null;
-      return { slug: c.slug, name: credentialName(c.slug), line: m.tagline, at: c.at };
-    })
-    .filter(Boolean) as EarnedExercise[];
-  exercises.sort((a, b) => (a.at < b.at ? 1 : -1)); // newest first
+  return BUNDLES.map((b) => {
+    const items: CurriculumItem[] = [
+      ...b.core.map((s) => ({ slug: s, name: credentialName(s), kind: "core" as const, done: done.has(s), at: at.get(s) })),
+      ...b.electives.map((s) => ({ slug: s, name: credentialName(s), kind: "elective" as const, done: done.has(s), at: at.get(s) })),
+    ];
+    const coreDone = b.core.filter((s) => done.has(s)).length;
+    const elecDone = b.electives.filter((s) => done.has(s)).length;
+    const earned = coreDone === b.core.length && elecDone >= b.electivesNeeded;
 
-  const tracks: EarnedTrack[] = TRACKS.filter((t) => t.slugs.every((s) => atBySlug.has(s))).map(
-    (t) => {
-      // earned when the LAST of its exercises was completed
-      const at = t.slugs.map((s) => atBySlug.get(s)!).sort().slice(-1)[0] || "";
-      return { key: t.key, name: t.name, line: t.line, at };
-    },
-  );
+    const requirement = b.core.length + b.electivesNeeded;
+    const met = coreDone + Math.min(elecDone, b.electivesNeeded);
+    const completedItems = items.filter((i) => i.done);
+    const earnedAt = earned
+      ? completedItems.map((i) => i.at || "").filter(Boolean).sort().slice(-1)[0]
+      : undefined;
 
-  return {
-    count: exercises.length,
-    exercises,
-    tracks,
-    level: levelFor(exercises.length),
-  };
+    return {
+      key: b.key,
+      name: b.name,
+      line: b.line,
+      skills: b.skills,
+      earned,
+      coreDone,
+      coreTotal: b.core.length,
+      elecDone,
+      elecNeeded: b.electivesNeeded,
+      elecTotal: b.electives.length,
+      progressPct: Math.round((met / requirement) * 100),
+      remaining: Math.max(0, requirement - met),
+      earnedAt,
+      items,
+      completedNames: completedItems.map((i) => i.name),
+    };
+  });
+}
+
+// The bundles a given module contributes to (for the completion-moment nudge).
+export function bundlesForSlug(slug: string): Bundle[] {
+  return BUNDLES.filter((b) => b.core.includes(slug) || b.electives.includes(slug));
 }
 
 // ---- Materialization (stable ids for verify pages) ---------------------------
 
 export type CredRow = {
   id: string;
-  kind: "exercise" | "track";
+  kind: string; // "track" = a bundle certificate (the only kind minted now)
   ckey: string;
   title: string;
   earned_at: string;
 };
 
 /**
- * Idempotently persist earned credentials so each has a stable id backing a
- * /c/<id> verify page. Uses the service-role admin client (server only).
- * Returns every credential row for the user, keyed "kind:ckey" -> row.
+ * Idempotently persist EARNED bundle certificates so each has a stable id
+ * backing a /c/<id> verify page. Only bundles are minted — individual module
+ * completions are progress, not credentials. Uses the service-role admin client
+ * (server only). Returns every credential row for the user, keyed "kind:ckey".
  */
-export async function materializeCredentials(
+export async function materializeBundles(
   admin: SB,
   userId: string,
-  earned: Earned,
+  bundles: BundleView[],
 ): Promise<Map<string, CredRow>> {
-  const rows = [
-    ...earned.exercises.map((e) => ({
-      user_id: userId,
-      kind: "exercise",
-      ckey: e.slug,
-      title: e.name,
-      earned_at: e.at || undefined,
-    })),
-    ...earned.tracks.map((t) => ({
-      user_id: userId,
-      kind: "track",
-      ckey: t.key,
-      title: t.name,
-      earned_at: t.at || undefined,
-    })),
-  ];
+  const rows = bundles
+    .filter((b) => b.earned)
+    .map((b) => ({ user_id: userId, kind: "track", ckey: b.key, title: b.name, earned_at: b.earnedAt || undefined }));
 
   if (rows.length) {
     // ignoreDuplicates keeps the original earned_at stable across visits.
@@ -306,37 +352,23 @@ export async function materializeCredentials(
 // ---- Verify-page describe + LinkedIn deep link -------------------------------
 
 export type CredentialView = {
-  kind: "exercise" | "track";
   title: string;
   line: string; // capability description
-  eyebrow: string; // "CREDENTIAL" | "CERTIFICATE"
+  eyebrow: string; // "CERTIFICATE"
   skills: string[]; // professional skills it demonstrates
-  contents?: { name: string }[]; // for tracks: what it comprises
+  contents?: { name: string }[]; // the curriculum (overridden per-user on the verify page)
 };
 
-// Describe a stored credential from its kind + key, for rendering.
-export function describeCredential(kind: string, ckey: string, title: string): CredentialView {
-  if (kind === "track") {
-    const t = trackByKey(ckey);
-    return {
-      kind: "track",
-      title: t?.name || title,
-      line: t?.line || "A completed Superadditive track.",
-      eyebrow: "CERTIFICATE",
-      skills: t?.skills || [],
-      contents: (t?.slugs || [])
-        .map((s) => moduleBySlug(s))
-        .filter(Boolean)
-        .map((m) => ({ name: credentialName((m as any).slug) })),
-    };
-  }
-  const m = moduleBySlug(ckey);
+// Describe a stored bundle certificate from its key, for rendering. The verify
+// page overrides `contents` with the modules the holder actually completed.
+export function describeCredential(_kind: string, ckey: string, title: string): CredentialView {
+  const b = bundleByKey(ckey);
   return {
-    kind: "exercise",
-    title: credentialName(ckey),
-    line: m?.tagline || "A completed Superadditive exercise.",
-    eyebrow: "CREDENTIAL",
-    skills: credentialSkills(ckey),
+    title: b?.name || title,
+    line: b?.line || "A completed Superadditive program.",
+    eyebrow: "CERTIFICATE",
+    skills: b?.skills || [],
+    contents: b ? bundleSlugs(b).map((s) => ({ name: credentialName(s) })) : undefined,
   };
 }
 

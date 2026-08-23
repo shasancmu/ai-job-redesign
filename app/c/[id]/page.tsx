@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BRAND } from "@/lib/brand";
-import { describeCredential, linkedInAddUrl } from "@/lib/credentials";
+import { describeCredential, linkedInAddUrl, completedSlugs, bundlesFor } from "@/lib/credentials";
 import Logo from "@/components/Logo";
 import CredentialCard from "@/components/CredentialCard";
 import CredentialActions from "@/components/CredentialActions";
@@ -85,6 +85,26 @@ export default async function CredentialPage({ params }: { params: { id: string 
   const { cred, holder } = data;
   const view = describeCredential(cred.kind, cred.ckey, cred.title);
 
+  // "Earned by completing" = the modules this holder actually finished in the
+  // bundle (core + whichever electives they chose), not the full curriculum.
+  let contents = view.contents;
+  if (cred.id === "sample") {
+    contents = [
+      { name: "Business Model Validation" },
+      { name: "Strategic Execution Assessment" },
+      { name: "Strategic Experiment Design" },
+    ];
+  } else if (cred.user_id) {
+    try {
+      const admin = createAdminClient();
+      const completed = await completedSlugs(admin, cred.user_id);
+      const bundle = bundlesFor(completed).find((b) => b.key === cred.ckey);
+      if (bundle && bundle.completedNames.length) contents = bundle.completedNames.map((n) => ({ name: n }));
+    } catch {
+      /* fall back to the full curriculum */
+    }
+  }
+
   const shareUrl = `${BRAND.siteUrl}/c/${cred.id}`;
   const d = cred.earned_at ? new Date(cred.earned_at) : null;
   const linkedinUrl = linkedInAddUrl({
@@ -110,7 +130,7 @@ export default async function CredentialPage({ params }: { params: { id: string 
         holder={holder}
         dateLabel={fullDate(cred.earned_at)}
         variant="full"
-        contents={view.contents}
+        contents={contents}
         skills={view.skills}
         credId={cred.id.slice(0, 8).toUpperCase()}
       />
@@ -121,8 +141,8 @@ export default async function CredentialPage({ params }: { params: { id: string 
       <div className="mt-12 rounded-2xl border border-line bg-mist/50 p-6 text-center">
         <div className="text-sm font-semibold text-ink">Earn your own</div>
         <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
-          {BRAND.name} runs short, real exercises on AI, strategy, and your career. Finish one and
-          earn a credential like this.
+          {BRAND.name} runs short, real exercises on AI, strategy, and your career. Complete a
+          bundle of them and earn a certificate like this.
         </p>
         <Link href="/try" className="btn-primary mt-4 inline-block">
           Get your 90-second read

@@ -4,98 +4,92 @@ import { moduleByExercise } from "@/lib/modules";
 import { BRAND } from "@/lib/brand";
 import {
   completedSlugs,
-  earnedFrom,
-  materializeCredentials,
+  bundlesFor,
+  bundlesForSlug,
+  materializeBundles,
   linkedInAddUrl,
-  credentialName,
-  TRACKS,
 } from "@/lib/credentials";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Given a finished session's code, return the credential the signed-in user
-// earned for it (and any track it just completed), with ready-made verify +
-// LinkedIn links. Powers the completion moment in the report. Fails soft:
-// anything missing → { credential: null }, so the report never breaks.
+// Given a finished session's code, power the completion moment. Certificates are
+// earned by BUNDLES, not single exercises, so this returns either:
+//   { certificate } — a bundle this completion just earned (celebrate + share), or
+//   { progress }    — how much closer this got them to the nearest certificate.
+// Fails soft: anything missing → nulls, so the report never breaks.
 export async function POST(request: Request) {
   try {
     const { code } = await request.json();
-    if (!code || typeof code !== "string") return Response.json({ credential: null });
+    if (!code || typeof code !== "string") return Response.json({ certificate: null, progress: null });
 
     const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return Response.json({ credential: null });
+    if (!user) return Response.json({ certificate: null, progress: null });
 
-    // RLS lets the host/guest read their own session.
     const { data: session } = await supabase
       .from("sessions")
       .select("exercise,host_id,guest_id,status")
       .eq("code", code)
       .maybeSingle();
-    if (!session || (session as any).status !== "done") return Response.json({ credential: null });
+    if (!session || (session as any).status !== "done") return Response.json({ certificate: null, progress: null });
 
-    const mine =
-      (session as any).host_id === user.id || (session as any).guest_id === user.id;
-    if (!mine) return Response.json({ credential: null });
+    const mine = (session as any).host_id === user.id || (session as any).guest_id === user.id;
+    if (!mine) return Response.json({ certificate: null, progress: null });
 
     const mod = moduleByExercise((session as any).exercise);
-    if (!mod || mod.partner === "group") return Response.json({ credential: null });
+    if (!mod || mod.partner === "group") return Response.json({ certificate: null, progress: null });
+
+    // Which bundles does this module even belong to?
+    const memberBundleKeys = new Set(bundlesForSlug(mod.slug).map((b) => b.key));
+    if (memberBundleKeys.size === 0) return Response.json({ certificate: null, progress: null });
 
     const completed = await completedSlugs(supabase, user.id);
-    const earned = earnedFrom(completed);
+    const bundles = bundlesFor(completed);
 
     const admin = createAdminClient();
-    const idMap = await materializeCredentials(admin, user.id, earned);
-
-    const exRow = idMap.get(`exercise:${mod.slug}`);
-    if (!exRow) return Response.json({ credential: null });
-
+    const idMap = await materializeBundles(admin, user.id, bundles);
     const abs = (id: string) => `${BRAND.siteUrl}/c/${id}`;
-    const exName = credentialName(mod.slug);
-    const d = exRow.earned_at ? new Date(exRow.earned_at) : null;
-    const credential = {
-      id: exRow.id,
-      title: exName,
-      viewUrl: `/c/${exRow.id}`,
-      linkedinUrl: linkedInAddUrl({
-        name: exName,
-        certUrl: abs(exRow.id),
-        certId: exRow.id,
-        year: d ? d.getFullYear() : undefined,
-        month: d ? d.getMonth() + 1 : undefined,
-      }),
-    };
 
-    // A track this completion just finished (this module is one of its members
-    // and the whole track is now earned).
-    const trackDef = TRACKS.find(
-      (t) => t.slugs.includes(mod.slug) && earned.tracks.some((et) => et.key === t.key),
-    );
-    let track = null;
-    if (trackDef) {
-      const tr = idMap.get(`track:${trackDef.key}`);
-      if (tr) {
-        const td = tr.earned_at ? new Date(tr.earned_at) : null;
-        track = {
-          id: tr.id,
-          name: trackDef.name,
-          viewUrl: `/c/${tr.id}`,
-          linkedinUrl: linkedInAddUrl({
-            name: trackDef.name,
-            certUrl: abs(tr.id),
-            certId: tr.id,
-            year: td ? td.getFullYear() : undefined,
-            month: td ? td.getMonth() + 1 : undefined,
-          }),
-        };
+    // A certificate this module just completed (member bundle, now earned).
+    const earnedBundle = bundles.find((b) => b.earned && memberBundleKeys.has(b.key));
+    if (earnedBundle) {
+      const row = idMap.get(`track:${earnedBundle.key}`);
+      if (row) {
+        const d = row.earned_at ? new Date(row.earned_at) : null;
+        return Response.json({
+          certificate: {
+            id: row.id,
+            name: earnedBundle.name,
+            viewUrl: `/c/${row.id}`,
+            linkedinUrl: linkedInAddUrl({
+              name: earnedBundle.name,
+              certUrl: abs(row.id),
+              certId: row.id,
+              year: d ? d.getFullYear() : undefined,
+              month: d ? d.getMonth() + 1 : undefined,
+            }),
+          },
+          progress: null,
+        });
       }
     }
 
-    return Response.json({ credential, track });
+    // Otherwise: the member bundle they're closest to finishing → a nudge.
+    const nearest = bundles
+      .filter((b) => !b.earned && memberBundleKeys.has(b.key))
+      .sort((a, b) => a.remaining - b.remaining)[0];
+    if (nearest) {
+      return Response.json({
+        certificate: null,
+        progress: { name: nearest.name, remaining: nearest.remaining, progressPct: nearest.progressPct },
+      });
+    }
+
+    return Response.json({ certificate: null, progress: null });
   } catch {
-    return Response.json({ credential: null });
+    return Response.json({ certificate: null, progress: null });
   }
 }
