@@ -866,3 +866,30 @@ create policy "custom_modules read" on public.custom_modules
     )
   );
 -- writes go through service-role builder routes only (no insert/update/delete policy)
+
+-- =============================================================================
+-- Presentations ("decks"): author-built slide decks that mix static slides
+-- (title, bullets, section, text, quote, image) with LIVE Superadditive
+-- activities (word cloud, room photo) embedded inline. Authorable by
+-- instructors, directors, and superadmins. Decks are presented live by their
+-- author, so reads are author-scoped; writes go through service-role routes
+-- that also materialize the embedded activity instances.
+-- =============================================================================
+create table if not exists public.presentations (
+  id uuid primary key default gen_random_uuid(),
+  slug text unique not null,
+  title text not null default '',
+  slides jsonb not null default '[]'::jsonb,     -- ordered Slide[]
+  org_id uuid references public.organizations (id) on delete set null, -- informational
+  status text not null default 'draft',          -- draft | published
+  author_id uuid references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists presentations_author_idx on public.presentations (author_id);
+create index if not exists presentations_slug_idx on public.presentations (slug);
+alter table public.presentations enable row level security;
+drop policy if exists "presentations read own" on public.presentations;
+create policy "presentations read own" on public.presentations
+  for select using (author_id = auth.uid());
+-- writes go through service-role builder routes only
