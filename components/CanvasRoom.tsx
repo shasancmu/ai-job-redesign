@@ -78,6 +78,12 @@ export default function CanvasRoom({
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{def.name}</span>
+          {def.brand?.label && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-2.5 py-1 text-xs font-medium text-slate-500">
+              {def.brand.logoUrl && <img src={def.brand.logoUrl} alt="" className="h-4 w-4 rounded-sm object-contain" />}
+              {def.brand.label}
+            </span>
+          )}
         </div>
         <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())} />
       </div>

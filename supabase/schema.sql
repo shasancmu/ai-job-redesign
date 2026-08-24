@@ -828,3 +828,39 @@ alter table public.bundles enable row level security;
 create policy "bundles read" on public.bundles
   for select using (auth.role() = 'authenticated');
 -- writes go through service-role admin/director routes only
+
+-- =============================================================================
+-- Author-built modules ("no-code" builder). A custom module stores its author
+-- BuilderSpec (source of truth); the app compiles it to a runnable CanvasDef at
+-- load time, applying immutable safety rails. org_id null = global (superadmin,
+-- everyone sees it); org_id set = visible only to that org's members (director).
+-- Reads are org-isolated at the DB level too; writes go through service-role
+-- builder routes that re-check the author's role.
+-- =============================================================================
+create table if not exists public.custom_modules (
+  id uuid primary key default gen_random_uuid(),
+  slug text unique not null,                 -- catalog slug (namespaced, never collides with built-ins)
+  exercise text unique not null,             -- session key, always "custom:<slug>"
+  name text not null,
+  super_type text not null default 'report', -- report | scorecard | verdict
+  spec jsonb not null,                       -- the BuilderSpec
+  org_id uuid references public.organizations (id) on delete cascade, -- null = global
+  status text not null default 'published',  -- draft | published
+  author_id uuid references auth.users (id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists custom_modules_org_idx on public.custom_modules (org_id);
+create index if not exists custom_modules_slug_idx on public.custom_modules (slug);
+alter table public.custom_modules enable row level security;
+-- Read: global modules, or modules of an org you belong to. Nothing else.
+drop policy if exists "custom_modules read" on public.custom_modules;
+create policy "custom_modules read" on public.custom_modules
+  for select using (
+    org_id is null
+    or exists (
+      select 1 from public.org_members m
+      where m.org_id = custom_modules.org_id and m.user_id = auth.uid()
+    )
+  );
+-- writes go through service-role builder routes only (no insert/update/delete policy)

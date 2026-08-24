@@ -39,6 +39,7 @@ export type CanvasDef = {
     yDesc?: string; // how the AI should score y (0–100) — defaults to GAS Accuracy
     quadrants?: { bl: string; br: string; tl: string; tr: string }; // corner labels (quadrant mode)
   };
+  brand?: { label: string; logoUrl?: string | null }; // author-built modules: the org's badge
   about?: string; // shown during the exercise — what the framework is
   groupNotes?: Record<string, string>; // one-line explainer under each section heading
   canvasTip?: { title: string; items: string[] }; // a teaching callout on the canvas step

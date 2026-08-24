@@ -91,6 +91,7 @@ export default function AccountMenu({
             <a href="/achievements" className={item}>{labels.achievements}</a>
             <a href="/profile" className={item}>{labels.profile}</a>
             {tour && <button onClick={() => { setOpen(false); window.dispatchEvent(new Event("app:start-tour")); }} className={item}>{labels.tour}</button>}
+            {(director || superadmin) && <a href="/build" className={item}>Build a module</a>}
 
             {facilitator && group("Teaching", (
               <a href="/facilitator" className={item}>Cohorts</a>

@@ -45,6 +45,7 @@ import PhdLesson5Succeed from "@/components/lessons/PhdLesson5Succeed";
 import PhdLesson6Placement from "@/components/lessons/PhdLesson6Placement";
 import { variantForExercise } from "@/lib/disclosure";
 import { canvasByExercise } from "@/lib/canvases";
+import { resolveCanvasDefForUser } from "@/lib/customModules";
 import { scenarioByExercise } from "@/lib/negotiation";
 
 export default async function RoomPage({
@@ -537,7 +538,7 @@ export default async function RoomPage({
 
   // Strategy-canvas modules (GAS / opportunity-capability / experiment):
   // single-user, only the host belongs here.
-  const canvasDef = canvasByExercise(session.exercise || "");
+  const canvasDef = await resolveCanvasDefForUser(session.exercise || "", user.id);
   if (canvasDef) {
     if (!amHost) redirect("/dashboard");
     await supabase

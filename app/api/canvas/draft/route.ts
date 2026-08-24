@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, canvasDraftAI } from "@/lib/ai";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
-import { canvasByExercise } from "@/lib/canvases";
+import { resolveCanvasDefForUser } from "@/lib/customModules";
 
 export const runtime = "nodejs";
 import { setFlow } from "@/lib/aiflow";
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "bad request" }, { status: 400 });
   }
 
-  const def = canvasByExercise(String(body.exercise || ""));
+  const def = await resolveCanvasDefForUser(String(body.exercise || ""), user.id);
   if (!def) return Response.json({ error: "unknown canvas" }, { status: 400 });
 
   const messages = Array.isArray(body.messages) ? body.messages : [];

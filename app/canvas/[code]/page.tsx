@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
-import { canvasByExercise } from "@/lib/canvases";
+import { resolveCanvasDefForUser } from "@/lib/customModules";
 import CanvasView from "@/components/CanvasView";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +34,7 @@ export default async function CanvasPage({ params }: { params: { code: string } 
   if (!session) redirect("/dashboard");
   if (!admin && session.host_id !== user.id && session.guest_id !== user.id) redirect("/dashboard");
 
-  const def = canvasByExercise(session.exercise || "");
+  const def = await resolveCanvasDefForUser(session.exercise || "", admin ? session.host_id : user.id);
   if (!def) redirect("/dashboard");
 
   const authorId = admin ? session.host_id : user.id;
