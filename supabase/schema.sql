@@ -797,6 +797,7 @@ create table if not exists public.credentials (
 );
 create index if not exists credentials_user_idx on public.credentials (user_id, earned_at desc);
 alter table public.credentials enable row level security;
+drop policy if exists "credentials owner read" on public.credentials;
 create policy "credentials owner read" on public.credentials
   for select using (auth.uid() = user_id);
 
@@ -825,6 +826,7 @@ create table if not exists public.bundles (
 );
 create index if not exists bundles_org_idx on public.bundles (org_id);
 alter table public.bundles enable row level security;
+drop policy if exists "bundles read" on public.bundles;
 create policy "bundles read" on public.bundles
   for select using (auth.role() = 'authenticated');
 -- writes go through service-role admin/director routes only
