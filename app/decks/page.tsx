@@ -32,6 +32,11 @@ export default async function DecksPage() {
         <Link href="/decks/new" className="btn-primary text-sm">+ New presentation</Link>
       </div>
 
+      <Link href="/tutorial" className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-line bg-mist/40 px-4 py-3 transition hover:shadow-sm">
+        <span className="text-sm text-slate-600"><span className="mr-1">📔</span> New here? Take the guided tour of the whole app.</span>
+        <span className="flex-none text-sm font-semibold text-ai">Start →</span>
+      </Link>
+
       <div className="mt-6 space-y-2">
         {decks.length === 0 && (
           <div className="rounded-xl border border-dashed border-line px-4 py-8 text-center text-sm text-slate-400">

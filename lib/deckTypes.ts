@@ -9,11 +9,13 @@ export type Slide =
   | (SlideBase & { type: "text"; title?: string; body: string })
   | (SlideBase & { type: "quote"; quote: string; attribution?: string })
   | (SlideBase & { type: "image"; url: string; caption?: string })
+  | (SlideBase & { type: "cards"; title?: string; cards: DeckCard[] }) // a grid of tiles
   | (SlideBase & { type: "cloud"; question: string; code?: string }) // live word cloud
   | (SlideBase & { type: "photo"; prompt: string; code?: string }) // live room photo + AI
   | (SlideBase & { type: "quiz"; title?: string; timeLimitSec?: number; questions: QuizQ[]; code?: string }); // live quiz vs the room
 
 export type QuizQ = { prompt: string; options: string[]; answer: number };
+export type DeckCard = { icon?: string; heading: string; text?: string };
 
 export type SlideType = Slide["type"];
 export type Deck = { slug: string; title: string; slides: Slide[]; org_id: string | null; status: string; author_id?: string };
@@ -25,6 +27,7 @@ export const STATIC_TYPES: { type: SlideType; label: string; icon: string }[] = 
   { type: "text", label: "Text", icon: "¶" },
   { type: "quote", label: "Quote", icon: "❝" },
   { type: "image", label: "Image", icon: "🖼️" },
+  { type: "cards", label: "Cards", icon: "▦" },
 ];
 export const ACTIVITY_TYPES: { type: SlideType; label: string; icon: string; blurb: string }[] = [
   { type: "cloud", label: "Live word cloud", icon: "☁️", blurb: "The room submits phrases; they appear live with an AI summary." },
@@ -54,6 +57,7 @@ export function newSlide(type: SlideType): Slide {
     case "cloud": return { id, type, question: "" };
     case "photo": return { id, type, prompt: "" };
     case "quiz": return { id, type, title: "", timeLimitSec: 180, questions: [{ prompt: "", options: ["", ""], answer: 0 }] };
+    case "cards": return { id, type, title: "", cards: [{ icon: "✨", heading: "", text: "" }, { icon: "🎯", heading: "", text: "" }] };
   }
 }
 
@@ -69,6 +73,7 @@ export function slideLabel(s: Slide): string {
   if (s.type === "quiz") return s.title || "Quiz";
   if (s.type === "text") return s.body?.slice(0, 40) || "Text";
   if (s.type === "image") return s.caption || "Image";
+  if (s.type === "cards") return `${s.cards?.length || 0} cards`;
   return s.type;
 }
 

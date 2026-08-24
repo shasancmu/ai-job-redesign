@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { activityPresentPath, type Slide } from "@/lib/deckTypes";
 
-export default function DeckPresenter({ slides }: { slides: Slide[] }) {
+export default function DeckPresenter({ slides, exitHref = "/decks" }: { slides: Slide[]; exitHref?: string }) {
   const [i, setI] = useState(0);
   const n = slides.length;
   const next = useCallback(() => setI((c) => Math.min(n - 1, c + 1)), [n]);
@@ -37,7 +37,7 @@ export default function DeckPresenter({ slides }: { slides: Slide[] }) {
       </div>
 
       <div className="flex items-center justify-between gap-3 border-t border-line bg-white/95 px-4 py-2">
-        <a href="/decks" className="text-sm text-slate2 hover:text-ink">Exit</a>
+        <a href={exitHref} className="text-sm text-slate2 hover:text-ink">Exit</a>
         <div className="flex items-center gap-4 text-slate-500">
           <button onClick={prev} disabled={i === 0} className="rounded px-2 py-1 text-lg disabled:opacity-30 hover:text-ink">←</button>
           <span className="text-sm tabular-nums">{i + 1} / {n}</span>
@@ -64,6 +64,24 @@ function StaticSlide({ slide }: { slide: Slide }) {
       return <div className={wrap + " items-center text-center"}><p className="max-w-[24ch] text-[clamp(1.6rem,5vw,3.6rem)] font-semibold italic leading-tight text-ink">“{slide.quote}”</p>{slide.attribution && <p className="mt-6 text-[clamp(1rem,2.2vw,1.5rem)] text-slate-500">{slide.attribution}</p>}</div>;
     case "image":
       return <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-[4vh]">{slide.url ? <img src={slide.url} alt={slide.caption || ""} className="max-h-[82vh] max-w-full rounded-xl object-contain" /> : <div className="text-slate-300">No image</div>}{slide.caption && <p className="text-[clamp(0.9rem,1.8vw,1.3rem)] text-slate-500">{slide.caption}</p>}</div>;
+    case "cards": {
+      const cards = (slide.cards || []).filter((c) => c.heading || c.text);
+      const cols = cards.length <= 2 ? cards.length : cards.length <= 4 ? 2 : 3;
+      return (
+        <div className={wrap}>
+          {slide.title && <h2 className="mb-[4vh] text-[clamp(1.4rem,4vw,2.8rem)] font-bold text-ink">{slide.title}</h2>}
+          <div className="grid gap-4 sm:gap-6" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+            {cards.map((c, k) => (
+              <div key={k} className="rounded-2xl border border-line bg-mist/40 p-[clamp(0.8rem,2vw,1.6rem)]">
+                {c.icon && <div className="text-[clamp(1.6rem,3.5vw,2.6rem)] leading-none">{c.icon}</div>}
+                <div className="mt-3 text-[clamp(1rem,2.2vw,1.6rem)] font-bold text-ink">{c.heading}</div>
+                {c.text && <div className="mt-1.5 text-[clamp(0.85rem,1.5vw,1.15rem)] leading-snug text-slate-600">{c.text}</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
     default:
       return <div className={wrap + " items-center justify-center text-slate-300"}>Slide</div>;
   }

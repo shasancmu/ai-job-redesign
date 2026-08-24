@@ -101,6 +101,8 @@ function SlideEditor({ slide, set }: { slide: Slide; set: (p: Partial<Slide>) =>
       return (<div className="space-y-3"><L t="Image"><ImageUpload url={slide.url} onUrl={(u) => set({ url: u } as any)} /></L><L t="Caption"><input className="field" value={slide.caption || ""} onChange={(e) => set({ caption: e.target.value } as any)} /></L></div>);
     case "quiz":
       return <QuizSlideEditor slide={slide} set={set} />;
+    case "cards":
+      return <CardsSlideEditor slide={slide} set={set} />;
     case "cloud":
       return (<div className="space-y-3"><div className="rounded-xl border border-line bg-mist p-3 text-sm text-slate-600">☁️ Live word cloud. When you present this slide, the room joins at <span className="font-mono">/cloud</span> with the code on screen, and their phrases appear live with an AI summary.</div><L t="Question to ask the room"><input className="field" value={slide.question} onChange={(e) => set({ question: e.target.value } as any)} placeholder="In one word, how does AI make you feel?" /></L></div>);
     case "photo":
@@ -179,6 +181,29 @@ function QuizSlideEditor({ slide, set }: { slide: any; set: (p: any) => void }) 
         ))}
         <button onClick={() => set({ questions: [...qs, { prompt: "", options: ["", ""], answer: 0 }] })} className="text-sm font-semibold text-ai hover:underline">+ Add question</button>
       </div>
+    </div>
+  );
+}
+
+function CardsSlideEditor({ slide, set }: { slide: any; set: (p: any) => void }) {
+  const cards = slide.cards || [];
+  const setC = (i: number, patch: any) => set({ cards: cards.map((c: any, k: number) => (k === i ? { ...c, ...patch } : c)) });
+  return (
+    <div className="space-y-4">
+      <L t="Heading (optional)"><input className="field" value={slide.title || ""} onChange={(e) => set({ title: e.target.value })} placeholder="The four things you can do" /></L>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {cards.map((c: any, i: number) => (
+          <div key={i} className="rounded-xl border border-line p-3">
+            <div className="flex gap-2">
+              <input className="field w-14 text-center" value={c.icon || ""} onChange={(e) => setC(i, { icon: e.target.value })} placeholder="✨" maxLength={2} />
+              <input className="field flex-1" value={c.heading} onChange={(e) => setC(i, { heading: e.target.value })} placeholder="Heading" />
+              <button onClick={() => set({ cards: cards.filter((_: any, k: number) => k !== i) })} className="btn-ghost px-2 text-slate-400">✕</button>
+            </div>
+            <textarea className="field mt-2 min-h-[52px] w-full text-sm" value={c.text || ""} onChange={(e) => setC(i, { text: e.target.value })} placeholder="A sentence of detail." />
+          </div>
+        ))}
+      </div>
+      {cards.length < 6 && <button onClick={() => set({ cards: [...cards, { icon: "•", heading: "", text: "" }] })} className="text-sm font-semibold text-ai hover:underline">+ Add card</button>}
     </div>
   );
 }

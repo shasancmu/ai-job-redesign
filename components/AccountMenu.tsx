@@ -91,6 +91,7 @@ export default function AccountMenu({
             <a href="/achievements" className={item}>{labels.achievements}</a>
             <a href="/profile" className={item}>{labels.profile}</a>
             {tour && <button onClick={() => { setOpen(false); window.dispatchEvent(new Event("app:start-tour")); }} className={item}>{labels.tour}</button>}
+            {(facilitator || director || superadmin) && <a href="/tutorial" className={item}>📔 Guided tour</a>}
             {(director || superadmin) && <a href="/build" className={item}>Build a module</a>}
             {(facilitator || director || superadmin) && <a href="/decks" className={item}>Presentations</a>}
 
