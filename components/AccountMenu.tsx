@@ -99,6 +99,7 @@ export default function AccountMenu({
             {director && group("Your organization", (
               <>
                 <a href="/team" className={item}>Overview</a>
+                <a href="/team/usage" className={item}>Usage</a>
                 <a href="/team/certificates" className={item}>Certificates</a>
               </>
             ))}

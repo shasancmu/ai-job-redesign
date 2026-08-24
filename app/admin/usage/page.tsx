@@ -2,7 +2,7 @@ import HeaderNav from "@/components/HeaderNav";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isAdmin } from "@/lib/admin";
+import { isSuperadmin } from "@/lib/orgs";
 import AdminUsage from "@/components/AdminUsage";
 import Logo from "@/components/Logo";
 
@@ -14,7 +14,7 @@ export default async function AdminUsagePage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  if (!isAdmin(user.email)) redirect("/dashboard");
+  if (!(await isSuperadmin(user))) redirect("/dashboard");
 
   let sessions: { h: string; ex: string; st: string; at: string; code: string }[] = [];
   const names: Record<string, string> = {};
@@ -64,7 +64,7 @@ export default async function AdminUsagePage() {
         <HeaderNav />
       </header>
       <h1 className="text-2xl font-bold text-ink">Usage</h1>
-      <p className="mt-1 text-sm text-slate-500">Who&apos;s using the platform, what they run, and how much they finish. Only you can see this.</p>
+      <p className="mt-1 text-sm text-slate-500">Every account across the whole platform, what they run, and how much they finish. Superadmin only. Organization directors see just their own members at <span className="font-mono text-slate-400">/team/usage</span>.</p>
 
       {!ready ? (
         <div className="mt-6 rounded-xl bg-mist px-4 py-5 text-sm text-slate2">Couldn&apos;t load usage. The service-role key must be set for this page.</div>
