@@ -98,7 +98,9 @@ function SlideEditor({ slide, set }: { slide: Slide; set: (p: Partial<Slide>) =>
     case "quote":
       return (<div className="space-y-3"><L t="Quote"><textarea className="field min-h-[100px] text-lg" value={slide.quote} onChange={(e) => set({ quote: e.target.value } as any)} placeholder="“…”" /></L><L t="Attribution"><input className="field" value={slide.attribution || ""} onChange={(e) => set({ attribution: e.target.value } as any)} placeholder="— Name" /></L></div>);
     case "image":
-      return (<div className="space-y-3"><L t="Image URL"><input className="field" value={slide.url} onChange={(e) => set({ url: e.target.value } as any)} placeholder="https://…" /></L><L t="Caption"><input className="field" value={slide.caption || ""} onChange={(e) => set({ caption: e.target.value } as any)} /></L>{slide.url && <img src={slide.url} alt="" className="mt-2 max-h-48 rounded-lg border border-line object-contain" />}</div>);
+      return (<div className="space-y-3"><L t="Image"><ImageUpload url={slide.url} onUrl={(u) => set({ url: u } as any)} /></L><L t="Caption"><input className="field" value={slide.caption || ""} onChange={(e) => set({ caption: e.target.value } as any)} /></L></div>);
+    case "quiz":
+      return <QuizSlideEditor slide={slide} set={set} />;
     case "cloud":
       return (<div className="space-y-3"><div className="rounded-xl border border-line bg-mist p-3 text-sm text-slate-600">☁️ Live word cloud. When you present this slide, the room joins at <span className="font-mono">/cloud</span> with the code on screen, and their phrases appear live with an AI summary.</div><L t="Question to ask the room"><input className="field" value={slide.question} onChange={(e) => set({ question: e.target.value } as any)} placeholder="In one word, how does AI make you feel?" /></L></div>);
     case "photo":
@@ -119,4 +121,66 @@ function BulletEditor({ bullets, onChange }: { bullets: string[]; onChange: (b: 
     </div>
   );
 }
+function ImageUpload({ url, onUrl }: { url: string; onUrl: (u: string) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  async function pick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]; if (!file) return;
+    setBusy(true); setErr(null);
+    try {
+      const fd = new FormData(); fd.append("file", file);
+      const res = await fetch("/api/decks/upload", { method: "POST", body: fd });
+      const d = await res.json();
+      if (res.ok && d.url) onUrl(d.url); else setErr(d.error || "Upload failed.");
+    } catch { setErr("Upload failed."); }
+    setBusy(false);
+  }
+  return (
+    <div className="space-y-2">
+      {url ? <img src={url} alt="" className="max-h-48 rounded-lg border border-line object-contain" /> : <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-line text-sm text-slate-400">No image yet</div>}
+      <div className="flex items-center gap-2">
+        <label className="btn-ghost cursor-pointer text-sm">{busy ? "Uploading…" : url ? "Replace" : "Upload image"}<input type="file" accept="image/*" onChange={pick} className="hidden" disabled={busy} /></label>
+        <input className="field flex-1 text-xs" value={url} onChange={(e) => onUrl(e.target.value)} placeholder="…or paste an image URL" />
+      </div>
+      {err && <p className="text-xs text-clay">{err}</p>}
+    </div>
+  );
+}
+
+function QuizSlideEditor({ slide, set }: { slide: any; set: (p: any) => void }) {
+  const qs = slide.questions || [];
+  const setQ = (i: number, patch: any) => set({ questions: qs.map((q: any, k: number) => (k === i ? { ...q, ...patch } : q)) });
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-line bg-mist p-3 text-sm text-slate-600">🧠 Live quiz. The room answers on their phones (join at <span className="font-mono">/quiz</span>); scores reveal live against the room.</div>
+      <div className="flex gap-3">
+        <L t="Quiz title"><input className="field" value={slide.title || ""} onChange={(e) => set({ title: e.target.value })} placeholder="Quick check" /></L>
+        <div className="w-32"><L t="Time (sec)"><input type="number" className="field" value={slide.timeLimitSec || 180} onChange={(e) => set({ timeLimitSec: Number(e.target.value) })} /></L></div>
+      </div>
+      <div className="space-y-3">
+        {qs.map((q: any, i: number) => (
+          <div key={i} className="rounded-xl border border-line p-3">
+            <div className="flex gap-2">
+              <input className="field flex-1" value={q.prompt} onChange={(e) => setQ(i, { prompt: e.target.value })} placeholder={`Question ${i + 1}`} />
+              <button onClick={() => set({ questions: qs.filter((_: any, k: number) => k !== i) })} className="btn-ghost px-2 text-slate-400">✕</button>
+            </div>
+            <div className="mt-2 space-y-1.5">
+              {(q.options || []).map((o: string, j: number) => (
+                <label key={j} className="flex items-center gap-2">
+                  <input type="radio" name={`ans-${i}`} checked={q.answer === j} onChange={() => setQ(i, { answer: j })} className="accent-[#3F7A52]" title="Mark correct" />
+                  <input className="field flex-1 text-sm" value={o} onChange={(e) => setQ(i, { options: q.options.map((x: string, k: number) => (k === j ? e.target.value : x)) })} placeholder={`Option ${String.fromCharCode(65 + j)}`} />
+                  {q.options.length > 2 && <button onClick={() => setQ(i, { options: q.options.filter((_: string, k: number) => k !== j), answer: Math.max(0, (q.answer || 0) - (j <= (q.answer || 0) ? 1 : 0)) })} className="px-1 text-slate-300 hover:text-clay">✕</button>}
+                </label>
+              ))}
+              {(q.options || []).length < 5 && <button onClick={() => setQ(i, { options: [...q.options, ""] })} className="text-xs font-semibold text-ai hover:underline">+ Option</button>}
+            </div>
+            <p className="mt-1 text-[11px] text-slate-400">Select the radio for the correct answer.</p>
+          </div>
+        ))}
+        <button onClick={() => set({ questions: [...qs, { prompt: "", options: ["", ""], answer: 0 }] })} className="text-sm font-semibold text-ai hover:underline">+ Add question</button>
+      </div>
+    </div>
+  );
+}
+
 function L({ t, children }: { t: string; children: React.ReactNode }) { return <div><label className="lbl">{t}</label>{children}</div>; }

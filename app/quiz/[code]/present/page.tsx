@@ -2,8 +2,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { DEFAULT_CONFIG, coerceConfig } from "@/lib/benchmark";
+import { quizConfigForCode } from "@/lib/quizConfig";
 import QuizPresenter from "@/components/QuizPresenter";
 
 export const runtime = "nodejs";
@@ -24,15 +23,8 @@ export default async function QuizPresent({ params }: { params: { code: string }
     .maybeSingle();
   if (!session || session.host_id !== user.id) redirect("/facilitator/quiz");
 
-  // Question count comes from the shared benchmark config.
-  let total = DEFAULT_CONFIG.questions.length;
-  try {
-    const admin = createAdminClient();
-    const { data } = await admin.from("benchmark_config").select("data").eq("id", "default").maybeSingle();
-    total = coerceConfig(data?.data || DEFAULT_CONFIG).questions.length;
-  } catch {
-    /* fall back to default length */
-  }
+  // Question count: this quiz's own config if it has one, else the shared set.
+  const total = (await quizConfigForCode(code)).questions.length;
 
   const h = headers();
   const host = h.get("host") || "superadditive.app";

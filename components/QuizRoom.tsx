@@ -31,7 +31,7 @@ export default function QuizRoom({ code }: { code: string }) {
       setPhase("done");
       return;
     }
-    fetch("/api/quiz/config", { cache: "no-store" })
+    fetch(`/api/quiz/config?code=${encodeURIComponent(code)}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((c: Cfg) => {
         setCfg(c);

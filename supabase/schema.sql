@@ -893,3 +893,7 @@ drop policy if exists "presentations read own" on public.presentations;
 create policy "presentations read own" on public.presentations
   for select using (author_id = auth.uid());
 -- writes go through service-role builder routes only
+
+-- Per-instance quiz questions: when set, this quiz uses its own config;
+-- when null, it falls back to the shared benchmark_config (existing behavior).
+alter table public.quiz_sessions add column if not exists config jsonb;

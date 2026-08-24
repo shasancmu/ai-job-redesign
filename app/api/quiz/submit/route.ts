@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { DEFAULT_CONFIG, coerceConfig, scoreConfig } from "@/lib/benchmark";
+import { scoreConfig } from "@/lib/benchmark";
+import { quizConfigForCode } from "@/lib/quizConfig";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,8 +29,7 @@ export async function POST(request: Request) {
   if (!session) return Response.json({ error: "That code isn't valid." }, { status: 404 });
   if (session.status === "closed") return Response.json({ error: "This quiz is closed." }, { status: 409 });
 
-  const { data } = await admin.from("benchmark_config").select("data").eq("id", "default").maybeSingle();
-  const cfg = coerceConfig(data?.data || DEFAULT_CONFIG);
+  const cfg = await quizConfigForCode(code);
   const score = scoreConfig(cfg, answers);
   const total = cfg.questions.length;
 

@@ -7,7 +7,23 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { makeCloudCode } from "@/lib/cloud";
 import { slugify, validateDeck, type Deck, type Slide } from "@/lib/deckTypes";
 
-async function uniqueCode(admin: any, table: "cloud_sessions" | "photo_sessions"): Promise<string> {
+const LETTERS = ["A", "B", "C", "D", "E"];
+// Build a per-quiz BenchConfig from a deck quiz slide, keeping the marked
+// correct option even after empty options are dropped.
+function quizConfig(slide: any) {
+  const questions = (slide.questions || [])
+    .map((q: any, i: number) => {
+      const opts = (q.options || []).map((t: string, idx: number) => ({ t: (t || "").trim(), idx })).filter((o: any) => o.t);
+      if (!(q.prompt || "").trim() || opts.length < 2) return null;
+      let pos = opts.findIndex((o: any) => o.idx === (q.answer || 0));
+      if (pos < 0) pos = 0;
+      return { id: i + 1, prompt: String(q.prompt).slice(0, 500), options: opts.slice(0, 5).map((o: any, j: number) => ({ key: LETTERS[j], text: o.t.slice(0, 200) })), answer: LETTERS[Math.min(pos, 4)] };
+    })
+    .filter(Boolean);
+  return { title: String(slide.title || "Quiz").slice(0, 120), timeLimitSec: Math.max(30, Number(slide.timeLimitSec) || 180), questions };
+}
+
+async function uniqueCode(admin: any, table: "cloud_sessions" | "photo_sessions" | "quiz_sessions"): Promise<string> {
   for (let i = 0; i < 30; i++) {
     const code = makeCloudCode(5);
     const { data } = await admin.from(table).select("code").eq("code", code).maybeSingle();
@@ -38,6 +54,16 @@ async function materialize(admin: any, userId: string, slides: Slide[]): Promise
         out.push({ ...s, code });
       } else {
         await admin.from("photo_sessions").update({ prompt, updated_at: new Date().toISOString() }).eq("code", s.code).eq("host_id", userId);
+        out.push(s);
+      }
+    } else if (s.type === "quiz") {
+      const config = quizConfig(s);
+      if (!s.code) {
+        const code = await uniqueCode(admin, "quiz_sessions");
+        await admin.from("quiz_sessions").insert({ code, host_id: userId, config });
+        out.push({ ...s, code });
+      } else {
+        await admin.from("quiz_sessions").update({ config, updated_at: new Date().toISOString() }).eq("code", s.code).eq("host_id", userId);
         out.push(s);
       }
     } else {
