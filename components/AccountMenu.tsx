@@ -105,8 +105,12 @@ export default function AccountMenu({
 
             {superadmin && group("Platform admin", (
               <>
+                <a href="/admin/usage" className={item}>Usage</a>
+                <a href="/admin/ai" className={item}>AI spend &amp; health</a>
+                <a href="/admin/costs" className={item}>Module unit costs</a>
                 <a href="/admin/orgs" className={item}>Organizations</a>
                 <a href="/admin/certificates" className={item}>Certificates</a>
+                <a href="/admin/messages" className={item}>Contact messages</a>
               </>
             ))}
 
