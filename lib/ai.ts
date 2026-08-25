@@ -2349,6 +2349,57 @@ Return STRICT JSON only, plain text values (no markdown):
   ], { temperature: 0.5, maxTokens: 1400 });
 }
 
+// ---- Position My Research (Scientifiq, researcher framing) ----------------
+// Same scoring engine as Score My Invention, but for a researcher deciding how
+// to frame a paper/idea for impact: emphasize scientific + social potential and
+// reframings that raise citation odds and fundability, not commercialization.
+export async function positionResearchAI(input: { abstract: string; title?: string; scores: any }): Promise<any> {
+  const s = input.scores || {};
+  const pct = (x: any) => Math.round((x?.raw ?? 0) * 100);
+  const scoreLine = `Scientific ${pct(s.scientific)}/100 (${s.scientific?.stars ?? "?"}★), Social ${pct(s.social)}/100 (${s.social?.stars ?? "?"}★), Commercial ${pct(s.commercial)}/100 (${s.commercial?.stars ?? "?"}★). Scientifiq's predictive potential for THIS abstract, benchmarked against the field.`;
+
+  const system = `You advise a researcher on how to POSITION a paper or research idea for maximum impact, using Scientifiq's predictive potential scores. You are given the abstract and its scientific / social / commercial potential. Focus on scholarly and societal impact: what would make this more likely to be read, cited, funded, and to matter, not on commercialization.
+
+The "how to raise it" advice must be concrete and specific to THIS work: a sharper contribution claim, a more general or more surprising framing, a clearer beneficiary, connecting to a hotter conversation, a stronger null it overturns. Never suggest overclaiming or fabricating.
+
+Return STRICT JSON only, plain text values (no markdown):
+{
+  "headline": "one-sentence read on this work's potential impact",
+  "strongest": "which potential is strongest, and what that implies for how to position it",
+  "readCommercial": "1-2 sentences interpreting the commercial score",
+  "readScientific": "1-2 sentences interpreting the scientific score",
+  "readSocial": "1-2 sentences interpreting the social score",
+  "raise": ["3-4 concrete ways to reframe or strengthen THIS work to raise its scholarly and societal potential"],
+  "whoCares": ["2-3 specific audiences (fields, funders, communities) who would care if this lands"],
+  "verdict": "one of: Position for a top venue | Strengthen the contribution | Reframe first, followed by one line on why"
+}`;
+
+  return completeJson([
+    { role: "system", content: system },
+    { role: "user", content: `WORK${input.title ? ` — ${input.title}` : ""}:\n${input.abstract.slice(0, 5000)}\n\nSCORES: ${scoreLine}` },
+  ], { temperature: 0.5, maxTokens: 1400 });
+}
+
+// ---- Rank Our Disclosures (Scientifiq, batch scoring) ---------------------
+// The app scores + ranks a batch of disclosures by commercial potential; this
+// writes the portfolio read: which to prioritize and why.
+export async function rankDisclosuresAI(input: { items: { label: string; comm: number; sci: number; soc: number }[] }): Promise<any> {
+  const rows = input.items.map((it, i) => `${i + 1}. ${it.label} — commercial ${it.comm}/100, scientific ${it.sci}/100, social ${it.soc}/100`).join("\n");
+  const system = `You advise a university tech-transfer office that has scored a BATCH of disclosures on Scientifiq's predictive potential (0-100). You are given the disclosures with their commercial/scientific/social scores, already ranked by commercial potential. Give a portfolio read: which few to prioritize for patenting/licensing and why, and any that are weak commercially but strong scientifically (worth a different path). Be decisive and honest; use only the scores given.
+
+Return STRICT JSON only, plain text values (no markdown):
+{
+  "summary": "2-3 sentences on the batch overall (how strong, where the value concentrates)",
+  "prioritize": ["the 1-3 disclosures to act on first, each named, with one line why"],
+  "watch": ["0-2 that are commercially weak but scientifically strong, or otherwise worth a note"],
+  "verdict": "one honest closing line"
+}`;
+  return completeJson([
+    { role: "system", content: system },
+    { role: "user", content: `Disclosures (ranked by commercial potential):\n${rows}` },
+  ], { temperature: 0.4, maxTokens: 1200 });
+}
+
 // ---- Licensing Brief (Scientifiq scouting) --------------------------------
 export async function licensingBriefAI(input: {
   abstract: string;

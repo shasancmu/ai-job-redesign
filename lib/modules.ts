@@ -62,6 +62,8 @@ export type ModuleDef = {
     | "collaborators"
     | "licensing-brief"
     | "score-invention"
+    | "position-research"
+    | "rank-disclosures"
     | "voice-consult"
     | "paper-idea"
     | "paper-structure"
@@ -702,6 +704,37 @@ export const MODULES: ModuleDef[] = [
     forSale: false,
   },
   {
+    slug: "position-my-research",
+    exercise: "position-research",
+    name: "Position My Research",
+    tagline: "Paste a paper or research idea and see its scientific, social, and commercial potential against the field, plus concrete ways to reframe it for more impact, citations, and funding.",
+    description:
+      "For researchers deciding how to frame a paper or idea for maximum impact, built on Scientifiq.AI. Paste an abstract and it scores the work's scientific, social, and commercial potential (0-100 and stars) against its field. Then AI reads the scores and advises on positioning: which dimension is strongest, what a high or low score means here, and concrete reframings, a sharper contribution claim, a more general or more surprising framing, a clearer beneficiary, that would raise its potential to be read, cited, and funded, plus the audiences who would care.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 3,
+    ai: true,
+    emoji: "🎯",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "rank-disclosures",
+    exercise: "rank-disclosures",
+    name: "Rank Our Disclosures",
+    tagline: "Paste a batch of disclosures and get them scored and ranked by commercial potential, with an AI read on which few to prioritize for patenting and licensing.",
+    description:
+      "A tech-transfer triage tool built on Scientifiq.AI. Paste several disclosures or abstracts (separated by a line of ---) and it scores each for commercial, scientific, and social potential and ranks them by commercial potential. AI then writes the portfolio read: the few to prioritize for patenting or licensing and why, any that are commercially weak but scientifically strong (worth a different path), and an honest bottom line, so a licensing office can triage a pile of disclosures in minutes.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 5,
+    ai: true,
+    emoji: "🗂️",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_LICENSING",
+  },
+  {
     slug: "career-myopia",
     exercise: "myopia-career",
     name: "Find Your Career's Blind Spots",
@@ -1272,6 +1305,8 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "find-collaborators": "redesign",
   "licensing-brief": "strategy",
   "score-my-invention": "strategy",
+  "position-my-research": "research",
+  "rank-disclosures": "strategy",
   "close-the-offer": "negotiate",
   "name-your-price": "negotiate",
   "ask-for-a-raise": "negotiate",
@@ -1330,7 +1365,7 @@ const CATALOG_ORDER: string[] = [
   "good-business", "customer-empathy", "opportunity-capability", "test-the-bet",
   "ai-canvas", "balanced-scorecard", "execution-4a", "business-consult", "voice-consult",
   "ai-board", "business-myopia", "define-vision", "define-vision-voice", "deeptech-canvas",
-  "domain-brief", "licensing-brief", "score-my-invention", "vendor-disclosure",
+  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "vendor-disclosure",
   // Negotiate
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
   "lease-the-space", "rehearse-hard-conversation",
@@ -1339,7 +1374,7 @@ const CATALOG_ORDER: string[] = [
   "understand-a-paper", "paper-structure", "making-points", "abstract-title", "literature-reviews",
   "data-moat", "data-strategy", "identification", "regression-tables", "research-graphs",
   "the-referee", "revise-resubmit", "journal-fit",
-  "research-system", "research-team",
+  "research-system", "research-team", "position-my-research",
   // The PhD path
   "what-is-a-phd", "choose-phd-program", "phd-application", "phd-structure", "phd-succeed", "phd-placement",
   // Live
@@ -1404,6 +1439,8 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "find-collaborators": ["deeptech", "innovation", "ai"],
   "licensing-brief": ["deeptech", "strategy", "entrepreneurship", "innovation"],
   "score-my-invention": ["deeptech", "strategy", "innovation"],
+  "position-my-research": ["research", "innovation"],
+  "rank-disclosures": ["deeptech", "strategy", "innovation"],
   "business-myopia": ["strategy", "innovation", "leadership"],
   "define-vision": ["strategy", "leadership", "entrepreneurship"],
   "define-vision-voice": ["strategy", "leadership", "entrepreneurship"],
