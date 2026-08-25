@@ -56,6 +56,7 @@ export function artifactHref(exercise: string, code: string): string {
   if (exercise === "rank-disclosures") return `/disclosures-rank/${code}`;
   if (exercise === "find-cofounder") return `/cofounder/${code}`;
   if (exercise === "diligence-science") return `/diligence/${code}`;
+  if (["tech-landscape", "deal-sourcing", "commercialization-scorecard", "field-trajectory"].includes(exercise)) return `/scan/${code}`;
   if (exercise === "resume" || exercise === "resume-voice") return `/resume/${code}`;
   if (exercise === "myopia-business" || exercise === "myopia-career") return `/myopia/${code}`;
   if (exercise === "board") return `/board/${code}`;

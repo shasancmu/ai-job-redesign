@@ -66,6 +66,10 @@ export type ModuleDef = {
     | "rank-disclosures"
     | "find-cofounder"
     | "diligence-science"
+    | "tech-landscape"
+    | "deal-sourcing"
+    | "commercialization-scorecard"
+    | "field-trajectory"
     | "voice-consult"
     | "paper-idea"
     | "paper-structure"
@@ -767,6 +771,66 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_LICENSING",
   },
   {
+    slug: "technology-landscape",
+    exercise: "tech-landscape",
+    name: "Technology Landscape Scan",
+    tagline: "Name a technology or field and get a landscape: who leads it, which companies are commercializing it, the strongest work, and where the white space is.",
+    description:
+      "A landscape scan built on Scientifiq.AI. Name a technology or field (worldwide, or scoped to an institution or region) and it gathers a relevance sample of the researchers and papers, with predictive commercial, scientific, and social potential, the subfield mix, the trend over time, and the nearby patents. AI then reads it: who leads the field, which companies are already commercializing it (from patent assignees), and the white space, subfields with strong science but thin commercial or patent activity, where the opportunity is. Comes with the top researchers, standout work, and active companies as reference.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 5,
+    ai: true,
+    emoji: "🗺️",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_LICENSING",
+  },
+  {
+    slug: "deep-tech-deal-sourcing",
+    exercise: "deal-sourcing",
+    name: "Deep-Tech Deal Sourcing",
+    tagline: "Name your investment thesis and surface labs whose science is both high-quality and commercializing, spin-out candidates to reach before they raise.",
+    description:
+      "A deal-sourcing tool for deep-tech investors, built on Scientifiq.AI. Name your thesis or field and it gathers the researchers and papers in the space with their predictive potential scores and the patent landscape. AI then surfaces spin-out candidates, the researchers whose work is both scientifically strong and commercially oriented, names them with a reason each, reads why the timing may be right (patent activity, rising trend), and flags honest watch-outs. A way to find promising academic teams before they are on anyone's radar.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 5,
+    ai: true,
+    emoji: "💸",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_LICENSING",
+  },
+  {
+    slug: "commercialization-scorecard",
+    exercise: "commercialization-scorecard",
+    name: "University Commercialization Scorecard",
+    tagline: "Pick an institution and a field to score how commercially oriented its research is, its real strengths, and where it lags a leading program.",
+    description:
+      "A benchmarking tool for tech-transfer offices and deans, built on Scientifiq.AI. Pick an institution and a field and it gathers that institution's researchers and papers in the area with their predictive potential scores and patent activity. AI then scores the institution's commercialization strength: how commercially oriented the work is versus purely academic, the specific researchers and subfields that are genuinely strong and commercializable, and the gaps to close relative to a leading program, with the underlying researchers and standout work as evidence.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 5,
+    ai: true,
+    emoji: "🏛️",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_LICENSING",
+  },
+  {
+    slug: "field-trajectory",
+    exercise: "field-trajectory",
+    name: "Where Is My Field Going?",
+    tagline: "Name a field and see which subfields are rising, where scientific and commercial value is concentrating, and what to bet on next.",
+    description:
+      "A direction-setting scan for researchers and funders, built on Scientifiq.AI. Name a field and it gathers the recent research with its subfield mix, the trend over time, and predictive potential scores. AI then reads the trajectory: which subfields are rising, where the high scientific and commercial value is concentrating, and concrete bets to move toward now, so you pick directions that will matter rather than ones that are already crowded.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 5,
+    ai: true,
+    emoji: "🧭",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_LICENSING",
+  },
+  {
     slug: "career-myopia",
     exercise: "myopia-career",
     name: "Find Your Career's Blind Spots",
@@ -1341,6 +1405,10 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "rank-disclosures": "strategy",
   "find-a-cofounder": "strategy",
   "diligence-the-science": "strategy",
+  "technology-landscape": "strategy",
+  "deep-tech-deal-sourcing": "strategy",
+  "commercialization-scorecard": "strategy",
+  "field-trajectory": "research",
   "close-the-offer": "negotiate",
   "name-your-price": "negotiate",
   "ask-for-a-raise": "negotiate",
@@ -1399,7 +1467,7 @@ const CATALOG_ORDER: string[] = [
   "good-business", "customer-empathy", "opportunity-capability", "test-the-bet",
   "ai-canvas", "balanced-scorecard", "execution-4a", "business-consult", "voice-consult",
   "ai-board", "business-myopia", "define-vision", "define-vision-voice", "deeptech-canvas",
-  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "vendor-disclosure",
+  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
   // Negotiate
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
   "lease-the-space", "rehearse-hard-conversation",
@@ -1477,6 +1545,10 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "rank-disclosures": ["deeptech", "strategy", "innovation"],
   "find-a-cofounder": ["deeptech", "entrepreneurship", "innovation"],
   "diligence-the-science": ["deeptech", "strategy", "innovation"],
+  "technology-landscape": ["deeptech", "strategy", "innovation"],
+  "deep-tech-deal-sourcing": ["deeptech", "entrepreneurship", "innovation"],
+  "commercialization-scorecard": ["deeptech", "strategy", "innovation"],
+  "field-trajectory": ["research", "innovation"],
   "business-myopia": ["strategy", "innovation", "leadership"],
   "define-vision": ["strategy", "leadership", "entrepreneurship"],
   "define-vision-voice": ["strategy", "leadership", "entrepreneurship"],

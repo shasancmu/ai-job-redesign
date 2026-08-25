@@ -2280,6 +2280,61 @@ Return STRICT JSON only, no prose outside it:
 // Ranks candidate researchers at the person's institution by genuine
 // COMPLEMENTARITY to their described work, not similarity. The candidates and
 // their scores are authoritative (from Scientifiq); the model judges fit.
+// ---- Landscape family (Scientifiq domain scans) ---------------------------
+// One function, four framings over the same aggregated domain data. Returns a
+// shared shape rendered by DomainInsightReport.
+const SCAN_PROMPTS: Record<string, { role: string; sections: string }> = {
+  landscape: {
+    role: "map a TECHNOLOGY LANDSCAPE for someone scanning a field: who leads it, who is commercializing it, and where the opportunity is",
+    sections: `- "Who's leading" — the researchers/institutions publishing the strongest work (name them from the data)
+- "Who's commercializing" — companies active in the space (from patent assignees) and how crowded it looks
+- "White space" — subfields or angles with strong science but thin commercial/patent activity, i.e. openings`,
+  },
+  "deal-sourcing": {
+    role: "source DEEP-TECH DEALS for an investor: find labs and researchers whose science is both high-quality AND commercializing (spin-out candidates before they raise)",
+    sections: `- "Spin-out candidates" — the researchers to approach: high scientific potential AND commercial orientation (name them, one line why each)
+- "Why now" — signals the field is at a commercialization inflection (patent activity, rising trend)
+- "Watch-outs" — honest risks: crowded space, thin commercial signal, hype`,
+  },
+  scorecard: {
+    role: "score an INSTITUTION's commercialization strength in a field: how commercially oriented its research is, its real strengths, and where it lags",
+    sections: `- "Commercial orientation" — read the average commercial potential and patent activity: is this institution's work in the field commercially oriented or purely academic?
+- "Strengths" — the specific researchers/subfields that are genuinely strong and commercializable (name them)
+- "Gaps to close" — where the institution is thin relative to what a leading program would have`,
+  },
+  trajectory: {
+    role: "read where a FIELD is going: which subfields are rising, where scientific and commercial value is concentrating, and what to bet on",
+    sections: `- "Rising subfields" — from the subfield mix and year trend, what is growing
+- "Where value concentrates" — which areas carry the high scientific and commercial potential
+- "Bets to make" — concrete directions a researcher or funder should move toward now`,
+  },
+};
+
+export async function domainScanAI(input: { mode: string; dataText: string }): Promise<any> {
+  const cfg = SCAN_PROMPTS[input.mode] || SCAN_PROMPTS.landscape;
+  const system = `You ${cfg.role}. You are given aggregated Scientifiq data for the domain: a relevance sample of researchers and papers with predictive potential scores (commercial/scientific/social, 0-100), the subfield mix, a year trend, and nearby patents with assignees (the companies active in the space). Judgment over recitation.
+
+Rules:
+- Use ONLY the data provided. Name researchers, institutions, and patent assignees exactly as they appear. Do not invent any.
+- The scores are predictive signals, not proof. Counts are the analyzed sample, not a claimed universe total; say "in this sample" where relevant.
+- Be specific and decision-useful. Fill the sections below.
+
+Sections to fill (as the "sections" array, in this order):
+${cfg.sections}
+
+Return STRICT JSON only, plain text values (no markdown):
+{
+  "headline": "one-sentence read on the domain for this purpose",
+  "summary": "2-3 sentences of context",
+  "sections": [ { "title": "the section name", "items": ["3-5 concrete bullets, naming names from the data"] } ],
+  "verdict": "one honest closing line"
+}`;
+  return completeJson([
+    { role: "system", content: system },
+    { role: "user", content: input.dataText },
+  ], { temperature: 0.5, maxTokens: 2600 });
+}
+
 // ---- Diligence the Science (Scientifiq, investor read) --------------------
 // Given a startup's claimed technology (abstract), read whether the underlying
 // science is real, strong, and commercializing, from Scientifiq's scores, the

@@ -34,6 +34,7 @@ import PositionResearchRoom from "@/components/PositionResearchRoom";
 import RankDisclosuresRoom from "@/components/RankDisclosuresRoom";
 import FindCofounderRoom from "@/components/FindCofounderRoom";
 import DiligenceScienceRoom from "@/components/DiligenceScienceRoom";
+import DomainScanRoom, { SCAN_VARIANTS } from "@/components/DomainScanRoom";
 import PipelineRoom from "@/components/PipelineRoom";
 import PaperStudyRoom from "@/components/PaperStudyRoom";
 import InteractionRoom from "@/components/InteractionRoom";
@@ -267,6 +268,15 @@ export default async function RoomPage({
     return session.exercise === "diligence-science"
       ? <DiligenceScienceRoom session={session} initialWorkspace={iw} />
       : <FindCofounderRoom session={session} initialWorkspace={iw} />;
+  }
+
+  // Scientifiq landscape family (four domain scans, one shared room). Host only.
+  if (["tech-landscape", "deal-sourcing", "commercialization-scorecard", "field-trajectory"].includes(session.exercise || "")) {
+    if (!amHost) redirect("/dashboard");
+    await supabase.from("workspaces").upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase.from("workspaces").select("*").eq("session_id", session.id).eq("author_id", user.id).maybeSingle();
+    const iw = workspace || { session_id: session.id, author_id: user.id };
+    return <DomainScanRoom session={session} initialWorkspace={iw} variant={SCAN_VARIANTS[session.exercise!]} />;
   }
 
   // Find Your Superpower: single-user, host only.
