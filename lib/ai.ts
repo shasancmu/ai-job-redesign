@@ -223,7 +223,22 @@ async function complete(
   try {
     const r = await runCompletion(messages, opts);
     usage = r.usage;
-    return r.text;
+    let text = r.text;
+    // JSON reliability, applied to EVERY json call: if the reply doesn't parse
+    // (prose, a refusal, questions, a stray fence), retry ONCE at temperature 0
+    // with a strict "JSON only, no questions" nudge. Never throws here, so each
+    // caller's own extractJson + fallback still behaves as before, just with a
+    // parseable reply far more often.
+    if (opts.json && !opts.onToken && !isParseableJson(text)) {
+      const retryMsgs: ChatMsg[] = [
+        ...messages,
+        { role: "system", content: "Your previous reply could not be parsed. Reply with ONLY a single valid JSON object: no prose, no questions, no markdown code fences." },
+      ];
+      const r2 = await runCompletion(retryMsgs, { ...opts, temperature: 0 });
+      usage = r2.usage || usage;
+      if ((r2.text || "").trim()) text = r2.text; // keep the retry's text (better parse, or a better error snippet)
+    }
+    return text;
   } catch (e: any) {
     error = String(e?.message || e);
     throw e;
@@ -361,30 +376,24 @@ function extractJson(raw: string): any {
       /* try the next strategy */
     }
   }
-  throw new Error("no parseable JSON in model reply");
+  // Descriptive failure so prod errors are diagnosable, not a dead end.
+  const snippet = String(raw).replace(/\s+/g, " ").trim().slice(0, 160);
+  throw new Error(snippet ? `The AI did not return usable JSON. It replied: "${snippet}…"` : "The AI returned an empty reply. Try again.");
 }
 
-// Get a JSON object back from the model, robustly. Some models (or providers
-// without real JSON mode) occasionally reply with prose or a refusal; if the
-// first reply won't parse, retry ONCE at temperature 0 with a strict "JSON
-// only" nudge. If it still fails, throw an error that includes a snippet of the
-// actual reply so the failure is diagnosable in prod instead of a dead end.
+// Cheap parseability check used by complete() to decide whether to retry a json
+// call. (extractJson is a hoisted declaration, so it's in scope above.)
+function isParseableJson(raw: string): boolean {
+  try { extractJson(raw); return true; } catch { return false; }
+}
+
+// Get a JSON object back from the model. complete() already retries json calls
+// that don't parse (see above), so this is just: get the reply, extract it.
 async function completeJson(
   messages: ChatMsg[],
   opts: { temperature?: number; maxTokens?: number; flow?: string | null } = {},
 ): Promise<any> {
-  const raw = await complete(messages, { ...opts, json: true });
-  try { return extractJson(raw); } catch { /* retry */ }
-
-  const retry: ChatMsg[] = [
-    ...messages,
-    { role: "system", content: "Your previous reply could not be parsed. Reply with ONLY a single valid JSON object: no prose, no explanation, no markdown code fences." },
-  ];
-  const raw2 = await complete(retry, { ...opts, json: true, temperature: 0 });
-  try { return extractJson(raw2); } catch { /* give up with context */ }
-
-  const snippet = String(raw2 || raw || "").replace(/\s+/g, " ").trim().slice(0, 160);
-  throw new Error(snippet ? `The AI did not return usable JSON. It replied: "${snippet}…"` : "The AI returned an empty reply. Try again.");
+  return extractJson(await complete(messages, { ...opts, json: true }));
 }
 
 // Close a JSON object cut off mid-stream (truncated at max_tokens): trim to the
@@ -1210,7 +1219,11 @@ Be concrete and honest. Field-experiment effects are usually MODEST: standardize
 export async function experimentDraftAI(input: { idea: string }): Promise<any> {
   const system = `${EXPERIMENT_SYSTEM}
 
-From the researcher's rough description, draft the eight canvas parts. Keep each to 1-2 tight sentences, specific to their idea. Return STRICT JSON only:
+From the researcher's rough description, draft the eight canvas parts. Keep each to 1-2 tight sentences, specific to their idea.
+
+CRITICAL: The description will often be rough, short, or vague. That is expected and fine. NEVER ask questions, never ask for more detail, never reply with prose. Make reasonable, specific assumptions to fill any gaps and ALWAYS produce a complete draft of all eight parts. It is a starting point the user will edit, so a confident best-guess draft is exactly what's wanted. Reply with ONLY the JSON object below, nothing else.
+
+Return STRICT JSON only:
 {
   "setup": "the phenomenon and why it's interesting/important",
   "subjects": "who/what the subjects are, where, and roughly how many",
