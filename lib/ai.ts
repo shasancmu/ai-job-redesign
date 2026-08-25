@@ -364,6 +364,29 @@ function extractJson(raw: string): any {
   throw new Error("no parseable JSON in model reply");
 }
 
+// Get a JSON object back from the model, robustly. Some models (or providers
+// without real JSON mode) occasionally reply with prose or a refusal; if the
+// first reply won't parse, retry ONCE at temperature 0 with a strict "JSON
+// only" nudge. If it still fails, throw an error that includes a snippet of the
+// actual reply so the failure is diagnosable in prod instead of a dead end.
+async function completeJson(
+  messages: ChatMsg[],
+  opts: { temperature?: number; maxTokens?: number; flow?: string | null } = {},
+): Promise<any> {
+  const raw = await complete(messages, { ...opts, json: true });
+  try { return extractJson(raw); } catch { /* retry */ }
+
+  const retry: ChatMsg[] = [
+    ...messages,
+    { role: "system", content: "Your previous reply could not be parsed. Reply with ONLY a single valid JSON object: no prose, no explanation, no markdown code fences." },
+  ];
+  const raw2 = await complete(retry, { ...opts, json: true, temperature: 0 });
+  try { return extractJson(raw2); } catch { /* give up with context */ }
+
+  const snippet = String(raw2 || raw || "").replace(/\s+/g, " ").trim().slice(0, 160);
+  throw new Error(snippet ? `The AI did not return usable JSON. It replied: "${snippet}…"` : "The AI returned an empty reply. Try again.");
+}
+
 // Close a JSON object cut off mid-stream (truncated at max_tokens): trim to the
 // last complete field, drop a dangling comma, then close still-open brackets.
 function closeTruncated(input: string): string | null {
@@ -1198,11 +1221,10 @@ From the researcher's rough description, draft the eight canvas parts. Keep each
   "nullComparison": "what the control gets, and why it's a credible comparison",
   "impact": "the behavior/performance that changes, and how you'd measure it"
 }`;
-  const raw = await complete(
+  return completeJson(
     [ { role: "system", content: system }, { role: "user", content: `Rough idea:\n${input.idea.slice(0, 1500)}` } ],
-    { json: true, temperature: 0.6, maxTokens: 900 },
+    { temperature: 0.6, maxTokens: 900 },
   );
-  return extractJson(raw);
 }
 
 export async function experimentDesignAI(input: { canvas: Record<string, string> }): Promise<any> {
@@ -1230,11 +1252,10 @@ Read the canvas and return two things: a critique, and a realistic data-generati
   }
 }`;
   const parts = Object.entries(input.canvas).map(([k, v]) => `${k}: ${v}`).join("\n");
-  const raw = await complete(
+  return completeJson(
     [ { role: "system", content: system }, { role: "user", content: `The canvas:\n${parts.slice(0, 3000)}` } ],
-    { json: true, temperature: 0.4, maxTokens: 1400 },
+    { temperature: 0.4, maxTokens: 1400 },
   );
-  return extractJson(raw);
 }
 
 // ---- Lesson tutor ----------------------------------------------------------
@@ -1575,15 +1596,14 @@ ${extra.join("\n")}
 Rules: fill EVERY field, grounded in the interview and specific to this ${def.subjectLabel}. List fields get 2–4 tight items. No vague filler.`;
 
   const user = `The ${def.subjectLabel}: ${subject || "(unnamed)"}\n\nInterview:\n${transcript || "(none)"}`;
-  const raw = await complete(
-    [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ],
-    { json: true, temperature: 0.4 }
-  );
   try {
-    const p = extractJson(raw);
+    const p = await completeJson(
+      [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+      { temperature: 0.4 },
+    );
     const fields: Record<string, any> = {};
     for (const f of def.fields) {
       const v = p[f.key];
@@ -1597,7 +1617,7 @@ Rules: fill EVERY field, grounded in the interview and specific to this ${def.su
         fields[f.key] = String(v || "");
       }
     }
-    const out: any = { fields, synthesis: String(p.synthesis || ""), _raw: raw };
+    const out: any = { fields, synthesis: String(p.synthesis || ""), _raw: JSON.stringify(p) };
     if (def.hasVerdict) out.verdict = String(p.verdict || "");
     const clamp = (v: any) => (Number.isFinite(Number(v)) ? Math.max(0, Math.min(100, Math.round(Number(v)))) : undefined);
     if (def.hasScore) out.score = clamp(p.score);
@@ -1624,7 +1644,7 @@ Rules: fill EVERY field, grounded in the interview and specific to this ${def.su
     }
     return out;
   } catch {
-    return { fields: {}, synthesis: "", _raw: raw };
+    return { fields: {}, synthesis: "" };
   }
 }
 
