@@ -2318,6 +2318,37 @@ Rank matches best-first, at most 7.${expNudge(input.nudge)}`;
   return extractJson(raw);
 }
 
+// ---- Score My Invention (Scientifiq potential scoring) --------------------
+// The free wedge for the deep-tech line: score any abstract/idea for its
+// commercial, scientific, and social potential, then read the scores and say
+// how to raise them. Just scoreAbstract + an interpretive write-up.
+export async function scoreInventionAI(input: { abstract: string; title?: string; scores: any }): Promise<any> {
+  const s = input.scores || {};
+  const pct = (x: any) => Math.round((x?.raw ?? 0) * 100);
+  const scoreLine = `Commercial ${pct(s.commercial)}/100 (${s.commercial?.stars ?? "?"}★), Scientific ${pct(s.scientific)}/100 (${s.scientific?.stars ?? "?"}★), Social ${pct(s.social)}/100 (${s.social?.stars ?? "?"}★). These are Scientifiq's predictive potential scores for THIS abstract, benchmarked against the field.`;
+
+  const system = `You interpret Scientifiq's predictive potential scores for one invention or research idea, for the person who wrote it. You are given the abstract and its commercial / scientific / social potential (0-100 and stars). Be specific and honest: the scores are a forward-looking signal, not proof. If a score is low, say so plainly and explain what a low score means here, do not force optimism.
+
+The "how to raise it" advice must be concrete and specific to THIS idea: sharper framing, a more valuable application, a clearer beneficiary, a bigger or better-defined market, a more rigorous claim. Never suggest fabricating results.
+
+Return STRICT JSON only, plain text values (no markdown):
+{
+  "headline": "one-sentence read on this idea's potential",
+  "strongest": "which of the three potentials is strongest, and what that implies for what to do with it",
+  "readCommercial": "1-2 sentences interpreting the commercial score for this idea",
+  "readScientific": "1-2 sentences interpreting the scientific score",
+  "readSocial": "1-2 sentences interpreting the social score",
+  "raise": ["3-4 concrete, specific ways to strengthen or reframe THIS idea to raise its potential, especially commercial"],
+  "whoCares": ["2-3 specific types of people or organizations who would care if this delivers"],
+  "verdict": "one of: Pursue | Develop further | Weak case, followed by one line on why"
+}`;
+
+  return completeJson([
+    { role: "system", content: system },
+    { role: "user", content: `INVENTION${input.title ? ` — ${input.title}` : ""}:\n${input.abstract.slice(0, 5000)}\n\nSCORES: ${scoreLine}` },
+  ], { temperature: 0.5, maxTokens: 1400 });
+}
+
 // ---- Licensing Brief (Scientifiq scouting) --------------------------------
 export async function licensingBriefAI(input: {
   abstract: string;

@@ -29,6 +29,7 @@ import PersonalNetworkRoom from "@/components/PersonalNetworkRoom";
 import DomainBriefRoom from "@/components/DomainBriefRoom";
 import FindCollaboratorsRoom from "@/components/FindCollaboratorsRoom";
 import LicensingBriefRoom from "@/components/LicensingBriefRoom";
+import ScoreInventionRoom from "@/components/ScoreInventionRoom";
 import PipelineRoom from "@/components/PipelineRoom";
 import PaperStudyRoom from "@/components/PaperStudyRoom";
 import InteractionRoom from "@/components/InteractionRoom";
@@ -240,6 +241,14 @@ export default async function RoomPage({
     return session.exercise === "collaborators"
       ? <FindCollaboratorsRoom session={session} initialWorkspace={iw} />
       : <LicensingBriefRoom session={session} initialWorkspace={iw} />;
+  }
+
+  // Score My Invention: paste an abstract, score its potential. Host only.
+  if (session.exercise === "score-invention") {
+    if (!amHost) redirect("/dashboard");
+    await supabase.from("workspaces").upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase.from("workspaces").select("*").eq("session_id", session.id).eq("author_id", user.id).maybeSingle();
+    return <ScoreInventionRoom session={session} initialWorkspace={workspace || { session_id: session.id, author_id: user.id }} />;
   }
 
   // Find Your Superpower: single-user, host only.

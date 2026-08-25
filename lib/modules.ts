@@ -61,6 +61,7 @@ export type ModuleDef = {
     | "domain-brief"
     | "collaborators"
     | "licensing-brief"
+    | "score-invention"
     | "voice-consult"
     | "paper-idea"
     | "paper-structure"
@@ -685,6 +686,22 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_LICENSING",
   },
   {
+    slug: "score-my-invention",
+    exercise: "score-invention",
+    name: "Score My Invention",
+    tagline: "Paste an invention, disclosure, or research idea and get its commercial, scientific, and social potential, scored against the field, plus concrete ways to raise the score.",
+    description:
+      "The fastest way to gut-check a deep-tech idea, built on Scientifiq.AI. Paste an abstract and it scores the idea for commercial, scientific, and social potential (0-100 and stars), benchmarked against its field. Then AI reads the scores: which dimension is strongest, what a high or low score means for this specific idea, three to four concrete ways to reframe or strengthen it to raise its potential, who would care if it delivers, and a plain verdict. A quick, honest signal before you invest time in a full licensing brief or a venture canvas.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 3,
+    ai: true,
+    emoji: "⭐",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_LICENSING",
+    forSale: false,
+  },
+  {
     slug: "career-myopia",
     exercise: "myopia-career",
     name: "Find Your Career's Blind Spots",
@@ -1254,6 +1271,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "domain-brief": "strategy",
   "find-collaborators": "redesign",
   "licensing-brief": "strategy",
+  "score-my-invention": "strategy",
   "close-the-offer": "negotiate",
   "name-your-price": "negotiate",
   "ask-for-a-raise": "negotiate",
@@ -1312,7 +1330,7 @@ const CATALOG_ORDER: string[] = [
   "good-business", "customer-empathy", "opportunity-capability", "test-the-bet",
   "ai-canvas", "balanced-scorecard", "execution-4a", "business-consult", "voice-consult",
   "ai-board", "business-myopia", "define-vision", "define-vision-voice", "deeptech-canvas",
-  "domain-brief", "licensing-brief", "vendor-disclosure",
+  "domain-brief", "licensing-brief", "score-my-invention", "vendor-disclosure",
   // Negotiate
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
   "lease-the-space", "rehearse-hard-conversation",
@@ -1385,6 +1403,7 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "domain-brief": ["deeptech", "strategy", "ai", "innovation"],
   "find-collaborators": ["deeptech", "innovation", "ai"],
   "licensing-brief": ["deeptech", "strategy", "entrepreneurship", "innovation"],
+  "score-my-invention": ["deeptech", "strategy", "innovation"],
   "business-myopia": ["strategy", "innovation", "leadership"],
   "define-vision": ["strategy", "leadership", "entrepreneurship"],
   "define-vision-voice": ["strategy", "leadership", "entrepreneurship"],
