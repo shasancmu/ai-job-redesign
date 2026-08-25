@@ -3,6 +3,8 @@
 // decision-moment tool, so momentum is about a growing personal asset + a clear
 // next step, not daily-loop pressure.
 
+import { MODULES, byCatalogOrder, moduleByExercise, moduleBySlug, moduleCategory, type ModuleDef } from "@/lib/modules";
+
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 const weekIndex = (t: number) => Math.floor(t / WEEK);
 
@@ -112,6 +114,25 @@ const NEXT_AFTER: Record<string, string> = {
 // lessons to push straight into the next one when a lesson is finished).
 export function nextAfter(slug: string): string | null {
   return NEXT_AFTER[slug] || null;
+}
+
+// A single "what to run next" suggestion for the completion moment: the explicit
+// learning-path next if it exists, else the next module in the same category.
+// Returns null for custom or unmapped modules (the caller shows a generic nudge).
+export function recommendedNext(exercise: string): ModuleDef | null {
+  const cur = moduleByExercise(exercise);
+  if (!cur) return null;
+  const nxt = NEXT_AFTER[cur.slug];
+  if (nxt) {
+    const m = moduleBySlug(nxt);
+    if (m && !m.hidden) return m;
+  }
+  const cat = moduleCategory(cur.slug);
+  const inCat = MODULES.filter((m) => !m.hidden && moduleCategory(m.slug) === cat).sort(byCatalogOrder);
+  const idx = inCat.findIndex((m) => m.slug === cur.slug);
+  if (idx >= 0 && idx < inCat.length - 1) return inCat[idx + 1];
+  if (inCat.length && inCat[0].slug !== cur.slug) return inCat[0];
+  return null;
 }
 
 export function nextStep(completed: Set<string>, recommended: string[], valid: Set<string>): string | null {

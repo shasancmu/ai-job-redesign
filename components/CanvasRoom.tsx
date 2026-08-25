@@ -10,6 +10,7 @@ import Timer from "@/components/Timer";
 import CanvasView from "@/components/CanvasView";
 import ReflectCommit from "@/components/ReflectCommit";
 import ResearchBehind from "@/components/ResearchBehind";
+import NextUp from "@/components/NextUp";
 import FrontierPlot, { complexityLevel, QuadrantPlot } from "@/components/FrontierPlot";
 import UnitEconomics from "@/components/UnitEconomics";
 import { useT } from "@/components/I18nProvider";
@@ -143,6 +144,7 @@ export default function CanvasRoom({
             <Link href={`/canvas/${session.code}`} className="btn-primary block text-center">
               {t("canvas.viewFull")} →
             </Link>
+            <NextUp exercise={def.exercise} />
           </div>
         )}
       </div>
