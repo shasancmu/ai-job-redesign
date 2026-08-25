@@ -2280,6 +2280,88 @@ Return STRICT JSON only, no prose outside it:
 // Ranks candidate researchers at the person's institution by genuine
 // COMPLEMENTARITY to their described work, not similarity. The candidates and
 // their scores are authoritative (from Scientifiq); the model judges fit.
+// ---- Diligence the Science (Scientifiq, investor read) --------------------
+// Given a startup's claimed technology (abstract), read whether the underlying
+// science is real, strong, and commercializing, from Scientifiq's scores, the
+// comparable literature, and the patent landscape. Founder-market-science fit.
+export async function diligenceScienceAI(input: {
+  abstract: string; context?: string; scores: any;
+  comparables: { title: string; year?: number; comm: number; authors?: string }[];
+  patents: { title: string; year?: number; assignees: string }[];
+}): Promise<any> {
+  const s = input.scores || {};
+  const pct = (x: any) => Math.round((x?.raw ?? 0) * 100);
+  const scoreLine = `Scientific potential ${pct(s.scientific)}/100 (${s.scientific?.stars ?? "?"}★), commercial ${pct(s.commercial)}/100 (${s.commercial?.stars ?? "?"}★), social ${pct(s.social)}/100.`;
+  const comps = (input.comparables || []).slice(0, 8).map((c) => `"${c.title}"${c.year ? ` (${c.year})` : ""} commPot ${Math.round(c.comm)}${c.authors ? ", " + c.authors : ""}`).join("\n");
+  const pats = (input.patents || []).slice(0, 8).map((p) => `"${p.title}"${p.year ? ` (${p.year})` : ""}${p.assignees ? " — assignees: " + p.assignees : ""}`).join("\n");
+
+  const system = `You are an investor's technical diligence analyst. Given a startup's CLAIMED technology, assess whether the underlying science is real, strong, and close to commercialization, using Scientifiq's predictive scores, comparable published science, and the nearby patent landscape. Be skeptical and specific; the reader is deciding whether to spend more time.
+
+Rules:
+- Judge the SCIENCE, not the pitch. Is this a real, established area, a genuinely novel claim, or thin/hand-wavy? Use the comparable papers as evidence.
+- Read maturity from patents: an active patent landscape (named assignees) means the field is commercializing; sparse patents mean early or unproven.
+- Note who actually leads this space (from the comparable authors). If a founding team is described in the context, say whether they appear to be among the real leaders or not, honestly, without inventing facts.
+- Do NOT invent companies, people, or numbers not in the data.
+
+Return STRICT JSON only, plain text values (no markdown):
+{
+  "headline": "one-line read on the science's credibility and readiness",
+  "isReal": "2-3 sentences: is the underlying science real, established, novel, or thin? cite the comparable evidence",
+  "maturity": "1-2 sentences: how close to commercialization, read from patent activity",
+  "leaders": "who actually leads this space, and (if a team is described) whether they appear to be among them",
+  "green": ["concrete green flags"],
+  "red": ["concrete red flags or questions to probe in deeper diligence"],
+  "verdict": "one of: Strong science | Mixed, dig deeper | Weak / unproven, with one line why"
+}`;
+
+  return completeJson([
+    { role: "system", content: system },
+    { role: "user", content: `CLAIMED TECHNOLOGY:\n${input.abstract.slice(0, 5000)}\n\n${input.context ? `TEAM / CONTEXT: ${input.context.slice(0, 800)}\n\n` : ""}SCORES: ${scoreLine}\n\nCOMPARABLE SCIENCE:\n${comps || "(none found)"}\n\nNEARBY PATENTS:\n${pats || "(none found)"}` },
+  ], { temperature: 0.4, maxTokens: 2400 });
+}
+
+// ---- Find a Technical Co-Founder / CTO (Scientifiq, people) ----------------
+// Same candidate machinery as Find Collaborators, but ranks for a founder
+// hunting a technical co-founder/CTO: deep in the venture's core technology,
+// commercially oriented, ideally with patent-cited work (can build, not just
+// publish). Same output shape so it reuses CollaboratorsReport.
+export async function cofounderAI(input: {
+  focus: string;
+  needs: string[];
+  scopeLabel: string;
+  candidates: { index: number; name: string; org: string; subfields: string; bio: string; scipot: number; compot: number; titles: string }[];
+}): Promise<any> {
+  const list = input.candidates
+    .map((c) => `[${c.index}] ${c.name} (${c.org}) sci ${Math.round(c.scipot)}, comm ${Math.round(c.compot)}. Subfields: ${c.subfields || "n/a"}. ${c.bio ? "Bio: " + c.bio.slice(0, 240) : ""} ${c.titles ? "Recent: " + c.titles.slice(0, 150) : ""}`)
+    .join("\n");
+  const needs = input.needs?.length ? input.needs.join("; ") : "a strong technical co-founder";
+
+  const system = `You help a founder find a TECHNICAL CO-FOUNDER or CTO for a deep-tech venture. You are given the venture's technology and a list of candidate researchers at ${input.scopeLabel} (semantically related, with Scientifiq potential scores: sci = scientific potential, comm = commercial potential of their work). Judgment, not search.
+
+What matters for a technical co-founder:
+- DEPTH in the venture's core technology, someone who can actually build it.
+- COMMERCIAL orientation, prefer higher commercial-potential (comm) scores and any signal their work is applied or patent-adjacent, over pure basic science. A brilliant researcher whose work never leaves the lab is a weaker co-founder.
+- Seniority/leadership to own R&D, and covering a technical area the (assumed non-technical) founder lacks.
+- Fit what the founder asked for: ${needs}.
+- Only use candidates from the list; refer to each by its [index] and exact name. Do not invent people. Leave out weak fits.
+
+${ADVICE_PRINCIPLES}
+Here, the decision to shift is who to approach FIRST and how to open the conversation.
+
+Return STRICT JSON only, plain text values (no markdown):
+{
+  ${BOTTOM_LINE_JSON},
+  "matches": [ { "index": <number from the list>, "name": "exact name", "why": "why they'd make a strong technical co-founder for THIS venture, specific", "propose": "the concrete role/relationship to propose (co-founder, CTO, advisor-to-start)", "intro": "a 2-3 sentence first-person outreach message the founder could send" } ],
+  "note": "one honest line, including that these are from a relevance sample and scores are predictive"
+}
+Rank best-first, at most 7.`;
+
+  return completeJson([
+    { role: "system", content: system },
+    { role: "user", content: `THE VENTURE'S TECHNOLOGY:\n${input.focus.slice(0, 4000)}\n\nWHAT THEY NEED: ${needs}\n\nCANDIDATES at ${input.scopeLabel}:\n${list}` },
+  ], { temperature: 0.5, maxTokens: 3200 });
+}
+
 export async function collaboratorsAI(input: {
   focus: string;
   connectionKinds: string[];

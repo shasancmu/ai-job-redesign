@@ -64,6 +64,8 @@ export type ModuleDef = {
     | "score-invention"
     | "position-research"
     | "rank-disclosures"
+    | "find-cofounder"
+    | "diligence-science"
     | "voice-consult"
     | "paper-idea"
     | "paper-structure"
@@ -735,6 +737,36 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_LICENSING",
   },
   {
+    slug: "find-a-cofounder",
+    exercise: "find-cofounder",
+    name: "Find a Technical Co-Founder",
+    tagline: "Describe your venture's technology and find researchers who can actually build it, ranked for commercial orientation and depth, each with a draft outreach message.",
+    description:
+      "For founders hunting a technical co-founder or CTO, built on Scientifiq.AI. Describe your venture's core technology and pick where to look (an institution or a region). It finds researchers whose work is closest to your problem, then AI ranks them for co-founder fit: depth in your core technology, commercial orientation (higher commercial-potential scores and applied or patent-adjacent work), and the seniority to lead R&D, favoring people who can build and commercialize, not just publish. Each match comes with why they fit, the role to propose, and a first outreach message you can send.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 5,
+    ai: true,
+    emoji: "🧬",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_LICENSING",
+  },
+  {
+    slug: "diligence-the-science",
+    exercise: "diligence-science",
+    name: "Diligence the Science",
+    tagline: "Paste a startup's claimed technology and get an investor-grade read on whether the underlying science is real, strong, and close to commercialization.",
+    description:
+      "A technical-diligence tool for investors and scouts, built on Scientifiq.AI. Paste a startup's claimed technology (and, optionally, the team) and it scores the science for scientific, commercial, and social potential, pulls the comparable published literature and the nearby patent landscape, and AI reads it skeptically: is the underlying science real and established or thin, how close is it to commercialization (from patent activity), who actually leads the space and whether the team appears among them, plus concrete green flags, red flags to probe, and a verdict. A fast, honest signal to decide whether a deal is worth deeper diligence.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 5,
+    ai: true,
+    emoji: "🔎",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_LICENSING",
+  },
+  {
     slug: "career-myopia",
     exercise: "myopia-career",
     name: "Find Your Career's Blind Spots",
@@ -1307,6 +1339,8 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "score-my-invention": "strategy",
   "position-my-research": "research",
   "rank-disclosures": "strategy",
+  "find-a-cofounder": "strategy",
+  "diligence-the-science": "strategy",
   "close-the-offer": "negotiate",
   "name-your-price": "negotiate",
   "ask-for-a-raise": "negotiate",
@@ -1365,7 +1399,7 @@ const CATALOG_ORDER: string[] = [
   "good-business", "customer-empathy", "opportunity-capability", "test-the-bet",
   "ai-canvas", "balanced-scorecard", "execution-4a", "business-consult", "voice-consult",
   "ai-board", "business-myopia", "define-vision", "define-vision-voice", "deeptech-canvas",
-  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "vendor-disclosure",
+  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "vendor-disclosure",
   // Negotiate
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
   "lease-the-space", "rehearse-hard-conversation",
@@ -1441,6 +1475,8 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "score-my-invention": ["deeptech", "strategy", "innovation"],
   "position-my-research": ["research", "innovation"],
   "rank-disclosures": ["deeptech", "strategy", "innovation"],
+  "find-a-cofounder": ["deeptech", "entrepreneurship", "innovation"],
+  "diligence-the-science": ["deeptech", "strategy", "innovation"],
   "business-myopia": ["strategy", "innovation", "leadership"],
   "define-vision": ["strategy", "leadership", "entrepreneurship"],
   "define-vision-voice": ["strategy", "leadership", "entrepreneurship"],

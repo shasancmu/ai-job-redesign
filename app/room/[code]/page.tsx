@@ -32,6 +32,8 @@ import LicensingBriefRoom from "@/components/LicensingBriefRoom";
 import ScoreInventionRoom from "@/components/ScoreInventionRoom";
 import PositionResearchRoom from "@/components/PositionResearchRoom";
 import RankDisclosuresRoom from "@/components/RankDisclosuresRoom";
+import FindCofounderRoom from "@/components/FindCofounderRoom";
+import DiligenceScienceRoom from "@/components/DiligenceScienceRoom";
 import PipelineRoom from "@/components/PipelineRoom";
 import PaperStudyRoom from "@/components/PaperStudyRoom";
 import InteractionRoom from "@/components/InteractionRoom";
@@ -254,6 +256,17 @@ export default async function RoomPage({
     if (session.exercise === "position-research") return <PositionResearchRoom session={session} initialWorkspace={iw} />;
     if (session.exercise === "rank-disclosures") return <RankDisclosuresRoom session={session} initialWorkspace={iw} />;
     return <ScoreInventionRoom session={session} initialWorkspace={iw} />;
+  }
+
+  // Scientifiq people family (technical co-founder, science diligence). Host only.
+  if (["find-cofounder", "diligence-science"].includes(session.exercise || "")) {
+    if (!amHost) redirect("/dashboard");
+    await supabase.from("workspaces").upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase.from("workspaces").select("*").eq("session_id", session.id).eq("author_id", user.id).maybeSingle();
+    const iw = workspace || { session_id: session.id, author_id: user.id };
+    return session.exercise === "diligence-science"
+      ? <DiligenceScienceRoom session={session} initialWorkspace={iw} />
+      : <FindCofounderRoom session={session} initialWorkspace={iw} />;
   }
 
   // Find Your Superpower: single-user, host only.
