@@ -65,16 +65,6 @@ export default function AccountMenu({
     .join("") || "Y";
 
   const item = "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-slate-700 transition hover:bg-mist";
-  const section = "px-2.5 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400";
-  // A role group: a divider, then a small uppercase header, so each scope
-  // (teaching, your org, platform admin) reads as its own separate block.
-  const group = (label: string, children: React.ReactNode) => (
-    <>
-      <div className="my-1 border-t border-line" />
-      <div className={section}>{label}</div>
-      {children}
-    </>
-  );
 
   const menu = open && pos && mounted
     ? createPortal(
@@ -91,33 +81,14 @@ export default function AccountMenu({
             <a href="/achievements" className={item}>{labels.achievements}</a>
             <a href="/profile" className={item}>{labels.profile}</a>
             {tour && <button onClick={() => { setOpen(false); window.dispatchEvent(new Event("app:start-tour")); }} className={item}>{labels.tour}</button>}
-            {(facilitator || director || superadmin) && <a href="/tutorial" className={item}>📔 Guided tour</a>}
-            {(facilitator || director || superadmin) && <a href="/overview" className={item}>📚 Module overview</a>}
-            {(director || superadmin) && <a href="/build" className={item}>Build a module</a>}
-            {(facilitator || director || superadmin) && <a href="/decks" className={item}>Presentations</a>}
 
-            {facilitator && group("Teaching", (
-              <a href="/facilitator" className={item}>Cohorts</a>
-            ))}
-
-            {director && group("Your organization", (
+            {(facilitator || director || superadmin) && (
               <>
-                <a href="/team" className={item}>Overview</a>
-                <a href="/team/usage" className={item}>Usage</a>
-                <a href="/team/certificates" className={item}>Certificates</a>
+                <div className="my-1 border-t border-line" />
+                <a href="/studio" className={item}>🎬 Studio</a>
+                {(director || superadmin) && <a href="/admin" className={item}>⚙️ Admin</a>}
               </>
-            ))}
-
-            {superadmin && group("Platform admin", (
-              <>
-                <a href="/admin/usage" className={item}>Usage</a>
-                <a href="/admin/ai" className={item}>AI spend &amp; health</a>
-                <a href="/admin/costs" className={item}>Module unit costs</a>
-                <a href="/admin/orgs" className={item}>Organizations</a>
-                <a href="/admin/certificates" className={item}>Certificates</a>
-                <a href="/admin/messages" className={item}>Contact messages</a>
-              </>
-            ))}
+            )}
 
             <div className="my-1 border-t border-line" />
             <a href="/contact" className={item}>Send feedback</a>
