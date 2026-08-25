@@ -11,6 +11,7 @@ import type { Slide, DeckCard } from "@/lib/deckTypes";
 const CATEGORY_BUNDLES: Record<CategoryKey, string[]> = {
   redesign: ["ai-ready", "career-navigator"],
   strategy: ["strategist", "founder"],
+  commercialize: ["founder"],
   negotiate: ["negotiator"],
   live: [],
   research: ["research"],
