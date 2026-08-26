@@ -16,6 +16,8 @@ import AdminTools from "@/components/AdminTools";
 import HeaderNav from "@/components/HeaderNav";
 import Tour from "@/components/Tour";
 import CanvasView from "@/components/CanvasView";
+import CohortSummaryMenu from "@/components/CohortSummaryMenu";
+import HideSessionButton from "@/components/HideSessionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +30,7 @@ const HUB_TOUR = [
 export default async function Facilitator({
   searchParams,
 }: {
-  searchParams: { cohort?: string };
+  searchParams: { cohort?: string; showHidden?: string };
 }) {
   const supabase = createClient();
   const {
@@ -77,7 +79,7 @@ export default async function Facilitator({
   const cohort = searchParams.cohort;
   if (cohort && visibleCohorts && !visibleCohorts.includes(cohort)) redirect("/facilitator");
   return cohort ? (
-    <CohortDetail admin={admin} cohort={cohort} />
+    <CohortDetail admin={admin} cohort={cohort} showHidden={searchParams.showHidden === "1"} />
   ) : (
     <Overview admin={admin} allowedCohorts={visibleCohorts} classes={visibleClasses} superadmin={access.superadmin} />
   );
@@ -263,7 +265,7 @@ async function Overview({ admin, allowedCohorts, classes, superadmin }: { admin:
 }
 
 // ------------------------------------------------------------ CohortDetail ---
-async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
+async function CohortDetail({ admin, cohort, showHidden }: { admin: any; cohort: string; showHidden: boolean }) {
   const untagged = cohort === UNTAGGED;
 
   let q = admin
@@ -271,7 +273,11 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
     .select("*")
     .order("created_at", { ascending: false });
   q = untagged ? q.is("cohort", null) : q.eq("cohort", cohort);
-  const { data: sessions } = await q;
+  const { data: allSessions } = await q;
+  // Hidden responses drop out of the view and roll-ups unless the facilitator
+  // is explicitly showing them.
+  const hiddenCount = ((allSessions as any[]) || []).filter((s: any) => s.hidden).length;
+  const sessions = showHidden ? ((allSessions as any[]) || []) : ((allSessions as any[]) || []).filter((s: any) => !s.hidden);
 
   const sessionIds = (sessions || []).map((s: any) => s.id);
   let workspaces: any[] = [];
@@ -364,6 +370,18 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
     }
   }
 
+  // The exercises this cohort ran that can be summarized (one summary deck each).
+  const summaryOpts = untagged
+    ? []
+    : ([
+        { key: "job", label: "Redesign your job (paired)", paired: true },
+        { key: "workflow", label: "Redesign your workflow (paired)", paired: true },
+        { key: "solo", label: "Redesign your job with AI", paired: false },
+        { key: "workflow-solo", label: "Redesign your workflow with AI", paired: false },
+      ] as const)
+        .filter((pe) => (sessions || []).some((s: any) => s.exercise === pe.key && s.host_id && (pe.paired ? s.guest_id : true)))
+        .map(({ key, label }) => ({ key, label }));
+
   return (
     <Shell>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -381,7 +399,8 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
             {(sessions || []).length} pairs
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <CohortSummaryMenu cohort={cohort} options={summaryOpts} />
           <Link
             href={`/facilitator/live?cohort=${encodeURIComponent(cohort)}`}
             className="btn-ghost text-sm"
@@ -416,35 +435,6 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
           )}
         </div>
       </div>
-
-      {!untagged && (() => {
-        const opts = [
-          { key: "job", label: "Redesign your job", paired: true },
-          { key: "workflow", label: "Redesign your workflow", paired: true },
-          { key: "solo", label: "Redesign your job with AI", paired: false },
-          { key: "workflow-solo", label: "Redesign your workflow with AI", paired: false },
-        ].filter((pe) => (sessions || []).some((s: any) => s.exercise === pe.key && s.host_id && (pe.paired ? s.guest_id : true)));
-        if (!opts.length) return null;
-        return (
-          <div className="mb-6 rounded-2xl border border-line bg-mist/40 p-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-ink"><span aria-hidden>🎓</span> Class summary deck</div>
-            <p className="mt-0.5 text-xs text-slate-500">
-              A projector-ready summary of what the room did together: what they kept human, what they gave AI, and the takeaways.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {opts.map((pe) => (
-                <Link
-                  key={pe.key}
-                  href={`/facilitator/summary?cohort=${encodeURIComponent(cohort)}&exercise=${pe.key}`}
-                  className="btn-primary text-sm"
-                >
-                  Present: {pe.label} →
-                </Link>
-              ))}
-            </div>
-          </div>
-        );
-      })()}
 
       {classOverview && <ClassOverview data={classOverview} />}
 
@@ -495,6 +485,17 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
         );
       })}
 
+      {!untagged && (hiddenCount > 0 || showHidden) && (
+        <div className="mb-3 flex justify-end text-sm">
+          <Link
+            href={`/facilitator?cohort=${encodeURIComponent(cohort)}${showHidden ? "" : "&showHidden=1"}`}
+            className="text-slate-400 hover:text-ink"
+          >
+            {showHidden ? `Hide the ${hiddenCount} hidden response${hiddenCount === 1 ? "" : "s"}` : `Show ${hiddenCount} hidden response${hiddenCount === 1 ? "" : "s"}`}
+          </Link>
+        </div>
+      )}
+
       {(sessions || []).length === 0 ? (
         <p className="text-slate-500">No sessions in this cohort.</p>
       ) : (
@@ -520,18 +521,22 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
                     )}
                   </span>
                 </div>
-                <span
-                  className={
-                    "rounded-full px-2.5 py-1 text-xs font-medium " +
-                    (s.status === "done"
-                      ? "bg-green-100 text-green-700"
-                      : s.status === "active"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-slate-100 text-slate-600")
-                  }
-                >
-                  {s.status}
-                </span>
+                <div className="flex items-center gap-3">
+                  {s.hidden && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-400">hidden</span>}
+                  <span
+                    className={
+                      "rounded-full px-2.5 py-1 text-xs font-medium " +
+                      (s.status === "done"
+                        ? "bg-green-100 text-green-700"
+                        : s.status === "active"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-slate-100 text-slate-600")
+                    }
+                  >
+                    {s.status}
+                  </span>
+                  <HideSessionButton code={s.code} hidden={!!s.hidden} />
+                </div>
               </div>
 
               {s.exercise === "career-xray" || s.exercise === "jd-xray" ? (

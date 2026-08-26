@@ -58,6 +58,8 @@ alter table public.sessions add column if not exists broadcast_msg text;
 alter table public.sessions add column if not exists broadcast_at timestamptz;
 -- Long, unguessable public token for the Vendor Disclosure open link.
 alter table public.sessions add column if not exists public_token text;
+-- Facilitator can hide an individual response from the cohort view and roll-ups.
+alter table public.sessions add column if not exists hidden boolean not null default false;
 
 create index if not exists sessions_code_idx on public.sessions (code);
 create index if not exists sessions_public_token_idx on public.sessions (public_token);

@@ -43,11 +43,12 @@ export async function buildCohortDeck(
   const meta = META[exercise];
   const { data: sessions } = await admin
     .from("sessions")
-    .select("id, host_id, guest_id, status")
+    .select("id, host_id, guest_id, status, hidden")
     .eq("cohort", cohort)
     .eq("exercise", exercise);
-  // Paired exercises need both partners; solo needs a host.
-  const relevant = ((sessions as any[]) || []).filter((s) => s.host_id && (meta.paired ? s.guest_id : true));
+  // Paired exercises need both partners; solo needs a host. Hidden responses are
+  // excluded (the facilitator hid them from the roll-up).
+  const relevant = ((sessions as any[]) || []).filter((s) => !s.hidden && s.host_id && (meta.paired ? s.guest_id : true));
   if (relevant.length === 0) return null;
 
   // Names.
