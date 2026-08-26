@@ -50,6 +50,7 @@ export type ModuleDef = {
     | "disclosure"
     | "disclosure-haip"
     | "consult"
+    | "earnings-call"
     | "superpower"
     | "board"
     | "empathy"
@@ -771,6 +772,21 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_LICENSING",
   },
   {
+    slug: "earnings-call",
+    exercise: "earnings-call",
+    name: "The Earnings Call",
+    tagline: "You're the analyst on a live earnings call. A short-seller says the CEO faked the quarter with channel stuffing. Interrogate the AI CEO, and get scored on how much your questions reveal.",
+    description:
+      "A forensic-questioning simulation. A small company just posted a record quarter, and an anonymous short report alleges channel stuffing. You are the one analyst who did the homework. You get seven questions to an AI CEO who answers like a real executive: he concedes ground to a precise, well-aimed question and spins a vague one, and he never tells you whether he is guilty. The catch: you do not know either, and each run hides a different truth behind the same alarming numbers, so you cannot pattern-match your way to the answer. Then you commit a verdict, a confidence, and the one fact that would flip you. The report grades the diagnostic value of every question you asked, names the highest-value question you missed, reveals what actually separated an honest quarter from a manipulated one, and shows how your call compared to a naive AI's. The skill it builds is the real one: asking the question with the highest expected information gain, under genuine uncertainty.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "📊",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_EARNINGS",
+  },
+  {
     slug: "technology-landscape",
     exercise: "tech-landscape",
     name: "Technology Landscape Scan",
@@ -1468,7 +1484,7 @@ const CATALOG_ORDER: string[] = [
   "good-business", "customer-empathy", "opportunity-capability", "test-the-bet",
   "ai-canvas", "balanced-scorecard", "execution-4a", "business-consult", "voice-consult",
   "ai-board", "business-myopia", "define-vision", "define-vision-voice", "deeptech-canvas",
-  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
+  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "earnings-call", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
   // Negotiate
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
   "lease-the-space", "rehearse-hard-conversation",

@@ -27,6 +27,8 @@ export default function RoleplayChat({
   aiOpens = false,
   placeholder,
   emptyHint,
+  disabled = false,
+  disabledHint,
 }: {
   chat: Msg[];
   setChat: (m: Msg[]) => void;
@@ -35,6 +37,8 @@ export default function RoleplayChat({
   aiOpens?: boolean; // AI speaks first (negotiation) vs. user opens (hard convo)
   placeholder: string;
   emptyHint?: React.ReactNode;
+  disabled?: boolean; // no more input allowed (e.g. a question budget is spent)
+  disabledHint?: React.ReactNode; // shown in place of the composer when disabled
 }) {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -210,8 +214,8 @@ export default function RoleplayChat({
       <div className="mb-3 flex items-center justify-between">
         <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">With {counterpartName}</div>
         <div className="flex items-center gap-1 rounded-full bg-mist p-0.5">
-          <button onClick={() => voice && toggleVoice()} className={seg(!voice)}>Text</button>
-          <button onClick={() => !voice && toggleVoice()} disabled={!supported} title={supported ? "" : "Voice needs Chrome or Safari"} className={seg(voice) + (supported ? "" : " opacity-40")}>🎙 Voice</button>
+          <button onClick={() => !disabled && voice && toggleVoice()} className={seg(!voice)}>Text</button>
+          <button onClick={() => !disabled && !voice && toggleVoice()} disabled={!supported || disabled} title={supported ? "" : "Voice needs Chrome or Safari"} className={seg(voice) + (supported && !disabled ? "" : " opacity-40")}>🎙 Voice</button>
         </div>
       </div>
 
@@ -228,7 +232,9 @@ export default function RoleplayChat({
 
       {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
 
-      {voice ? (
+      {disabled ? (
+        <div className="mt-3 rounded-xl border border-line bg-mist px-4 py-3 text-sm text-slate-600">{disabledHint || "This conversation is complete."}</div>
+      ) : voice ? (
         <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-line bg-mist px-4 py-3">
           <div className="flex items-center gap-2 text-sm font-medium text-ink">
             <span className={"flex h-2.5 w-2.5 rounded-full " + (speaking ? "bg-amber" : listening ? "animate-pulse bg-sage" : "bg-slate-300")} />
