@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin, UNTAGGED } from "@/lib/admin";
-import { facilitatorAccess } from "@/lib/orgs";
+import { facilitatorAccess, getActiveOrg } from "@/lib/orgs";
 import { MODULES, moduleByExercise } from "@/lib/modules";
 import { ROLE_META } from "@/lib/workflow";
 import { canvasByExercise, scoreColor } from "@/lib/canvases";
@@ -55,21 +55,30 @@ export default async function Facilitator({
     );
   }
 
-  // Non-superadmin facilitators are scoped to the cohorts of classes they own or
-  // that belong to their org(s). Superadmin (allowedCohorts = null) sees all.
-  let allowedCohorts: string[] | null = null;
-  if (!access.superadmin) {
-    const orgFilter = access.orgIds.length ? `,org_id.in.(${access.orgIds.join(",")})` : "";
-    const { data: myClasses } = await admin.from("classes").select("code").or(`owner_id.eq.${user.id}${orgFilter}`);
-    allowedCohorts = (myClasses || []).map((c: any) => c.code);
+  // Scope the hub to the ACTIVE organization (the one selected in the header
+  // switcher), so a director of several orgs sees one org's cohorts at a time.
+  // A director/superadmin sees all of that org's classes; an instructor sees only
+  // the ones they own within it. In the Personal context (no active org), a
+  // superadmin sees everything and everyone else sees their own org-less classes.
+  const activeOrg = await getActiveOrg(user);
+  let visibleCohorts: string[] | null = null; // null = all
+  if (activeOrg) {
+    const seesAllOrgClasses = access.superadmin || access.orgIds.includes(activeOrg.id);
+    let cq = admin.from("classes").select("code").eq("org_id", activeOrg.id);
+    if (!seesAllOrgClasses) cq = cq.eq("owner_id", user.id);
+    const { data: orgClasses } = await cq;
+    visibleCohorts = (orgClasses || []).map((c: any) => c.code);
+  } else if (!access.superadmin) {
+    const { data: myClasses } = await admin.from("classes").select("code").eq("owner_id", user.id).is("org_id", null);
+    visibleCohorts = (myClasses || []).map((c: any) => c.code);
   }
 
   const cohort = searchParams.cohort;
-  if (cohort && allowedCohorts && !allowedCohorts.includes(cohort)) redirect("/facilitator");
+  if (cohort && visibleCohorts && !visibleCohorts.includes(cohort)) redirect("/facilitator");
   return cohort ? (
     <CohortDetail admin={admin} cohort={cohort} />
   ) : (
-    <Overview admin={admin} allowedCohorts={allowedCohorts} superadmin={access.superadmin} />
+    <Overview admin={admin} allowedCohorts={visibleCohorts} superadmin={access.superadmin} />
   );
 }
 
