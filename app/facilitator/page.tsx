@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin, UNTAGGED } from "@/lib/admin";
 import { facilitatorAccess, getActiveOrg } from "@/lib/orgs";
-import { MODULES, moduleByExercise } from "@/lib/modules";
+import { moduleByExercise } from "@/lib/modules";
 import { ROLE_META } from "@/lib/workflow";
 import { canvasByExercise, scoreColor } from "@/lib/canvases";
 import { analyze as negAnalyze, scenarioByExercise as negScenario, maxJointOf } from "@/lib/negotiation";
@@ -314,72 +314,51 @@ async function CohortDetail({ admin, cohort, showHidden }: { admin: any; cohort:
   const docFor = (sessionId: string) =>
     docs.find((d) => d.session_id === sessionId);
 
-  // ---- Class overview (only when this cohort is a class) ----
-  let classOverview: any = null;
+  // ---- Cohort meta + the whole-cohort activity counts -----------------------
+  let className = "";
+  let joined = 0;
+  let benchUsers = 0;
+  let netUsers = 0;
   if (!untagged) {
-    const { data: klass } = await admin
-      .from("classes")
-      .select("id, name, modules")
-      .eq("code", cohort)
-      .maybeSingle();
+    const { data: klass } = await admin.from("classes").select("id, name").eq("code", cohort).maybeSingle();
     if (klass) {
-      const [{ count: joined }, { data: bench }, { data: net }] = await Promise.all([
+      className = klass.name || "";
+      const [{ count: jc }, { data: bench }, { data: net }] = await Promise.all([
         admin.from("class_members").select("user_id", { count: "exact", head: true }).eq("class_id", klass.id),
         admin.from("benchmark_results").select("user_id").eq("cohort", cohort),
         admin.from("network_responses").select("user_id").eq("cohort", cohort),
       ]);
-      const benchUsers = new Set((bench || []).map((r: any) => r.user_id)).size;
-      const netUsers = new Set((net || []).map((r: any) => r.user_id)).size;
-      const bySession = (exercise: string) => {
-        const ss = (sessions || []).filter((s: any) => s.exercise === exercise);
-        const users = new Set<string>();
-        ss.forEach((s: any) => {
-          if (s.host_id) users.add(s.host_id);
-          if (s.guest_id) users.add(s.guest_id);
-        });
-        return users.size;
-      };
-      const statFor = (slug: string): number => {
-        if (slug === "benchmark") return benchUsers;
-        if (slug === "network") return netUsers;
-        if (slug === "reimagine-job") return bySession("job");
-        if (slug === "reimagine-workflow") return bySession("workflow");
-        if (slug === "solo-ai") return bySession("solo");
-        if (slug === "execution-4a") return bySession("four-a");
-        if (slug === "balanced-scorecard") return bySession("scorecard");
-        if (slug === "good-business") return bySession("venture");
-        if (slug === "close-the-offer") return bySession("negotiation");
-        if (slug === "name-your-price") return bySession("haggle");
-        if (slug === "career-x-ray") return bySession("career-xray");
-        if (slug === "jd-x-ray") return bySession("jd-xray");
-        if (slug === "ai-canvas") return bySession("gas");
-        if (slug === "opportunity-capability") return bySession("ocfit");
-        if (slug === "test-the-bet") return bySession("experiment");
-        return 0;
-      };
-      classOverview = {
-        name: klass.name,
-        joined: joined ?? 0,
-        rows: ((klass.modules as string[]) || []).map((slug) => ({
-          slug,
-          name: MODULES.find((m) => m.slug === slug)?.name || slug,
-          count: statFor(slug),
-        })),
-      };
+      joined = jc ?? 0;
+      benchUsers = new Set((bench || []).map((r: any) => r.user_id)).size;
+      netUsers = new Set((net || []).map((r: any) => r.user_id)).size;
     }
   }
 
-  // The exercises this cohort ran that can be summarized (one summary deck each).
-  const summaryOpts = untagged
-    ? []
-    : ([
-        { key: "job", label: "Redesign your job (paired)", paired: true },
-        { key: "workflow", label: "Redesign your workflow (paired)", paired: true },
-        { key: "solo", label: "Redesign your job with AI", paired: false },
-        { key: "workflow-solo", label: "Redesign your workflow with AI", paired: false },
-      ] as const)
-        .filter((pe) => (sessions || []).some((s: any) => s.exercise === pe.key && s.host_id && (pe.paired ? s.guest_id : true)))
-        .map(({ key, label }) => ({ key, label }));
+  // "What this cohort did": one row per activity that actually ran, with its
+  // results/summary link. Redesign exercises get a summary deck; benchmark and
+  // network get their own result views; everything else is reviewed inline below.
+  const exerciseUsers = new Map<string, Set<string>>();
+  for (const s of sessions) {
+    if (!s.exercise) continue;
+    if (!exerciseUsers.has(s.exercise)) exerciseUsers.set(s.exercise, new Set<string>());
+    const set = exerciseUsers.get(s.exercise)!;
+    if (s.host_id) set.add(s.host_id);
+    if (s.guest_id) set.add(s.guest_id);
+  }
+  const SUMMARY_EX = new Set(["job", "workflow", "solo", "workflow-solo"]);
+  type ResultRow = { key: string; name: string; count: number; href?: string; action?: string };
+  const results: ResultRow[] = [];
+  for (const [ex, users] of exerciseUsers) {
+    const row: ResultRow = { key: ex, name: moduleByExercise(ex)?.name || ex, count: users.size };
+    if (SUMMARY_EX.has(ex)) {
+      row.href = `/facilitator/summary?cohort=${encodeURIComponent(cohort)}&exercise=${ex}`;
+      row.action = "Present summary →";
+    }
+    results.push(row);
+  }
+  if (benchUsers > 0) results.push({ key: "benchmark", name: "You vs. AI (Benchmark)", count: benchUsers, href: `/facilitator/benchmark?cohort=${encodeURIComponent(cohort)}`, action: "View results →" });
+  if (netUsers > 0) results.push({ key: "network", name: "The Network", count: netUsers, href: `/facilitator/network?cohort=${encodeURIComponent(cohort)}`, action: "View map →" });
+  results.sort((a, b) => (a.href ? 0 : 1) - (b.href ? 0 : 1) || b.count - a.count);
 
   return (
     <Shell>
@@ -392,37 +371,48 @@ async function CohortDetail({ admin, cohort, showHidden }: { admin: any; cohort:
         <HeaderNav />
       </div>
 
-      {/* One panel: present a summary, and the cohort tools. */}
-      <div className="mb-6 overflow-hidden rounded-2xl border border-line bg-white">
-        <div className="p-5">
-          <div className="flex items-center gap-2 text-sm font-semibold text-ink"><span aria-hidden>🎓</span> Class summary</div>
-          {summaryOpts.length > 0 ? (
-            <>
-              <p className="mt-0.5 text-xs text-slate-500">A projector-ready summary of what the room did. Pick an exercise to present.</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {summaryOpts.map((o) => (
-                  <Link key={o.key} href={`/facilitator/summary?cohort=${encodeURIComponent(cohort)}&exercise=${o.key}`} className="btn-primary text-sm">
-                    {o.label} →
-                  </Link>
-                ))}
-              </div>
-            </>
-          ) : (
-            <p className="mt-0.5 text-xs text-slate-500">A summary appears here once the cohort completes a job or workflow redesign.</p>
-          )}
-        </div>
-        <div className="flex flex-wrap items-center gap-2 border-t border-line bg-mist/30 px-5 py-3">
-          <Link href={`/facilitator/live?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">● Live cockpit</Link>
-          <Link href={`/facilitator/aggregate?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">Aggregate</Link>
-          <Link href={`/facilitator/benchmark?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">Benchmark</Link>
-          <Link href={`/facilitator/network?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">Network</Link>
+      {/* What this cohort did: every activity that ran, with its results. */}
+      <div className="mb-6 rounded-2xl border border-line bg-white p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+            <span aria-hidden>📋</span> What this cohort did
+          </div>
           {sessionIds.length > 0 && (
-            <a href={`/facilitator/export?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">↓ Export CSV</a>
+            <a href={`/facilitator/export?cohort=${encodeURIComponent(cohort)}`} className="text-xs text-slate-400 hover:text-ink">↓ Export CSV</a>
           )}
         </div>
+        {results.length === 0 ? (
+          <p className="mt-2 text-xs text-slate-500">Nothing yet. Once the room runs an activity, its results appear here.</p>
+        ) : (
+          <div className="mt-3 divide-y divide-line">
+            {results.map((r) => (
+              <div key={r.key} className="flex items-center justify-between gap-3 py-3">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold text-ink">{r.name}</div>
+                  <div className="text-xs text-slate-400">{r.count} {r.count === 1 ? "participant" : "participants"}</div>
+                </div>
+                {r.href ? (
+                  <Link href={r.href} className="btn-primary shrink-0 text-sm">{r.action}</Link>
+                ) : (
+                  <span className="shrink-0 text-xs text-slate-400">See responses below</span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {classOverview && <ClassOverview data={classOverview} />}
+      {/* Run live: real-time facilitation, for while class is in session. */}
+      {!untagged && (
+        <div className="mb-6 rounded-2xl border border-line bg-mist/30 p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-ink"><span aria-hidden className="text-sage">●</span> Run live</div>
+          <p className="mt-0.5 text-xs text-slate-500">During class: drive the room in real time, or watch answers aggregate live on screen.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link href={`/facilitator/live?cohort=${encodeURIComponent(cohort)}`} className="btn-primary text-sm">● Live cockpit</Link>
+            <Link href={`/facilitator/aggregate?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">Live aggregate</Link>
+          </div>
+        </div>
+      )}
 
       <FourAHeatmap
         rows={(sessions || [])
@@ -624,39 +614,6 @@ function ParticipantColumn({
   );
 }
 
-function ClassOverview({ data }: { data: any }) {
-  const joined = data.joined || 0;
-  return (
-    <div className="card mb-6 p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <div className="text-lg font-bold text-ink">{data.name}</div>
-        <div className="text-sm text-slate-500">
-          <span className="text-2xl font-bold text-ink">{joined}</span> joined
-        </div>
-      </div>
-      <div className="mt-4 space-y-2.5">
-        {data.rows.map((r: any) => {
-          const pct = joined ? Math.min(100, Math.round((r.count / joined) * 100)) : 0;
-          return (
-            <div key={r.slug} className="flex items-center gap-3">
-              <div className="w-40 shrink-0 truncate text-sm text-slate-600">{r.name}</div>
-              <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100">
-                <div className="h-full rounded-full bg-sage" style={{ width: `${pct}%` }} />
-              </div>
-              <div className="w-24 shrink-0 text-right text-sm text-slate-600">
-                <span className="font-semibold text-ink">{r.count}</span>
-                {joined ? <span className="text-slate-400"> / {joined}</span> : ""}
-              </div>
-            </div>
-          );
-        })}
-        {data.rows.length === 0 && (
-          <div className="text-sm text-slate-400">No modules in this class yet.</div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 function SoloView({ authorName, ws, code }: { authorName: string; ws: any; code: string }) {
   if (!ws) {
