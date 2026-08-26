@@ -77,6 +77,14 @@ export default function ClassManager() {
     load();
   }
 
+  async function adopt(k: Klass) {
+    if (!confirm(`Pull this cohort's members' un-grouped sessions into "${k.name}"? Runs by members that weren't tagged to any cohort will roll up here, so they show in results and the class summary.`)) return;
+    const res = await fetch("/api/classes/adopt", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: k.code }) });
+    const d = await res.json().catch(() => ({}));
+    if (res.ok) alert(`Pulled in ${d.adopted ?? 0} session${d.adopted === 1 ? "" : "s"}.`);
+    else alert(d.error || "Couldn't pull those in.");
+  }
+
   async function save() {
     setErr(null);
     const c = normalizeCode(code);
@@ -278,6 +286,9 @@ export default function ClassManager() {
                     </button>
                     <button onClick={() => del(c)} className="text-sm text-clay hover:underline">
                       Delete
+                    </button>
+                    <button onClick={() => adopt(c)} className="btn-ghost text-sm" title="Roll members' un-grouped sessions into this cohort">
+                      Pull in sessions
                     </button>
                     <Link href={`/facilitator?cohort=${encodeURIComponent(c.code)}`} className="btn-primary text-sm">
                       View results →

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { moduleBySlug } from "@/lib/modules";
 import { loadRunnableBySlug } from "@/lib/customModules";
+import { getActiveOrg, ensureMasterCohort } from "@/lib/orgs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,11 +39,19 @@ export async function GET(request: Request, { params }: { params: { slug: string
     exercise = custom.exercise;
   }
 
+  // Default the session's cohort to the member's active-org general cohort, so an
+  // org's runs roll up for its director without needing a special link.
+  let cohort: string | null = null;
+  try {
+    const org = await getActiveOrg(user);
+    if (org) cohort = await ensureMasterCohort(org);
+  } catch { /* no org context */ }
+
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = makeCode();
     const { data, error } = await supabase
       .from("sessions")
-      .insert({ code, host_id: user.id, status: "active", exercise })
+      .insert({ code, host_id: user.id, status: "active", exercise, cohort })
       .select()
       .single();
     if (!error && data) return NextResponse.redirect(`${origin}/room/${code}`);
