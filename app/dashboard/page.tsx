@@ -17,6 +17,7 @@ import LanguagePicker from "@/components/LanguagePicker";
 import { I18N_ENABLED } from "@/lib/flags";
 import EnrichOnce from "@/components/EnrichOnce";
 import YourWork, { type WorkItem } from "@/components/YourWork";
+import GiftsReceived, { type Gift } from "@/components/GiftsReceived";
 import FollowUps from "@/components/FollowUps";
 import { dueFollowUps } from "@/lib/followups";
 import { computeStreak, artifactHref, nextStep } from "@/lib/momentum";
@@ -172,6 +173,47 @@ export default async function Dashboard({
   const runsLeft = await runsLeftByModule(supabase, user.id, instructor);
   const followUps = await dueFollowUps(supabase, user.id).catch(() => []);
 
+  // ---- Gifts received: the reimagined role a partner designed for you -------
+  // For each paired job-redesign ("job") session with a partner, the gift is the
+  // partner's workspace (the plan/redesign they authored for you), opened at
+  // /gift/[code].
+  let gifts: Gift[] = [];
+  const jobSessions = (sessions || []).filter((s: any) => s.exercise === "job" && s.host_id && s.guest_id);
+  if (jobSessions.length) {
+    const ids = jobSessions.map((s: any) => s.id);
+    const { data: wss } = await supabase
+      .from("workspaces")
+      .select("session_id, author_id, plan, final_description, new_job_description")
+      .in("session_id", ids);
+    const bySession = new Map<string, any[]>();
+    for (const w of (wss as any[]) || []) {
+      const arr = bySession.get(w.session_id) || [];
+      arr.push(w);
+      bySession.set(w.session_id, arr);
+    }
+    const hasContent = (w: any) =>
+      !!w &&
+      ((w.plan && (w.plan.headline || w.plan.summary || (w.plan.human?.length || 0) + (w.plan.ai?.length || 0) > 0)) ||
+        w.final_description ||
+        w.new_job_description);
+    const raw: { code: string; giverId: string; at: string }[] = [];
+    for (const s of jobSessions) {
+      const partnerId = s.host_id === user.id ? s.guest_id : s.host_id;
+      if (!partnerId) continue;
+      const w = (bySession.get(s.id) || []).find((x) => x.author_id === partnerId);
+      if (hasContent(w)) raw.push({ code: s.code, giverId: partnerId, at: s.created_at });
+    }
+    raw.sort((a, b) => (a.at < b.at ? 1 : -1));
+    const top = raw.slice(0, 6);
+    const giverIds = [...new Set(top.map((g) => g.giverId))];
+    let nameById = new Map<string, string>();
+    if (giverIds.length) {
+      const { data: profs } = await supabase.from("profiles").select("id, display_name").in("id", giverIds);
+      nameById = new Map((profs as any[] || []).map((p) => [p.id, p.display_name]));
+    }
+    gifts = top.map((g) => ({ code: g.code, giverName: nameById.get(g.giverId) || "your partner" }));
+  }
+
   // Guided path: the next module toward the certificate you're closest to.
   let nextStep: ReturnType<typeof nextCertificateStep> = null;
   try {
@@ -252,6 +294,8 @@ export default async function Dashboard({
       <div data-tour="your-work">
         <YourWork recents={recents} reportsCount={reportsCount} />
       </div>
+
+      {gifts.length > 0 && <GiftsReceived gifts={gifts} />}
 
       <section data-tour="catalog">
         <h2 className="eyebrow">{t("dash.exercises")}</h2>
