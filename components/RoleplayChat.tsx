@@ -55,6 +55,8 @@ export default function RoleplayChat({
   const finalRef = useRef(""); const interimRef = useRef("");
   const silenceRef = useRef<any>(null); const maxRef = useRef<any>(null);
   const keepAliveRef = useRef<any>(null); // the "nudge speechSynthesis" interval
+  const speakingRef = useRef(false); // true while the AI voice is playing; guards the mic
+  const speakGenRef = useRef(0); // ignore stale utterance callbacks after a new speak() supersedes
   const turnDone = useRef(false);
   const bestVoice = useRef<SpeechSynthesisVoice | null>(null);
   const opened = useRef(false);
@@ -69,13 +71,28 @@ export default function RoleplayChat({
     const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
     if (!voiceRef.current || !synth) { after?.(); return; }
     try {
+      // Close the mic before playing audio, so the recognizer can't hear the AI
+      // voice and transcribe it as the user's answer (acoustic echo).
+      const gen = ++speakGenRef.current;
+      speakingRef.current = true;
+      clearTimers(); setListening(false);
+      try { recRef.current?.stop(); } catch {}
       synth.cancel();
       setSpeaking(true);
       const u = new SpeechSynthesisUtterance(text);
       u.rate = 1.0;
       u.voice = bestVoice.current || pickVoice(synth.getVoices());
       let done = false;
-      const fin = () => { if (done) return; done = true; clearInterval(keepAliveRef.current); keepAliveRef.current = null; setSpeaking(false); after?.(); };
+      // Settle briefly after speech ends before reopening the mic, so a trailing
+      // word of audio doesn't get captured. Only the current utterance (gen) may
+      // clear the guard or start listening; a superseded one stays silent.
+      const fin = () => {
+        if (done) return; done = true;
+        clearInterval(keepAliveRef.current); keepAliveRef.current = null;
+        if (speakGenRef.current !== gen) return; // a newer speak() has taken over
+        setSpeaking(false);
+        setTimeout(() => { if (speakGenRef.current !== gen) return; speakingRef.current = false; after?.(); }, 350);
+      };
       const wd = setTimeout(() => { try { synth.cancel(); } catch {} fin(); }, Math.min(3500 + text.length * 65, 24000));
       u.onend = () => { clearTimeout(wd); fin(); };
       u.onerror = () => { clearTimeout(wd); fin(); };
@@ -133,7 +150,7 @@ export default function RoleplayChat({
 
   const startListening = useCallback(() => {
     const rec = recRef.current;
-    if (!rec || !voiceRef.current) return;
+    if (!rec || !voiceRef.current || speakingRef.current) return; // never open the mic while the AI is speaking
     finalRef.current = ""; interimRef.current = ""; turnDone.current = false; setInterim("");
     clearTimers(); setListening(true);
     try { rec.start(); } catch {}
@@ -160,6 +177,7 @@ export default function RoleplayChat({
     const rec = new SR();
     rec.lang = "en-US"; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
     rec.onresult = (e: any) => {
+      if (speakingRef.current) return; // discard anything heard while the AI voice is playing
       let itm = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const r = e.results[i];
@@ -170,7 +188,7 @@ export default function RoleplayChat({
       clearTimeout(silenceRef.current);
       if (heard) silenceRef.current = setTimeout(() => finishRef.current(), SILENCE_MS);
     };
-    rec.onend = () => { if (voiceRef.current && !turnDone.current) finishRef.current(); };
+    rec.onend = () => { if (voiceRef.current && !turnDone.current && !speakingRef.current) finishRef.current(); };
     rec.onerror = (e: any) => { if (e?.error === "not-allowed" || e?.error === "service-not-allowed") setErr("Microphone access is blocked. Allow the mic and reload."); };
     recRef.current = rec;
     return () => {
