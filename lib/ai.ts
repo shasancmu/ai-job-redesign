@@ -228,7 +228,9 @@ async function complete(
   opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean; low?: boolean; onToken?: (delta: string) => void; flow?: string | null } = {}
 ): Promise<string> {
   const started = Date.now();
-  const model = opts.vision ? VISION_MODEL : opts.low ? LOW_MODEL : MODEL;
+  // Mirror runCompletion's routing so the logged model matches what actually ran.
+  const useLow = !opts.vision && (opts.low === true || (opts.low !== false && !opts.onToken));
+  const model = opts.vision ? VISION_MODEL : useLow ? LOW_MODEL : MODEL;
   let error: string | null = null;
   let usage: AiUsage | null = null;
   try {
@@ -262,11 +264,17 @@ async function runCompletion(
   messages: ChatMsg[],
   opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean; low?: boolean; onToken?: (delta: string) => void; flow?: string | null } = {}
 ): Promise<{ text: string; usage: AiUsage | null }> {
-  // Vision requests route to the dedicated vision config; "low" requests route to
-  // the optional faster model's config; otherwise the main model.
-  const baseUrl = (opts.vision ? VISION_BASE_URL : opts.low ? LOW_BASE_URL : BASE_URL).replace(/\/$/, "");
-  const model = opts.vision ? VISION_MODEL : opts.low ? LOW_MODEL : MODEL;
-  const apiKey = opts.vision ? VISION_API_KEY : opts.low ? LOW_API_KEY : process.env.AI_API_KEY;
+  // Model routing. Vision uses its own config. Otherwise the "low" (fast) model
+  // is used for one-shot GENERATIONS (reports, analyses, drafts), while the main
+  // model (Sonnet) is kept for STREAMED turns — the interviews and chat, where
+  // conversational nuance matters. Rules: low:true forces low; low:false forces
+  // the main model (for the few non-streamed conversational calls); otherwise the
+  // default is low for non-streamed and main for streamed. When AI_MODEL_LOW is
+  // unset, LOW_* equals the main config, so this whole thing is a no-op.
+  const useLow = !opts.vision && (opts.low === true || (opts.low !== false && !opts.onToken));
+  const baseUrl = (opts.vision ? VISION_BASE_URL : useLow ? LOW_BASE_URL : BASE_URL).replace(/\/$/, "");
+  const model = opts.vision ? VISION_MODEL : useLow ? LOW_MODEL : MODEL;
+  const apiKey = opts.vision ? VISION_API_KEY : useLow ? LOW_API_KEY : process.env.AI_API_KEY;
   const isAnthropic = baseUrl.includes("anthropic.com");
   // Some vision/reasoning models reject `temperature` entirely, so on vision
   // calls we send only an explicitly-provided value and otherwise omit it.
@@ -571,7 +579,7 @@ Probe: …`,
       content: `Their job: ${ctx.jobTitle || "(untitled)"}, ${ctx.jobDescription || ""}\nNotes so far:\n${ctx.notes || "(nothing captured yet)"}`,
     },
   ];
-  return complete(messages, { temperature: 0.7 });
+  return complete(messages, { temperature: 0.7, low: false }); // interview aid: keep on the main model
 }
 
 // Draws the workflow AS IT IS TODAY, an honest, ordered list of the real steps
@@ -2621,7 +2629,7 @@ export async function syntheticSimulateAI(input: { flowLabel: string; target: "i
     ? `a short version of the FINAL WRITE-UP's key takeaway and opening that this subject would receive at the end of "${input.flowLabel}"`
     : `a brief, realistic 3 to 4 message snippet of the AI interviewer for "${input.flowLabel}" talking with this subject, showing how the subject reacts`;
   const system = `You generate a short, realistic artifact to test one design variant of an AI experience. Produce ${what}. The experimental variant is a STYLE NOTE, apply it faithfully:${input.nudge ? ` "${input.nudge}"` : " (no change, this is the control)"}. Keep it under 170 words, concrete and true to how it would really read. Plain text only, no preamble.`;
-  return complete([{ role: "system", content: system }, { role: "user", content: `Subject persona: ${input.persona}` }], { temperature: 0.9, maxTokens: 320 });
+  return complete([{ role: "system", content: system }, { role: "user", content: `Subject persona: ${input.persona}` }], { temperature: 0.9, maxTokens: 320, low: false }); // persona roleplay: keep on the main model
 }
 
 export async function syntheticJudgeAI(input: { flowLabel: string; target: "interview" | "report"; metric: string; persona: string; artifact: string }): Promise<{ success: boolean; reason: string }> {
