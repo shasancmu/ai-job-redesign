@@ -10,7 +10,6 @@ type Result = { kind: "photo" | "text"; title: string; description: string; tran
 export default function PhotoCapture({ code, prompt, showPhotos = false }: { code: string; prompt: string; showPhotos?: boolean }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [caption, setCaption] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
@@ -38,14 +37,13 @@ export default function PhotoCapture({ code, prompt, showPhotos = false }: { cod
       const res = await fetch("/api/photo/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, image: preview, ...(showPhotos ? { caption: caption.trim() } : {}) }),
+        body: JSON.stringify({ code, image: preview }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) setErr(data.error || "Couldn't send. Try again.");
       else {
         setResult({ kind: data.kind, title: data.title, description: data.description, transcript: data.transcript });
         setPreview(null);
-        setCaption("");
       }
     } catch {
       setErr("Couldn't send. Check your connection.");
@@ -82,19 +80,10 @@ export default function PhotoCapture({ code, prompt, showPhotos = false }: { cod
         <div className="mt-5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={preview} alt="Your photo" className="max-h-72 w-full rounded-2xl object-cover" />
-          {showPhotos && !busy && (
-            <input
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              placeholder="Add a caption (optional)"
-              maxLength={140}
-              className="field mt-3"
-            />
-          )}
           {busy ? (
             <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-mist py-3 text-sm text-slate-500">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-ink" />
-              {showPhotos ? "Adding your photo…" : "Reading your photo…"}
+              Reading your photo…
             </div>
           ) : (
             <div className="mt-4 flex gap-2">
@@ -109,7 +98,7 @@ export default function PhotoCapture({ code, prompt, showPhotos = false }: { cod
             📷 Take or choose a photo
           </button>
           <p className="mt-3 text-xs text-slate-400">
-            {showPhotos ? "Your photo appears on the shared screen with your caption." : "A photo or a snap of handwriting works. It's analyzed by AI and never stored."}
+            {showPhotos ? "Your photo appears on the shared screen, captioned by AI." : "A photo or a snap of handwriting works. It's analyzed by AI and never stored."}
           </p>
         </div>
       )}

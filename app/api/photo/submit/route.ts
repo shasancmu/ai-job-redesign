@@ -18,7 +18,6 @@ export async function POST(request: Request) {
 
   const code = String(body.code || "").toUpperCase().trim();
   const image = String(body.image || "");
-  const caption = String(body.caption || "").slice(0, 500).trim();
   if (!code) return Response.json({ error: "Missing code." }, { status: 400 });
   if (!/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(image)) {
     return Response.json({ error: "Please attach a photo." }, { status: 400 });
@@ -56,17 +55,21 @@ export async function POST(request: Request) {
     }
   }
 
+  // The gallery caption is AI-generated from the vision read: a short line for a
+  // photo, the transcript for handwriting.
+  const aiCaption = desc ? (desc.kind === "text" ? desc.transcript || desc.description : desc.description || desc.title) : "";
+
   // Read-only wall keeps ONLY text (image discarded). Gallery keeps the scaled
-  // thumbnail + the caption too, so it can be shown on screen.
+  // thumbnail + the AI caption too, so it can be shown on screen.
   const { error } = await admin.from("photo_entries").insert({
     session_id: session.id,
     kind: desc?.kind || "photo",
     title: desc?.title || "",
     description: desc?.description || "",
     transcript: desc?.transcript || "",
-    ...(gallery ? { image, caption } : {}),
+    ...(gallery ? { image, caption: aiCaption } : {}),
   });
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
-  return Response.json({ ok: true, gallery, kind: desc?.kind || "photo", title: desc?.title || "", description: desc?.description || "", transcript: desc?.transcript || "", caption });
+  return Response.json({ ok: true, gallery, kind: desc?.kind || "photo", title: desc?.title || "", description: desc?.description || "", transcript: desc?.transcript || "", caption: aiCaption });
 }

@@ -34,8 +34,8 @@ export default async function FacilitatorGallery() {
         </div>
         <h1 className="mt-1 text-3xl text-ink">Photo Gallery</h1>
         <p className="mt-1 text-slate2">
-          The room takes photos from their phones. The actual photos, scaled down, appear on the shared screen
-          with each person&apos;s caption, then AI summarizes what the room showed.
+          The room takes photos from their phones. The actual photos, scaled down, appear on the shared screen,
+          each captioned by AI, then AI summarizes what the room showed.
         </p>
       </div>
       <PhotoManager me={user.id} initial={(sessions as any) || []} showPhotos />
