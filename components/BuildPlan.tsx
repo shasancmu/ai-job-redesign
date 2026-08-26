@@ -18,6 +18,7 @@ export default function BuildPlan({
   inline = false,
   initialPlan = null,
   initialPrediction = null,
+  subjectName,
   onPlan,
   onPrediction,
 }: {
@@ -29,13 +30,20 @@ export default function BuildPlan({
   inline?: boolean;
   initialPlan?: any;
   initialPrediction?: any;
+  // In the paired exercise you build the plan for your partner; pass their name
+  // so the copy and prediction are framed around them, not you.
+  subjectName?: string;
   onPlan?: (plan: any) => void;
   onPrediction?: (p: any) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [plan, setPlan] = useState<any>(hasPlanContent(initialPlan) ? initialPlan : null);
   const [err, setErr] = useState<string | null>(null);
-  const gate = usePredictGate({ guideKey: "job-redesign", existing: initialPrediction, save: (p) => onPrediction?.(p), run: () => build(), revealLabel: "Build implementation plan" });
+  // Solo (inline) builds a plan for YOU; paired builds one for your PARTNER.
+  const forPartner = !inline;
+  const guideKey = forPartner ? "job-redesign-partner" : "job-redesign";
+  const who = subjectName || "your partner";
+  const gate = usePredictGate({ guideKey, subjectName, existing: initialPrediction, save: (p) => onPrediction?.(p), run: () => build(), revealLabel: "Build implementation plan" });
 
   const hasContent = ["search", "structure", "think", "translate", "lead", "own", "judge", "integrate"].some(
     (k) => (grid[k] || []).length > 0
@@ -70,8 +78,13 @@ export default function BuildPlan({
       <div className="card p-6 text-center">
         <div className="text-lg font-bold text-ink">Make it real</div>
         <p className="mx-auto mt-1 max-w-md text-sm text-slate2">
-          Turn the redesign into a beautiful, specific plan: where your week should go, the value you lead,
-          and the AI recipes (with where to look) to run this week.
+          {forPartner ? (
+            <>Turn the redesign into a beautiful, specific plan for {who}: where their week should go, the value they lead,
+            and the AI recipes (with where to look) they can run this week.</>
+          ) : (
+            <>Turn the redesign into a beautiful, specific plan: where your week should go, the value you lead,
+            and the AI recipes (with where to look) to run this week.</>
+          )}
         </p>
         {err && <p className="mt-3 text-sm text-clay">{err}</p>}
         <div className="mt-4 flex flex-wrap justify-center gap-3">
@@ -95,7 +108,7 @@ export default function BuildPlan({
       </div>
 
       {inline && plan && (
-        <ReportReveal guideKey="job-redesign" prediction={gate.prediction} code={code}>
+        <ReportReveal guideKey={guideKey} prediction={gate.prediction} code={code}>
           <PlanView plan={plan} embedded />
         </ReportReveal>
       )}

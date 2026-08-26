@@ -102,6 +102,18 @@ const GUIDES: Record<string, ReportGuide> = {
     ],
   },
 
+  // Paired variant: you build the plan for your PARTNER, so everything is framed
+  // around them. {name} is substituted with the partner's name (usePredictGate).
+  "job-redesign-partner": {
+    predictPrompt: "Before you build {name}'s plan: which one part of their job do you think only they can do, and which could AI take off their plate?",
+    predictPlaceholder: "One of each, in a sentence.",
+    walkthrough: [
+      { anchor: "delta", title: "Your guess vs. the redesign", body: "You drew the line between your partner and AI. See where the redesign draws it, and where they were holding onto work they could hand off." },
+      { anchor: "human", title: "What only they do", body: "What it tells you: the judgment, taste, and relationships where your partner is the point. How it was built: from where you said the real value is, not the tasks that just fill their week." },
+      { anchor: "ai", title: "What AI takes on", body: "What it tells you: the work to hand to AI, and how to do it well. How it was built: the AI matched their busywork to what it can reliably handle, with a starter for each." },
+    ],
+  },
+
   pipeline: {
     predictPrompt: "Can you reach your target just by starting more projects? Guess how many papers you'd have to WRITE to bank your target.",
     predictPlaceholder: "Your honest guess, as a number.",

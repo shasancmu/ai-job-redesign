@@ -93,7 +93,7 @@ export const PHASES: Phase[] = [
     title: "Redesign with the 2×4 model",
     subtitle:
       "Using your notes, design your partner's role: what should they delegate to AI, and what should they lean into?",
-    minutes: 8,
+    minutes: 5,
     mode: "solo",
   },
   {

@@ -94,6 +94,7 @@ export default function RedesignPanel(props: any) {
           jobTitle={partnerJob.jobTitle}
           jobDescription={partnerJob.jobDescription}
           grid={grid}
+          subjectName={partnerName}
         />
       )}
     </div>

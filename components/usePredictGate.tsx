@@ -26,10 +26,14 @@ export function usePredictGate(opts: {
   save: (p: Prediction) => void;
   run: () => void;
   revealLabel?: string;
+  // If the guide copy uses a {name} token (e.g. the paired job-redesign, where
+  // you predict about your partner), pass the name to fill it in.
+  subjectName?: string;
 }) {
   const [prediction, setPrediction] = useState<Prediction | null>(opts.existing || null);
   const [predicting, setPredicting] = useState(false);
   const guide = reportGuide(opts.guideKey);
+  const fill = (s?: string) => (s ? s.split("{name}").join(opts.subjectName || "your partner") : s);
 
   function start() {
     if (guide?.predictPrompt && !prediction) { setPredicting(true); return; }
@@ -45,9 +49,9 @@ export function usePredictGate(opts: {
 
   const modal = predicting && guide ? (
     <PredictReveal
-      prompt={guide.predictPrompt}
-      placeholder={guide.predictPlaceholder}
-      ratingLabel={guide.ratingLabel}
+      prompt={fill(guide.predictPrompt)!}
+      placeholder={fill(guide.predictPlaceholder)}
+      ratingLabel={fill(guide.ratingLabel)}
       onSubmit={onPredict}
       revealLabel={(opts.revealLabel || "Reveal it") + " →"}
     />
