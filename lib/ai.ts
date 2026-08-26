@@ -2820,3 +2820,60 @@ Rules: 3 to 4 items per array, the most common and telling patterns across the W
     learnings: pair(raw?.learnings, "title", "detail") as any,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Live Room Intelligence. roomPulseAI reads the whole room's in-progress work
+// and surfaces cross-person patterns no single facilitator could track; it is
+// the "only AI can do this" move (attend to every conversation at once). askRoomAI
+// answers a natural-language question grounded in what the room actually wrote.
+// Both run on the fast model.
+// ---------------------------------------------------------------------------
+export async function roomPulseAI(input: { digest: string; participantCount: number }): Promise<{
+  headline: string;
+  emerging: { title: string; detail: string }[];
+  tensions: { title: string; detail: string }[];
+  outliers: { title: string; detail: string }[];
+}> {
+  const system = `You are a live co-facilitator watching a whole room work at the same time. From the room's IN-PROGRESS work below, surface what is happening RIGHT NOW, in present tense, grounded ONLY in the material. A human facilitator cannot read every conversation at once, so your value is CROSS-PERSON patterns nobody in the room can see. No em dashes; use commas or colons.
+
+Return STRICT JSON only, no prose, no code fences:
+{
+ "headline": "one present-tense sentence on where the room is right now",
+ "emerging": [{"title":"3-6 words","detail":"one sentence: a pattern several people are converging on"}],
+ "tensions": [{"title":"3-6 words","detail":"one sentence: a tension or split showing up across people"}],
+ "outliers": [{"title":"3-6 words","detail":"one sentence: something only one person raised, worth surfacing"}]
+}
+Rules: at most 3 per array, the most telling. Cross-person, not a single person restated. Concrete and specific to the material. If there is little to say yet, return fewer items.`;
+  const user = `${input.participantCount} people so far.\n\n${(input.digest || "").slice(0, 13000)}`;
+  const raw: any = await completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens: 1200 });
+  const arr = (v: any) =>
+    Array.isArray(v)
+      ? v.slice(0, 3).map((x: any) => ({ title: String(x?.title || ""), detail: String(x?.detail || "") })).filter((x: any) => x.title || x.detail)
+      : [];
+  return {
+    headline: String(raw?.headline || ""),
+    emerging: arr(raw?.emerging),
+    tensions: arr(raw?.tensions),
+    outliers: arr(raw?.outliers),
+  };
+}
+
+export async function askRoomAI(input: { digest: string; question: string }): Promise<{
+  answer: string;
+  quotes: { who: string; text: string }[];
+}> {
+  const system = `You answer a question about a live room by synthesizing ONLY what the people below actually wrote. Ground every claim in the material; never invent. If the room hasn't addressed it, say so plainly. No em dashes; use commas or colons.
+
+Return STRICT JSON only, no prose, no code fences:
+{
+ "answer": "2 to 4 sentences answering the question from the room, specific and honest",
+ "quotes": [{"who":"the person's name from the material, or 'someone'","text":"a short snippet drawn from what they wrote"}]
+}
+Rules: 2 to 4 quotes, short, drawn from the material (lightly trimmed is fine, do not fabricate). If nothing in the room bears on the question, answer that plainly with an empty quotes array.`;
+  const user = `Question: ${(input.question || "").slice(0, 400)}\n\nThe room:\n${(input.digest || "").slice(0, 13000)}`;
+  const raw: any = await completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.3, maxTokens: 900 });
+  const quotes = Array.isArray(raw?.quotes)
+    ? raw.quotes.slice(0, 4).map((q: any) => ({ who: String(q?.who || "someone"), text: String(q?.text || "") })).filter((q: any) => q.text)
+    : [];
+  return { answer: String(raw?.answer || ""), quotes };
+}
