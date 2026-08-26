@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import PlanView from "@/components/PlanView";
-import ShareReport from "@/components/ShareReport";
 
 const SAGE = "#3F7A52";
 const GOLD = "#CE8F2C";
@@ -161,12 +160,9 @@ function Opened({
       <section className="border-b border-line">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-5">
           <Logo href="/dashboard" />
-          <div className="flex items-center gap-2">
-            <ShareReport code={code} title="A reimagined role" text="A reimagined role, designed for me on Superadditive:" />
-            <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
-              ← Done
-            </Link>
-          </div>
+          <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
+            ← Done
+          </Link>
         </div>
       </section>
 
