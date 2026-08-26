@@ -383,10 +383,13 @@ async function CohortDetail({ admin, cohort, showHidden }: { admin: any; cohort:
 
   return (
     <Shell>
-      <div className="mb-5">
-        <Link href="/facilitator" className="text-sm text-slate-400 hover:text-slate-600">← All cohorts</Link>
-        <h1 className="mt-1 font-mono text-2xl font-bold">{untagged ? "(untagged)" : cohort}</h1>
-        <p className="text-sm text-slate-500">{(sessions || []).length} pairs</p>
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <Link href="/facilitator" className="text-sm text-slate-400 hover:text-slate-600">← All cohorts</Link>
+          <h1 className="mt-1 font-mono text-2xl font-bold">{untagged ? "(untagged)" : cohort}</h1>
+          <p className="text-sm text-slate-500">{(sessions || []).length} pairs</p>
+        </div>
+        <HeaderNav />
       </div>
 
       {/* One panel: present a summary, and the cohort tools. */}
