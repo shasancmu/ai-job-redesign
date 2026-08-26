@@ -1225,8 +1225,7 @@ Return STRICT JSON only, no prose outside it:
 }
 Order the reckoning timeline from soonest to latest, one entry per meaningful lever they pulled. If they were indicted, say so plainly in the headline and floor the judgment score.`;
 
-  // Main model (low:false): the capstone grade is the deliverable, worth the quality.
-  const raw = await complete([{ role: "system", content: system }], { json: true, temperature: 0.4, maxTokens: 2600, low: false });
+  const raw = await complete([{ role: "system", content: system }], { json: true, temperature: 0.4, maxTokens: 2600 });
   return extractJson(raw);
 }
 
