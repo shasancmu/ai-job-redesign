@@ -46,7 +46,7 @@ export default function FrameworksPage() {
 
       <div className="mt-12 rounded-2xl border border-line bg-mist/50 p-6 text-center">
         <p className="text-sm text-slate-600">Learn one of these by doing it, in about 15 minutes.</p>
-        <Link href="/try" className="btn-primary mt-3 inline-block">Get your 90-second read</Link>
+        <Link href="/login?mode=signup" className="btn-primary mt-3 inline-block">Sign up free</Link>
       </div>
     </main>
   );

@@ -146,8 +146,8 @@ export default async function CredentialPage({ params }: { params: { id: string 
           {BRAND.name} runs short, real exercises on AI, strategy, and your career. Complete a
           bundle of them and earn a certificate like this.
         </p>
-        <Link href="/try" className="btn-primary mt-4 inline-block">
-          Get your 90-second read
+        <Link href="/login?mode=signup" className="btn-primary mt-4 inline-block">
+          Sign up free
         </Link>
       </div>
     </main>
