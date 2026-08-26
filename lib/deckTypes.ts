@@ -12,10 +12,15 @@ export type Slide =
   | (SlideBase & { type: "cards"; title?: string; cards: DeckCard[] }) // a grid of tiles
   | (SlideBase & { type: "cloud"; question: string; code?: string }) // live word cloud
   | (SlideBase & { type: "photo"; prompt: string; code?: string }) // live room photo + AI
-  | (SlideBase & { type: "quiz"; title?: string; timeLimitSec?: number; questions: QuizQ[]; code?: string }); // live quiz vs the room
+  | (SlideBase & { type: "quiz"; title?: string; timeLimitSec?: number; questions: QuizQ[]; code?: string }) // live quiz vs the room
+  | (SlideBase & { type: "network"; title?: string; subtitle?: string; nodes: NetNode[]; edges: NetEdge[] }) // a relationship graph (e.g. who paired with whom)
+  | (SlideBase & { type: "barlist"; title?: string; subtitle?: string; bars: DeckBar[] }); // ranked horizontal bars
 
 export type QuizQ = { prompt: string; options: string[]; answer: number };
 export type DeckCard = { icon?: string; heading: string; text?: string };
+export type NetNode = { id: string; label: string; group?: number };
+export type NetEdge = { a: string; b: string };
+export type DeckBar = { label: string; value: number; hint?: string; group?: number };
 
 export type SlideType = Slide["type"];
 export type Deck = { slug: string; title: string; slides: Slide[]; org_id: string | null; status: string; author_id?: string };
@@ -74,6 +79,8 @@ export function slideLabel(s: Slide): string {
   if (s.type === "text") return s.body?.slice(0, 40) || "Text";
   if (s.type === "image") return s.caption || "Image";
   if (s.type === "cards") return `${s.cards?.length || 0} cards`;
+  if (s.type === "network") return s.title || "Network";
+  if (s.type === "barlist") return s.title || "Ranking";
   return s.type;
 }
 

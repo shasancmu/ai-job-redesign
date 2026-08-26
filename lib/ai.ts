@@ -2763,3 +2763,53 @@ export async function visionReportAI(input: { ctx: { name?: string; does?: strin
     howToUse: typeof p.howToUse === "string" && p.howToUse.trim() ? p.howToUse.trim() : undefined,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Cohort synthesis: roll a whole room's paired-exercise work up into a crisp,
+// present-back summary for the instructor. Aggregation (pairs, tallies) happens
+// in the caller; this narrates the qualitative themes. Runs on the fast model.
+// ---------------------------------------------------------------------------
+export async function cohortSynthesisAI(input: {
+  exercise: string; // "job" | "workflow"
+  framework: string; // one line naming the framework to tie learnings back to
+  participantCount: number;
+  pairCount: number;
+  digest: string; // pre-aggregated text of the room's work
+}): Promise<{
+  headline: string;
+  keptHuman: { theme: string; detail: string }[];
+  gaveAI: { theme: string; detail: string }[];
+  conversationFocus: { theme: string; detail: string }[];
+  learnings: { title: string; detail: string }[];
+}> {
+  const what =
+    input.exercise === "workflow"
+      ? "pairs mapped a real workflow and redesigned it around what a human, AI, or both should own at each step."
+      : "pairs interviewed each other, then redesigned each other's jobs with a 2x4 model: four things AI does well (Search, Structure, Think, Translate) and four only humans do (Lead, Own, Judge, Integrate).";
+  const system = `You synthesize what a COHORT of learners produced in a paired exercise into a crisp, room-level summary the instructor presents back to the class. Ground every point in the supplied material; never invent specifics. No em dashes; use commas or colons.
+
+The exercise: ${what}
+Tie learnings back to this framework: ${input.framework}
+
+Return STRICT JSON only, no prose, no code fences:
+{
+ "headline": "one vivid sentence on what this room, as a group, did and saw",
+ "keptHuman": [{"theme":"3-6 words","detail":"one sentence: what people chose to keep as human work, and why, grounded in the room"}],
+ "gaveAI": [{"theme":"3-6 words","detail":"one sentence: what people handed to AI"}],
+ "conversationFocus": [{"theme":"3-6 words","detail":"one sentence: what the pairs' conversations kept returning to"}],
+ "learnings": [{"title":"3-6 words","detail":"one sentence: a high-level takeaway that ties back to the framework"}]
+}
+Rules: 3 to 4 items per array, the most common and telling patterns across the WHOLE room (not one person). Concrete, specific to the material below, plainly worded.`;
+  const user = `${input.participantCount} participants, ${input.pairCount} pairs.\n\n${(input.digest || "").slice(0, 12000)}`;
+
+  const raw: any = await completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens: 1600 });
+  const pair = (v: any, a: string, b: string) =>
+    Array.isArray(v) ? v.slice(0, 4).map((x: any) => ({ [a]: String(x?.[a] || ""), [b]: String(x?.[b] || "") })).filter((x: any) => x[a]) : [];
+  return {
+    headline: String(raw?.headline || ""),
+    keptHuman: pair(raw?.keptHuman, "theme", "detail") as any,
+    gaveAI: pair(raw?.gaveAI, "theme", "detail") as any,
+    conversationFocus: pair(raw?.conversationFocus, "theme", "detail") as any,
+    learnings: pair(raw?.learnings, "title", "detail") as any,
+  };
+}

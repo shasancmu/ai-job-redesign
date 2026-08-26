@@ -82,7 +82,81 @@ function StaticSlide({ slide }: { slide: Slide }) {
         </div>
       );
     }
+    case "network":
+      return <NetworkSlide slide={slide} wrap={wrap} />;
+    case "barlist":
+      return <BarListSlide slide={slide} wrap={wrap} />;
     default:
       return <div className={wrap + " items-center justify-center text-slate-300"}>Slide</div>;
   }
+}
+
+const DECK_PALETTE = ["#3F7A52", "#3B7FB5", "#CE8F2C", "#C06A47", "#6C5CE7", "#2AA198", "#B4632A", "#5C7CFA"];
+
+// A chord-style relationship graph: nodes on a circle, edges bowed toward center.
+function NetworkSlide({ slide, wrap }: { slide: Extract<Slide, { type: "network" }>; wrap: string }) {
+  const nodes = slide.nodes || [];
+  const edges = slide.edges || [];
+  const N = Math.max(1, nodes.length);
+  const W = 1000, H = 600, cx = W / 2, cy = H / 2, R = Math.min(W, H) * 0.37;
+  const pos = new Map<string, { x: number; y: number; a: number }>();
+  nodes.forEach((nd, i) => {
+    const a = (i / N) * Math.PI * 2 - Math.PI / 2;
+    pos.set(nd.id, { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a), a });
+  });
+  const deg = new Map<string, number>();
+  for (const e of edges) { deg.set(e.a, (deg.get(e.a) || 0) + 1); deg.set(e.b, (deg.get(e.b) || 0) + 1); }
+  const short = (s: string) => (s && s.length > 16 ? s.slice(0, 15) + "…" : s || "");
+  return (
+    <div className={wrap + " items-center"}>
+      {slide.title && <h2 className="mb-1 self-start text-[clamp(1.4rem,4vw,2.8rem)] font-bold text-ink">{slide.title}</h2>}
+      {slide.subtitle && <p className="mb-2 self-start text-[clamp(0.9rem,1.8vw,1.3rem)] text-slate-500">{slide.subtitle}</p>}
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-full max-h-[74vh] w-full" role="img" aria-label={slide.title || "Network"}>
+        {edges.map((e, k) => {
+          const p = pos.get(e.a), q = pos.get(e.b);
+          if (!p || !q) return null;
+          return <path key={k} d={`M ${p.x} ${p.y} Q ${cx} ${cy} ${q.x} ${q.y}`} fill="none" stroke="#3F7A52" strokeOpacity={0.28} strokeWidth={2.5} />;
+        })}
+        {nodes.map((nd) => {
+          const p = pos.get(nd.id)!;
+          const r = 9 + Math.min(6, (deg.get(nd.id) || 0) * 2);
+          const anchor = Math.cos(p.a) > 0.2 ? "start" : Math.cos(p.a) < -0.2 ? "end" : "middle";
+          const lx = p.x + Math.cos(p.a) * 16;
+          const ly = p.y + Math.sin(p.a) * 16 + (Math.abs(Math.cos(p.a)) < 0.2 ? (Math.sin(p.a) > 0 ? 14 : -6) : 5);
+          return (
+            <g key={nd.id}>
+              <circle cx={p.x} cy={p.y} r={r} fill={DECK_PALETTE[(nd.group ?? 0) % DECK_PALETTE.length]} />
+              <text x={lx} y={ly} textAnchor={anchor} fontSize={18} fill="#334155" fontWeight={600}>{short(nd.label)}</text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+// Ranked horizontal bars (e.g. what the room kept human vs handed to AI).
+function BarListSlide({ slide, wrap }: { slide: Extract<Slide, { type: "barlist" }>; wrap: string }) {
+  const bars = (slide.bars || []).slice(0, 8);
+  const max = Math.max(1, ...bars.map((b) => b.value));
+  return (
+    <div className={wrap + " items-start"}>
+      {slide.title && <h2 className="mb-1 text-[clamp(1.4rem,4vw,2.8rem)] font-bold text-ink">{slide.title}</h2>}
+      {slide.subtitle && <p className="mb-6 text-[clamp(0.9rem,1.8vw,1.3rem)] text-slate-500">{slide.subtitle}</p>}
+      <div className="flex w-full max-w-[70ch] flex-col gap-[clamp(0.5rem,1.6vh,1.1rem)]">
+        {bars.map((b, k) => (
+          <div key={k} className="flex items-center gap-4">
+            <div className="w-[34%] shrink-0 text-right text-[clamp(0.9rem,1.8vw,1.35rem)] font-semibold text-ink">
+              {b.label}
+              {b.hint && <span className="block text-[clamp(0.7rem,1.1vw,0.95rem)] font-normal text-slate-400">{b.hint}</span>}
+            </div>
+            <div className="relative h-[clamp(1.4rem,3.2vh,2.4rem)] flex-1 overflow-hidden rounded-md bg-mist">
+              <div className="h-full rounded-md" style={{ width: `${Math.max(4, (b.value / max) * 100)}%`, background: DECK_PALETTE[(b.group ?? 0) % DECK_PALETTE.length] }} />
+            </div>
+            <div className="w-10 shrink-0 text-[clamp(0.9rem,1.8vw,1.35rem)] font-bold tabular-nums text-slate-500">{b.value}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

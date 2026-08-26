@@ -394,6 +394,33 @@ async function CohortDetail({ admin, cohort }: { admin: any; cohort: string }) {
         </div>
       </div>
 
+      {!untagged && (() => {
+        const opts = [
+          { key: "job", label: "Redesign your job" },
+          { key: "workflow", label: "Redesign your workflow" },
+        ].filter((pe) => (sessions || []).some((s: any) => s.exercise === pe.key && s.host_id && s.guest_id));
+        if (!opts.length) return null;
+        return (
+          <div className="mb-6 rounded-2xl border border-line bg-mist/40 p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-ink"><span aria-hidden>🎓</span> Class summary deck</div>
+            <p className="mt-0.5 text-xs text-slate-500">
+              A projector-ready summary of what the room did together: the pairs, what they kept human, what they gave AI, and the takeaways.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {opts.map((pe) => (
+                <Link
+                  key={pe.key}
+                  href={`/facilitator/summary?cohort=${encodeURIComponent(cohort)}&exercise=${pe.key}`}
+                  className="btn-primary text-sm"
+                >
+                  Present: {pe.label} →
+                </Link>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {classOverview && <ClassOverview data={classOverview} />}
 
       <FourAHeatmap
