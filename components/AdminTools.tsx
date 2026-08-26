@@ -47,10 +47,10 @@ export default function AdminTools({ superadmin = false, code = "DEMOCOHORT" }: 
           </span>
           <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
         </Link>
-        <Link href="/facilitator/experiments" className={card}>
+        <Link href="/admin/experiments" className={card}>
           <span className="text-xl" aria-hidden>🧪</span>
           <span className="min-w-0 flex-1">
-            <span className="block font-semibold text-ink">Experiments</span>
+            <span className="block font-semibold text-ink">A/B testing</span>
             <span className="block text-xs text-slate2">A/B test the AI interviews you run.</span>
           </span>
           <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
