@@ -51,6 +51,26 @@ export default async function Dashboard({
   // A white-label org can curate which modules its members see + can run.
   const orgModules: string[] | null = activeOrg?.modules && activeOrg.modules.length ? activeOrg.modules : null;
 
+  // The cohort this person is in for the active org, shown at the top so they
+  // always know where they are. A specific class they joined wins over the org's
+  // default "All members" cohort.
+  let cohortName = "";
+  if (activeOrg) {
+    try {
+      const a = createAdminClient();
+      const { data: cms } = await a.from("class_members").select("class_id").eq("user_id", user.id);
+      const ids = ((cms as any[]) || []).map((c) => c.class_id).filter(Boolean);
+      if (ids.length) {
+        const { data: cls } = await a.from("classes").select("name, is_default").in("id", ids).eq("org_id", activeOrg.id);
+        const rows = (cls as any[]) || [];
+        const chosen = rows.find((c) => !c.is_default) || rows[0];
+        // The org's default cohort shows as "All members" (its stored name repeats
+        // the org and carries an em dash); a specific class shows its own name.
+        cohortName = chosen ? (chosen.is_default ? "All members" : chosen.name) : "";
+      }
+    } catch { /* no service role; fall back to a derived label */ }
+  }
+
   let { data: profile } = await supabase
     .from("profiles")
     .select("*")
@@ -231,6 +251,24 @@ export default async function Dashboard({
           />
         </div>
       </header>
+
+      {activeOrg && (
+        <div className="mb-6 flex items-center gap-3 rounded-2xl border border-line bg-white p-3.5">
+          {activeOrg.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={activeOrg.logo_url} alt="" className="h-10 w-10 shrink-0 rounded object-contain" />
+          ) : (
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-mist text-sm font-bold text-slate2">
+              {activeOrg.name.slice(0, 2).toUpperCase()}
+            </div>
+          )}
+          <div className="min-w-0 leading-tight">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-sage">Your cohort</div>
+            <div className="truncate text-sm font-bold text-ink">{cohortName || "All members"}</div>
+            <div className="truncate text-xs text-slate-400">{activeOrg.name}</div>
+          </div>
+        </div>
+      )}
 
       <FacilitatorWelcome orgs={myOrgs.filter((m) => m.role !== "member").map((m) => ({ slug: m.org.slug, name: m.org.name, role: m.role }))} />
 
