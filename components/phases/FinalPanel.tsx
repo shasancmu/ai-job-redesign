@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
+import Link from "next/link";
 import { FEEDBACK_FIELDS } from "@/lib/exercise";
 import { useT } from "@/components/I18nProvider";
 
 export default function FinalPanel(props: any) {
   const t = useT();
-  const { myWorkspace, partnerWorkspace, partnerProfile, updateMine } = props;
+  const { myWorkspace, partnerWorkspace, partnerProfile, updateMine, session } = props;
   if (!myWorkspace) return <div className="text-slate-400">{t("panel.finalLoading")}</div>;
 
   const myFeedback = myWorkspace.feedback || {};
@@ -65,21 +67,77 @@ export default function FinalPanel(props: any) {
         </div>
       </div>
 
-      <div className="card border-2 border-orange-200 bg-orange-50/50 p-5">
-        <div className="text-xs font-semibold uppercase tracking-wide text-human">
-          {t("panel.finalJobForYou", { name: partnerName })}
+      <GiftHandoff
+        code={session?.code}
+        partnerName={partnerName}
+        partnerReady={
+          !!(
+            partnerWorkspace?.plan?.headline ||
+            partnerWorkspace?.plan?.summary ||
+            partnerWorkspace?.final_description ||
+            partnerWorkspace?.new_job_description
+          )
+        }
+        t={t}
+      />
+    </div>
+  );
+}
+
+// The gift moment: open the reimagined role your partner made for you, and send
+// them theirs. Both open the same /gift/[code], each seeing the gift made for them.
+function GiftHandoff({
+  code,
+  partnerName,
+  partnerReady,
+  t,
+}: {
+  code?: string;
+  partnerName: string;
+  partnerReady: boolean;
+  t: (k: string, v?: Record<string, string | number>) => string;
+}) {
+  const [copied, setCopied] = useState(false);
+  function copyLink() {
+    if (!code) return;
+    try {
+      const url = `${window.location.origin}/gift/${code}`;
+      navigator.clipboard?.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* clipboard blocked */
+    }
+  }
+  return (
+    <div className="card overflow-hidden p-0">
+      <div className="h-1.5" style={{ background: "linear-gradient(90deg, #3F7A52, #CE8F2C)" }} />
+      <div className="p-5">
+        <div className="flex items-center gap-2 text-lg font-bold text-ink">
+          <span aria-hidden>🎁</span>
+          {t("panel.giftTheirGift", { name: partnerName })}
         </div>
-        {partnerWorkspace?.final_description || partnerWorkspace?.new_job_description ? (
-          <p className="mt-2 whitespace-pre-wrap leading-relaxed text-slate-700">
-            {partnerWorkspace.final_description || partnerWorkspace.new_job_description}
-          </p>
+        {partnerReady ? (
+          <>
+            <p className="mt-1 text-sm text-slate2">{t("panel.giftOpenBlurb", { name: partnerName })}</p>
+            {code && (
+              <Link href={`/gift/${code}`} className="btn-primary mt-3 inline-block">
+                {t("panel.giftOpen")}
+              </Link>
+            )}
+          </>
         ) : (
-          <p className="mt-2 text-slate-400">
-            {t("panel.finalStillFinishing", { name: partnerName })}
-          </p>
+          <p className="mt-1 text-sm text-slate-400">{t("panel.finalStillFinishing", { name: partnerName })}</p>
         )}
-        <div className="mt-4 text-sm text-slate-400">
-          {t("panel.finalSaved")}
+
+        <div className="mt-5 border-t border-line pt-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate2">
+            {t("panel.giftGiveYours", { name: partnerName })}
+          </div>
+          <p className="mt-1 text-sm text-slate2">{t("panel.giftPasteHint")}</p>
+          <button onClick={copyLink} disabled={!code} className="btn-ghost mt-2 text-sm">
+            {copied ? t("panel.giftCopied") : t("panel.giftCopyLink")}
+          </button>
         </div>
       </div>
     </div>

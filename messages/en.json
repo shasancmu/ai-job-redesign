@@ -468,7 +468,14 @@
     "finalReimaginedPh": "In {name}'s reimagined role, they…",
     "finalJobForYou": "The job {name} reimagined for you",
     "finalStillFinishing": "{name} is still finishing yours…",
-    "finalSaved": "Both versions are saved to your accounts. You can reopen this room anytime from your dashboard."
+    "finalSaved": "Both versions are saved to your accounts. You can reopen this room anytime from your dashboard.",
+    "giftTheirGift": "{name}'s gift to you",
+    "giftOpenBlurb": "{name} reimagined your whole role. Unwrap it.",
+    "giftOpen": "Open your gift →",
+    "giftGiveYours": "Give {name} their gift",
+    "giftPasteHint": "Copy the link and drop it in the chat so they can unwrap the role you designed for them.",
+    "giftCopyLink": "Copy gift link",
+    "giftCopied": "Link copied ✓"
   },
   "sworkflow": {
     "tag": "Workflow · AI partner",
