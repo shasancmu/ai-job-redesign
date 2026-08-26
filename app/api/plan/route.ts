@@ -5,6 +5,9 @@ import { getUserLanguage, withLanguage } from "@/lib/lang";
 export const runtime = "nodejs";
 import { setFlow } from "@/lib/aiflow";
 export const dynamic = "force-dynamic";
+// Give the plan generation the same headroom as the other AI routes, so Vercel
+// never cuts the request short before the model responds.
+export const maxDuration = 60;
 
 const AI_KEYS = ["search", "structure", "think", "translate"];
 const HUMAN_KEYS = ["lead", "own", "judge", "integrate"];

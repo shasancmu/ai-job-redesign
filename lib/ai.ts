@@ -19,6 +19,17 @@ export const AI_ENABLED = !!process.env.AI_API_KEY;
 
 const BASE_URL = process.env.AI_BASE_URL || "https://api.groq.com/openai/v1";
 const MODEL = process.env.AI_MODEL || "llama-3.3-70b-versatile";
+// Optional faster/cheaper "low" model for short, structured generations where
+// latency matters more than depth (e.g. the implementation plan). It gets its own
+// model, key, and (optionally) base URL, so it can be a different provider or a
+// rate-isolated key. Any unset piece falls back to the main model's config, so
+// setting only AI_MODEL_LOW (e.g. claude-haiku-4-5-20251001) is enough.
+//   AI_MODEL_LOW           model id (falls back to AI_MODEL)
+//   AI_MODEL_LOW_API_KEY   its key (falls back to AI_API_KEY)
+//   AI_MODEL_LOW_BASE_URL  its endpoint (falls back to AI_BASE_URL)
+const LOW_MODEL = process.env.AI_MODEL_LOW || MODEL;
+const LOW_BASE_URL = process.env.AI_MODEL_LOW_BASE_URL || BASE_URL;
+const LOW_API_KEY = process.env.AI_MODEL_LOW_API_KEY || process.env.AI_API_KEY || "";
 
 const VISION_BASE_URL = process.env.AI_VISION_BASE_URL || BASE_URL;
 const VISION_MODEL = process.env.AI_VISION_MODEL || MODEL;
@@ -214,10 +225,10 @@ async function logAiEvent(e: { model: string; flow: string | null; ok: boolean; 
 // runCompletion.
 async function complete(
   messages: ChatMsg[],
-  opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean; onToken?: (delta: string) => void; flow?: string | null } = {}
+  opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean; low?: boolean; onToken?: (delta: string) => void; flow?: string | null } = {}
 ): Promise<string> {
   const started = Date.now();
-  const model = opts.vision ? VISION_MODEL : MODEL;
+  const model = opts.vision ? VISION_MODEL : opts.low ? LOW_MODEL : MODEL;
   let error: string | null = null;
   let usage: AiUsage | null = null;
   try {
@@ -249,12 +260,13 @@ async function complete(
 
 async function runCompletion(
   messages: ChatMsg[],
-  opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean; onToken?: (delta: string) => void; flow?: string | null } = {}
+  opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean; low?: boolean; onToken?: (delta: string) => void; flow?: string | null } = {}
 ): Promise<{ text: string; usage: AiUsage | null }> {
-  // Vision requests route to the (optional) dedicated vision model/endpoint/key.
-  const baseUrl = (opts.vision ? VISION_BASE_URL : BASE_URL).replace(/\/$/, "");
-  const model = opts.vision ? VISION_MODEL : MODEL;
-  const apiKey = opts.vision ? VISION_API_KEY : process.env.AI_API_KEY;
+  // Vision requests route to the dedicated vision config; "low" requests route to
+  // the optional faster model's config; otherwise the main model.
+  const baseUrl = (opts.vision ? VISION_BASE_URL : opts.low ? LOW_BASE_URL : BASE_URL).replace(/\/$/, "");
+  const model = opts.vision ? VISION_MODEL : opts.low ? LOW_MODEL : MODEL;
+  const apiKey = opts.vision ? VISION_API_KEY : opts.low ? LOW_API_KEY : process.env.AI_API_KEY;
   const isAnthropic = baseUrl.includes("anthropic.com");
   // Some vision/reasoning models reject `temperature` entirely, so on vision
   // calls we send only an explicitly-provided value and otherwise omit it.
@@ -281,6 +293,12 @@ async function runCompletion(
         const last = convo[convo.length - 1];
         last.content = [{ type: "text", text: String(last.content), cache_control: { type: "ephemeral" } }];
       }
+      // For (non-streamed) JSON calls, prefill the assistant turn with "{" so the
+      // model can only continue the object: no preamble sentence, no ```json fence.
+      // That's the usual cause of an unparseable first reply and a costly second
+      // generation, so this keeps JSON calls to a single, fast pass.
+      const jsonPrefill = !!opts.json && !opts.onToken;
+      if (jsonPrefill) convo.push({ role: "assistant", content: "{" });
       const payload: Record<string, any> = { model, max_tokens: opts.maxTokens ?? 4096, messages: convo };
       if (sys) payload.system = [{ type: "text", text: sys, cache_control: { type: "ephemeral" } }];
       if (temp != null) payload.temperature = Math.min(Math.max(temp, 0), 1);
@@ -297,7 +315,11 @@ async function runCompletion(
       } else {
         const data = await postJSON(`${baseUrl}/messages`, anthropicHeaders, payload);
         const out = (data?.content || []).filter((b: any) => b?.type === "text").map((b: any) => b.text).join("");
-        if (out && out.trim()) return { text: out, usage: normalizeUsage(data?.usage) };
+        if (out && out.trim()) {
+          // Re-attach the prefilled "{" the model was told to continue from.
+          const full = jsonPrefill && !out.trimStart().startsWith("{") ? "{" + out : out;
+          return { text: full, usage: normalizeUsage(data?.usage) };
+        }
       }
     } catch {
       /* fall through to the OpenAI-compatible path */
@@ -714,18 +736,18 @@ export async function implementationPlanAI(
   humanTasks: string[],
   aiTasks: string[]
 ): Promise<any> {
-  const system = `You write a polished "reimagined role" implementation plan. The organizing idea is SUPERADDITIVE: AI absorbs volume, search, and first drafts so the person's judgment, taste, and relationships compound, the pair is worth more than either alone.
+  const system = `You write a tight "reimagined role" implementation plan. Organizing idea: SUPERADDITIVE, AI absorbs volume and first drafts so the person's judgment, taste, and relationships compound.
 
-Return STRICT JSON only, no prose before or after, no code fences:
+Return STRICT JSON only, no prose, no code fences:
 {
  "headline": "3-6 word name for the reimagined role",
- "summary": "3-4 sentences, second person. Lead with the VALUE this person creates and for whom (customer, org, manager); then how AI makes it possible; make the human×AI superadditive logic explicit and concrete. Detailed, not generic.",
- "superadditive": "one sharp sentence on why human + AI here beats either alone",
- "allocation": "2-3 sentences of practical time re-allocation for THIS person's week: what to spend MORE time on (the human value worth protecting and expanding), what to hand to AI to free that time, and a rough sense of the shift (e.g. hours reclaimed or a from→to). Concrete, second person.",
- "human": [{"task":"short title","value":"the value this creates and for whom","excel":"how to be truly great at it, and what to protect"}],
- "ai": [{"task":"short title","how":"the concrete mechanism (a recurring assistant prompt, a specific tool/integration, a small automation)","look":"where to look to start, the KIND of tool/product to reach for, described generically (e.g. 'a deep-research assistant', 'a meeting-notes tool', 'a spreadsheet copilot', 'a general AI chat assistant'), not a brand claim","prompt":"a 1-2 sentence starter prompt to paste","cadence":"daily | weekly | per-project","check":"what the human must verify before trusting it"}]
+ "summary": "2 sentences, second person: the value this person creates and for whom, then how AI makes it possible.",
+ "superadditive": "one sentence: why human + AI here beats either alone",
+ "allocation": "1-2 sentences: what to spend MORE time on, and what to hand to AI to free that time.",
+ "human": [{"task":"short title","value":"one line: the value, and for whom","excel":"one line: how to be great at it"}],
+ "ai": [{"task":"short title","how":"one line: the concrete mechanism","look":"a few words: the KIND of tool, generic, no brands","prompt":"one short starter prompt to paste","cadence":"daily | weekly | per-project","check":"a few words: what to verify"}]
 }
-Rules: cover EVERY human task and EVERY AI task given. For human tasks give value + how-to-excel (never an AI recipe). For AI tasks give the practical recipe AND where to look. Be specific to THIS role, no vague "leverage AI". Keep each field tight.`;
+Rules: at most 5 human and 5 AI items, the most important ones, merge minor tasks. Every field is ONE short phrase or sentence, no lists. Specific to THIS role, no vague "leverage AI".`;
 
   const user = `Role: ${job.title || "(untitled)"}, ${job.description || ""}\n\nHuman keeps:\n${humanTasks.map((t) => `- ${t}`).join("\n") || "(none)"}\n\nAI takes:\n${aiTasks.map((t) => `- ${t}`).join("\n") || "(none)"}`;
 
@@ -742,14 +764,14 @@ Rules: cover EVERY human task and EVERY AI task given. For human tasks give valu
       superadditive: String(p.superadditive || ""),
       allocation: String(p.allocation || ""),
       human: Array.isArray(p.human)
-        ? p.human.slice(0, 12).map((h: any) => ({
+        ? p.human.slice(0, 6).map((h: any) => ({
             task: String(h.task || ""),
             value: String(h.value || ""),
             excel: String(h.excel || ""),
           }))
         : [],
       ai: Array.isArray(p.ai)
-        ? p.ai.slice(0, 12).map((a: any) => ({
+        ? p.ai.slice(0, 6).map((a: any) => ({
             task: String(a.task || ""),
             how: String(a.how || ""),
             look: String(a.look || ""),
@@ -764,8 +786,9 @@ Rules: cover EVERY human task and EVERY AI task given. For human tasks give valu
   const nonEmpty = (p: any) =>
     p && (p.headline || p.summary || (p.human?.length || 0) + (p.ai?.length || 0) > 0);
 
-  // First attempt.
-  let raw = await complete(messages, { json: true, temperature: 0.5 });
+  // First attempt. Uses the optional "low" (fast) model and a tight token ceiling
+  // so it returns in a few seconds and can't balloon under class-wide load.
+  let raw = await complete(messages, { json: true, temperature: 0.5, low: true, maxTokens: 1500 });
   try {
     const p = map(raw);
     if (nonEmpty(p)) return { ...p, _raw: raw };
@@ -784,7 +807,7 @@ Rules: cover EVERY human task and EVERY AI task given. For human tasks give valu
           "Output ONLY the JSON object described above. Start your reply with { and end with }. No preamble, no explanation, no code fences.",
       },
     ],
-    { json: true, temperature: 0.2 }
+    { json: true, temperature: 0.2, low: true, maxTokens: 1500 }
   );
   try {
     const p = map(retryRaw);
