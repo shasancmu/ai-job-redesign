@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
   const { data: session } = await admin
     .from("photo_sessions")
-    .select("id, status, prompt, show_photos")
+    .select("id, status, prompt, show_photos, context")
     .eq("code", code)
     .maybeSingle();
   if (!session) return Response.json({ error: "That code isn't valid." }, { status: 404 });
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   let desc: any = null;
   if (VISION_ENABLED) {
     try {
-      desc = await photoDescribeAI(image, session.prompt || "");
+      desc = await photoDescribeAI(image, session.prompt || "", (session as any).context || "");
     } catch (e: any) {
       if (!gallery) return Response.json({ error: e?.message || "Couldn't read that photo. Try again." }, { status: 502 });
     }

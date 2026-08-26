@@ -19,6 +19,7 @@ export default function PhotoManager({ me, initial, showPhotos = false }: { me: 
   const supabase = createClient();
   const [list, setList] = useState<Sess[]>(initial);
   const [prompt, setPrompt] = useState("");
+  const [context, setContext] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -31,7 +32,7 @@ export default function PhotoManager({ me, initial, showPhotos = false }: { me: 
       const code = makePhotoCode();
       const { data, error } = await supabase
         .from("photo_sessions")
-        .insert({ code, host_id: me, prompt: prompt.trim(), status: "open", show_photos: showPhotos })
+        .insert({ code, host_id: me, prompt: prompt.trim(), context: context.trim(), status: "open", show_photos: showPhotos })
         .select()
         .single();
       if (!error && data) {
@@ -66,8 +67,16 @@ export default function PhotoManager({ me, initial, showPhotos = false }: { me: 
           placeholder="e.g. Photograph one thing at your desk that only a human can do well. A snap of handwriting works too."
           className="field mt-1"
         />
+        <label className="lbl mt-4">AI instructions <span className="font-normal text-slate-400">· optional</span></label>
+        <textarea
+          value={context}
+          onChange={(e) => setContext(e.target.value)}
+          rows={2}
+          placeholder="Tell the AI what to look for or pull out of each photo, e.g. 'Identify the tool shown and what it's used for' or 'Extract any numbers and what they measure.'"
+          className="field mt-1"
+        />
         <div className="mt-3 flex items-center justify-between gap-3">
-          <p className="text-xs text-slate-400">Photos are analyzed by AI and never stored. You can edit the prompt on the presenter too.</p>
+          <p className="text-xs text-slate-400">{showPhotos ? "Photos appear on the shared screen with an AI caption." : "Photos are analyzed by AI and never stored."} You can edit the prompt on the presenter too.</p>
           <button className="btn-primary" disabled={busy}>{busy ? "Creating…" : "Create & present →"}</button>
         </div>
         {err && <div className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}

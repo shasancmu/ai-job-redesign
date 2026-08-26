@@ -889,9 +889,11 @@ export async function cloudSummaryAI(
 // image is never persisted.
 export async function photoDescribeAI(
   dataUrl: string,
-  prompt?: string
+  prompt?: string,
+  instructions?: string
 ): Promise<{ kind: "photo" | "text"; title: string; transcript: string; description: string }> {
   const ctx = prompt ? `\n\nThe presenter asked the room: "${prompt}". Keep your description relevant to that where you can.` : "";
+  const extra = instructions?.trim() ? `\n\nThe presenter's instructions for what to look for and extract (follow them): ${instructions.trim().slice(0, 800)}` : "";
   const system = `You are describing an image submitted in a live classroom activity. It may be a photograph of a scene, object, place, or someone's work, OR a photo of handwritten or printed text (a note, sketch, whiteboard, or page). Return STRICT JSON only, no prose outside it:
 {
   "kind": "photo" | "text",
@@ -899,7 +901,7 @@ export async function photoDescribeAI(
   "transcript": "if kind is text, the transcription; otherwise an empty string. Write any line breaks as the two characters backslash-n, never as a real newline.",
   "description": "2 to 4 sentences describing the image. For a photo, describe the subject, setting, and notable details. For text, say what it is and note anything notable about the content."
 }
-Return ONE JSON object on a single line (minified), with no markdown fences and no text before or after it. Be specific, concrete, and neutral. Do NOT name or identify real, non-public individuals. If the image is blank, unreadable, or clearly off-topic, say so plainly in the description.${ctx}`;
+Return ONE JSON object on a single line (minified), with no markdown fences and no text before or after it. Be specific, concrete, and neutral. Do NOT name or identify real, non-public individuals. If the image is blank, unreadable, or clearly off-topic, say so plainly in the description.${ctx}${extra}`;
   const messages = [
     { role: "system", content: system },
     {
