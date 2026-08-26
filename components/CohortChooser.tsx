@@ -20,7 +20,7 @@ export default function CohortChooser({
       {cohorts.length === 0 ? (
         <div className="card mt-6 p-8 text-center">
           <div className="text-slate-600">No cohorts yet.</div>
-          <Link href="/facilitator/classes" className="btn-primary mt-4 inline-block text-sm">Create a cohort</Link>
+          <Link href="/facilitator/cohorts" className="btn-primary mt-4 inline-block text-sm">Create a cohort</Link>
         </div>
       ) : (
         <ul className="mt-6 space-y-2.5">

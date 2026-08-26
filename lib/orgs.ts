@@ -81,7 +81,7 @@ export async function getOrgById(id: string): Promise<Org | null> {
 // belongs to. It gives an org an "everyone" group with a real cohort code, so
 // live activities and roll-ups work org-wide with no sections. Deterministic,
 // unique code from the org id (nobody types it — you join the org, not this).
-function masterCohortCode(orgId: string): string {
+export function masterCohortCode(orgId: string): string {
   return ("ORG-" + orgId.replace(/-/g, "").slice(0, 10)).toUpperCase();
 }
 

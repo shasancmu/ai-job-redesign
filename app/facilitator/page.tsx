@@ -168,7 +168,7 @@ async function Overview({ admin, allowedCohorts, superadmin }: { admin: any; all
           {rows.length > 0 && (
             <span className="text-xs text-slate-400">{totalPeople.size} people across {rows.length} {rows.length === 1 ? "group" : "groups"}</span>
           )}
-          <Link href="/facilitator/classes" className="btn-primary text-sm">+ New cohort</Link>
+          <Link href="/facilitator/cohorts" className="btn-primary text-sm">+ New cohort</Link>
         </div>
       </div>
 
@@ -180,7 +180,7 @@ async function Overview({ admin, allowedCohorts, superadmin }: { admin: any; all
             <code className="rounded bg-slate-100 px-1">/dashboard?cohort=EXECED-XYZ-DATE</code>{" "}
             so participants' rooms group here.
           </p>
-          <Link href="/facilitator/classes" className="btn-primary mt-4 inline-block text-sm">New cohort</Link>
+          <Link href="/facilitator/cohorts" className="btn-primary mt-4 inline-block text-sm">New cohort</Link>
         </div>
       ) : (
         <ul className="space-y-2.5">

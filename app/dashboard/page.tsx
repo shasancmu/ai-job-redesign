@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { activeEntitlements, FREE_TIER_MODULES, runsLeftByModule } from "@/lib/access";
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { isAdmin } from "@/lib/admin";
-import { claimInvites, getMyOrgs, getActiveOrg, facilitatorAccess } from "@/lib/orgs";
+import { claimInvites, getMyOrgs, getActiveOrg, facilitatorAccess, masterCohortCode } from "@/lib/orgs";
 import OrgSwitcher from "@/components/OrgSwitcher";
 import AccountMenu from "@/components/AccountMenu";
 import FacilitatorWelcome from "@/components/FacilitatorWelcome";
@@ -259,7 +259,7 @@ export default async function Dashboard({
         <Catalog
           userId={user.id}
           unlocked={unlocked}
-          initialCohort={searchParams.cohort || ""}
+          initialCohort={searchParams.cohort || (activeOrg ? masterCohortCode(activeOrg.id) : "")}
           moduleSlugs={orgModules || undefined}
           completed={completed}
           lastCode={lastCode}
