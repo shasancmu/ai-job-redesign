@@ -16,7 +16,8 @@ export async function GET() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return new Response("Unauthorized", { status: 401 });
-  if (!(await facilitatorAccess(user)).ok) return new Response("Forbidden", { status: 403 });
+  const access = await facilitatorAccess(user);
+  if (!access.ok) return new Response("Forbidden", { status: 403 });
 
   let admin;
   try {
@@ -24,11 +25,21 @@ export async function GET() {
   } catch {
     return Response.json({ classes: [] });
   }
-  const { data } = await admin
+  // Scope to the active org (the header switcher), matching the facilitator hub:
+  // a director/superadmin manages all of that org's cohorts, an instructor the
+  // ones they own within it. Personal context shows your own org-less cohorts.
+  const activeOrg = await getActiveOrg(user);
+  let query = admin
     .from("classes")
     .select("id, code, name, modules, language, kind, allowed_emails, created_at")
-    .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
+  if (activeOrg) {
+    query = query.eq("org_id", activeOrg.id);
+    if (!(access.superadmin || access.orgIds.includes(activeOrg.id))) query = query.eq("owner_id", user.id);
+  } else {
+    query = query.eq("owner_id", user.id).is("org_id", null);
+  }
+  const { data } = await query;
 
   // member counts
   const classes = data || [];
