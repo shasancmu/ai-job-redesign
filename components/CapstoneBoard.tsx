@@ -17,7 +17,7 @@ async function api(path: string, body: any) {
   return res.json().catch(() => ({}));
 }
 
-export default function CapstoneBoard({ code, isHost, myName = "", cohort = "" }: { code: string; isHost: boolean; myName?: string; cohort?: string }) {
+export default function CapstoneBoard({ code, isHost, myName = "", cohort = "", userId = "" }: { code: string; isHost: boolean; myName?: string; cohort?: string; userId?: string }) {
   const [me, setMe] = useState<{ name: string; role: Role } | null>(null);
   const [state, setState] = useState<State | null>(null);
   const meRef = useRef(me); meRef.current = me;
@@ -42,7 +42,7 @@ export default function CapstoneBoard({ code, isHost, myName = "", cohort = "" }
     return () => clearInterval(id);
   }, [poll]);
 
-  if (!me) return <JoinGate code={code} members={state?.members || []} onJoin={setMe} defaultName={myName} />;
+  if (!me) return <JoinGate code={code} members={state?.members || []} onJoin={setMe} defaultName={myName} userId={userId} />;
   if (!state) return <div className="mx-auto max-w-4xl px-4 py-16 text-center text-slate-400">Loading the team room...</div>;
 
   const phase = state.phase;
@@ -91,7 +91,7 @@ export default function CapstoneBoard({ code, isHost, myName = "", cohort = "" }
   );
 }
 
-function JoinGate({ code, members, onJoin, defaultName = "" }: { code: string; members: Member[]; onJoin: (m: { name: string; role: Role }) => void; defaultName?: string }) {
+function JoinGate({ code, members, onJoin, defaultName = "", userId = "" }: { code: string; members: Member[]; onJoin: (m: { name: string; role: Role }) => void; defaultName?: string; userId?: string }) {
   const [name, setName] = useState(defaultName);
   const [role, setRole] = useState<Role | "">("");
   const [busy, setBusy] = useState(false);
@@ -100,7 +100,7 @@ function JoinGate({ code, members, onJoin, defaultName = "" }: { code: string; m
   async function join() {
     if (!name.trim() || !role) return;
     setBusy(true);
-    await api("/api/capstone/join", { code, name: name.trim(), role });
+    await api("/api/capstone/join", { code, name: name.trim(), role, userId });
     try { localStorage.setItem(`capstone-name-${code}`, name.trim()); localStorage.setItem(`capstone-role-${code}`, role); } catch {}
     onJoin({ name: name.trim(), role });
   }

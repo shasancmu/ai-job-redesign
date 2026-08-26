@@ -556,10 +556,13 @@ alter table public.capstone_sessions add column if not exists cohort text;
 create table if not exists public.capstone_members (
   id uuid primary key default gen_random_uuid(),
   session_id uuid not null references public.capstone_sessions (id) on delete cascade,
+  user_id uuid,
   name text not null default '',
   role text not null default '',
   created_at timestamptz not null default now()
 );
+alter table public.capstone_members add column if not exists user_id uuid;
+create index if not exists capstone_members_user_idx on public.capstone_members (user_id);
 create table if not exists public.capstone_picks (
   session_id uuid not null references public.capstone_sessions (id) on delete cascade,
   lever_key text not null,

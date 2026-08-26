@@ -204,6 +204,20 @@ export default async function Dashboard({
     /* bundles unavailable — skip the nudge */
   }
 
+  // The student's most recent capstone team (as captain or member), for a quick
+  // revisit to the shared board or their team's graded report.
+  let myCapstone: { code: string; phase: number; status: string } | null = null;
+  try {
+    const a = createAdminClient();
+    const { data: mem } = await a.from("capstone_members").select("session_id").eq("user_id", user.id);
+    const ids = (mem || []).map((m: any) => m.session_id);
+    const { data: hosted } = await a.from("capstone_sessions").select("id, code, phase, status, created_at").eq("host_id", user.id);
+    const joined = ids.length ? (await a.from("capstone_sessions").select("id, code, phase, status, created_at").in("id", ids)).data || [] : [];
+    const all = [...(hosted || []), ...joined].filter((v, i, arr) => arr.findIndex((x: any) => x.id === v.id) === i);
+    all.sort((x: any, y: any) => String(y.created_at || "").localeCompare(String(x.created_at || "")));
+    if (all[0]) myCapstone = { code: all[0].code, phase: all[0].phase, status: all[0].status };
+  } catch { /* no capstone teams */ }
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <header className="mb-8 flex flex-wrap items-center justify-between gap-x-3 gap-y-4">
@@ -290,6 +304,19 @@ export default async function Dashboard({
       <div data-tour="your-work">
         <YourWork recents={recents} reportsCount={reportsCount} />
       </div>
+
+      {myCapstone && (
+        <a href={`/capstone/${myCapstone.code}`} className="mb-6 flex items-center justify-between rounded-2xl border border-line bg-white p-4 transition hover:shadow-lift">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl" aria-hidden>📉</span>
+            <div>
+              <div className="font-bold text-ink">Your team capstone: The Number</div>
+              <div className="text-sm text-slate2">{myCapstone.status === "graded" || myCapstone.phase >= 3 ? "View your team's reckoning report" : "Rejoin your team"}</div>
+            </div>
+          </div>
+          <span className="shrink-0 text-slate-300">→</span>
+        </a>
+      )}
 
       <section data-tour="catalog">
         <h2 className="eyebrow">{t("dash.exercises")}</h2>

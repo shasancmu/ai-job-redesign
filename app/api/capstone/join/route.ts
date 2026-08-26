@@ -10,6 +10,7 @@ export async function POST(request: Request) {
   const code = String(body.code || "").toUpperCase();
   const name = String(body.name || "").trim().slice(0, 40);
   const role = String(body.role || "").trim().slice(0, 20);
+  const userId = typeof body.userId === "string" && body.userId ? body.userId : null;
   if (!code || !name || !role) return Response.json({ error: "missing fields" }, { status: 400 });
 
   const admin = createAdminClient();
@@ -19,9 +20,9 @@ export async function POST(request: Request) {
   // One row per (name); re-joining updates the role rather than duplicating.
   const { data: existing } = await admin.from("capstone_members").select("id").eq("session_id", session.id).eq("name", name).maybeSingle();
   if (existing) {
-    await admin.from("capstone_members").update({ role }).eq("id", existing.id);
+    await admin.from("capstone_members").update({ role, user_id: userId }).eq("id", existing.id);
   } else {
-    await admin.from("capstone_members").insert({ session_id: session.id, name, role });
+    await admin.from("capstone_members").insert({ session_id: session.id, name, role, user_id: userId });
   }
   return Response.json({ ok: true });
 }

@@ -36,5 +36,5 @@ export default async function CapstonePage({ params }: { params: { code: string 
   const { data: profile } = await supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle();
   const myName = (profile?.display_name as string) || (user.user_metadata?.display_name as string) || user.email?.split("@")[0] || "";
 
-  return <CapstoneBoard code={code} isHost={user.id === session.host_id} myName={myName} cohort={session.cohort || ""} />;
+  return <CapstoneBoard code={code} isHost={user.id === session.host_id} myName={myName} cohort={session.cohort || ""} userId={user.id} />;
 }
