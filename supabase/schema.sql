@@ -104,6 +104,8 @@ create index if not exists workspaces_session_idx on public.workspaces (session_
 
 -- Add interview_chat to any pre-existing workspaces table.
 alter table public.workspaces add column if not exists interview_chat jsonb not null default '[]'::jsonb;
+-- Dig-deeper (value) notes, kept in their own box separate from the first interview.
+alter table public.workspaces add column if not exists interview_notes_value text default '';
 
 -- --- helper: am I a participant of this session? --------------------------
 create or replace function public.is_session_participant(sess uuid)

@@ -37,6 +37,7 @@ export default function DemoPage() {
     owner_job_title: "",
     owner_job_description: "",
     interview_notes: "",
+    interview_notes_value: "",
     strategic_outcome: "",
     real_job: "",
     insight: "",
@@ -58,6 +59,7 @@ export default function DemoPage() {
     owner_job_description:
       "I own go-to-market for two product lines: messaging, launches, sales enablement, and competitive research.",
     interview_notes: "",
+    interview_notes_value: "",
     strategic_outcome: "",
     real_job:
       "Their real job is judgment about which stories will land with buyers, not producing the collateral itself.",

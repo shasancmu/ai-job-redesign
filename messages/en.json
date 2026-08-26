@@ -405,6 +405,7 @@
     "interviewInterviewing": "You're interviewing {name}",
     "interviewSwitchShort": "When the timer ends, you'll switch.",
     "interviewNotesLabel": "Your notes on {name}'s value",
+    "interviewFromFirst": "From the first interview",
     "interviewStuck": "Stuck? Go deeper",
     "interviewMore": "More",
     "interviewAskAI": "✨ Ask AI",

@@ -118,6 +118,17 @@ export const PHASES: Phase[] = [
 
 export const TOTAL_MINUTES = PHASES.reduce((s, p) => s + p.minutes, 0);
 
+// The interviewer's full notes about their partner: the first interview
+// (interview_notes) plus the dig-deeper / value round (interview_notes_value).
+// The two are stored and edited in separate boxes; combine them wherever the
+// summary and redesign consume "the notes".
+export function allInterviewNotes(ws: any): string {
+  return [ws?.interview_notes, ws?.interview_notes_value]
+    .map((s) => (s || "").trim())
+    .filter(Boolean)
+    .join("\n\n");
+}
+
 // --- The 2 × 4 AI × Human model --------------------------------------------
 export type Cell = {
   key: string;

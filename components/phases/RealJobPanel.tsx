@@ -2,12 +2,14 @@
 
 import PartnerJobCard from "@/components/PartnerJobCard";
 import { useT } from "@/components/I18nProvider";
+import { allInterviewNotes } from "@/lib/exercise";
 
 export default function RealJobPanel(props: any) {
   const t = useT();
   const { myWorkspace, partnerProfile, updateMine } = props;
   if (!myWorkspace) return <div className="text-slate2">{t("panel.realJobLoading")}</div>;
   const partnerName = partnerProfile?.display_name || t("panel.realJobPartnerFallback");
+  const notes = allInterviewNotes(myWorkspace);
 
   return (
     <div className="grid gap-5 md:grid-cols-[1fr_1.4fr]">
@@ -17,13 +19,13 @@ export default function RealJobPanel(props: any) {
           {t("panel.realJobSoloPre")}{" "}
           <span className="font-semibold text-ink">{t("panel.realJobValueWord")}</span> {partnerName} {t("panel.realJobCreatesSuffix")}
         </div>
-        {myWorkspace.interview_notes && (
+        {notes && (
           <div className="card p-4">
             <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-sage">
               {t("panel.realJobYourNotes")}
             </div>
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate2">
-              {myWorkspace.interview_notes}
+              {notes}
             </p>
           </div>
         )}

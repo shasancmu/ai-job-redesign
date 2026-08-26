@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PHASES } from "@/lib/exercise";
+import { PHASES, allInterviewNotes } from "@/lib/exercise";
 import PartnerJobCard from "@/components/PartnerJobCard";
 import { useT } from "@/components/I18nProvider";
 
@@ -61,17 +61,31 @@ export default function InterviewPanel(props: any) {
           <DeeperQuestions
             jobTitle={partnerWorkspace?.owner_job_title}
             jobDescription={partnerWorkspace?.owner_job_description}
-            notes={myWorkspace.interview_notes}
+            notes={allInterviewNotes(myWorkspace)}
           />
         </div>
 
         <div className="card p-5">
+          {/* Dig-deeper turn gets its own box. Show the first-interview notes
+              compactly above it for reference, without hogging the screen. */}
+          {value && (myWorkspace.interview_notes || "").trim() && (
+            <div className="mb-3 rounded-lg bg-mist/60 p-3">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate2">
+                {t("panel.interviewFromFirst")}
+              </div>
+              <p className="mt-1 max-h-24 overflow-auto whitespace-pre-wrap text-sm leading-relaxed text-slate2">
+                {myWorkspace.interview_notes}
+              </p>
+            </div>
+          )}
           <label className="lbl">{t("panel.interviewNotesLabel", { name: partnerName })}</label>
           <textarea
             className="field min-h-[300px]"
             placeholder={notesPlaceholder}
-            value={myWorkspace.interview_notes || ""}
-            onChange={(e) => updateMine({ interview_notes: e.target.value })}
+            value={(value ? myWorkspace.interview_notes_value : myWorkspace.interview_notes) || ""}
+            onChange={(e) =>
+              updateMine(value ? { interview_notes_value: e.target.value } : { interview_notes: e.target.value })
+            }
           />
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { emptyGrid } from "@/lib/exercise";
+import { emptyGrid, allInterviewNotes } from "@/lib/exercise";
 import GridEditor from "@/components/GridEditor";
 import PartnerJobCard from "@/components/PartnerJobCard";
 import BuildPlan from "@/components/BuildPlan";
@@ -31,7 +31,7 @@ export default function RedesignPanel(props: any) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mode: "propose",
-          notes: myWorkspace.interview_notes,
+          notes: allInterviewNotes(myWorkspace),
           ...partnerJob,
         }),
       });
@@ -104,8 +104,8 @@ export default function RedesignPanel(props: any) {
 function NotesReference({ ws, partnerName }: { ws: any; partnerName: string }) {
   const t = useT();
   const [open, setOpen] = useState(true);
-  const has =
-    ws.interview_notes || ws.strategic_outcome || ws.real_job || ws.insight;
+  const notes = allInterviewNotes(ws);
+  const has = notes || ws.strategic_outcome || ws.real_job || ws.insight;
   if (!has) return <div className="card p-4 text-sm text-slate2">{t("panel.redesignNoNotes")}</div>;
 
   return (
@@ -138,10 +138,10 @@ function NotesReference({ ws, partnerName }: { ws: any; partnerName: string }) {
               <span className="text-ink">{ws.insight}</span>
             </div>
           )}
-          {ws.interview_notes && (
+          {notes && (
             <div className="border-t border-line pt-2">
               <div className="mb-1 font-semibold text-slate2">{t("panel.redesignNotesTag")}</div>
-              <p className="whitespace-pre-wrap leading-relaxed text-slate2">{ws.interview_notes}</p>
+              <p className="whitespace-pre-wrap leading-relaxed text-slate2">{notes}</p>
             </div>
           )}
         </div>

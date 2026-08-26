@@ -1,12 +1,13 @@
 "use client";
 
 import { useT } from "@/components/I18nProvider";
+import { allInterviewNotes } from "@/lib/exercise";
 
 export default function BreakPanel(props: any) {
   const t = useT();
   const { myWorkspace, partnerProfile } = props;
   const partnerName = partnerProfile?.display_name || t("panel.breakPartnerFallback");
-  const notes = myWorkspace?.interview_notes;
+  const notes = allInterviewNotes(myWorkspace);
 
   return (
     <div className="mx-auto max-w-lg space-y-4 py-6 text-center">
