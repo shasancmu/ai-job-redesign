@@ -1,6 +1,5 @@
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { moduleBySlug, MODULES } from "@/lib/modules";
-import { hasClassAccess } from "@/lib/classes";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // ---- Tier configuration (env-overridable so you can tune without a deploy) ---
@@ -59,6 +58,30 @@ async function runsUsed(supabase: SupabaseClient, userId: string, exercise: stri
   return count || 0;
 }
 
+// Every module slug the user gets for free via a class they belong to OR an org
+// they're in (that class/org includes the module). Checked across ALL their
+// memberships, so access does not depend on how the module was launched or on
+// the session being tagged with a cohort.
+export async function grantedModuleSlugs(supabase: SupabaseClient, userId: string): Promise<Set<string>> {
+  const out = new Set<string>();
+  try {
+    const { data: cms } = await supabase.from("class_members").select("class_id").eq("user_id", userId);
+    const ids = [...new Set(((cms as any[]) || []).map((r) => r.class_id).filter(Boolean))];
+    if (ids.length) {
+      const { data: cls } = await supabase.from("classes").select("modules").in("id", ids);
+      for (const c of (cls as any[]) || []) for (const s of ((c.modules as any[]) || [])) out.add(String(s));
+    }
+  } catch { /* RLS or missing table → no class grants */ }
+  try {
+    const { data: orgMems } = await supabase.from("org_members").select("organizations(modules)").eq("user_id", userId);
+    for (const m of (orgMems as any[]) || []) {
+      const mods = m.organizations?.modules;
+      if (Array.isArray(mods)) for (const s of mods) out.add(String(s));
+    }
+  } catch { /* no org grants */ }
+  return out;
+}
+
 // The single source of truth for "can this user run this module right now?".
 export async function moduleRunAccess(
   supabase: SupabaseClient,
@@ -70,19 +93,11 @@ export async function moduleRunAccess(
   if (!PAYMENTS_ENABLED) return unlimited("free-module");
   if (opts.isAdmin) return unlimited("admin");
 
-  // Cohort's selected modules are free (unlimited) for its members.
-  if (opts.cohort && (await hasClassAccess(supabase, opts.userId, opts.cohort, opts.slug))) {
-    return unlimited("cohort");
-  }
-
-  // White-label org members get the modules their org grants (unlimited). RLS
-  // lets a user read their own memberships + the org rows, so the user client
-  // is fine here.
-  const { data: orgMems } = await supabase.from("org_members").select("organizations(modules)").eq("user_id", opts.userId);
-  for (const m of (orgMems as any[]) || []) {
-    const mods = m.organizations?.modules;
-    if (Array.isArray(mods) && mods.includes(opts.slug)) return unlimited("org");
-  }
+  // Any class OR org the user belongs to that includes this module grants
+  // unlimited runs, regardless of how it was launched or whether the session
+  // was tagged with a cohort. (The specific session cohort still counts too.)
+  const granted = await grantedModuleSlugs(supabase, opts.userId);
+  if (granted.has(opts.slug)) return unlimited("cohort");
 
   // Paid all-access takes precedence: PAID_RUNS per module, counted since the
   // purchase (re-buying resets the window). The run count INCLUDES the current
@@ -120,6 +135,8 @@ export async function runsLeftByModule(
   const ents = await activeEnts(supabase, userId);
   const paid = ents.find((e) => e.module === "all");
   const since = paid?.current_period_start || null;
+  // Modules the user gets free via a class or org they belong to → unlimited.
+  const granted = await grantedModuleSlugs(supabase, userId);
 
   // Count this user's sessions per exercise (paid → since the purchase window).
   let q = supabase.from("sessions").select("exercise").or(`host_id.eq.${userId},guest_id.eq.${userId}`);
@@ -130,6 +147,7 @@ export async function runsLeftByModule(
 
   for (const m of MODULES) {
     if (m.forSale === false) { out[m.slug] = null; continue; }
+    if (granted.has(m.slug)) { out[m.slug] = null; continue; } // free via class/org
     const used = counts[m.exercise] || 0;
     if (paid) out[m.slug] = PAID_UNLIMITED ? null : Math.max(0, PAID_RUNS - used);
     else if (FREE_TIER_MODULES.has(m.slug)) out[m.slug] = Math.max(0, FREE_TIER_RUNS - used);
