@@ -259,7 +259,7 @@ export default function Room({
   // frozen at full and forward progress stays gated. The host sets it; realtime
   // syncs it to both partners so their clocks match.
   useEffect(() => {
-    if (partnerHere && session.host_id === me && !session.phase_started_at && phase.mode !== "break") {
+    if (partnerHere && !session.phase_started_at && phase.mode !== "break") {
       goToPhase(session.phase ?? 0, true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
