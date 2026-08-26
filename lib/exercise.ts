@@ -76,7 +76,7 @@ export const PHASES: Phase[] = [
     title: "What you learned",
     subtitle:
       "Distill it. From your notes, capture the value your partner creates, their real job, and one thing they might not see.",
-    minutes: 4,
+    minutes: 2,
     mode: "solo",
   },
   {
