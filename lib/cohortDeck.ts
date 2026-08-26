@@ -166,15 +166,15 @@ export async function buildCohortDeck(
     });
   }
 
-  const cardsFrom = (title: string, items: { [k: string]: string }[] | undefined, a: string, b: string, icon: string) => {
-    const cards = (items || []).map((it) => ({ icon, heading: it[a], text: it[b] })).filter((c) => c.heading);
+  const cardsFrom = (title: string, items: { [k: string]: string }[] | undefined, a: string, b: string) => {
+    const cards = (items || []).map((it) => ({ heading: it[a], text: it[b] })).filter((c) => c.heading);
     if (cards.length) slides.push({ id: id(), type: "cards", title, cards });
   };
 
-  cardsFrom("What people kept human", synth?.keptHuman, "theme", "detail", "🧠");
-  cardsFrom("What they handed to AI", synth?.gaveAI, "theme", "detail", "⚙️");
-  cardsFrom("What the conversations kept returning to", synth?.conversationFocus, "theme", "detail", "💬");
-  cardsFrom("What the room learned", synth?.learnings, "title", "detail", "🎯");
+  cardsFrom("What people kept human", synth?.keptHuman, "theme", "detail");
+  cardsFrom("What they handed to AI", synth?.gaveAI, "theme", "detail");
+  cardsFrom("What the conversations kept returning to", synth?.conversationFocus, "theme", "detail");
+  cardsFrom("What the room learned", synth?.learnings, "title", "detail");
 
   return slides;
 }

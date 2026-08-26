@@ -74,7 +74,7 @@ function StaticSlide({ slide }: { slide: Slide }) {
             {cards.map((c, k) => (
               <div key={k} className="rounded-2xl border border-line bg-mist/40 p-[clamp(0.8rem,2vw,1.6rem)]">
                 {c.icon && <div className="text-[clamp(1.6rem,3.5vw,2.6rem)] leading-none">{c.icon}</div>}
-                <div className="mt-3 text-[clamp(1rem,2.2vw,1.6rem)] font-bold text-ink">{c.heading}</div>
+                <div className={(c.icon ? "mt-3 " : "") + "text-[clamp(1rem,2.2vw,1.6rem)] font-bold text-ink"}>{c.heading}</div>
                 {c.text && <div className="mt-1.5 text-[clamp(0.85rem,1.5vw,1.15rem)] leading-snug text-slate-600">{c.text}</div>}
               </div>
             ))}
