@@ -446,7 +446,6 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
               <p className="mt-0.5 text-xs text-slate-500">During class: drive the room in real time, or watch answers aggregate live on screen.</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Link href={`/facilitator/live?cohort=${encodeURIComponent(cohort)}`} className="btn-primary text-sm">● Live cockpit</Link>
-                <Link href={`/facilitator/room?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">🧠 Room intelligence</Link>
                 <Link href={`/facilitator/aggregate?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">Live aggregate</Link>
               </div>
             </div>
