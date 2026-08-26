@@ -34,7 +34,8 @@ export async function POST(request: Request) {
   const history = transcript.map((t) => ({ role: t.role === "analyst" ? "assistant" : "user", content: t.content } as { role: "user" | "assistant"; content: string }));
   let reply = "";
   try {
-    reply = (await roleplayReply(capstoneAnalystSystem(keys), history)) || "";
+    // Main model (low:false): this is the graded call, worth the quality.
+    reply = (await roleplayReply(capstoneAnalystSystem(keys), history, undefined, { low: false, opener: "(The CFO's office has joined the call. Open with your first pointed question.)" })) || "";
   } catch (e: any) {
     return Response.json({ error: e?.message || "The analyst could not respond." }, { status: 500 });
   }

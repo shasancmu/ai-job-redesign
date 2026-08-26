@@ -1225,7 +1225,8 @@ Return STRICT JSON only, no prose outside it:
 }
 Order the reckoning timeline from soonest to latest, one entry per meaningful lever they pulled. If they were indicted, say so plainly in the headline and floor the judgment score.`;
 
-  const raw = await complete([{ role: "system", content: system }], { json: true, temperature: 0.4, maxTokens: 2600 });
+  // Main model (low:false): the capstone grade is the deliverable, worth the quality.
+  const raw = await complete([{ role: "system", content: system }], { json: true, temperature: 0.4, maxTokens: 2600, low: false });
   return extractJson(raw);
 }
 
@@ -1866,11 +1867,11 @@ Rules: fill EVERY field, grounded in the interview and specific to this ${def.su
 // ============================================================================
 // Role-play + coaching helpers (used by the negotiation module).
 // ============================================================================
-export async function roleplayReply(system: string, history: ChatMsg[], onToken?: (d: string) => void): Promise<string> {
+export async function roleplayReply(system: string, history: ChatMsg[], onToken?: (d: string) => void, opts?: { low?: boolean; opener?: string }): Promise<string> {
   const conversation: ChatMsg[] = history.length
     ? history
-    : [{ role: "user", content: "(The candidate has joined. Please open the negotiation.)" }];
-  return complete([{ role: "system", content: system }, ...conversation], { temperature: 0.85, onToken });
+    : [{ role: "user", content: opts?.opener || "(The candidate has joined. Please open the negotiation.)" }];
+  return complete([{ role: "system", content: system }, ...conversation], { temperature: 0.85, onToken, low: opts?.low });
 }
 
 export async function coachReply(system: string, user: string, temperature = 0.6, onToken?: (d: string) => void): Promise<string> {
