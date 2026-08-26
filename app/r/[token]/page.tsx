@@ -68,6 +68,45 @@ export default async function SharedReport({ params }: { params: { token: string
       );
     }
 
+    // 1b) A reimagined-role plan by its per-workspace giftToken. This is what a
+    // partner built for you: it has its own token so either author's plan resolves.
+    if (!node) {
+      const { data: gws } = await admin
+        .from("workspaces")
+        .select("plan, author_id, subject_id")
+        .eq("canvas->>giftToken", token)
+        .limit(1)
+        .maybeSingle();
+      const gplan = (gws?.plan as any) || null;
+      const gValid =
+        gplan && (gplan.headline || gplan.summary || (gplan.human?.length || 0) + (gplan.ai?.length || 0) > 0);
+      if (gValid) {
+        const [giver, subj] = await Promise.all([
+          admin.from("profiles").select("display_name").eq("id", gws.author_id).maybeSingle(),
+          gws.subject_id
+            ? admin.from("profiles").select("display_name").eq("id", gws.subject_id).maybeSingle()
+            : Promise.resolve({ data: null } as any),
+        ]);
+        const giverName = giver?.data?.display_name || null;
+        const recipientName = subj?.data?.display_name || null;
+        node = (
+          <>
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-1.5 text-sm">
+              <span aria-hidden>🎁</span>
+              <span className="font-medium text-ink">
+                {recipientName && giverName
+                  ? `For ${recipientName}, from ${giverName}`
+                  : giverName
+                    ? `A gift from ${giverName}`
+                    : "A reimagined role"}
+              </span>
+            </div>
+            <PlanView plan={gplan} embedded />
+          </>
+        );
+      }
+    }
+
     // 2) Otherwise a session report by public_token (never an intake-link exercise).
     if (!node) {
       const { data: s } = await admin.from("sessions").select("id, exercise, host_id").eq("public_token", token).maybeSingle();

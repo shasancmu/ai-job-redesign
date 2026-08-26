@@ -63,9 +63,22 @@ export async function POST(request: Request) {
     }
 
     if (sessionId) {
+      // Auto-mint a public share token (once) so the plan has a shareable, no-account
+      // link the moment it exists, no "enable sharing" click needed. Stored per
+      // workspace in canvas.giftToken so each author's plan gets its own link.
+      const { data: cur } = await supabase
+        .from("workspaces")
+        .select("canvas")
+        .eq("session_id", sessionId)
+        .eq("author_id", user.id)
+        .maybeSingle();
+      const canvas = ((cur?.canvas as any) || {}) as Record<string, any>;
+      if (!canvas.giftToken) {
+        canvas.giftToken = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, "");
+      }
       const { error } = await supabase
         .from("workspaces")
-        .update({ plan })
+        .update({ plan, canvas })
         .eq("session_id", sessionId)
         .eq("author_id", user.id);
       if (error) {

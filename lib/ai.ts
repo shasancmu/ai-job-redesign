@@ -1784,7 +1784,7 @@ Return STRICT JSON only, no prose, no fences:
 Rules: 8-14 tasks covering the real role; be discerning with exposure (spread E0/E1/E2). automate+augment+human ≈ 100. 3-5 new tasks and durable-value items. For a job description, "jobSearch" becomes how to FIND the person (keywords to source on, where they are, signals to screen for). Specific to THIS ${mode}; no generic filler.`;
 
   const user = `Role: ${role || "(unspecified)"}${level ? ` · Level: ${level}` : ""}\n\n${mode === "resume" ? "Resume" : "Job description"}:\n${text.slice(0, 6000)}`;
-  const raw = await complete([{ role: "system", content: system }, { role: "user", content: user }], { json: true, temperature: 0.4, maxTokens: 4096 });
+  const raw = await complete([{ role: "system", content: system }, { role: "user", content: user }], { json: true, temperature: 0.4, maxTokens: 2600, low: true });
   const clampPct = (v: any) => Math.max(0, Math.min(100, Math.round(Number(v) || 0)));
   try {
     const p = extractJson(raw);

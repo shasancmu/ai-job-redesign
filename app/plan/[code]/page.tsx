@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import PlanView from "@/components/PlanView";
+import ShareGift from "@/components/ShareGift";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,7 @@ export default async function PlanPage({ params }: { params: { code: string } })
   const authorId = admin ? session.host_id : user.id;
   const { data: ws } = await db
     .from("workspaces")
-    .select("plan")
+    .select("plan, canvas, subject_id")
     .eq("session_id", session.id)
     .eq("author_id", authorId)
     .maybeSingle();
@@ -62,5 +63,33 @@ export default async function PlanPage({ params }: { params: { code: string } })
     );
   }
 
-  return <PlanView plan={plan} code={code} />;
+  // Public share link: minted when the plan was built; mint lazily here for plans
+  // that predate that. Only the owner (not an admin viewer) can write their row.
+  const canvas = ((ws?.canvas as any) || {}) as Record<string, any>;
+  let giftToken: string | null = canvas.giftToken || null;
+  if (!giftToken && !admin) {
+    giftToken = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, "");
+    await supabase
+      .from("workspaces")
+      .update({ canvas: { ...canvas, giftToken } })
+      .eq("session_id", session.id)
+      .eq("author_id", authorId);
+  }
+
+  // Who the plan is for: in the paired exercise, the partner (subject) — frames
+  // the share as "share with <partner>". Solo plans are for yourself (no name).
+  let recipientName: string | null = null;
+  const subjectId = (ws?.subject_id as string | null) || null;
+  if (subjectId && subjectId !== authorId) {
+    const { data: subj } = await db.from("profiles").select("display_name").eq("id", subjectId).maybeSingle();
+    recipientName = subj?.display_name || null;
+  }
+
+  return (
+    <PlanView
+      plan={plan}
+      code={code}
+      topSlot={giftToken ? <ShareGift path={`/r/${giftToken}`} recipientName={recipientName} /> : undefined}
+    />
+  );
 }
