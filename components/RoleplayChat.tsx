@@ -54,6 +54,7 @@ export default function RoleplayChat({
   const recRef = useRef<any>(null);
   const finalRef = useRef(""); const interimRef = useRef("");
   const silenceRef = useRef<any>(null); const maxRef = useRef<any>(null);
+  const keepAliveRef = useRef<any>(null); // the "nudge speechSynthesis" interval
   const turnDone = useRef(false);
   const bestVoice = useRef<SpeechSynthesisVoice | null>(null);
   const opened = useRef(false);
@@ -74,14 +75,16 @@ export default function RoleplayChat({
       u.rate = 1.0;
       u.voice = bestVoice.current || pickVoice(synth.getVoices());
       let done = false;
-      let keepAlive: any = null;
-      const fin = () => { if (done) return; done = true; if (keepAlive) clearInterval(keepAlive); setSpeaking(false); after?.(); };
+      const fin = () => { if (done) return; done = true; clearInterval(keepAliveRef.current); keepAliveRef.current = null; setSpeaking(false); after?.(); };
       const wd = setTimeout(() => { try { synth.cancel(); } catch {} fin(); }, Math.min(3500 + text.length * 65, 24000));
       u.onend = () => { clearTimeout(wd); fin(); };
       u.onerror = () => { clearTimeout(wd); fin(); };
       synth.speak(u);
-      // iOS/Safari pauses long speech after ~15s; nudge it to keep going.
-      keepAlive = setInterval(() => { try { synth.resume(); } catch {} }, 5000);
+      // iOS/Safari pauses long speech after ~15s; nudge it to keep going. Tracked
+      // in a ref so unmount/stop can kill it — otherwise it resumes cancelled
+      // speech and the voice keeps talking after you leave the step.
+      clearInterval(keepAliveRef.current);
+      keepAliveRef.current = setInterval(() => { try { synth.resume(); } catch {} }, 5000);
     } catch { setSpeaking(false); after?.(); }
   }, []);
 
@@ -171,8 +174,10 @@ export default function RoleplayChat({
     rec.onerror = (e: any) => { if (e?.error === "not-allowed" || e?.error === "service-not-allowed") setErr("Microphone access is blocked. Allow the mic and reload."); };
     recRef.current = rec;
     return () => {
+      voiceRef.current = false; // stop any in-flight callbacks from restarting audio
       try { rec.onresult = null; rec.onend = null; rec.onerror = null; rec.stop(); rec.abort(); } catch {}
       try { window.speechSynthesis.cancel(); } catch {}
+      clearInterval(keepAliveRef.current);
       clearTimers();
     };
   }, []);
@@ -182,6 +187,16 @@ export default function RoleplayChat({
     if (opened.current) return; opened.current = true;
     if (aiOpens && chat.length === 0) runTurn(null);
   }, []); // eslint-disable-line
+
+  // If the parent disables the chat mid-session (e.g. a question budget is
+  // spent), fully stop voice so the mic and speech don't keep running.
+  useEffect(() => {
+    if (!disabled) return;
+    setVoice(false); voiceRef.current = false;
+    clearTimers(); clearInterval(keepAliveRef.current); setListening(false); setSpeaking(false);
+    try { recRef.current?.stop(); } catch {}
+    try { window.speechSynthesis.cancel(); } catch {}
+  }, [disabled]); // eslint-disable-line
 
   useEffect(() => { scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" }); }, [chat.length, busy, interim]);
 
@@ -193,7 +208,7 @@ export default function RoleplayChat({
       const lastA = [...chatRef.current].reverse().find((m) => m.role === "assistant");
       if (lastA) speak(lastA.content, () => startListening()); else startListening();
     } else {
-      clearTimers(); setListening(false); setSpeaking(false);
+      clearTimers(); clearInterval(keepAliveRef.current); setListening(false); setSpeaking(false);
       try { recRef.current?.stop(); } catch {}
       try { window.speechSynthesis.cancel(); } catch {}
     }
