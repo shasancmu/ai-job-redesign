@@ -97,8 +97,8 @@ export default async function Home() {
               debrief. You bring the judgment.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/try" className="btn-primary">
-                Get your 90-second read <span aria-hidden>→</span>
+              <Link href="/login?mode=signup" className="btn-primary">
+                Sign up free <span aria-hidden>→</span>
               </Link>
             </div>
             <div className="mt-4">
