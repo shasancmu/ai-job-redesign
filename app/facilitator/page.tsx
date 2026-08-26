@@ -150,6 +150,14 @@ async function Overview({ admin, allowedCohorts, classes, superadmin }: { admin:
           </div>
           <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
         </Link>
+        <Link href="/facilitator/gallery" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-soft text-2xl">🖼️</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-ink">Photo gallery</div>
+            <div className="text-sm text-slate2">The actual photos appear on screen with captions, then AI summarizes them.</div>
+          </div>
+          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
+        </Link>
         <Link href="/facilitator/quiz" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-clay-soft text-2xl">⏱️</div>
           <div className="min-w-0 flex-1">

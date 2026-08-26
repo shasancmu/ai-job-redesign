@@ -498,6 +498,12 @@ create table if not exists public.photo_entries (
   transcript text not null default '',
   created_at timestamptz not null default now()
 );
+-- Photo GALLERY mode (show_photos on the session): a scaled-down thumbnail is kept
+-- and shown on screen, alongside an optional participant caption. The default Photo
+-- Wall keeps neither (image stays null, caption blank).
+alter table public.photo_sessions add column if not exists show_photos boolean not null default false;
+alter table public.photo_entries add column if not exists image text; -- data-URL thumbnail (gallery only)
+alter table public.photo_entries add column if not exists caption text not null default '';
 create index if not exists photo_entries_session_idx on public.photo_entries (session_id);
 
 alter table public.photo_sessions enable row level security;

@@ -32,16 +32,24 @@ export async function POST(request: Request) {
 
   const { data: entries } = await supabase
     .from("photo_entries")
-    .select("kind, title, description")
+    .select("kind, title, description, caption")
     .eq("session_id", session.id)
     .limit(500);
   if (!entries || entries.length === 0) {
     return Response.json({ error: "No photos yet to summarize." }, { status: 409 });
   }
 
+  // In gallery mode the participant's caption is the meaningful text; fall back to
+  // the AI's description otherwise.
+  const forSummary = (entries as any[]).map((e) => ({
+    kind: e.kind,
+    title: e.title,
+    description: (e.caption || "").trim() || e.description,
+  }));
+
   let summary;
   try {
-    summary = await photoSummaryAI(session.prompt || "", entries as any);
+    summary = await photoSummaryAI(session.prompt || "", forSummary as any);
   } catch (e: any) {
     return Response.json({ error: e?.message || "Couldn't summarize." }, { status: 500 });
   }

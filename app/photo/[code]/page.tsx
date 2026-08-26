@@ -9,10 +9,10 @@ export const dynamic = "force-dynamic";
 export default async function PhotoJoin({ params }: { params: { code: string } }) {
   const code = String(params.code || "").toUpperCase();
 
-  let session: { prompt: string; status: string } | null = null;
+  let session: { prompt: string; status: string; show_photos?: boolean } | null = null;
   try {
     const admin = createAdminClient();
-    const { data } = await admin.from("photo_sessions").select("prompt, status").eq("code", code).maybeSingle();
+    const { data } = await admin.from("photo_sessions").select("prompt, status, show_photos").eq("code", code).maybeSingle();
     session = (data as any) || null;
   } catch {
     session = null;
@@ -37,7 +37,7 @@ export default async function PhotoJoin({ params }: { params: { code: string } }
           <p className="mt-2 text-sm text-slate2">Thanks for taking part.</p>
         </div>
       ) : (
-        <PhotoCapture code={code} prompt={session.prompt} />
+        <PhotoCapture code={code} prompt={session.prompt} showPhotos={!!session.show_photos} />
       )}
     </main>
   );

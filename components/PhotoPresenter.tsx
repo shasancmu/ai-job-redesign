@@ -21,6 +21,7 @@ export default function PhotoPresenter({
   initialSummary,
   joinHost,
   qrSvg,
+  showPhotos = false,
 }: {
   sessionId: string;
   code: string;
@@ -29,6 +30,7 @@ export default function PhotoPresenter({
   initialSummary: Summary;
   joinHost: string;
   qrSvg: string;
+  showPhotos?: boolean;
 }) {
   const supabase = createClient();
   const stageRef = useRef<HTMLDivElement>(null);
@@ -53,7 +55,7 @@ export default function PhotoPresenter({
   const load = useCallback(async () => {
     const { data } = await supabase
       .from("photo_entries")
-      .select("id, kind, title, description, transcript")
+      .select("id, kind, title, description, transcript, image, caption")
       .eq("session_id", sessionId)
       .order("created_at", { ascending: false })
       .limit(500);
@@ -155,7 +157,7 @@ export default function PhotoPresenter({
         <div className="flex flex-wrap items-center gap-2">
           {phase !== "collecting" && joinPill}
           <button onClick={toggleFull} className="btn-ghost text-sm" title="Fullscreen">{isFull ? "Exit full" : "⤢ Full"}</button>
-          {!isFull && <Link href="/facilitator/photo" className="btn-ghost text-sm">Done</Link>}
+          {!isFull && <Link href={showPhotos ? "/facilitator/gallery" : "/facilitator/photo"} className="btn-ghost text-sm">Done</Link>}
           {!closed && (
             <button
               onClick={() => window.confirm("Close this activity? No new photos will be accepted.") && setStatusPersist("closed")}
@@ -187,7 +189,7 @@ export default function PhotoPresenter({
         ) : (
           <>
             <div className={"absolute inset-0 pt-2 transition-all duration-700 " + (phase === "summary" ? "scale-[0.94] blur-md opacity-20" : "opacity-100")}>
-              <PhotoWall entries={entries} />
+              <PhotoWall entries={entries} showPhotos={showPhotos} />
             </div>
             {phase === "wall" && burst > 0 && <RevealBurst key={burst} />}
             {phase === "summary" && (

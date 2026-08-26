@@ -9,8 +9,6 @@ export const maxDuration = 60; // vision can take a few seconds
 // model, stores ONLY the returned text, and discards the image. The image is
 // never written to the database.
 export async function POST(request: Request) {
-  if (!VISION_ENABLED) return Response.json({ error: "Photo analysis is not configured." }, { status: 503 });
-
   let body: any;
   try {
     body = await request.json();
@@ -20,6 +18,7 @@ export async function POST(request: Request) {
 
   const code = String(body.code || "").toUpperCase().trim();
   const image = String(body.image || "");
+  const caption = String(body.caption || "").slice(0, 500).trim();
   if (!code) return Response.json({ error: "Missing code." }, { status: 400 });
   if (!/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(image)) {
     return Response.json({ error: "Please attach a photo." }, { status: 400 });
@@ -37,28 +36,37 @@ export async function POST(request: Request) {
 
   const { data: session } = await admin
     .from("photo_sessions")
-    .select("id, status, prompt")
+    .select("id, status, prompt, show_photos")
     .eq("code", code)
     .maybeSingle();
   if (!session) return Response.json({ error: "That code isn't valid." }, { status: 404 });
   if (session.status === "closed") return Response.json({ error: "This activity is closed." }, { status: 409 });
 
-  let desc;
-  try {
-    desc = await photoDescribeAI(image, session.prompt || "");
-  } catch (e: any) {
-    return Response.json({ error: e?.message || "Couldn't read that photo. Try again." }, { status: 502 });
+  const gallery = !!(session as any).show_photos;
+  if (!gallery && !VISION_ENABLED) return Response.json({ error: "Photo analysis is not configured." }, { status: 503 });
+
+  // Read the photo with the vision model. Required for the read-only Photo Wall;
+  // best-effort for the gallery (the thumbnail + caption stand on their own).
+  let desc: any = null;
+  if (VISION_ENABLED) {
+    try {
+      desc = await photoDescribeAI(image, session.prompt || "");
+    } catch (e: any) {
+      if (!gallery) return Response.json({ error: e?.message || "Couldn't read that photo. Try again." }, { status: 502 });
+    }
   }
 
-  // Store ONLY the model's text output. The `image` variable is never persisted.
+  // Read-only wall keeps ONLY text (image discarded). Gallery keeps the scaled
+  // thumbnail + the caption too, so it can be shown on screen.
   const { error } = await admin.from("photo_entries").insert({
     session_id: session.id,
-    kind: desc.kind,
-    title: desc.title,
-    description: desc.description,
-    transcript: desc.transcript,
+    kind: desc?.kind || "photo",
+    title: desc?.title || "",
+    description: desc?.description || "",
+    transcript: desc?.transcript || "",
+    ...(gallery ? { image, caption } : {}),
   });
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
-  return Response.json({ ok: true, kind: desc.kind, title: desc.title, description: desc.description, transcript: desc.transcript });
+  return Response.json({ ok: true, gallery, kind: desc?.kind || "photo", title: desc?.title || "", description: desc?.description || "", transcript: desc?.transcript || "", caption });
 }

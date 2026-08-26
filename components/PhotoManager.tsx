@@ -14,7 +14,7 @@ const STATUS_CHIP: Record<string, string> = {
   closed: "bg-slate-100 text-slate-600",
 };
 
-export default function PhotoManager({ me, initial }: { me: string; initial: Sess[] }) {
+export default function PhotoManager({ me, initial, showPhotos = false }: { me: string; initial: Sess[]; showPhotos?: boolean }) {
   const router = useRouter();
   const supabase = createClient();
   const [list, setList] = useState<Sess[]>(initial);
@@ -31,7 +31,7 @@ export default function PhotoManager({ me, initial }: { me: string; initial: Ses
       const code = makePhotoCode();
       const { data, error } = await supabase
         .from("photo_sessions")
-        .insert({ code, host_id: me, prompt: prompt.trim(), status: "open" })
+        .insert({ code, host_id: me, prompt: prompt.trim(), status: "open", show_photos: showPhotos })
         .select()
         .single();
       if (!error && data) {

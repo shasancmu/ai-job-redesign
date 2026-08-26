@@ -17,7 +17,7 @@ export default async function PhotoPresent({ params }: { params: { code: string 
 
   const { data: session } = await supabase
     .from("photo_sessions")
-    .select("id, code, prompt, status, summary, host_id")
+    .select("id, code, prompt, status, summary, host_id, show_photos")
     .eq("code", code)
     .maybeSingle();
   if (!session || session.host_id !== user.id) redirect("/facilitator/photo");
@@ -43,6 +43,7 @@ export default async function PhotoPresent({ params }: { params: { code: string 
       initialSummary={(session.summary as any) || null}
       joinHost={`${host.replace(/^www\./, "")}/photo`}
       qrSvg={qrSvg}
+      showPhotos={!!(session as any).show_photos}
     />
   );
 }

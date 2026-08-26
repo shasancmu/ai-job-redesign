@@ -7,7 +7,9 @@ import PhotoManager from "@/components/PhotoManager";
 
 export const dynamic = "force-dynamic";
 
-export default async function FacilitatorPhoto() {
+// Photo Gallery: like the Photo Wall, but the actual (scaled-down) photos appear
+// on the shared screen with captions. Reuses the photo activity with show_photos.
+export default async function FacilitatorGallery() {
   const supabase = createClient();
   const {
     data: { user },
@@ -19,7 +21,7 @@ export default async function FacilitatorPhoto() {
     .from("photo_sessions")
     .select("id, code, prompt, status, created_at")
     .eq("host_id", user.id)
-    .eq("show_photos", false)
+    .eq("show_photos", true)
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -30,13 +32,13 @@ export default async function FacilitatorPhoto() {
           <Link href="/facilitator" className="text-sm text-slate2 hover:text-ink">← Cohorts</Link>
           <HeaderNav />
         </div>
-        <h1 className="mt-1 text-3xl text-ink">Photo Wall</h1>
+        <h1 className="mt-1 text-3xl text-ink">Photo Gallery</h1>
         <p className="mt-1 text-slate2">
-          The room photographs something (a scene, an object, or handwritten text) from their phones. AI reads each
-          image into text and the photo itself is never stored, then AI summarizes what the room showed.
+          The room takes photos from their phones. The actual photos, scaled down, appear on the shared screen
+          with each person&apos;s caption, then AI summarizes what the room showed.
         </p>
       </div>
-      <PhotoManager me={user.id} initial={(sessions as any) || []} />
+      <PhotoManager me={user.id} initial={(sessions as any) || []} showPhotos />
     </main>
   );
 }

@@ -15,4 +15,6 @@ export type PhotoEntry = {
   title: string;
   description: string;
   transcript: string;
+  image?: string | null; // data-URL thumbnail, gallery mode only
+  caption?: string; // participant's caption, gallery mode only
 };

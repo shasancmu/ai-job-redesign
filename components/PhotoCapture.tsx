@@ -7,9 +7,10 @@ type Result = { kind: "photo" | "text"; title: string; description: string; tran
 // PUBLIC, no sign-in. Take/choose a photo, downscale it in the browser, send it
 // for analysis, and show what the AI read back. The image never leaves as more
 // than a transient upload; only the text is kept.
-export default function PhotoCapture({ code, prompt }: { code: string; prompt: string }) {
+export default function PhotoCapture({ code, prompt, showPhotos = false }: { code: string; prompt: string; showPhotos?: boolean }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [caption, setCaption] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
@@ -20,7 +21,8 @@ export default function PhotoCapture({ code, prompt }: { code: string; prompt: s
     if (!file) return;
     setErr(null);
     try {
-      const dataUrl = await downscale(file, 1280, 0.85);
+      // Gallery keeps the thumbnail, so encode a bit smaller to stay light.
+      const dataUrl = showPhotos ? await downscale(file, 900, 0.72) : await downscale(file, 1280, 0.85);
       setPreview(dataUrl);
       setResult(null);
     } catch {
@@ -36,13 +38,14 @@ export default function PhotoCapture({ code, prompt }: { code: string; prompt: s
       const res = await fetch("/api/photo/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, image: preview }),
+        body: JSON.stringify({ code, image: preview, ...(showPhotos ? { caption: caption.trim() } : {}) }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) setErr(data.error || "Couldn't send. Try again.");
       else {
         setResult({ kind: data.kind, title: data.title, description: data.description, transcript: data.transcript });
         setPreview(null);
+        setCaption("");
       }
     } catch {
       setErr("Couldn't send. Check your connection.");
@@ -71,7 +74,7 @@ export default function PhotoCapture({ code, prompt }: { code: string; prompt: s
             )}
           </div>
           <p className="mt-3 text-xs text-slate-400">
-            Your photo was analyzed by AI and not stored, only this text was kept.
+            {showPhotos ? "Your photo is now on the shared screen." : "Your photo was analyzed by AI and not stored, only this text was kept."}
           </p>
           <button onClick={() => fileRef.current?.click()} className="btn-ghost mt-4 w-full">Add another photo</button>
         </div>
@@ -79,15 +82,24 @@ export default function PhotoCapture({ code, prompt }: { code: string; prompt: s
         <div className="mt-5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={preview} alt="Your photo" className="max-h-72 w-full rounded-2xl object-cover" />
+          {showPhotos && !busy && (
+            <input
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              placeholder="Add a caption (optional)"
+              maxLength={140}
+              className="field mt-3"
+            />
+          )}
           {busy ? (
             <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-mist py-3 text-sm text-slate-500">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-ink" />
-              Reading your photo…
+              {showPhotos ? "Adding your photo…" : "Reading your photo…"}
             </div>
           ) : (
             <div className="mt-4 flex gap-2">
               <button onClick={() => setPreview(null)} className="btn-ghost flex-1">Retake</button>
-              <button onClick={submit} className="btn-primary flex-1">Use this photo</button>
+              <button onClick={submit} className="btn-primary flex-1">{showPhotos ? "Add to the wall" : "Use this photo"}</button>
             </div>
           )}
         </div>
@@ -97,7 +109,7 @@ export default function PhotoCapture({ code, prompt }: { code: string; prompt: s
             📷 Take or choose a photo
           </button>
           <p className="mt-3 text-xs text-slate-400">
-            A photo or a snap of handwriting works. It&apos;s analyzed by AI and never stored.
+            {showPhotos ? "Your photo appears on the shared screen with your caption." : "A photo or a snap of handwriting works. It's analyzed by AI and never stored."}
           </p>
         </div>
       )}
