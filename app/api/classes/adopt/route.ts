@@ -43,26 +43,46 @@ export async function POST(request: Request) {
     access.superadmin;
   if (!canManage) return Response.json({ error: "Forbidden" }, { status: 403 });
 
+  // Reset: untag every session in this cohort (back to null). For cleaning up an
+  // over-broad pull before re-running a narrower one.
+  if (body.reset) {
+    const { data } = await admin.from("sessions").update({ cohort: null }).eq("cohort", code).select("id");
+    return Response.json({ ok: true, reset: data?.length || 0 });
+  }
+
   const { data: mems } = await admin.from("class_members").select("user_id").eq("class_id", klass.id);
   const members = [...new Set(((mems as any[]) || []).map((m) => m.user_id).filter(Boolean))];
   if (members.length === 0) return Response.json({ ok: true, adopted: 0 });
 
-  // Paired sessions: both partners must be members. Solo sessions: the host is.
+  // Reliable: PAIRED job/workflow runs where BOTH partners are members of this
+  // cohort. That's the actual class run, and it can't be confused with personal
+  // testing (a solo tester never has a member partner).
   const { data: pairedRows } = await admin
     .from("sessions")
     .update({ cohort: code })
     .is("cohort", null)
+    .in("exercise", ["job", "workflow"])
     .in("host_id", members)
     .in("guest_id", members)
     .select("id");
-  const { data: soloRows } = await admin
-    .from("sessions")
-    .update({ cohort: code })
-    .is("cohort", null)
-    .is("guest_id", null)
-    .in("host_id", members)
-    .select("id");
+  let adopted = pairedRows?.length || 0;
 
-  const adopted = (pairedRows?.length || 0) + (soloRows?.length || 0);
+  // Solo runs carry no org context, so the only signal is recency. When a day
+  // window is given, also claim members' solo sessions created within it (the
+  // class date), which excludes a director's older test history.
+  const days = Math.max(0, Math.min(120, Number(body.sinceDays) || 0));
+  if (days > 0) {
+    const since = new Date(Date.now() - days * 86400000).toISOString();
+    const { data: soloRows } = await admin
+      .from("sessions")
+      .update({ cohort: code })
+      .is("cohort", null)
+      .is("guest_id", null)
+      .in("host_id", members)
+      .gte("created_at", since)
+      .select("id");
+    adopted += soloRows?.length || 0;
+  }
+
   return Response.json({ ok: true, adopted });
 }

@@ -78,11 +78,24 @@ export default function ClassManager() {
   }
 
   async function adopt(k: Klass) {
-    if (!confirm(`Pull this cohort's members' un-grouped sessions into "${k.name}"? Runs by members that weren't tagged to any cohort will roll up here, so they show in results and the class summary.`)) return;
-    const res = await fetch("/api/classes/adopt", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: k.code }) });
+    const ans = prompt(
+      `Pull "${k.name}"'s runs into the cohort.\n\nPaired runs (both partners are members) always come in. Solo runs weren't stamped with an org, so to include members' individual runs enter how many days back the class was (e.g. 3). Leave 0 for paired only.`,
+      "0"
+    );
+    if (ans === null) return;
+    const sinceDays = Math.max(0, parseInt(ans, 10) || 0);
+    const res = await fetch("/api/classes/adopt", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: k.code, sinceDays }) });
     const d = await res.json().catch(() => ({}));
     if (res.ok) alert(`Pulled in ${d.adopted ?? 0} session${d.adopted === 1 ? "" : "s"}.`);
     else alert(d.error || "Couldn't pull those in.");
+  }
+
+  async function resetTags(k: Klass) {
+    if (!confirm(`Un-group ALL sessions currently in "${k.name}"? Use this to undo an over-broad pull. Sessions go back to un-grouped; nothing is deleted.`)) return;
+    const res = await fetch("/api/classes/adopt", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: k.code, reset: true }) });
+    const d = await res.json().catch(() => ({}));
+    if (res.ok) alert(`Reset ${d.reset ?? 0} session${d.reset === 1 ? "" : "s"} to un-grouped.`);
+    else alert(d.error || "Couldn't reset.");
   }
 
   async function save() {
@@ -289,6 +302,9 @@ export default function ClassManager() {
                     </button>
                     <button onClick={() => adopt(c)} className="btn-ghost text-sm" title="Roll members' un-grouped sessions into this cohort">
                       Pull in sessions
+                    </button>
+                    <button onClick={() => resetTags(c)} className="text-sm text-clay hover:underline" title="Un-group all sessions in this cohort (undo a pull)">
+                      Reset tags
                     </button>
                     <Link href={`/facilitator?cohort=${encodeURIComponent(c.code)}`} className="btn-primary text-sm">
                       View results →
