@@ -1,70 +1,83 @@
-// Builds the "What the room did" summary deck for a cohort's run of a PAIRED
-// exercise. Aggregation (pairs, per-cell tallies) happens here; the qualitative
-// themes are narrated by cohortSynthesisAI. Returns Slide[] for DeckPresenter.
-// Server-only (uses the service-role client passed in).
+// Builds the "What the room did" summary deck for a cohort's run of a supported
+// exercise (paired or solo). Aggregation (pairs, per-cell tallies) happens here;
+// the qualitative themes are narrated by cohortSynthesisAI. Returns Slide[] for
+// DeckPresenter. Server-only (uses the service-role client passed in).
 
 import type { Slide, NetNode, NetEdge, DeckBar } from "@/lib/deckTypes";
 import { cohortSynthesisAI } from "@/lib/ai";
 import { AI_CELLS, HUMAN_CELLS, allInterviewNotes } from "@/lib/exercise";
 
-export type PairedExercise = "job" | "workflow";
+export type SummaryExercise = "job" | "workflow" | "solo" | "workflow-solo";
 
-const FRAMEWORK: Record<PairedExercise, string> = {
+const FRAMEWORK = {
   job: "the 2x4 AI x Human model: AI handles Search, Structure, Think, and Translate; humans Lead, Own, Judge, and Integrate.",
   workflow: "redesigning a workflow so each step is owned by a human, AI, or both, to make it faster and sharper without losing human judgment.",
 };
 
-const TITLE: Record<PairedExercise, string> = {
-  job: "Redesign your job",
-  workflow: "Redesign your workflow",
+// Per-exercise config: where the data lives, whether it's paired, and copy.
+const META: Record<SummaryExercise, { source: "workspaces" | "workflow_docs"; paired: boolean; title: string; framework: string }> = {
+  job: { source: "workspaces", paired: true, title: "Redesign your job", framework: FRAMEWORK.job },
+  solo: { source: "workspaces", paired: false, title: "Redesign your job with AI", framework: FRAMEWORK.job },
+  workflow: { source: "workflow_docs", paired: true, title: "Redesign your workflow", framework: FRAMEWORK.workflow },
+  "workflow-solo": { source: "workflow_docs", paired: false, title: "Redesign your workflow with AI", framework: FRAMEWORK.workflow },
 };
+
+export const SUMMARY_EXERCISES: { key: SummaryExercise; label: string }[] = [
+  { key: "job", label: "Redesign your job (paired)" },
+  { key: "workflow", label: "Redesign your workflow (paired)" },
+  { key: "solo", label: "Redesign your job with AI" },
+  { key: "workflow-solo", label: "Redesign your workflow with AI" },
+];
 
 function clean(s: any): string {
   return String(s || "").replace(/\s+/g, " ").trim();
 }
 
-// Build the whole deck. Returns null when the cohort has no usable paired data.
+// Build the whole deck. Returns null when the cohort has no usable data.
 export async function buildCohortDeck(
   admin: any,
   cohort: string,
-  exercise: PairedExercise,
+  exercise: SummaryExercise,
   cohortName: string
 ): Promise<Slide[] | null> {
+  const meta = META[exercise];
   const { data: sessions } = await admin
     .from("sessions")
     .select("id, host_id, guest_id, status")
     .eq("cohort", cohort)
     .eq("exercise", exercise);
-  // Paired sessions only: both partners present.
-  const paired = ((sessions as any[]) || []).filter((s) => s.host_id && s.guest_id);
-  if (paired.length === 0) return null;
+  // Paired exercises need both partners; solo needs a host.
+  const relevant = ((sessions as any[]) || []).filter((s) => s.host_id && (meta.paired ? s.guest_id : true));
+  if (relevant.length === 0) return null;
 
   // Names.
-  const ids = [...new Set(paired.flatMap((s) => [s.host_id, s.guest_id]))];
+  const ids = [...new Set(relevant.flatMap((s) => (meta.paired ? [s.host_id, s.guest_id] : [s.host_id])).filter(Boolean))];
   const { data: profs } = await admin.from("profiles").select("id, display_name").in("id", ids);
   const nameById = new Map<string, string>(((profs as any[]) || []).map((p) => [p.id, p.display_name || "Someone"]));
 
-  // Pairs network: each pair a distinct color; an edge per session.
+  // Pairs network (paired only): each pair a distinct color; an edge per session.
   const nodes = new Map<string, NetNode>();
   const edges: NetEdge[] = [];
-  paired.forEach((s, i) => {
-    for (const uid of [s.host_id, s.guest_id]) {
-      if (!nodes.has(uid)) nodes.set(uid, { id: uid, label: nameById.get(uid) || "Someone", group: i });
-      else nodes.get(uid)!.group = i;
-    }
-    edges.push({ a: s.host_id, b: s.guest_id });
-  });
+  if (meta.paired) {
+    relevant.forEach((s, i) => {
+      for (const uid of [s.host_id, s.guest_id]) {
+        if (!nodes.has(uid)) nodes.set(uid, { id: uid, label: nameById.get(uid) || "Someone", group: i });
+        else nodes.get(uid)!.group = i;
+      }
+      edges.push({ a: s.host_id, b: s.guest_id });
+    });
+  }
 
   let humanBars: DeckBar[] = [];
   let aiBars: DeckBar[] = [];
   let balanceTitle = "Where the room drew the line";
   const digestBlocks: string[] = [];
 
-  if (exercise === "job") {
+  if (meta.source === "workspaces") {
     const { data: wss } = await admin
       .from("workspaces")
       .select("session_id, author_id, owner_job_title, real_job, insight, interview_notes, interview_notes_value, grid, plan")
-      .in("session_id", paired.map((s) => s.id));
+      .in("session_id", relevant.map((s) => s.id));
     const tally: Record<string, number> = {};
     for (const ws of ((wss as any[]) || [])) {
       const grid = (ws.grid as Record<string, string[]>) || {};
@@ -88,7 +101,7 @@ export async function buildCohortDeck(
     const { data: docs } = await admin
       .from("workflow_docs")
       .select("session_id, name, why, steps, analysis, stop_start")
-      .in("session_id", paired.map((s) => s.id));
+      .in("session_id", relevant.map((s) => s.id));
     let human = 0, ai = 0, both = 0;
     for (const doc of ((docs as any[]) || [])) {
       const analysis = doc.analysis || {};
@@ -119,11 +132,11 @@ export async function buildCohortDeck(
   if (digestBlocks.length === 0) return null;
 
   const participantCount = ids.length;
-  const pairCount = paired.length;
+  const pairCount = meta.paired ? relevant.length : 0;
 
   const synth = await cohortSynthesisAI({
     exercise,
-    framework: FRAMEWORK[exercise],
+    framework: meta.framework,
     participantCount,
     pairCount,
     digest: digestBlocks.join("\n\n"),
@@ -133,27 +146,30 @@ export async function buildCohortDeck(
   let n = 0;
   const id = () => `co${n++}`;
   const slides: Slide[] = [];
+  const people = `${participantCount} ${participantCount === 1 ? "person" : "people"}`;
 
   slides.push({
     id: id(),
     type: "title",
     title: cohortName,
-    subtitle: `${TITLE[exercise]}: what the room did together. ${participantCount} people, ${pairCount} pairs.`,
+    subtitle: `${meta.title}: what the room did together. ${people}${meta.paired ? `, ${pairCount} pair${pairCount === 1 ? "" : "s"}` : ""}.`,
   });
 
   if (synth?.headline) slides.push({ id: id(), type: "quote", quote: synth.headline, attribution: cohortName });
 
-  slides.push({
-    id: id(),
-    type: "network",
-    title: "Who worked with whom",
-    subtitle:
-      exercise === "workflow"
-        ? `${pairCount} pair${pairCount === 1 ? "" : "s"} mapped and redesigned a workflow together.`
-        : `${pairCount} pair${pairCount === 1 ? "" : "s"} interviewed and redesigned for each other.`,
-    nodes: [...nodes.values()],
-    edges,
-  });
+  if (meta.paired) {
+    slides.push({
+      id: id(),
+      type: "network",
+      title: "Who worked with whom",
+      subtitle:
+        exercise === "workflow"
+          ? `${pairCount} pair${pairCount === 1 ? "" : "s"} mapped and redesigned a workflow together.`
+          : `${pairCount} pair${pairCount === 1 ? "" : "s"} interviewed and redesigned for each other.`,
+      nodes: [...nodes.values()],
+      edges,
+    });
+  }
 
   const balanceBars = [...humanBars, ...aiBars].filter((b) => b.value > 0);
   if (balanceBars.length) {
@@ -161,7 +177,7 @@ export async function buildCohortDeck(
       id: id(),
       type: "barlist",
       title: balanceTitle,
-      subtitle: exercise === "job" ? "How often the room assigned each kind of work (green = human, gold = AI)." : "Steps the room assigned to a human, to AI, or to both.",
+      subtitle: meta.source === "workspaces" ? "How often the room assigned each kind of work (green = human, gold = AI)." : "Steps the room assigned to a human, to AI, or to both.",
       bars: balanceBars,
     });
   }
@@ -173,7 +189,7 @@ export async function buildCohortDeck(
 
   cardsFrom("What people kept human", synth?.keptHuman, "theme", "detail");
   cardsFrom("What they handed to AI", synth?.gaveAI, "theme", "detail");
-  cardsFrom("What the conversations kept returning to", synth?.conversationFocus, "theme", "detail");
+  cardsFrom(meta.paired ? "What the conversations kept returning to" : "What people focused on", synth?.conversationFocus, "theme", "detail");
   cardsFrom("What the room learned", synth?.learnings, "title", "detail");
 
   return slides;

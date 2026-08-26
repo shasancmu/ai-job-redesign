@@ -3,12 +3,12 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { facilitatorAccess } from "@/lib/orgs";
-import { buildCohortDeck, type PairedExercise } from "@/lib/cohortDeck";
+import { buildCohortDeck, type SummaryExercise } from "@/lib/cohortDeck";
 import DeckPresenter from "@/components/DeckPresenter";
 
 export const dynamic = "force-dynamic";
 
-const PAIRED: Record<string, PairedExercise> = { job: "job", workflow: "workflow" };
+const SUPPORTED: Record<string, SummaryExercise> = { job: "job", workflow: "workflow", solo: "solo", "workflow-solo": "workflow-solo" };
 
 // The auto-generated "what the room did" summary deck for a cohort's run of a
 // paired exercise. Facilitator/director/superadmin only, scoped to their cohorts.
@@ -33,7 +33,7 @@ export default async function CohortSummary({
   }
 
   const cohort = searchParams.cohort || "";
-  const exercise = PAIRED[searchParams.exercise || ""];
+  const exercise = SUPPORTED[searchParams.exercise || ""];
   if (!cohort || !exercise) redirect("/facilitator");
 
   // Scope: non-superadmins only their own / org cohorts.

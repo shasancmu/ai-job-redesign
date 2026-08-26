@@ -2782,11 +2782,16 @@ export async function cohortSynthesisAI(input: {
   conversationFocus: { theme: string; detail: string }[];
   learnings: { title: string; detail: string }[];
 }> {
-  const what =
-    input.exercise === "workflow"
-      ? "pairs mapped a real workflow and redesigned it around what a human, AI, or both should own at each step."
-      : "pairs interviewed each other, then redesigned each other's jobs with a 2x4 model: four things AI does well (Search, Structure, Think, Translate) and four only humans do (Lead, Own, Judge, Integrate).";
-  const system = `You synthesize what a COHORT of learners produced in a paired exercise into a crisp, room-level summary the instructor presents back to the class. Ground every point in the supplied material; never invent specifics. No em dashes; use commas or colons.
+  const isWorkflow = input.exercise === "workflow" || input.exercise === "workflow-solo";
+  const solo = input.pairCount === 0;
+  const what = isWorkflow
+    ? (solo
+        ? "each person mapped one of their real workflows and redesigned it with AI, deciding what a human, AI, or both should own at each step."
+        : "pairs mapped a real workflow and redesigned it around what a human, AI, or both should own at each step.")
+    : (solo
+        ? "each person redesigned their own job with AI, using a 2x4 model: four things AI does well (Search, Structure, Think, Translate) and four only humans do (Lead, Own, Judge, Integrate)."
+        : "pairs interviewed each other, then redesigned each other's jobs with a 2x4 model: four things AI does well (Search, Structure, Think, Translate) and four only humans do (Lead, Own, Judge, Integrate).");
+  const system = `You synthesize what a COHORT of learners produced in an exercise into a crisp, room-level summary the instructor presents back to the class. Ground every point in the supplied material; never invent specifics. No em dashes; use commas or colons.
 
 The exercise: ${what}
 Tie learnings back to this framework: ${input.framework}
@@ -2796,7 +2801,7 @@ Return STRICT JSON only, no prose, no code fences:
  "headline": "one vivid sentence on what this room, as a group, did and saw",
  "keptHuman": [{"theme":"3-6 words","detail":"one sentence: what people chose to keep as human work, and why, grounded in the room"}],
  "gaveAI": [{"theme":"3-6 words","detail":"one sentence: what people handed to AI"}],
- "conversationFocus": [{"theme":"3-6 words","detail":"one sentence: what the pairs' conversations kept returning to"}],
+ "conversationFocus": [{"theme":"3-6 words","detail":"one sentence: what people kept coming back to, or focused on most"}],
  "learnings": [{"title":"3-6 words","detail":"one sentence: a high-level takeaway that ties back to the framework"}]
 }
 Rules: 3 to 4 items per array, the most common and telling patterns across the WHOLE room (not one person). Concrete, specific to the material below, plainly worded.`;
