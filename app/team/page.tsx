@@ -5,7 +5,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { roleFor, getActiveOrg, normalizeRole, type OrgRole } from "@/lib/orgs";
 import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
-import OrgSwitcher from "@/components/OrgSwitcher";
 import TeamConsole from "@/components/TeamConsole";
 import Tour from "@/components/Tour";
 
@@ -67,14 +66,11 @@ export default async function TeamPage() {
     .map((i: any) => ({ email: i.email as string, role: normalizeRole(i.org_role) }))
     .filter((i: TeamInvite) => !invitedEmails.has(i.email)); // hide invites already turned into members
 
-  const switcherOrgs = directorOrgs.map((o) => ({ slug: o.slug, name: o.name, logoUrl: o.logo_url, role: "director" }));
-
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
       <header className="mb-8 flex flex-wrap items-center justify-between gap-3">
         <Logo href="/dashboard" />
         <div className="flex items-center gap-2">
-          {directorOrgs.length > 1 && <OrgSwitcher orgs={switcherOrgs} activeSlug={org.slug} />}
           <HeaderNav tour />
         </div>
       </header>
@@ -83,7 +79,7 @@ export default async function TeamPage() {
         <div className="text-sm font-medium text-slate-400">Your space on Superadditive</div>
         <h1 className="mt-0.5 text-3xl text-ink">{org.name}</h1>
         <p className="mt-1 max-w-lg text-sm text-slate2">
-          You&apos;re the director of {org.name}&apos;s space here — manage its people, appoint instructors, and run cohorts. Only your members are shown.
+          You&apos;re the director of {org.name}&apos;s space here: manage its people, appoint instructors, and run cohorts. Only your members are shown.
         </p>
         <Link href="/facilitator" data-tour="team-cohorts" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-sage">
           Manage cohorts &amp; run live activities <span aria-hidden>→</span>
