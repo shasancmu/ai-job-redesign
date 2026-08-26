@@ -254,6 +254,17 @@ export default function Room({
   const partnerHere = !!partnerId;
   const waiting = !partnerHere;
 
+  // Start the opening phase's timer once the partner is here. Phase 0 never has
+  // a start time (that's only set when advancing), so without this the timer is
+  // frozen at full and forward progress stays gated. The host sets it; realtime
+  // syncs it to both partners so their clocks match.
+  useEffect(() => {
+    if (partnerHere && session.host_id === me && !session.phase_started_at && phase.mode !== "break") {
+      goToPhase(session.phase ?? 0, true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partnerHere, session.phase_started_at]);
+
   // ---- Waiting room --------------------------------------------------------
   if (waiting && session.host_id === me) {
     return <PairWaiting code={session.code} />;

@@ -285,6 +285,15 @@ export default function WorkflowRoom({
 
   const partnerHere = !!partnerId;
 
+  // Start the opening phase's timer when the partner arrives (phase 0 never gets
+  // a start time otherwise, freezing the timer). Host sets it; realtime syncs.
+  useEffect(() => {
+    if (partnerHere && session.host_id === me && !session.phase_started_at) {
+      goToPhase(session.phase ?? 0, true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partnerHere, session.phase_started_at]);
+
   if (!partnerHere && session.host_id === me) {
     return <PairWaiting code={session.code} />;
   }
