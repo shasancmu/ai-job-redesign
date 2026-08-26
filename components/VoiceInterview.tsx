@@ -260,14 +260,21 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
     if (m) window.speechSynthesis?.cancel();
   }
 
-  async function buildReport() {
-    runningRef.current = false; // stop the interview loop for good
+  // Stop the interview loop immediately: the mic and any TTS. Runs the moment the
+  // build button is tapped (before the predict modal), so listening and speaking
+  // never continue behind it, and again when the report actually builds.
+  function stopVoice() {
+    runningRef.current = false;
     turnDoneRef.current = true;
     clearTurnTimers();
     setInterim("");
     try { recRef.current?.stop(); } catch {}
     try { recRef.current?.abort(); } catch {}
-    window.speechSynthesis?.cancel();
+    try { window.speechSynthesis?.cancel(); } catch {}
+  }
+
+  async function buildReport() {
+    stopVoice();
     setErr(null);
     setBuild("working");
     const ctl = new AbortController();
@@ -420,7 +427,7 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
 
       {phase !== "intro" && (
         <div className="flex flex-col items-center gap-2 px-6 pb-8">
-          <button onClick={gate.start} disabled={exchanges < 2} className="btn-dark px-6 py-2.5 text-sm disabled:opacity-40">
+          <button onClick={() => { stopVoice(); gate.start(); }} disabled={exchanges < 2} className="btn-dark px-6 py-2.5 text-sm disabled:opacity-40">
             {exchanges < 2 ? "Answer a couple of questions first" : cfg.buildButtonLabel}
           </button>
           <span className="text-xs text-slate-400">{exchanges} answered</span>

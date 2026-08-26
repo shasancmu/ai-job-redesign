@@ -46,6 +46,7 @@ export function artifactHref(exercise: string, code: string): string {
   if (exercise === "career-xray" || exercise === "jd-xray") return `/career/${code}`;
   if (exercise === "career-roadmap") return `/roadmap/${code}`;
   if (exercise === "consult" || exercise === "voice-consult") return `/consult/${code}`;
+  if (exercise === "vision" || exercise === "vision-voice") return `/vision/${code}`;
   if (exercise === "superpower") return `/superpower/${code}`;
   if (exercise === "personal-network") return `/network-map/${code}`;
   if (exercise === "domain-brief") return `/domain-brief/${code}`;
