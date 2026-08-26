@@ -16,7 +16,6 @@ import AdminTools from "@/components/AdminTools";
 import HeaderNav from "@/components/HeaderNav";
 import Tour from "@/components/Tour";
 import CanvasView from "@/components/CanvasView";
-import CohortSummaryMenu from "@/components/CohortSummaryMenu";
 import HideSessionButton from "@/components/HideSessionButton";
 
 export const dynamic = "force-dynamic";
@@ -384,54 +383,38 @@ async function CohortDetail({ admin, cohort, showHidden }: { admin: any; cohort:
 
   return (
     <Shell>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <Link
-            href="/facilitator"
-            className="text-sm text-slate-400 hover:text-slate-600"
-          >
-            ← All cohorts
-          </Link>
-          <h1 className="mt-1 font-mono text-2xl font-bold">
-            {untagged ? "(untagged)" : cohort}
-          </h1>
-          <p className="text-sm text-slate-500">
-            {(sessions || []).length} pairs
-          </p>
+      <div className="mb-5">
+        <Link href="/facilitator" className="text-sm text-slate-400 hover:text-slate-600">← All cohorts</Link>
+        <h1 className="mt-1 font-mono text-2xl font-bold">{untagged ? "(untagged)" : cohort}</h1>
+        <p className="text-sm text-slate-500">{(sessions || []).length} pairs</p>
+      </div>
+
+      {/* One panel: present a summary, and the cohort tools. */}
+      <div className="mb-6 overflow-hidden rounded-2xl border border-line bg-white">
+        <div className="p-5">
+          <div className="flex items-center gap-2 text-sm font-semibold text-ink"><span aria-hidden>🎓</span> Class summary</div>
+          {summaryOpts.length > 0 ? (
+            <>
+              <p className="mt-0.5 text-xs text-slate-500">A projector-ready summary of what the room did. Pick an exercise to present.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {summaryOpts.map((o) => (
+                  <Link key={o.key} href={`/facilitator/summary?cohort=${encodeURIComponent(cohort)}&exercise=${o.key}`} className="btn-primary text-sm">
+                    {o.label} →
+                  </Link>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="mt-0.5 text-xs text-slate-500">A summary appears here once the cohort completes a job or workflow redesign.</p>
+          )}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <CohortSummaryMenu cohort={cohort} options={summaryOpts} />
-          <Link
-            href={`/facilitator/live?cohort=${encodeURIComponent(cohort)}`}
-            className="btn-ghost text-sm"
-          >
-            ● Live cockpit
-          </Link>
-          <Link
-            href={`/facilitator/aggregate?cohort=${encodeURIComponent(cohort)}`}
-            className="btn-ghost text-sm"
-          >
-            Aggregate
-          </Link>
-          <Link
-            href={`/facilitator/benchmark?cohort=${encodeURIComponent(cohort)}`}
-            className="btn-ghost text-sm"
-          >
-            Benchmark
-          </Link>
-          <Link
-            href={`/facilitator/network?cohort=${encodeURIComponent(cohort)}`}
-            className="btn-ghost text-sm"
-          >
-            Network
-          </Link>
+        <div className="flex flex-wrap items-center gap-2 border-t border-line bg-mist/30 px-5 py-3">
+          <Link href={`/facilitator/live?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">● Live cockpit</Link>
+          <Link href={`/facilitator/aggregate?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">Aggregate</Link>
+          <Link href={`/facilitator/benchmark?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">Benchmark</Link>
+          <Link href={`/facilitator/network?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">Network</Link>
           {sessionIds.length > 0 && (
-            <a
-              href={`/facilitator/export?cohort=${encodeURIComponent(cohort)}`}
-              className="btn-primary text-sm"
-            >
-              ↓ CSV
-            </a>
+            <a href={`/facilitator/export?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">↓ Export CSV</a>
           )}
         </div>
       </div>
