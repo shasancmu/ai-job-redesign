@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Q = { id: number; prompt: string; options: { key: string; text: string }[] };
@@ -112,6 +113,9 @@ export default function QuizRoom({ code }: { code: string }) {
         </div>
         <div className="mt-1 text-sm text-slate-400">{pct}%</div>
         <p className="mt-6 text-sm text-slate2">{note} Look up, the room&apos;s results are on the screen.</p>
+        <Link href="/dashboard" className="btn-ghost mt-6 inline-block text-sm">
+          ← Back to dashboard
+        </Link>
       </div>
     );
   }
