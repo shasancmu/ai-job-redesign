@@ -5,7 +5,7 @@ import { useState } from "react";
 type Strategy = { label: string; teams: string[]; gist: string };
 type Synthesis = { overview: string; strategies: Strategy[]; what_worked: string; common_mistakes: string; aha: string };
 
-export default function CapstoneCohortSynthesis({ cohort, teamCount }: { cohort: string; teamCount: number }) {
+export default function CapstoneCohortSynthesis({ cohort, runCode, teamCount }: { cohort?: string; runCode?: string; teamCount: number }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [s, setS] = useState<Synthesis | null>(null);
@@ -13,7 +13,7 @@ export default function CapstoneCohortSynthesis({ cohort, teamCount }: { cohort:
   async function run() {
     setBusy(true); setErr("");
     try {
-      const res = await fetch("/api/capstone/cohort", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cohort }) });
+      const res = await fetch("/api/capstone/cohort", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(runCode ? { runCode } : { cohort }) });
       const d = await res.json().catch(() => ({}));
       if (!res.ok || !d.synthesis) throw new Error(d.error || "Couldn't synthesize.");
       setS(d.synthesis);

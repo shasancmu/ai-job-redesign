@@ -10,14 +10,16 @@ export default function CapstoneLobby({ userId, myName, cohort, orgName }: { use
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [joinCode, setJoinCode] = useState("");
+  const [runCode, setRunCode] = useState("");
   const [err, setErr] = useState("");
 
   async function createTeam() {
     setBusy(true); setErr("");
+    const run = runCode.trim().toUpperCase() || null;
     let code = "";
     for (let i = 0; i < 5; i++) {
       code = makePhotoCode();
-      const { error } = await supabase.from("capstone_sessions").insert({ code, host_id: userId, cohort: cohort || null });
+      const { error } = await supabase.from("capstone_sessions").insert({ code, host_id: userId, cohort: cohort || null, run_code: run });
       if (!error) break;
       code = "";
     }
@@ -46,6 +48,8 @@ export default function CapstoneLobby({ userId, myName, cohort, orgName }: { use
       <div className="card p-5">
         <div className="text-sm font-semibold text-ink">Start a new team</div>
         <p className="mt-1 text-xs text-slate-500">You become the captain and drive the phases. Share the team code that appears with your three teammates.</p>
+        <input className="field mt-3 font-mono uppercase tracking-widest" value={runCode} onChange={(e) => setRunCode(e.target.value)} placeholder="CLASS RUN CODE (optional)" maxLength={8} />
+        <p className="mt-1 text-[11px] text-slate-400">If your instructor put a class run code on the screen, enter it so your team shows on their board.</p>
         <button onClick={createTeam} disabled={busy} className="btn-primary mt-3 w-full">{busy ? "Starting..." : "Start a team"}</button>
       </div>
 

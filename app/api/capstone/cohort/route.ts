@@ -19,13 +19,15 @@ export async function POST(request: Request) {
 
   let body: any;
   try { body = await request.json(); } catch { return Response.json({ error: "bad request" }, { status: 400 }); }
+  const runCode = String(body.runCode || "").toUpperCase();
   const cohort = String(body.cohort || "").toUpperCase();
-  if (!cohort) return Response.json({ error: "missing cohort" }, { status: 400 });
+  if (!runCode && !cohort) return Response.json({ error: "missing run or cohort" }, { status: 400 });
   setFlow("capstone:cohort");
 
   const admin = createAdminClient();
-  const { data: sessions } = await admin.from("capstone_sessions").select("id, code, report").eq("cohort", cohort).limit(60);
-  if (!sessions || !sessions.length) return Response.json({ error: "No teams in this cohort yet." }, { status: 404 });
+  const q = admin.from("capstone_sessions").select("id, code, report").limit(60);
+  const { data: sessions } = await (runCode ? q.eq("run_code", runCode) : q.eq("cohort", cohort));
+  if (!sessions || !sessions.length) return Response.json({ error: "No teams yet." }, { status: 404 });
 
   const teams = [];
   for (const s of sessions) {

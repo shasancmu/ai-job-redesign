@@ -582,6 +582,22 @@ create policy "capstone sessions host all" on public.capstone_sessions
 -- Members and picks: no anon/user policy. All access is via the service role
 -- (the public join/state/pick routes and the host's phase/report routes).
 
+-- A "class run" the instructor starts. Teams attach by run_code so a specific
+-- class run aggregates on its own, and the instructor gets a live board.
+create table if not exists public.capstone_runs (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  host_id uuid not null references auth.users (id) on delete cascade,
+  label text not null default '',
+  created_at timestamptz not null default now()
+);
+alter table public.capstone_runs enable row level security;
+drop policy if exists "capstone runs host all" on public.capstone_runs;
+create policy "capstone runs host all" on public.capstone_runs
+  for all using (auth.uid() = host_id) with check (auth.uid() = host_id);
+alter table public.capstone_sessions add column if not exists run_code text;
+create index if not exists capstone_sessions_run_idx on public.capstone_sessions (run_code);
+
 create index if not exists photo_entries_session_idx on public.photo_entries (session_id);
 
 alter table public.photo_sessions enable row level security;
