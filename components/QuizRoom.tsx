@@ -101,6 +101,9 @@ export default function QuizRoom({ code }: { code: string }) {
   }
   if (phase === "done" && result) {
     const pct = result.total ? Math.round((result.score / result.total) * 100) : 0;
+    // Tier the line to the score, so a low result isn't congratulated.
+    const note =
+      pct >= 80 ? "Excellent." : pct >= 60 ? "Nicely done." : pct >= 40 ? "Not bad." : "Tougher than it looks.";
     return (
       <div className="card p-7 text-center">
         <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Your score</div>
@@ -108,7 +111,7 @@ export default function QuizRoom({ code }: { code: string }) {
           {result.score}<span className="text-2xl text-slate-400">/{result.total}</span>
         </div>
         <div className="mt-1 text-sm text-slate-400">{pct}%</div>
-        <p className="mt-6 text-sm text-slate2">Nicely done. Look up, the room&apos;s results are on the screen.</p>
+        <p className="mt-6 text-sm text-slate2">{note} Look up, the room&apos;s results are on the screen.</p>
       </div>
     );
   }
