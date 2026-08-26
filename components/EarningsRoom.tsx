@@ -158,6 +158,7 @@ function Brief() {
         <div className="font-semibold">How this is scored</div>
         <ul className="mt-2 space-y-1 text-slate-700">
           <li>• You get <b>7 questions</b>. The company may or may not be manipulating, and you do not know which.</li>
+          <li>• Voss <b>will not say anything false</b>, he is under oath. But he will not confess either. He affirms what helps him and hedges what doesn't, so <b>read what he will and won't stand behind</b>.</li>
           <li>• You are graded on <b>how much your questions reveal</b>, not on guessing the answer. A vague question wastes a turn.</li>
           <li>• At the end you commit a verdict, a confidence, and the one fact that would flip you.</li>
         </ul>

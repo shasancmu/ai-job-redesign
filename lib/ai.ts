@@ -1073,7 +1073,7 @@ export async function earningsReportAI(input: {
   const order: Record<string, number> = { high: 0, med: 1, low: 2 };
   const probes = [...s.dimensions]
     .sort((a, b) => (order[a.value] ?? 3) - (order[b.value] ?? 3))
-    .map((d) => `- [${d.value.toUpperCase()}] ${d.probe}. Honest answer: ${d.answer}`)
+    .map((d) => `- [${d.value.toUpperCase()}] ${d.probe}. Underlying truth and how Voss handled it: ${d.answer}`)
     .join("\n");
 
   const system = `You are a forensic-accounting instructor grading an analyst's earnings-call interrogation. You know the hidden truth of this call and a ranked bank of the most diagnostic questions available. You are grading the QUALITY OF THE ANALYST'S QUESTIONS and the calibration of their final judgment, NOT whether they guessed the label. Do not use em dashes anywhere.
