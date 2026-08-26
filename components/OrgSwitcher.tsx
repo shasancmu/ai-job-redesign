@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useRouter } from "next/navigation";
 
 type Item = { slug: string; name: string; logoUrl: string | null; role: string };
 
@@ -11,7 +10,6 @@ type Item = { slug: string; name: string; logoUrl: string | null; role: string }
 // <body> so it clears the page's animation-transform stacking contexts (see
 // AccountMenu for the full reasoning).
 export default function OrgSwitcher({ orgs, activeSlug }: { orgs: Item[]; activeSlug: string | null }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
@@ -42,7 +40,9 @@ export default function OrgSwitcher({ orgs, activeSlug }: { orgs: Item[]; active
     try {
       await fetch("/api/org/switch", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug: slug || "" }) });
       setOpen(false);
-      router.refresh();
+      // Full reload so every view reflects the new org, including client-fetched
+      // lists (a router.refresh only re-runs server components).
+      window.location.reload();
     } finally { setBusy(false); }
   }
 
