@@ -29,7 +29,7 @@ const HUB_TOUR = [
 export default async function Facilitator({
   searchParams,
 }: {
-  searchParams: { cohort?: string; showHidden?: string };
+  searchParams: { cohort?: string; showHidden?: string; ex?: string };
 }) {
   const supabase = createClient();
   const {
@@ -78,7 +78,7 @@ export default async function Facilitator({
   const cohort = searchParams.cohort;
   if (cohort && visibleCohorts && !visibleCohorts.includes(cohort)) redirect("/facilitator");
   return cohort ? (
-    <CohortDetail admin={admin} cohort={cohort} showHidden={searchParams.showHidden === "1"} />
+    <CohortDetail admin={admin} cohort={cohort} showHidden={searchParams.showHidden === "1"} exFilter={searchParams.ex || ""} />
   ) : (
     <Overview admin={admin} allowedCohorts={visibleCohorts} classes={visibleClasses} superadmin={access.superadmin} />
   );
@@ -264,8 +264,9 @@ async function Overview({ admin, allowedCohorts, classes, superadmin }: { admin:
 }
 
 // ------------------------------------------------------------ CohortDetail ---
-async function CohortDetail({ admin, cohort, showHidden }: { admin: any; cohort: string; showHidden: boolean }) {
+async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: any; cohort: string; showHidden: boolean; exFilter: string }) {
   const untagged = cohort === UNTAGGED;
+  const focused = !!exFilter; // viewing one activity's results
 
   let q = admin
     .from("sessions")
@@ -349,81 +350,106 @@ async function CohortDetail({ admin, cohort, showHidden }: { admin: any; cohort:
   type ResultRow = { key: string; name: string; count: number; href?: string; action?: string };
   const results: ResultRow[] = [];
   for (const [ex, users] of exerciseUsers) {
-    const row: ResultRow = { key: ex, name: moduleByExercise(ex)?.name || ex, count: users.size };
-    if (SUMMARY_EX.has(ex)) {
-      row.href = `/facilitator/summary?cohort=${encodeURIComponent(cohort)}&exercise=${ex}`;
-      row.action = "Present summary →";
-    }
-    results.push(row);
+    // Every activity opens its own focused results view (aggregate + responses).
+    results.push({
+      key: ex,
+      name: moduleByExercise(ex)?.name || ex,
+      count: users.size,
+      href: `/facilitator?cohort=${encodeURIComponent(cohort)}&ex=${encodeURIComponent(ex)}`,
+      action: "View results →",
+    });
   }
   if (benchUsers > 0) results.push({ key: "benchmark", name: "You vs. AI (Benchmark)", count: benchUsers, href: `/facilitator/benchmark?cohort=${encodeURIComponent(cohort)}`, action: "View results →" });
   if (netUsers > 0) results.push({ key: "network", name: "The Network", count: netUsers, href: `/facilitator/network?cohort=${encodeURIComponent(cohort)}`, action: "View map →" });
   results.sort((a, b) => (a.href ? 0 : 1) - (b.href ? 0 : 1) || b.count - a.count);
 
+  // Focused on one activity: filter everything below to just its sessions.
+  const visible = focused ? sessions.filter((s: any) => s.exercise === exFilter) : sessions;
+  const focusName = focused ? (moduleByExercise(exFilter)?.name || exFilter) : "";
+  const focusCount = focused ? (exerciseUsers.get(exFilter)?.size || 0) : 0;
+
   return (
     <Shell>
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Link href="/facilitator" className="text-sm text-slate-400 hover:text-slate-600">← All cohorts</Link>
+          <Link href={focused ? `/facilitator?cohort=${encodeURIComponent(cohort)}` : "/facilitator"} className="text-sm text-slate-400 hover:text-slate-600">
+            {focused ? "← Back to cohort" : "← All cohorts"}
+          </Link>
           <h1 className="mt-1 font-mono text-2xl font-bold">{untagged ? "(untagged)" : cohort}</h1>
-          <p className="text-sm text-slate-500">{(sessions || []).length} pairs</p>
+          <p className="text-sm text-slate-500">{focused ? focusName : `${(sessions || []).length} pairs`}</p>
         </div>
         <HeaderNav />
       </div>
 
-      {/* What this cohort did: every activity that ran, with its results. */}
-      <div className="mb-6 rounded-2xl border border-line bg-white p-5">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-sm font-semibold text-ink">
-            <span aria-hidden>📋</span> What this cohort did
+      {focused ? (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white p-5">
+          <div>
+            <div className="text-lg font-bold text-ink">{focusName}</div>
+            <div className="text-xs text-slate-400">{focusCount} {focusCount === 1 ? "participant" : "participants"}</div>
           </div>
-          {sessionIds.length > 0 && (
+          <div className="flex items-center gap-3">
+            {SUMMARY_EX.has(exFilter) && (
+              <Link href={`/facilitator/summary?cohort=${encodeURIComponent(cohort)}&exercise=${encodeURIComponent(exFilter)}`} className="btn-primary text-sm">🎓 Present summary deck →</Link>
+            )}
             <a href={`/facilitator/export?cohort=${encodeURIComponent(cohort)}`} className="text-xs text-slate-400 hover:text-ink">↓ Export CSV</a>
-          )}
+          </div>
         </div>
-        {results.length === 0 ? (
-          <p className="mt-2 text-xs text-slate-500">Nothing yet. Once the room runs an activity, its results appear here.</p>
-        ) : (
-          <div className="mt-3 divide-y divide-line">
-            {results.map((r) => (
-              <div key={r.key} className="flex items-center justify-between gap-3 py-3">
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold text-ink">{r.name}</div>
-                  <div className="text-xs text-slate-400">{r.count} {r.count === 1 ? "participant" : "participants"}</div>
-                </div>
-                {r.href ? (
-                  <Link href={r.href} className="btn-primary shrink-0 text-sm">{r.action}</Link>
-                ) : (
-                  <span className="shrink-0 text-xs text-slate-400">See responses below</span>
-                )}
+      ) : (
+        <>
+          {/* What this cohort did: every activity that ran, with its results. */}
+          <div className="mb-6 rounded-2xl border border-line bg-white p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+                <span aria-hidden>📋</span> What this cohort did
               </div>
-            ))}
+              {sessionIds.length > 0 && (
+                <a href={`/facilitator/export?cohort=${encodeURIComponent(cohort)}`} className="text-xs text-slate-400 hover:text-ink">↓ Export CSV</a>
+              )}
+            </div>
+            {results.length === 0 ? (
+              <p className="mt-2 text-xs text-slate-500">Nothing yet. Once the room runs an activity, its results appear here.</p>
+            ) : (
+              <div className="mt-3 divide-y divide-line">
+                {results.map((r) => (
+                  <div key={r.key} className="flex items-center justify-between gap-3 py-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-semibold text-ink">{r.name}</div>
+                      <div className="text-xs text-slate-400">{r.count} {r.count === 1 ? "participant" : "participants"}</div>
+                    </div>
+                    <Link href={r.href!} className="btn-primary shrink-0 text-sm">{r.action}</Link>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* Run live: real-time facilitation, for while class is in session. */}
-      {!untagged && (
-        <div className="mb-6 rounded-2xl border border-line bg-mist/30 p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-ink"><span aria-hidden className="text-sage">●</span> Run live</div>
-          <p className="mt-0.5 text-xs text-slate-500">During class: drive the room in real time, or watch answers aggregate live on screen.</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Link href={`/facilitator/live?cohort=${encodeURIComponent(cohort)}`} className="btn-primary text-sm">● Live cockpit</Link>
-            <Link href={`/facilitator/aggregate?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">Live aggregate</Link>
-          </div>
-        </div>
+          {/* Run live: real-time facilitation, for while class is in session. */}
+          {!untagged && (
+            <div className="mb-6 rounded-2xl border border-line bg-mist/30 p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-ink"><span aria-hidden className="text-sage">●</span> Run live</div>
+              <p className="mt-0.5 text-xs text-slate-500">During class: drive the room in real time, or watch answers aggregate live on screen.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link href={`/facilitator/live?cohort=${encodeURIComponent(cohort)}`} className="btn-primary text-sm">● Live cockpit</Link>
+                <Link href={`/facilitator/aggregate?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">Live aggregate</Link>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
-      <FourAHeatmap
-        rows={(sessions || [])
-          .filter((s: any) => s.exercise === "four-a")
-          .map((s: any) => ({ name: nameOf(s.host_id), ratings: (wsFor(s.id, s.host_id)?.canvas?.ratings as any) || {} }))
-          .filter((r: any) => Object.keys(r.ratings).length > 0)}
-      />
+      {(!focused || exFilter === "four-a") && (
+        <FourAHeatmap
+          rows={visible
+            .filter((s: any) => s.exercise === "four-a")
+            .map((s: any) => ({ name: nameOf(s.host_id), ratings: (wsFor(s.id, s.host_id)?.canvas?.ratings as any) || {} }))
+            .filter((r: any) => Object.keys(r.ratings).length > 0)}
+        />
+      )}
 
+      {(!focused || exFilter === "career-xray" || exFilter === "jd-xray") && (
       <ExposureCohort
         cohort={cohort}
-        rows={(sessions || [])
+        rows={visible
           .filter((s: any) => s.exercise === "career-xray" || s.exercise === "jd-xray")
           .map((s: any) => {
             const x = wsFor(s.id, s.host_id)?.canvas?.xray;
@@ -432,11 +458,12 @@ async function CohortDetail({ admin, cohort, showHidden }: { admin: any; cohort:
           })
           .filter(Boolean) as any[]}
       />
+      )}
 
       {["negotiation", "haggle"].map((ex) => {
         const scn = negScenario(ex);
         if (!scn) return null;
-        const rows = (sessions || [])
+        const rows = visible
           .filter((s: any) => s.exercise === ex)
           .map((s: any) => {
             const st = wsFor(s.id, s.host_id)?.canvas || {};
@@ -472,11 +499,11 @@ async function CohortDetail({ admin, cohort, showHidden }: { admin: any; cohort:
         </div>
       )}
 
-      {(sessions || []).length === 0 ? (
-        <p className="text-slate-500">No sessions in this cohort.</p>
+      {visible.length === 0 ? (
+        <p className="text-slate-500">{focused ? "No responses for this activity yet." : "No sessions in this cohort."}</p>
       ) : (
         <div className="space-y-6">
-          {(sessions || []).map((s: any) => (
+          {visible.map((s: any) => (
             <div key={s.id} className="card p-5">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-3">
