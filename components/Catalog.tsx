@@ -193,6 +193,10 @@ export default function Catalog({
                 >
                   {out && open ? "Get more runs" : t("catalog.unlock")}
                 </Link>
+              ) : m.exercise === "capstone" ? (
+                <Link href="/capstone" className="btn-primary mt-5 block w-full text-center" title="Start a team or join one with a code">
+                  Start or join a team →
+                </Link>
               ) : m.partner === "group" && !cohort ? (
                 <div className="mt-5 rounded-lg bg-mist px-3 py-2.5 text-xs leading-relaxed text-slate2">
                   {t("catalog.cohortOnly")}
@@ -358,6 +362,8 @@ export default function Catalog({
                   <Link href={`/paywall?module=${m.slug}`} className="btn-dark w-full">
                     {out && open ? "Get more runs" : t("catalog.unlock")}
                   </Link>
+                ) : m.exercise === "capstone" ? (
+                  <Link href="/capstone" className="btn-primary block w-full text-center">Start or join a team →</Link>
                 ) : m.partner === "group" && !cohort ? (
                   <div className="rounded-lg bg-mist px-3 py-2.5 text-center text-xs leading-relaxed text-slate2">{t("catalog.cohortOnly")}</div>
                 ) : paired ? (

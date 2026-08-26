@@ -17,7 +17,7 @@ async function api(path: string, body: any) {
   return res.json().catch(() => ({}));
 }
 
-export default function CapstoneBoard({ code, isHost }: { code: string; isHost: boolean }) {
+export default function CapstoneBoard({ code, isHost, myName = "", cohort = "" }: { code: string; isHost: boolean; myName?: string; cohort?: string }) {
   const [me, setMe] = useState<{ name: string; role: Role } | null>(null);
   const [state, setState] = useState<State | null>(null);
   const meRef = useRef(me); meRef.current = me;
@@ -42,7 +42,7 @@ export default function CapstoneBoard({ code, isHost }: { code: string; isHost: 
     return () => clearInterval(id);
   }, [poll]);
 
-  if (!me) return <JoinGate code={code} members={state?.members || []} onJoin={setMe} />;
+  if (!me) return <JoinGate code={code} members={state?.members || []} onJoin={setMe} defaultName={myName} />;
   if (!state) return <div className="mx-auto max-w-4xl px-4 py-16 text-center text-slate-400">Loading the team room...</div>;
 
   const phase = state.phase;
@@ -59,8 +59,9 @@ export default function CapstoneBoard({ code, isHost }: { code: string; isHost: 
           <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Exit</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">The Number · {COMPANY.name}</span>
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          <span className="rounded-full bg-ink px-3 py-1 font-mono font-bold tracking-widest text-white">{code}</span>
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="rounded-full bg-ink px-3 py-1 font-mono font-bold tracking-widest text-white" title="Team code: share with your teammates">{code}</span>
+          {cohort && <span className="rounded-full bg-mist px-3 py-1 font-mono text-xs text-slate-500" title="Your cohort, assigned from your sign-in">{cohort}</span>}
           <span className="text-slate-500">{me.name} · {ROLES.find((r) => r.key === me.role)?.label}</span>
         </div>
       </header>
@@ -90,8 +91,8 @@ export default function CapstoneBoard({ code, isHost }: { code: string; isHost: 
   );
 }
 
-function JoinGate({ code, members, onJoin }: { code: string; members: Member[]; onJoin: (m: { name: string; role: Role }) => void }) {
-  const [name, setName] = useState("");
+function JoinGate({ code, members, onJoin, defaultName = "" }: { code: string; members: Member[]; onJoin: (m: { name: string; role: Role }) => void; defaultName?: string }) {
+  const [name, setName] = useState(defaultName);
   const [role, setRole] = useState<Role | "">("");
   const [busy, setBusy] = useState(false);
   const taken = new Set(members.map((m) => m.role));

@@ -52,6 +52,7 @@ export type ModuleDef = {
     | "consult"
     | "earnings-call"
     | "hot-seat"
+    | "capstone"
     | "superpower"
     | "board"
     | "empathy"
@@ -803,6 +804,21 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_EARNINGS",
   },
   {
+    slug: "the-number",
+    exercise: "capstone",
+    name: "The Number",
+    tagline: "A four-person team capstone. One of you starts a team and shares the code; the other three join. You run a CFO's office and must hit analyst consensus using legal earnings management, survive an analyst call, and face the cost.",
+    description:
+      "A team capstone for four. One student starts a team and gets a team code; three teammates join with it. You become the CFO's office of a company that will miss the Street's number, and the CEO wants it hit, legally. Split across four seats (Controller, Ops, Investor Relations, Risk), you mine an unstructured data room for the levers that close the gap, assemble a plan that stays out of jail, and defend it live to a forensic analyst who hunts your fingerprints. Then the reckoning: did you hit the number, will the market catch you, and what did buying this quarter cost the company two years out. The deep lesson is that material earnings management is feasible within rules that cannot stop it, buys the quarter, and destroys long-term value.",
+    partner: "group",
+    mode: "Team of 4",
+    minutes: 45,
+    ai: true,
+    emoji: "📉",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_EARNINGS",
+  },
+  {
     slug: "technology-landscape",
     exercise: "tech-landscape",
     name: "Technology Landscape Scan",
@@ -1500,7 +1516,7 @@ const CATALOG_ORDER: string[] = [
   "good-business", "customer-empathy", "opportunity-capability", "test-the-bet",
   "ai-canvas", "balanced-scorecard", "execution-4a", "business-consult", "voice-consult",
   "ai-board", "business-myopia", "define-vision", "define-vision-voice", "deeptech-canvas",
-  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "earnings-call", "hot-seat", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
+  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "earnings-call", "hot-seat", "the-number", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
   // Negotiate
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
   "lease-the-space", "rehearse-hard-conversation",

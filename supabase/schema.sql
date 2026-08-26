@@ -544,6 +544,7 @@ create table if not exists public.capstone_sessions (
   id uuid primary key default gen_random_uuid(),
   code text not null unique,
   host_id uuid not null references auth.users (id) on delete cascade,
+  cohort text,
   phase int not null default 0,
   status text not null default 'open',
   transcript jsonb not null default '[]'::jsonb,
@@ -551,6 +552,7 @@ create table if not exists public.capstone_sessions (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table public.capstone_sessions add column if not exists cohort text;
 create table if not exists public.capstone_members (
   id uuid primary key default gen_random_uuid(),
   session_id uuid not null references public.capstone_sessions (id) on delete cascade,
