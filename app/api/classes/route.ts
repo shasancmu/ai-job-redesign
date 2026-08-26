@@ -31,7 +31,7 @@ export async function GET() {
   const activeOrg = await getActiveOrg(user);
   let query = admin
     .from("classes")
-    .select("id, code, name, modules, language, kind, allowed_emails, created_at")
+    .select("id, code, name, modules, language, kind, allowed_emails, org_id, created_at")
     .order("created_at", { ascending: false });
   if (activeOrg) {
     query = query.eq("org_id", activeOrg.id);
@@ -99,20 +99,25 @@ export async function POST(request: Request) {
     return Response.json({ error: "That code is taken." }, { status: 409 });
   }
 
-  // Stamp the org so the cohort is filed under the org the creator is currently
-  // IN (the header switcher), not just their first org. Falls back to their first
-  // director/instructor org. Superadmin in Personal leaves it unscoped.
-  const activeOrg = await getActiveOrg(user);
-  const org_id =
-    (activeOrg && (access.superadmin || access.orgIds.includes(activeOrg.id) || access.instructorOrgIds.includes(activeOrg.id))
-      ? activeOrg.id
-      : null) ||
-    access.orgIds[0] ||
-    access.instructorOrgIds[0] ||
-    null;
+  // Which org this cohort belongs to. An explicit choice from the editor's org
+  // picker wins (validated: you must be staff of it; "" means Personal / no org).
+  // Without one, default to the org you're currently in (the header switcher),
+  // then your first director/instructor org.
+  const canUseOrg = (id: string) => access.superadmin || access.orgIds.includes(id) || access.instructorOrgIds.includes(id);
+  let org_id: string | null;
+  if (body.org_id !== undefined) {
+    const req = String(body.org_id || "");
+    if (req === "") org_id = null;
+    else if (canUseOrg(req)) org_id = req;
+    else return Response.json({ error: "You can't assign to that organization." }, { status: 403 });
+  } else {
+    const activeOrg = await getActiveOrg(user);
+    org_id = (activeOrg && canUseOrg(activeOrg.id)) ? activeOrg.id : access.orgIds[0] || access.instructorOrgIds[0] || null;
+  }
+  // Always set org_id (including null) so a cohort can be moved between orgs.
   const { error } = await admin
     .from("classes")
-    .upsert({ code, name, owner_id: user.id, modules, language, kind, allowed_emails, ...(org_id ? { org_id } : {}) }, { onConflict: "code" });
+    .upsert({ code, name, owner_id: user.id, modules, language, kind, allowed_emails, org_id }, { onConflict: "code" });
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
   return Response.json({ ok: true, code });

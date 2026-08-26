@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import HeaderNav from "@/components/HeaderNav";
-import { facilitatorAccess } from "@/lib/orgs";
+import { facilitatorAccess, getMyOrgs, getActiveOrg } from "@/lib/orgs";
 import ClassManager from "@/components/ClassManager";
 import Tour from "@/components/Tour";
 
@@ -23,6 +23,9 @@ export default async function Classes() {
   if (!user) redirect("/login");
   if (!(await facilitatorAccess(user)).ok) redirect("/dashboard");
 
+  const [myOrgs, activeOrg] = await Promise.all([getMyOrgs(user.id), getActiveOrg(user)]);
+  const staffOrgs = myOrgs.filter((m) => m.role !== "member").map((m) => ({ id: m.org.id, name: m.org.name }));
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-8">
       <div className="flex items-center justify-between gap-3">
@@ -34,7 +37,7 @@ export default async function Classes() {
         Create a cohort, choose its modules, and share the link. Everyone who joins is grouped
         together, and their results roll up under one place.
       </p>
-      <ClassManager />
+      <ClassManager orgs={staffOrgs} defaultOrgId={activeOrg?.id || ""} />
       <Tour
         steps={COHORT_TOUR}
         storageKey="tour-cohort-v1"

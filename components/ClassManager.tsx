@@ -7,14 +7,15 @@ import { normalizeCode } from "@/lib/classes";
 import { LANGUAGES } from "@/components/LanguagePicker";
 import { I18N_ENABLED } from "@/lib/flags";
 
-type Klass = { id: string; code: string; name: string; modules: string[]; members: number; language?: string; kind?: string; allowed_emails?: string[] };
+type Klass = { id: string; code: string; name: string; modules: string[]; members: number; language?: string; kind?: string; allowed_emails?: string[]; org_id?: string | null };
 
 const nameOf = (slug: string) => MODULES.find((m) => m.slug === slug)?.name || slug;
 
-export default function ClassManager() {
+export default function ClassManager({ orgs = [], defaultOrgId = "" }: { orgs?: { id: string; name: string }[]; defaultOrgId?: string }) {
   const [classes, setClasses] = useState<Klass[]>([]);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
+  const [orgId, setOrgId] = useState(defaultOrgId);
   const [language, setLanguage] = useState("English");
   const [kind, setKind] = useState<"teaching" | "enterprise">("teaching");
   const [emails, setEmails] = useState(""); // enterprise invite list (one per line)
@@ -49,6 +50,7 @@ export default function ClassManager() {
   function edit(k: Klass) {
     setName(k.name);
     setCode(k.code);
+    setOrgId(k.org_id || "");
     setLanguage(k.language || "English");
     setKind((k.kind as any) || "teaching");
     setEmails(((k.allowed_emails as any) || []).join("\n"));
@@ -60,6 +62,7 @@ export default function ClassManager() {
   function reset() {
     setName("");
     setCode("");
+    setOrgId(defaultOrgId);
     setLanguage("English");
     setKind("teaching");
     setEmails("");
@@ -112,6 +115,7 @@ export default function ClassManager() {
       body: JSON.stringify({
         name,
         code: c,
+        org_id: orgId,
         modules: order,
         language,
         kind,
@@ -148,6 +152,19 @@ export default function ClassManager() {
             {code && <div className="mt-1 truncate text-xs text-slate2">{origin}/{normalizeCode(code)}</div>}
           </div>
         </div>
+
+        {orgs.length > 0 && (
+          <div className="mt-4">
+            <label className="lbl">Organization</label>
+            <select className="field" value={orgId} onChange={(e) => setOrgId(e.target.value)}>
+              {orgs.map((o) => (
+                <option key={o.id} value={o.id}>{o.name}</option>
+              ))}
+              <option value="">Personal (no organization)</option>
+            </select>
+            <div className="mt-1 text-xs text-slate2">Which organization this cohort belongs to. Its results show under that org.</div>
+          </div>
+        )}
 
         {/* Cohort type */}
         <div className="mt-4" data-tour="cohort-type">
