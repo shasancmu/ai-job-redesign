@@ -265,7 +265,11 @@ export default function WorkflowRoom({
     const id = setInterval(() => setNowTick(Date.now()), 500);
     return () => clearInterval(id);
   }, []);
-  const startedMs = session.phase_started_at ? new Date(session.phase_started_at).getTime() : nowTick;
+  // Stable local fallback start time (reset per phase) so the timer runs and the
+  // forward gate unlocks even when the DB's phase_started_at never lands.
+  const [localStart, setLocalStart] = useState(() => Date.now());
+  useEffect(() => { setLocalStart(Date.now()); }, [session.phase]);
+  const startedMs = session.phase_started_at ? new Date(session.phase_started_at).getTime() : localStart;
   const timerDone = Math.max(0, step.minutes * 60 - Math.floor((nowTick - startedMs) / 1000)) === 0;
   async function resetTimer() {
     const now = new Date().toISOString();
@@ -327,7 +331,7 @@ export default function WorkflowRoom({
             </span>
           </span>
         </div>
-        <Timer startedAt={session.phase_started_at} minutes={step.minutes} onReset={resetTimer} />
+        <Timer startedAt={session.phase_started_at || new Date(localStart).toISOString()} minutes={step.minutes} onReset={resetTimer} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">

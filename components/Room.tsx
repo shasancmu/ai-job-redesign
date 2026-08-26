@@ -246,7 +246,17 @@ export default function Room({
     const id = setInterval(() => setNowTick(Date.now()), 500);
     return () => clearInterval(id);
   }, []);
-  const startedMs = session.phase_started_at ? new Date(session.phase_started_at).getTime() : nowTick;
+
+  // A stable local start time as a fallback for when the DB's phase_started_at is
+  // absent (phase 0 never gets one; a failed/rejected write can leave later ones
+  // null too). Captured on the client and reset whenever the phase changes, so the
+  // timer always runs and the forward gate always unlocks — no dependency on the
+  // realtime write landing. When phase_started_at IS present, we prefer it (both
+  // partners' clocks then match); otherwise each client paces off its own mount,
+  // which is fine for a self-paced breakout.
+  const [localStart, setLocalStart] = useState(() => Date.now());
+  useEffect(() => { setLocalStart(Date.now()); }, [session.phase]);
+  const startedMs = session.phase_started_at ? new Date(session.phase_started_at).getTime() : localStart;
   const remaining = Math.max(0, phase.minutes * 60 - Math.floor((nowTick - startedMs) / 1000));
   // Instructor-led breaks aren't timer-gated; every other step is.
   const timerDone = phase.mode === "break" ? true : remaining === 0;
@@ -254,10 +264,9 @@ export default function Room({
   const partnerHere = !!partnerId;
   const waiting = !partnerHere;
 
-  // Start the opening phase's timer once the partner is here. Phase 0 never has
-  // a start time (that's only set when advancing), so without this the timer is
-  // frozen at full and forward progress stays gated. The host sets it; realtime
-  // syncs it to both partners so their clocks match.
+  // Best-effort: once the partner arrives, try to stamp phase_started_at in the DB
+  // so both clocks sync. This is an optimization, not a requirement — the localStart
+  // fallback above already keeps the timer running if this write never lands.
   useEffect(() => {
     if (partnerHere && !session.phase_started_at && phase.mode !== "break") {
       goToPhase(session.phase ?? 0, true);
@@ -319,7 +328,7 @@ export default function Room({
           </span>
         </div>
         <Timer
-          startedAt={session.phase_started_at}
+          startedAt={session.phase_started_at || new Date(localStart).toISOString()}
           minutes={phase.minutes}
           onReset={resetTimer}
         />
