@@ -51,6 +51,7 @@ export type ModuleDef = {
     | "disclosure-haip"
     | "consult"
     | "earnings-call"
+    | "hot-seat"
     | "superpower"
     | "board"
     | "empathy"
@@ -787,6 +788,21 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_EARNINGS",
   },
   {
+    slug: "hot-seat",
+    exercise: "hot-seat",
+    name: "The Hot Seat",
+    tagline: "The roles flip: now you're the CEO on a live earnings call, and a relentless AI analyst thinks you cooked the books. Answer truthfully, never say anything false, and hedge where you should.",
+    description:
+      "The mirror of The Earnings Call. You play the CEO of a small company whose record quarter is under attack, and an AI analyst grills you on the record. You get a private briefing that only you know: sometimes the quarter really was stretched, sometimes it is clean, sometimes it is genuinely uncertain. Your job is the executive's tightrope: never say a single thing that is false, never build a misleading half-truth (both are securities fraud), but do not have to volunteer every damaging detail either. Hedging and declining to quantify are legitimate; stonewalling a favorable truth just tanks your credibility. Field seven questions from an analyst who follows up hard on every dodge, then get a verdict: your legal exposure, your composure, every risky statement you made flagged and quoted, your best and worst moment, and how the analyst left the call. It teaches disclosure judgment, the line between a fair hedge and a lie, under real pressure.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "🎤",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_EARNINGS",
+  },
+  {
     slug: "technology-landscape",
     exercise: "tech-landscape",
     name: "Technology Landscape Scan",
@@ -1484,7 +1500,7 @@ const CATALOG_ORDER: string[] = [
   "good-business", "customer-empathy", "opportunity-capability", "test-the-bet",
   "ai-canvas", "balanced-scorecard", "execution-4a", "business-consult", "voice-consult",
   "ai-board", "business-myopia", "define-vision", "define-vision-voice", "deeptech-canvas",
-  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "earnings-call", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
+  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "earnings-call", "hot-seat", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
   // Negotiate
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
   "lease-the-space", "rehearse-hard-conversation",

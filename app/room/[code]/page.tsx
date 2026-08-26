@@ -13,6 +13,7 @@ import CanvasRoom from "@/components/CanvasRoom";
 import NegotiationRoom from "@/components/NegotiationRoom";
 import HardConvoRoom from "@/components/HardConvoRoom";
 import EarningsRoom from "@/components/EarningsRoom";
+import HotSeatRoom from "@/components/HotSeatRoom";
 import CareerRoom from "@/components/CareerRoom";
 import CareerRoadmapRoom from "@/components/CareerRoadmapRoom";
 import ConsultRoom from "@/components/ConsultRoom";
@@ -587,6 +588,26 @@ export default async function RoomPage({
       .maybeSingle();
     return (
       <EarningsRoom
+        me={user.id}
+        session={session}
+        initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}
+      />
+    );
+  }
+
+  if (session.exercise === "hot-seat") {
+    if (!amHost) redirect("/dashboard");
+    await supabase
+      .from("workspaces")
+      .upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase
+      .from("workspaces")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
+    return (
+      <HotSeatRoom
         me={user.id}
         session={session}
         initialWorkspace={workspace || { session_id: session.id, author_id: user.id }}

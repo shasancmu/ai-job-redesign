@@ -24,6 +24,7 @@ export type Scenario = {
   dimensions: Dimension[];
   tell: string; // what actually discriminated this call
   naiveAI: string; // the confident, wrong read a general AI gave
+  ceoBrief: string; // The Hot Seat: what the student, playing CEO, privately knows
 };
 
 // The public surface every scenario shares. It looks alarming on purpose: the
@@ -68,6 +69,11 @@ export const SCENARIOS: Scenario[] = [
     ],
     tell: "The tell was in what Voss would not affirm. He would not stand behind the allowance ratio and would not give any early-Q3 read, and on a constant-DSO basis, which you compute from the public numbers, the sequential growth disappears. An innocent CEO would have answered the allowance and Q3 questions crisply; he hedged.",
     naiveAI: "High-quality quarter: record revenue, the company's first positive operating income, and Russell 2000 inclusion signal real momentum and strong demand.",
+    ceoBrief: `Here is what YOU know that the market does not, and it is not good:
+- In the last two weeks of the quarter, to hit the record number, your team pushed about $1.5M of product onto two distributors on 90-day terms with an informal right of return, beyond real end-consumer demand.
+- You left the allowance for doubtful accounts roughly flat at about $395K even though receivables tripled, so coverage fell from about 15% to about 6%.
+- Early Q3 is already showing product coming back and a softer sales trend.
+This was aggressive, and parts of it may not survive scrutiny. Your job: get through the call WITHOUT saying anything false and WITHOUT a materially misleading half-truth. You are not required to volunteer the damaging specifics, but if you flatly deny them or spin them into a false impression, that is securities fraud. Protect the stock only within the truth.`,
   },
   {
     id: "clean",
@@ -85,6 +91,11 @@ export const SCENARIOS: Scenario[] = [
     ],
     tell: "The scare was a false positive, and Voss could prove it. He affirmed, specifically and checkably, that the DSO was one contractual customer at 75-day terms and that allowance coverage held near 14%. The exonerating questions were the ones that mattered, and an innocent CEO answered them crisply.",
     naiveAI: "Serious red flag: DSO of 70 days and receivables growing almost 3x faster than sales are classic channel-stuffing signatures. Earnings quality looks poor.",
+    ceoBrief: `Here is the truth, and it is on your side:
+- The entire DSO jump is one customer, Elan Health, on contractual 75-day terms, with real, verifiable subscriber growth. There are no return rights and no end-of-quarter loading.
+- You raised the allowance in step with receivables, so coverage held near 14%, the same as a year ago.
+- Early Q3 is on track; Elan has already reordered and there are no returns.
+Your job: defend the quarter truthfully and specifically. Your risk here is not fraud, it is failing to reassure. If you are vague or defensive when you could be concrete, you let a false narrative stand and the stock suffers. Bring the facts, cite the filing, and be specific.`,
   },
   {
     id: "ambiguous",
@@ -102,6 +113,12 @@ export const SCENARIOS: Scenario[] = [
     ],
     tell: "There was no clean tell this time. Elan explains only about half the DSO rise, the allowance slipped to 10%, and Voss would not specify the return terms or give a Q3 read. The right call was to withhold judgment and name the decisive missing facts: the return terms and the Q3 receivables unwind.",
     naiveAI: "Clear channel stuffing: receivables far outrunning sales and a falling allowance ratio point to a manipulated quarter. High confidence.",
+    ceoBrief: `The truth is genuinely mixed, and some of it is not yet knowable even to you:
+- About half the DSO rise is real Elan volume; the rest is broad distributor growth whose quality you cannot yet verify.
+- You raised the allowance only partially, so coverage slipped from about 15% to about 10%.
+- You have withdrawn Q3 guidance pending reorder timing.
+- Some distributor terms are longer than your standard, and you would rather not detail them.
+Your job: be truthful about what you know, honest about what you do not, and careful not to imply certainty you lack. Do not manufacture reassurance you cannot back, and do not deny things you cannot rule out. Your trap here is overclaiming: a confident all-clear you cannot support is exactly what gets a CEO sued.`,
   },
 ];
 
@@ -158,4 +175,32 @@ export function examinerKey(scn: Scenario) {
     naiveAI: scn.naiveAI,
     probes: ranked.map((d) => ({ probe: d.probe, value: d.value })),
   };
+}
+
+// ---------------------------------------------------------------------------
+// THE HOT SEAT: the roles flip. The student plays CEO and must answer a
+// relentless AI analyst truthfully. The student reads their private briefing
+// (ceoBrief); the analyst does NOT know the hidden truth, it only presses the
+// public red flags and follows up on hedges, exactly like a real skeptic.
+// ---------------------------------------------------------------------------
+
+export function ceoBriefing(scn: Scenario): string {
+  return scn.ceoBrief;
+}
+
+// The AI analyst who grills the student-CEO. Scenario-independent on purpose:
+// it works from the public numbers and the short report, and it adapts to the
+// CEO's answers rather than to any hidden truth.
+export function analystSystem(): string {
+  return `You are Maya Chen, a sharp, skeptical sell-side forensic analyst on Verita Ingredients' fiscal Q2 earnings call. You have read the short report alleging channel stuffing and you have done the math. You are professional but relentless, and you are talking to the CEO, Daniel Voss.
+
+THE COMPANY (public):
+${SURFACE}
+
+HOW YOU QUESTION:
+- Open the call with one pointed question, then ask ONE focused question at a time.
+- You FOLLOW UP. If the CEO hedges, name it and press ("that was not a yes or no, so let me ask it directly"). If he affirms something favorable, make him get specific or reconcile it with the public numbers (DSO near 70 versus 38 to 40 for peers, receivables up about 2.9x sales, the allowance as a percent of receivables). If he dodges, circle back later.
+- Pursue the cuts that matter: the exact payment terms and any right of return granted near quarter-end; whether the allowance kept pace as receivables tripled; what early Q3 looks like for sales, returns, and collections; whether the DSO rise is one contractual customer or broad across distributors; and end-consumer sell-through behind the shipments.
+- You are trying to establish, truthfully, whether this quarter was real. You are pointed but never cartoonish or rude. You do not lecture.
+- Keep each turn to 1 to 3 sentences. Ask real analyst questions. Do not use em dashes.`;
 }
