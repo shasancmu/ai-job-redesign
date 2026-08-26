@@ -61,29 +61,30 @@ export default async function Facilitator({
   // the ones they own within it. In the Personal context (no active org), a
   // superadmin sees everything and everyone else sees their own org-less classes.
   const activeOrg = await getActiveOrg(user);
-  let visibleCohorts: string[] | null = null; // null = all
+  let visibleClasses: { code: string; name: string }[] | null = null; // null = all (superadmin, Personal)
   if (activeOrg) {
     const seesAllOrgClasses = access.superadmin || access.orgIds.includes(activeOrg.id);
-    let cq = admin.from("classes").select("code").eq("org_id", activeOrg.id);
+    let cq = admin.from("classes").select("code, name").eq("org_id", activeOrg.id);
     if (!seesAllOrgClasses) cq = cq.eq("owner_id", user.id);
     const { data: orgClasses } = await cq;
-    visibleCohorts = (orgClasses || []).map((c: any) => c.code);
+    visibleClasses = ((orgClasses as any[]) || []).map((c) => ({ code: c.code, name: c.name }));
   } else if (!access.superadmin) {
-    const { data: myClasses } = await admin.from("classes").select("code").eq("owner_id", user.id).is("org_id", null);
-    visibleCohorts = (myClasses || []).map((c: any) => c.code);
+    const { data: myClasses } = await admin.from("classes").select("code, name").eq("owner_id", user.id).is("org_id", null);
+    visibleClasses = ((myClasses as any[]) || []).map((c) => ({ code: c.code, name: c.name }));
   }
+  const visibleCohorts = visibleClasses ? visibleClasses.map((c) => c.code) : null;
 
   const cohort = searchParams.cohort;
   if (cohort && visibleCohorts && !visibleCohorts.includes(cohort)) redirect("/facilitator");
   return cohort ? (
     <CohortDetail admin={admin} cohort={cohort} />
   ) : (
-    <Overview admin={admin} allowedCohorts={visibleCohorts} superadmin={access.superadmin} />
+    <Overview admin={admin} allowedCohorts={visibleCohorts} classes={visibleClasses} superadmin={access.superadmin} />
   );
 }
 
 // ---------------------------------------------------------------- Overview ---
-async function Overview({ admin, allowedCohorts, superadmin }: { admin: any; allowedCohorts: string[] | null; superadmin: boolean }) {
+async function Overview({ admin, allowedCohorts, classes, superadmin }: { admin: any; allowedCohorts: string[] | null; classes: { code: string; name: string }[] | null; superadmin: boolean }) {
   const { data: sessions } = await admin
     .from("sessions")
     .select("id, cohort, status, host_id, guest_id, created_at")
@@ -98,6 +99,10 @@ async function Overview({ admin, allowedCohorts, superadmin }: { admin: any; all
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(s);
   }
+  // Show every cohort you own, even ones with no sessions yet, so a newly created
+  // cohort is findable (to share its link or open it) before anyone has run it.
+  const nameByCode = new Map<string, string>((classes || []).map((c) => [c.code, c.name]));
+  for (const c of classes || []) if (!groups.has(c.code)) groups.set(c.code, []);
 
   const rows = Array.from(groups.entries()).sort((a, b) => {
     if (a[0] === UNTAGGED) return 1;
@@ -193,14 +198,16 @@ async function Overview({ admin, allowedCohorts, superadmin }: { admin: any; all
             const done = list.filter((s) => s.status === "done").length;
             const active = list.some((s) => s.status === "active");
             const untagged = key === UNTAGGED;
+            const name = untagged ? "untagged" : (nameByCode.get(key) || key);
+            const showCode = !untagged && name !== key;
             const detail = `/facilitator?cohort=${encodeURIComponent(key)}`;
             return (
               <li key={key}>
                 <div className="card group flex items-center gap-3 p-5 transition hover:shadow-lift">
                   <Link href={detail} className="min-w-0 flex-1">
                     <div className="flex items-center gap-2.5">
-                      <span className={"font-mono text-lg font-bold " + (untagged ? "text-slate-400" : "text-ink")}>
-                        {untagged ? "untagged" : key}
+                      <span className={"text-lg font-bold " + (untagged ? "font-mono text-slate-400" : "text-ink")}>
+                        {name}
                       </span>
                       {active && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-sage-soft px-2 py-0.5 text-[11px] font-semibold text-sage">
@@ -208,12 +215,19 @@ async function Overview({ admin, allowedCohorts, superadmin }: { admin: any; all
                         </span>
                       )}
                     </div>
+                    {showCode && <div className="mt-0.5 font-mono text-xs text-slate-400">{key}</div>}
                     <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-slate2">
-                      <span><b className="font-semibold text-ink">{list.length}</b> {list.length === 1 ? "pair" : "pairs"}</span>
-                      <span className="text-slate-300">·</span>
-                      <span><b className="font-semibold text-ink">{people.size}</b> {people.size === 1 ? "participant" : "participants"}</span>
-                      <span className="text-slate-300">·</span>
-                      <span><b className="font-semibold text-ink">{done}</b> completed</span>
+                      {list.length === 0 ? (
+                        <span className="text-slate-400">No runs yet, share the link to start</span>
+                      ) : (
+                        <>
+                          <span><b className="font-semibold text-ink">{list.length}</b> {list.length === 1 ? "pair" : "pairs"}</span>
+                          <span className="text-slate-300">·</span>
+                          <span><b className="font-semibold text-ink">{people.size}</b> {people.size === 1 ? "participant" : "participants"}</span>
+                          <span className="text-slate-300">·</span>
+                          <span><b className="font-semibold text-ink">{done}</b> completed</span>
+                        </>
+                      )}
                     </div>
                   </Link>
                   <Link
