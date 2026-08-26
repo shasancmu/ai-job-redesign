@@ -2877,3 +2877,38 @@ Rules: 2 to 4 quotes, short, drawn from the material (lightly trimmed is fine, d
     : [];
   return { answer: String(raw?.answer || ""), quotes };
 }
+
+// ---------------------------------------------------------------------------
+// Live group chat adjudicator. Reads the whole open chat and renders a fair,
+// grounded read of it right now: positions, tensions, and a reasoned verdict,
+// following the presenter's adjudication instructions. Fast model.
+// ---------------------------------------------------------------------------
+export async function chatAdjudicateAI(input: {
+  topic: string;
+  instructions: string;
+  messages: { name: string; text: string }[];
+}): Promise<{ headline: string; positions: { title: string; detail: string }[]; tensions: { title: string; detail: string }[]; verdict: string }> {
+  const transcript = (input.messages || [])
+    .slice(-400)
+    .map((m) => `${(m.name || "anon").slice(0, 24)}: ${String(m.text || "").slice(0, 300)}`)
+    .join("\n")
+    .slice(0, 14000);
+  const instr = input.instructions?.trim() ? `\n\nThe presenter's adjudication instructions (follow them): ${input.instructions.trim().slice(0, 600)}` : "";
+  const system = `You are the live AI adjudicator of a big open group chat in a room. Read the whole thread and render a clear, fair read of it RIGHT NOW, grounded ONLY in what people wrote. Your value is turning a firehose of messages into signal, and adjudicating: naming where the room agrees, where it splits, and giving a reasoned verdict. No em dashes; use commas or colons.
+
+The topic on screen: "${input.topic || "(open)"}".${instr}
+
+Return STRICT JSON only, no prose, no code fences:
+{
+ "headline": "one present-tense sentence on where the conversation stands",
+ "positions": [{"title":"3-6 words","detail":"one sentence: a position or theme the room is voicing, and roughly how widely"}],
+ "tensions": [{"title":"3-6 words","detail":"one sentence: a fault line or disagreement in the chat"}],
+ "verdict": "2 to 4 sentences: your adjudication, following the presenter's instructions. If asked to judge, pick, or rule, do it and say why, grounded in the chat. Otherwise give a fair synthesis of where the room lands."
+}
+Rules: at most 4 positions and 3 tensions, the most represented. Ground everything in the messages; do not invent. Specific and plainly worded.`;
+  const user = `The chat so far:\n${transcript || "(no messages yet)"}`;
+  const raw: any = await completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens: 1300 });
+  const arr = (v: any, n: number) =>
+    Array.isArray(v) ? v.slice(0, n).map((x: any) => ({ title: String(x?.title || ""), detail: String(x?.detail || "") })).filter((x: any) => x.title || x.detail) : [];
+  return { headline: String(raw?.headline || ""), positions: arr(raw?.positions, 4), tensions: arr(raw?.tensions, 3), verdict: String(raw?.verdict || "") };
+}

@@ -505,6 +505,36 @@ alter table public.photo_sessions add column if not exists show_photos boolean n
 alter table public.photo_sessions add column if not exists context text not null default ''; -- extra AI instructions: what to extract
 alter table public.photo_entries add column if not exists image text; -- data-URL thumbnail (gallery only)
 alter table public.photo_entries add column if not exists caption text not null default '';
+
+-- --- Live group chat with AI adjudication ---------------------------------
+-- The room joins an open chat by code (no accounts). Messages stream in; the AI
+-- reads the whole thread and adjudicates it live on the shared screen.
+create table if not exists public.forum_sessions (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  host_id uuid not null references auth.users (id) on delete cascade,
+  topic text not null default '',           -- the question or provocation
+  instructions text not null default '',    -- how the AI should adjudicate
+  status text not null default 'open',      -- open | closed
+  verdict jsonb,                            -- latest AI adjudication, cached
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create table if not exists public.forum_messages (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.forum_sessions (id) on delete cascade,
+  name text not null default '',            -- participant display name (no account)
+  text text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists forum_messages_session_idx on public.forum_messages (session_id, created_at);
+alter table public.forum_sessions  enable row level security;
+alter table public.forum_messages  enable row level security;
+drop policy if exists "forum sessions host all" on public.forum_sessions;
+create policy "forum sessions host all" on public.forum_sessions
+  for all using (auth.uid() = host_id) with check (auth.uid() = host_id);
+-- Messages: no anon/user policy. All reads and writes go through the service role
+-- (the public post/feed routes and the host's adjudicate route).
 create index if not exists photo_entries_session_idx on public.photo_entries (session_id);
 
 alter table public.photo_sessions enable row level security;
