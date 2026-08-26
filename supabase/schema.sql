@@ -535,6 +535,48 @@ create policy "forum sessions host all" on public.forum_sessions
   for all using (auth.uid() = host_id) with check (auth.uid() = host_id);
 -- Messages: no anon/user policy. All reads and writes go through the service role
 -- (the public post/feed routes and the host's adjudicate route).
+
+-- The Number: team capstone. A shared session, up to four members who join by
+-- code (no account), a shared set of chosen levers, a shared analyst-call
+-- transcript, and a graded report. All member/pick access is via the service
+-- role, like the forum.
+create table if not exists public.capstone_sessions (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  host_id uuid not null references auth.users (id) on delete cascade,
+  phase int not null default 0,
+  status text not null default 'open',
+  transcript jsonb not null default '[]'::jsonb,
+  report jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create table if not exists public.capstone_members (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.capstone_sessions (id) on delete cascade,
+  name text not null default '',
+  role text not null default '',
+  created_at timestamptz not null default now()
+);
+create table if not exists public.capstone_picks (
+  session_id uuid not null references public.capstone_sessions (id) on delete cascade,
+  lever_key text not null,
+  selected boolean not null default true,
+  note text not null default '',
+  by_name text not null default '',
+  updated_at timestamptz not null default now(),
+  primary key (session_id, lever_key)
+);
+create index if not exists capstone_members_session_idx on public.capstone_members (session_id);
+alter table public.capstone_sessions enable row level security;
+alter table public.capstone_members  enable row level security;
+alter table public.capstone_picks    enable row level security;
+drop policy if exists "capstone sessions host all" on public.capstone_sessions;
+create policy "capstone sessions host all" on public.capstone_sessions
+  for all using (auth.uid() = host_id) with check (auth.uid() = host_id);
+-- Members and picks: no anon/user policy. All access is via the service role
+-- (the public join/state/pick routes and the host's phase/report routes).
+
 create index if not exists photo_entries_session_idx on public.photo_entries (session_id);
 
 alter table public.photo_sessions enable row level security;

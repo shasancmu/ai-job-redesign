@@ -182,6 +182,15 @@ async function Overview({ admin, allowedCohorts, classes, superadmin }: { admin:
           </div>
           <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
         </Link>
+
+        <Link href="/facilitator/capstone" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sage-soft text-2xl">📉</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-ink">The Number</div>
+            <div className="text-sm text-slate2">A four-person CFO team capstone: manage earnings to consensus, survive the call, face the cost.</div>
+          </div>
+          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
+        </Link>
       </div>
 
       <div data-tour="fac-cohorts" className="mb-3 flex flex-wrap items-center justify-between gap-3">
