@@ -36,11 +36,23 @@ export default async function RoleplayStudio() {
         </div>
       )}
       <h1 className="text-3xl text-ink">Role-play modules</h1>
-      <p className="mt-1 max-w-2xl text-slate2">Interrogation and simulation modules like The Earnings Call: a learner questions an AI character who won't lie but will spin, then makes a call under uncertainty. Start from a template, iterate with the Copilot, preview, no code.</p>
+      <p className="mt-1 max-w-2xl text-slate2">Interrogation and simulation modules like The Earnings Call: a learner questions an AI character who won't lie but will spin, then makes a call under uncertainty.</p>
+
+      {/* Intent-first front door */}
+      <Link href="/studio/roleplay/start" className="group mt-6 block rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-5 transition hover:shadow-sm sm:p-6">
+        <div className="flex items-center gap-4">
+          <div className="text-3xl">✨</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-lg font-bold text-ink group-hover:text-ai">Describe your idea, and build it</div>
+            <div className="mt-0.5 text-sm text-slate2">Tell it the situation and what learners should walk away able to do. It designs the characters, hidden truth, decision, and grading. You refine from there.</div>
+          </div>
+          <span className="shrink-0 text-lg font-semibold text-ai">→</span>
+        </div>
+      </Link>
 
       {/* Template gallery */}
       <div className="mt-8">
-        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Start from a template</div>
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Or start from a template</div>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {ROLEPLAY_TEMPLATES.map((t) => (
             <div key={t.id} className="flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">

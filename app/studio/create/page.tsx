@@ -56,7 +56,16 @@ export default async function CreateGallery() {
         <section className="mt-8">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Role-play with hidden truth</div>
           <p className="mt-1 text-sm text-slate-500">The learner interrogates an AI character who won't lie but will spin, then makes a call under uncertainty. Like The Earnings Call.</p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <Link href="/studio/roleplay/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
+            <div className="text-2xl">✨</div>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe your idea, and build it</div>
+              <div className="text-xs text-slate-500">One prompt designs the whole module. You refine from there.</div>
+            </div>
+            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
+          </Link>
+          <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Or start from a template</div>
+          <div className="mt-2 grid gap-3 sm:grid-cols-3">
             {ROLEPLAY_TEMPLATES.map((t) => (
               <div key={t.id} className="flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
                 <div className="text-2xl">{t.emoji}</div>
