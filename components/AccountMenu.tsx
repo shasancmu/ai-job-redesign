@@ -86,6 +86,7 @@ export default function AccountMenu({
               <>
                 <div className="my-1 border-t border-line" />
                 <a href="/studio" className={item}>🎬 Studio</a>
+                <a href="/facilitator/census" className={item}>📊 Data collection</a>
                 {(director || superadmin) && <a href="/admin" className={item}>⚙️ Admin</a>}
               </>
             )}
