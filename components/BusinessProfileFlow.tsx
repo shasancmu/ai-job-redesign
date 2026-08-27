@@ -116,11 +116,30 @@ function Consent({ rec, set }: any) {
 
 function Identify({ rec, set }: any) {
   const [locating, setLocating] = useState(false);
+  const [gpsErr, setGpsErr] = useState("");
   const [classifying, setClassifying] = useState(false);
+
+  function useGps() {
+    if (typeof navigator === "undefined" || !navigator.geolocation) { setGpsErr("Location is not available on this device."); return; }
+    setGpsErr(""); setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        set({ lat: latitude, lng: longitude, gps_accuracy: Math.round(accuracy), geo_source: "gps" });
+        try {
+          const { data } = await jpost("/api/census/geocode", { lat: latitude, lng: longitude });
+          if (data) set({ admin1: data.admin1, locality: data.locality, country: data.country || rec.country, geo_source: "gps" });
+        } catch {}
+        setLocating(false);
+      },
+      (e) => { setLocating(false); setGpsErr(e.code === 1 ? "Location permission was denied. You can type an address instead." : "Couldn't get your location. Type an address instead."); },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
+  }
 
   async function locate() {
     if (!rec.address) return;
-    setLocating(true);
+    setLocating(true); setGpsErr("");
     const { data } = await jpost("/api/census/geocode", { address: rec.address, country: rec.country || "" });
     setLocating(false);
     if (data && (data.lat || data.lat === 0)) set({ lat: data.lat, lng: data.lng, admin1: data.admin1, locality: data.locality, country: data.country || rec.country, geo_source: data.source });
@@ -137,16 +156,21 @@ function Identify({ rec, set }: any) {
     <div className="space-y-4">
       <div><label className="lbl">Business name</label><input className="field" value={rec.name || ""} onChange={(e) => set({ name: e.target.value })} placeholder="Acme Bakery" /></div>
       <div>
-        <label className="lbl">Country</label>
-        <input className="field" value={rec.country || ""} onChange={(e) => set({ country: e.target.value, lat: null })} placeholder="e.g. Kenya, India, Brazil" />
+        <label className="lbl">Location</label>
+        <button onClick={useGps} disabled={locating} className="btn-primary w-full disabled:opacity-60">{locating ? "Getting location..." : "📍 Use my current location (GPS)"}</button>
+        <p className="mt-1 text-xs text-slate-400">Best done standing at the business. Most accurate.</p>
+        {rec.lat != null && (
+          <p className="mt-1 text-xs text-sage">✓ {rec.geo_source === "gps" ? "GPS pinned" : "Located"}{rec.locality ? `: ${rec.locality}` : ""}{rec.admin1 ? `, ${rec.admin1}` : ""}{rec.country ? `, ${rec.country}` : ""}{rec.geo_source === "gps" && rec.gps_accuracy ? ` (±${rec.gps_accuracy}m)` : ""}</p>
+        )}
+        {gpsErr && <p className="mt-1 text-xs text-clay">{gpsErr}</p>}
       </div>
       <div>
-        <label className="lbl">Address</label>
-        <div className="flex items-center gap-2">
-          <input className="field" value={rec.address || ""} onChange={(e) => set({ address: e.target.value, lat: null })} placeholder="Street, city / town" />
+        <label className="lbl">Or type the address {rec.geo_source === "gps" ? "(optional)" : ""}</label>
+        <input className="field" value={rec.country || ""} onChange={(e) => set({ country: e.target.value })} placeholder="Country, e.g. Kenya, India, Brazil" />
+        <div className="mt-2 flex items-center gap-2">
+          <input className="field" value={rec.address || ""} onChange={(e) => set({ address: e.target.value })} placeholder="Street, city / town" />
           <button onClick={locate} disabled={locating || !rec.address} className="btn-ghost shrink-0 text-sm">{locating ? "..." : "Locate"}</button>
         </div>
-        {rec.lat != null && <p className="mt-1 text-xs text-sage">✓ Located{rec.locality ? `: ${rec.locality}` : ""}{rec.admin1 ? `, ${rec.admin1}` : ""}{rec.country ? `, ${rec.country}` : ""}</p>}
       </div>
       <div>
         <label className="lbl">What does the business do?</label>
@@ -199,8 +223,8 @@ function Photos({ rec, set }: any) {
     try {
       const url = await fileToDataUrl(files[0]);
       const { data } = await jpost("/api/census/photo", { image: url, shot: `${shot.instruction} ${shot.hint}`, business: rec.industry_desc || "" });
-      if (data && (data.description || data.title || data.url)) {
-        const photos = [...(rec.photos || []).filter((p: any) => p.shot !== shot.key), { shot: shot.key, title: data.title || "", description: data.description || "", url: data.url || "" }];
+      if (data && (data.description || data.title || data.path)) {
+        const photos = [...(rec.photos || []).filter((p: any) => p.shot !== shot.key), { shot: shot.key, title: data.title || "", description: data.description || "", path: data.path || "" }];
         set({ photos });
       }
     } catch {}

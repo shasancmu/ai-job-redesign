@@ -6,6 +6,27 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   let body: any;
   try { body = await request.json(); } catch { return Response.json({ error: "bad request" }, { status: 400 }); }
+
+  // Reverse mode: GPS coordinates -> place names.
+  const rlat = Number(body.lat), rlng = Number(body.lng);
+  if (Number.isFinite(rlat) && Number.isFinite(rlng) && (body.lat !== undefined)) {
+    try {
+      const url = `https://nominatim.openstreetmap.org/reverse?lat=${rlat}&lon=${rlng}&format=json&addressdetails=1`;
+      const r = await fetch(url, { headers: { "User-Agent": "Superadditive-BusinessDirectory/1.0" }, signal: AbortSignal.timeout(8000) });
+      const d: any = await r.json();
+      const a = d?.address || {};
+      return Response.json({
+        lat: rlat, lng: rlng,
+        admin1: a.state || a.region || a.province || a.county || "",
+        locality: a.city || a.town || a.village || a.municipality || a.suburb || "",
+        country: (a.country_code || "").toUpperCase(),
+        source: "gps", matched: d?.display_name || "",
+      });
+    } catch {
+      return Response.json({ lat: rlat, lng: rlng, source: "gps" });
+    }
+  }
+
   const address = String(body.address || "").trim().slice(0, 300);
   const country = String(body.country || "").trim();
   if (!address) return Response.json({ error: "Enter an address." }, { status: 400 });

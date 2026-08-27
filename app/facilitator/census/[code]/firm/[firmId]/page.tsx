@@ -25,6 +25,17 @@ export default async function FirmHistory({ params }: { params: { code: string; 
   const latest: any = waves[waves.length - 1];
   const maxWms = 5;
 
+  // Sign the private photo paths for viewing (admin only).
+  const paths = (waves as any[]).flatMap((w) => (w.photos || []).map((p: any) => p.path).filter(Boolean));
+  const signed: Record<string, string> = {};
+  if (paths.length) {
+    try {
+      const { data } = await admin.storage.from("business-photos").createSignedUrls(paths, 3600);
+      for (const s of data || []) if ((s as any).signedUrl && (s as any).path) signed[(s as any).path] = (s as any).signedUrl;
+    } catch { /* storage not set up yet */ }
+  }
+  const photoSrc = (p: any) => (p.path && signed[p.path]) || p.url || "";
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-8">
       <header className="mb-6 flex items-center justify-between">
@@ -81,21 +92,21 @@ export default async function FirmHistory({ params }: { params: { code: string; 
       </div>
 
       {/* Photos over time */}
-      {waves.some((w: any) => (w.photos || []).some((p: any) => p.url)) && (
+      {waves.some((w: any) => (w.photos || []).some((p: any) => photoSrc(p))) && (
         <div className="mt-6 card p-5">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Photos over time</div>
           <div className="mt-3 space-y-4">
             {waves.map((w: any, i: number) => {
-              const ph = (w.photos || []).filter((p: any) => p.url);
+              const ph = (w.photos || []).map((p: any) => ({ ...p, src: photoSrc(p) })).filter((p: any) => p.src);
               if (!ph.length) return null;
               return (
                 <div key={i}>
                   <div className="text-[11px] font-semibold text-slate-500">Wave {w.wave || i + 1} · {String(w.created_at).slice(0, 10)}</div>
                   <div className="mt-1.5 flex gap-2 overflow-x-auto pb-1">
                     {ph.map((p: any, j: number) => (
-                      <a key={j} href={p.url} target="_blank" rel="noreferrer" className="shrink-0" title={p.description || p.shot}>
+                      <a key={j} href={p.src} target="_blank" rel="noreferrer" className="shrink-0" title={p.description || p.shot}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={p.url} alt={p.shot} className="h-24 w-24 rounded-lg border border-line object-cover" />
+                        <img src={p.src} alt={p.shot} className="h-24 w-24 rounded-lg border border-line object-cover" />
                         <div className="mt-0.5 w-24 truncate text-center text-[10px] capitalize text-slate-400">{p.shot}</div>
                       </a>
                     ))}

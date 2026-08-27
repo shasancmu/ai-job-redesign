@@ -87,6 +87,7 @@ export async function POST(request: Request) {
     admin1: r.admin1 || null,
     locality: r.locality || null,
     geo_source: r.geo_source || null,
+    gps_accuracy: typeof r.gps_accuracy === "number" ? r.gps_accuracy : null,
     industry_desc: String(r.industry_desc || "").slice(0, 600),
     naics: r.naics || null,
     naics_label: r.naics_label || null,

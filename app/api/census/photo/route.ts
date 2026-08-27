@@ -19,24 +19,25 @@ export async function POST(request: Request) {
   const shot = String(body.shot || "").slice(0, 300);
   const biz = String(body.business || "").slice(0, 200);
 
-  // Store the image in Supabase Storage.
-  let url = "";
+  // Store the image in Supabase Storage (private bucket). We keep the storage
+  // path and sign it on demand for admins; no public URL.
+  let path = "";
   try {
     const ct = m[1].toLowerCase();
     const ext = ct.split("/")[1].replace("jpeg", "jpg");
     const bytes = Buffer.from(m[2], "base64");
-    const path = `${(globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.round(Math.random() * 1e9)}`)}.${ext}`;
+    const p = `${(globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.round(Math.random() * 1e9)}`)}.${ext}`;
     const admin = createAdminClient();
-    const { error } = await admin.storage.from(BUCKET).upload(path, bytes, { contentType: ct, upsert: false });
-    if (!error) url = admin.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    const { error } = await admin.storage.from(BUCKET).upload(p, bytes, { contentType: ct, upsert: false });
+    if (!error) path = p;
   } catch { /* storage not configured; continue with text only */ }
 
   // Read it into text.
   try {
     const prompt = `This is a standardized business photo. ${shot || "Describe what the photo reveals about the operation, products, space, and scale."}${biz ? ` The business: ${biz}.` : ""} Be specific and factual, and note anything that indicates scale, organization, and quality.`;
     const d = await photoDescribeAI(image, prompt);
-    return Response.json({ title: d.title, description: d.description || d.transcript || "", url });
+    return Response.json({ title: d.title, description: d.description || d.transcript || "", path });
   } catch (e: any) {
-    return Response.json({ title: "", description: "", url, error: e?.message || "Couldn't read the photo." }, { status: 200 });
+    return Response.json({ title: "", description: "", path, error: e?.message || "Couldn't read the photo." }, { status: 200 });
   }
 }

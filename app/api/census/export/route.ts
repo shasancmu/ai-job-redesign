@@ -6,7 +6,7 @@ import { csvCell } from "@/lib/census";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const COLS = ["id", "firm_id", "firm_code", "wave", "created_at", "campaign_code", "name", "address", "lat", "lng", "country", "admin1", "locality", "naics", "naics_label", "isic", "isic_label", "classify_conf", "employees_band", "revenue_band", "founded_year", "multi_site", "customer_type", "ownership", "wms_overall", "mode"];
+const COLS = ["id", "firm_id", "firm_code", "wave", "created_at", "campaign_code", "name", "address", "lat", "lng", "geo_source", "gps_accuracy", "country", "admin1", "locality", "naics", "naics_label", "isic", "isic_label", "classify_conf", "employees_band", "revenue_band", "founded_year", "multi_site", "customer_type", "ownership", "wms_overall", "mode"];
 
 // INSTRUCTOR/RESEARCHER: export a campaign's firm-wave records as CSV.
 export async function GET(request: Request) {

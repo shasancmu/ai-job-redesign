@@ -687,6 +687,7 @@ create table if not exists public.businesses (
 alter table public.businesses add column if not exists firm_id uuid;
 alter table public.businesses add column if not exists firm_key text;
 alter table public.businesses add column if not exists firm_code text;
+alter table public.businesses add column if not exists gps_accuracy int;
 create index if not exists businesses_campaign_idx on public.businesses (campaign_code);
 create index if not exists businesses_firm_idx on public.businesses (firm_id);
 create index if not exists businesses_firmcode_idx on public.businesses (firm_code);
