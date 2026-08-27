@@ -16,7 +16,9 @@ type Phase = "intro" | "speaking" | "listening" | "thinking" | "unsupported";
 // (gu-IN) so it hears the spoken answer; but the AI writes ROMANIZED Gujarati on
 // screen, so it is read aloud by an English voice (TTS locale below).
 const STT_LANG: Record<string, string> = { en: "en-US", ur: "ur-PK", lud: "gu-IN" };
-const TTS_LANG: Record<string, string> = { en: "en-US", ur: "ur-PK", lud: "en-US" };
+// TTS reads the NATIVE Gujarati (gu-IN voice) so it sounds right; the on-screen
+// caption shows the romanized version.
+const TTS_LANG: Record<string, string> = { en: "en-US", ur: "ur-PK", lud: "gu-IN" };
 const SILENCE_MS = 2300;
 const MAX_TURN_MS = 30000;
 
@@ -53,9 +55,9 @@ export default function CensusVoiceInterview({ chat, setChat, lang = "en" }: { c
 
   const clearTurnTimers = () => { clearTimeout(silenceRef.current); clearTimeout(maxTurnRef.current); };
 
-  const speak = useCallback((text: string, onEnd?: () => void) => {
+  const speak = useCallback((text: string, onEnd?: () => void, display?: string, ttsLang?: string) => {
     if (deadRef.current || !runningRef.current) return;
-    setCaption(text); setPhase("speaking");
+    setCaption(display ?? text); setPhase("speaking");
     const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
     if (mutedRef.current || !synth) { onEnd?.(); return; }
     let done = false;
@@ -63,7 +65,7 @@ export default function CensusVoiceInterview({ chat, setChat, lang = "en" }: { c
     try {
       synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      const target = targetRef.current;
+      const target = ttsLang || targetRef.current;
       u.rate = 0.98;
       if (target.startsWith("en")) {
         // Match the proven resume-module path exactly: default voice, no u.lang.
@@ -111,9 +113,21 @@ export default function CensusVoiceInterview({ chat, setChat, lang = "en" }: { c
     catch { setErr("The interviewer is unavailable. You can type instead."); setPhase("listening"); return; }
     if (!runningRef.current) return;
     if (!reply) { setPhase("listening"); return; }
-    const next = [...history, { role: "assistant" as const, content: reply }];
+    // For Lisan-e-Dawat the model returns "native /// roman". Show the romanized
+    // version on screen. Speak the native Gujarati IF the device has a Gujarati
+    // voice (sounds right); otherwise speak the romanized text with an English
+    // voice so there is at least audible output.
+    let toStore = reply, toSpeak = reply, toShow: string | undefined = undefined, ttsLang: string | undefined = undefined;
+    if (lang === "lud" && reply.includes("///")) {
+      const parts = reply.split("///").map((s) => s.trim());
+      const native = parts[0] || reply, roman = parts[1] || parts[0] || reply;
+      toStore = native; toShow = roman;
+      const gu = typeof window !== "undefined" ? voiceForLang(window.speechSynthesis?.getVoices() || [], "gu-IN") : null;
+      if (gu) { toSpeak = native; ttsLang = "gu-IN"; } else { toSpeak = roman; ttsLang = "en-US"; }
+    }
+    const next = [...history, { role: "assistant" as const, content: toStore }];
     setChat(next);
-    speak(reply, () => startListening());
+    speak(toSpeak, () => startListening(), toShow, ttsLang);
   }, [lang, speak, startListening, setChat]);
 
   const handleUser = useCallback((text: string) => {
