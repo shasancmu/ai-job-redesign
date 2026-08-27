@@ -37,7 +37,29 @@ const STANCE_HINT: Record<string, string> = {
 
 export default function SpecEditor({ me, initial, insights, initialStatus, cohorts, cohort }: { me: string; initial: any; insights?: any; initialStatus?: string; cohorts?: string[]; cohort?: string }) {
   const supabase = createClient();
-  const [spec, setSpec] = useState<any>(initial);
+  const [spec, setSpecRaw] = useState<any>(initial);
+  // Undo/redo: every structural change is reversible, so authors experiment
+  // without fear. Field-level text undo still works inside inputs (we don't
+  // hijack Cmd+Z there).
+  const past = useRef<any[]>([]);
+  const future = useRef<any[]>([]);
+  const setSpec = (updater: any) => setSpecRaw((prev: any) => {
+    const next = typeof updater === "function" ? updater(prev) : updater;
+    if (next !== prev) { past.current.push(prev); if (past.current.length > 60) past.current.shift(); future.current = []; }
+    return next;
+  });
+  const undo = () => setSpecRaw((cur: any) => { if (!past.current.length) return cur; future.current.push(cur); return past.current.pop(); });
+  const redo = () => setSpecRaw((cur: any) => { if (!future.current.length) return cur; past.current.push(cur); return future.current.pop(); });
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return; // let fields keep native undo
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+    };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [tab, setTab] = useState<TabId>("overview");
   const [errors, setErrors] = useState<string[]>([]);
   const [msg, setMsg] = useState("");
@@ -213,6 +235,8 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
     <div className="mt-5">
       {/* action bar */}
       <div className="flex flex-wrap items-center gap-2 border-b border-line pb-3">
+        <button onClick={undo} disabled={past.current.length === 0} title="Undo (⌘Z)" className="btn-ghost text-sm disabled:opacity-40">↶</button>
+        <button onClick={redo} disabled={future.current.length === 0} title="Redo (⇧⌘Z)" className="btn-ghost text-sm disabled:opacity-40">↷</button>
         <button onClick={validate} className="btn-ghost text-sm">Validate</button>
         <button onClick={() => save()} disabled={busy === "save"} className="btn-primary text-sm">{busy === "save" ? "Saving..." : "Save"}</button>
         {status === "published"
@@ -329,6 +353,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                 onInsert={(d) => setSpec((s: any) => ({ ...s, probes: d.probes || [], scenarios: d.scenarios || [] }))} />
               <p className="text-sm text-slate-500">The hidden truths. Learners are assigned one at random from the session code and never told which. Give each the same probes, with different answers, and include one that's genuinely ambiguous.</p>
               {probes.length === 0 && <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">Define your probes first — scenarios answer them.</div>}
+              {probes.length > 0 && scenarios.length > 0 && <ScenarioMatrix probes={probes} scenarios={scenarios} />}
               {scenarios.map((scn, si) => (
                 <details key={si} className="rounded-xl border border-line" open={scenarios.length <= 2}>
                   <summary className="cursor-pointer list-none px-3 py-2 text-sm font-semibold text-ink">
@@ -579,6 +604,65 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
         {/* live preview */}
         <SpecPreview spec={spec} />
       </div>
+    </div>
+  );
+}
+
+// A read-only heatmap of stance/value per probe (rows) x scenario (columns), so
+// discriminability is visible: a probe answered the same way everywhere teaches
+// nothing, and two scenarios with identical answers can't be told apart.
+function ScenarioMatrix({ probes, scenarios }: { probes: any[]; scenarios: any[] }) {
+  const stanceCls: Record<string, string> = {
+    affirm: "bg-sage-soft text-sage", hedge: "bg-amber-soft text-amber",
+    deny: "bg-red-50 text-red-700", noncommittal: "bg-mist text-slate-500",
+  };
+  const dimOf = (scn: any, key: string) => (scn.dimensions || []).find((d: any) => d.probe === key) || {};
+  const sig = (scn: any) => probes.map((p) => { const d = dimOf(scn, p.key); return `${d.stance || "-"}:${d.value || "-"}`; }).join("|");
+  const sigs = scenarios.map(sig);
+  const dup = new Set<number>();
+  for (let i = 0; i < sigs.length; i++) for (let j = i + 1; j < sigs.length; j++) if (sigs[i] === sigs[j]) { dup.add(i); dup.add(j); }
+  const flat = (p: any) => {
+    const cells = scenarios.map((s) => { const d = dimOf(s, p.key); return d.stance ? `${d.stance}:${d.value || ""}` : null; });
+    return cells.every(Boolean) && new Set(cells).size === 1;
+  };
+  return (
+    <div className="rounded-xl border border-line bg-white p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Discriminability matrix</div>
+        <div className="text-[10px] text-slate-400">how each probe is answered across scenarios</div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-xs">
+          <thead>
+            <tr>
+              <th className="p-1"></th>
+              {scenarios.map((s, ci) => (
+                <th key={ci} className="p-1 text-left align-bottom">
+                  <div className="font-semibold text-ink">{s.label || s.id}</div>
+                  <div className="text-[10px] font-normal text-slate-400">truth: {s.truth || "—"}</div>
+                  {dup.has(ci) && <div className="mt-0.5 inline-block rounded bg-clay-soft px-1 text-[9px] font-semibold text-clay">duplicate</div>}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {probes.map((p) => (
+              <tr key={p.key} className="border-t border-line">
+                <td className="p-1 pr-2 align-top">
+                  <div className="max-w-[11rem] text-slate-600">{p.label || p.key}</div>
+                  {flat(p) && <div className="mt-0.5 inline-block rounded bg-clay-soft px-1 text-[9px] font-semibold text-clay">same everywhere</div>}
+                </td>
+                {scenarios.map((s, ci) => { const d = dimOf(s, p.key); return (
+                  <td key={ci} className="p-1 align-top">
+                    {d.stance ? <span className={"inline-block rounded px-1.5 py-0.5 " + (stanceCls[d.stance] || "bg-mist text-slate-500")}>{d.stance}{d.value ? ` · ${d.value}` : ""}</span> : <span className="text-slate-300">—</span>}
+                  </td>
+                ); })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2 text-[10px] leading-relaxed text-slate-400">A probe marked <span className="font-semibold text-clay">same everywhere</span> can't help a learner tell scenarios apart; a <span className="font-semibold text-clay">duplicate</span> scenario is indistinguishable from another. Vary the stance or value to fix it.</p>
     </div>
   );
 }
