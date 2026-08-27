@@ -183,6 +183,14 @@ async function Overview({ admin, allowedCohorts, classes, superadmin }: { admin:
           <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
         </Link>
 
+        <Link href="/facilitator/showcase" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-soft text-2xl">🎤</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-ink">Showcase</div>
+            <div className="text-sm text-slate2">Back-to-back short presentations; collect feedback on each; every presenter gets an AI report.</div>
+          </div>
+          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
+        </Link>
       </div>
 
       <div data-tour="fac-cohorts" className="mb-3 flex flex-wrap items-center justify-between gap-3">

@@ -598,6 +598,38 @@ create policy "capstone runs host all" on public.capstone_runs
 alter table public.capstone_sessions add column if not exists run_code text;
 create index if not exists capstone_sessions_run_idx on public.capstone_sessions (run_code);
 
+-- Showcase: a pre-sequenced set of short presentations. The room gives feedback
+-- on each item as the presenter steps through them, and every presenter gets an
+-- AI summary. Feedback is service-role only, like the forum.
+create table if not exists public.showcase_sessions (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  host_id uuid not null references auth.users (id) on delete cascade,
+  title text not null default '',
+  items jsonb not null default '[]'::jsonb,
+  current int not null default -1,
+  status text not null default 'open',
+  reports jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create table if not exists public.showcase_feedback (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.showcase_sessions (id) on delete cascade,
+  item_id text not null,
+  name text not null default '',
+  text text not null,
+  rating int,
+  created_at timestamptz not null default now()
+);
+create index if not exists showcase_feedback_item_idx on public.showcase_feedback (session_id, item_id);
+alter table public.showcase_sessions enable row level security;
+alter table public.showcase_feedback enable row level security;
+drop policy if exists "showcase sessions host all" on public.showcase_sessions;
+create policy "showcase sessions host all" on public.showcase_sessions
+  for all using (auth.uid() = host_id) with check (auth.uid() = host_id);
+-- Feedback: no anon/user policy. All access via the service role.
+
 create index if not exists photo_entries_session_idx on public.photo_entries (session_id);
 
 alter table public.photo_sessions enable row level security;
