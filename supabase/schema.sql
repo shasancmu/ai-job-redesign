@@ -630,6 +630,66 @@ create policy "showcase sessions host all" on public.showcase_sessions
   for all using (auth.uid() = host_id) with check (auth.uid() = host_id);
 -- Feedback: no anon/user policy. All access via the service role.
 
+-- Business Census: a multimodal, AI-run business profile that compounds into a
+-- research panel. A researcher runs a collection campaign; respondents complete
+-- a ~10 minute profile by link; each completion is one firm-wave record.
+create table if not exists public.business_campaigns (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  owner_id uuid not null references auth.users (id) on delete cascade,
+  label text not null default '',
+  created_at timestamptz not null default now()
+);
+create table if not exists public.businesses (
+  id uuid primary key default gen_random_uuid(),
+  campaign_code text,
+  owner_id uuid,
+  wave int not null default 1,
+  status text not null default 'complete',
+  name text not null default '',
+  address text not null default '',
+  lat double precision,
+  lng double precision,
+  country text,
+  admin1 text,
+  locality text,
+  geo_source text,
+  industry_desc text,
+  naics text,
+  naics_label text,
+  isic text,
+  isic_label text,
+  classify_conf numeric,
+  employees_band text,
+  revenue_band text,
+  founded_year int,
+  multi_site boolean,
+  customer_type text,
+  ownership text,
+  what_it_does text,
+  business_model text,
+  wms jsonb,
+  wms_overall numeric,
+  tech jsonb,
+  network jsonb,
+  photos jsonb,
+  transcript text,
+  mode text,
+  source_channel text,
+  consent boolean not null default false,
+  contact_email text,
+  report jsonb,
+  created_at timestamptz not null default now()
+);
+create index if not exists businesses_campaign_idx on public.businesses (campaign_code);
+alter table public.business_campaigns enable row level security;
+alter table public.businesses enable row level security;
+drop policy if exists "business campaigns owner all" on public.business_campaigns;
+create policy "business campaigns owner all" on public.business_campaigns
+  for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+-- businesses: no anon/user policy. Public submit and researcher reads go through
+-- the service role.
+
 create index if not exists photo_entries_session_idx on public.photo_entries (session_id);
 
 alter table public.photo_sessions enable row level security;

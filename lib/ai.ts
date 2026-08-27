@@ -42,6 +42,7 @@ import type { CanvasDef } from "./canvases";
 import { currentLanguage } from "./lang";
 import { ADVICE_PRINCIPLES, BOTTOM_LINE_JSON } from "./advice";
 import { RESUME_CRAFT } from "./resume";
+import { WMS } from "./business";
 import { createAdminClient } from "./supabase/admin";
 import { currentFlow } from "./aiflow";
 
@@ -1295,6 +1296,70 @@ Keep strengths and suggestions to the 2 to 4 that matter most. If there was almo
   const report = extractJson(raw);
   if (report && typeof report === "object") { report.avg_rating = avg; report.rating_count = ratings.length; report.feedback_count = input.feedback.length; }
   return report;
+}
+
+// Business Census: classify a business into NAICS 2022 and ISIC Rev.4 from a
+// plain-language description. Fast model, json.
+export async function businessClassifyAI(desc: string, country?: string): Promise<any> {
+  const system = `You are an expert industry classifier. Given a plain description of what a business does, assign the single best NAICS 2022 code (United States) and the single best ISIC Rev.4 code (international), each with the official title. Choose the most specific code you can justify. Do not use em dashes.
+
+Return STRICT JSON only:
+{
+  "naics": "6-digit NAICS 2022 code as a string",
+  "naics_label": "the official NAICS title",
+  "isic": "ISIC Rev.4 class code (usually 4 digits) as a string",
+  "isic_label": "the official ISIC title",
+  "confidence": 0.0
+}
+confidence is 0 to 1 for how sure you are given the description. If the description is too vague, pick the best broad code and lower the confidence.`;
+  const user = `Country: ${country || "unspecified"}\nDescription: ${desc || "(none)"}`;
+  const raw = await complete([{ role: "system", content: system }, { role: "user", content: user }], { json: true, temperature: 0.2, maxTokens: 300 });
+  return extractJson(raw);
+}
+
+// Business Census: score the 8-item World Management Survey from a management
+// conversation transcript (voice/text interview mode). Fast model, json.
+export async function wmsFromInterviewAI(transcript: string): Promise<Record<string, number>> {
+  const items = WMS.map((q) => `- ${q.id} (${q.area}): ${q.prompt} [1 = ${q.options[0].label} | 3 = ${q.options[1].label} | 5 = ${q.options[2].label}]`).join("\n");
+  const system = `You are scoring the World Management Survey from an interview transcript. For each item, choose 1, 3, or 5 based on what the owner actually said, following the anchors. If the transcript does not cover an item, infer conservatively toward the middle (3) rather than guessing high. Do not reward talk over practice. Do not use em dashes.
+
+THE ITEMS:
+${items}
+
+Return STRICT JSON only: an object mapping each item id to its score (1, 3, or 5), e.g. {"ops1": 3, "ops2": 5, ...}. Include every item id.`;
+  const raw = await complete([{ role: "system", content: system }, { role: "user", content: `TRANSCRIPT:\n${(transcript || "").slice(0, 8000)}` }], { json: true, temperature: 0.2, maxTokens: 300 });
+  const obj = extractJson(raw) || {};
+  const out: Record<string, number> = {};
+  for (const q of WMS) { const v = Number(obj[q.id]); out[q.id] = v === 1 || v === 5 ? v : 3; }
+  return out;
+}
+
+// Business Census: the respondent's instant profile + management read. Fast
+// model, json.
+export async function businessProfileAI(input: {
+  name: string; industry: string; size: string; customer: string; ownership: string;
+  wms: { overall: number; byArea: Record<string, number> };
+  whatItDoes?: string; photos?: string[]; transcript?: string;
+}): Promise<any> {
+  const system = `You are an elite, plain-spoken business advisor writing a short profile for a business that just completed a 10-minute census. Ground the management read in the World Management Survey scores (1 weak to 5 strong) and the value-creation lens (profit lives in the gap between willingness-to-pay and cost; a business wins by raising WTP or cutting cost; the headline product is often not where the money is made). Use only what they told you. Be specific to THIS business. Do not use em dashes.
+
+Return STRICT JSON only:
+{
+  "headline": "one vivid sentence on this business",
+  "management": { "read": "2-3 sentences reading their management practices from the WMS scores", "strengths": ["a specific strength"], "gaps": ["the highest-leverage gap and a first move"] },
+  "model": { "popcorn": "where their margin most likely really comes from", "note": "one sentence" },
+  "benchmark": "one sentence placing their overall management score in context (a 3.5+ is strong, a 2 is weak)"
+}
+Keep strengths and gaps to 2 each.`;
+  const user = `Name: ${input.name}
+Industry: ${input.industry}
+Size: ${input.size} | Customers: ${input.customer} | Ownership: ${input.ownership}
+What it does: ${input.whatItDoes || "(not given)"}
+WMS overall: ${input.wms.overall}, by area: ${JSON.stringify(input.wms.byArea)}
+Photo readings: ${(input.photos || []).join("; ") || "(none)"}
+Interview: ${(input.transcript || "").slice(0, 3000) || "(none)"}`;
+  const raw = await complete([{ role: "system", content: system }, { role: "user", content: user }], { json: true, temperature: 0.5, maxTokens: 1400 });
+  return extractJson(raw);
 }
 
 // Find Your Superpower: a best-self interview that pulls stories, not adjectives.

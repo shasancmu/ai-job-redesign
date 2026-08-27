@@ -1,0 +1,37 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import HeaderNav from "@/components/HeaderNav";
+import Logo from "@/components/Logo";
+import { isAdmin } from "@/lib/admin";
+import CensusManager from "@/components/CensusManager";
+
+export const dynamic = "force-dynamic";
+
+export default async function FacilitatorCensus() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  if (!isAdmin(user.email)) redirect("/dashboard");
+
+  const { data: campaigns } = await supabase
+    .from("business_campaigns")
+    .select("id, code, label, created_at")
+    .eq("owner_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  return (
+    <main className="mx-auto max-w-3xl px-6 py-8">
+      <header className="mb-6 flex items-center justify-between">
+        <Logo href="/dashboard" />
+        <div className="flex items-center gap-2"><Link href="/facilitator" className="text-sm text-slate2 hover:text-ink">← Cohorts</Link><HeaderNav /></div>
+      </header>
+      <h1 className="text-3xl text-ink">Business census</h1>
+      <p className="mt-1 text-slate2">
+        A 10-minute, multimodal business profile that builds into a research panel. Create a collection, share the link, and each completed profile adds a geocoded, industry-classified, management-scored firm record with an instant report back to the respondent.
+      </p>
+      <div className="mt-6"><CensusManager me={user.id} initial={(campaigns as any) || []} /></div>
+    </main>
+  );
+}
