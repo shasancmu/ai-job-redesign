@@ -38,8 +38,17 @@ export default async function CreateGallery() {
       {canInterview && (
         <section className="mt-8">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Guided interview → output</div>
-          <p className="mt-1 text-sm text-slate-500">An AI interviewer talks the learner through a topic, then produces a report, scorecard, or verdict.</p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <p className="mt-1 text-sm text-slate-500">An AI interviewer talks the learner through a topic, then produces a report, scorecard, or verdict grounded in a framework you name.</p>
+          <Link href="/build/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
+            <div className="text-2xl">✨</div>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe your idea, and build it</div>
+              <div className="text-xs text-slate-500">Name the subject and the framework; the copilot drafts the whole module.</div>
+            </div>
+            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
+          </Link>
+          <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Or start from a shape</div>
+          <div className="mt-2 grid gap-3 sm:grid-cols-3">
             {INTERVIEW_TEMPLATES.map((t) => (
               <Link key={t.type} href={`/build/new?type=${t.type}`} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
                 <div className="text-2xl">{t.emoji}</div>

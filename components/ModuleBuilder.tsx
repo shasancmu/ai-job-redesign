@@ -68,6 +68,7 @@ export default function ModuleBuilder({
         {/* The interview */}
         <Section title="The interview">
           <Field label="Who should the AI interviewer be?" hint="A style/persona, not a script."><input className="field" value={spec.persona} onChange={(e) => set({ persona: e.target.value })} placeholder="a warm, sharp operations advisor" /></Field>
+          <Field label="Framework to apply (optional)" hint="The logic the AI grounds the interview and canvas in. This is what makes it rigorous."><textarea className="field" rows={3} value={spec.framework || ""} onChange={(e) => set({ framework: e.target.value })} placeholder="e.g. Porter's Five Forces: rivalry, new entrants, substitutes, buyer power, supplier power; assess structural attractiveness." /></Field>
           <Field label="What should it ask about?" hint="One theme per line. The AI covers them naturally.">
             <div className="space-y-2">
               {topics.map((t, i) => (
@@ -91,15 +92,23 @@ export default function ModuleBuilder({
               {sections.map((s, i) => (
                 <div key={i} className="rounded-xl border border-line p-3">
                   <div className="flex gap-2">
-                    <input className="field flex-1" value={s.name} onChange={(e) => { const n = [...sections]; n[i] = { ...s, name: e.target.value }; set({ sections: n }); }} placeholder="Section name, e.g. Biggest risk" />
+                    <input className="field flex-1" value={s.name} onChange={(e) => { const n = [...sections]; n[i] = { ...s, name: e.target.value }; set({ sections: n }); }} placeholder="Field name, e.g. Biggest risk" />
                     <select className="field w-28" value={s.kind} onChange={(e) => { const n = [...sections]; n[i] = { ...s, kind: e.target.value as any }; set({ sections: n }); }}>
                       <option value="long">Paragraph</option>
                       <option value="text">Short</option>
                       <option value="list">List</option>
+                      <option value="pairs">Pairs</option>
                     </select>
+                    <input className="field w-32" value={s.group || ""} onChange={(e) => { const n = [...sections]; n[i] = { ...s, group: e.target.value }; set({ sections: n }); }} placeholder="Group / heading" />
                     <button onClick={() => set({ sections: sections.filter((_, k) => k !== i) })} className="btn-ghost px-2 text-slate-400">✕</button>
                   </div>
-                  <input className="field mt-2 w-full" value={s.contains} onChange={(e) => { const n = [...sections]; n[i] = { ...s, contains: e.target.value }; set({ sections: n }); }} placeholder="What this section should contain…" />
+                  <input className="field mt-2 w-full" value={s.contains} onChange={(e) => { const n = [...sections]; n[i] = { ...s, contains: e.target.value }; set({ sections: n }); }} placeholder="What this field should contain…" />
+                  {s.kind === "pairs" && (
+                    <div className="mt-2 flex gap-2">
+                      <input className="field flex-1" value={s.leftLabel || ""} onChange={(e) => { const n = [...sections]; n[i] = { ...s, leftLabel: e.target.value }; set({ sections: n }); }} placeholder="Left label, e.g. Measure" />
+                      <input className="field flex-1" value={s.rightLabel || ""} onChange={(e) => { const n = [...sections]; n[i] = { ...s, rightLabel: e.target.value }; set({ sections: n }); }} placeholder="Right label, e.g. Target" />
+                    </div>
+                  )}
                 </div>
               ))}
               <button onClick={() => set({ sections: [...sections, { name: "", contains: "", kind: "long" }] })} className="text-sm font-semibold text-ai hover:underline">+ Add section</button>
