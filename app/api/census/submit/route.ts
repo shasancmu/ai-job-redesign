@@ -2,7 +2,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, wmsFromInterviewAI, businessProfileAI } from "@/lib/ai";
+import { withLanguage } from "@/lib/lang";
 import { wmsScore } from "@/lib/census";
+
+const REPORT_LANGS: Record<string, string> = {
+  ur: "Urdu, written in Urdu (Nastaliq) script",
+  lud: "Lisan al-Dawat (Lisan-e-Dawat), the Dawoodi Bohra community language (Gujarati in Arabic/Urdu script with Arabic and Persian loanwords)",
+};
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,9 +34,10 @@ export async function POST(request: Request) {
 
   const photoDescs = (Array.isArray(r.photos) ? r.photos : []).map((p: any) => (p?.title ? `${p.title}: ${p.description || ""}` : p?.description || "")).filter(Boolean);
 
+  const reportLang = REPORT_LANGS[String(r.lang || "")] || undefined;
   let report: any = null;
   try {
-    report = await businessProfileAI({
+    report = await withLanguage(reportLang, () => businessProfileAI({
       name: r.name || "This business",
       industry: r.naics_label || r.industry_desc || "unspecified",
       size: r.employees_band || "unknown",
@@ -40,7 +47,7 @@ export async function POST(request: Request) {
       whatItDoes: r.industry_desc || "",
       photos: photoDescs,
       transcript: r.transcript || "",
-    });
+    }));
   } catch { report = null; }
 
   // Who submitted (optional; the flow is public).

@@ -256,22 +256,38 @@ function Photos({ rec, set }: any) {
   );
 }
 
+function LangToggle({ rec, set }: any) {
+  const lang = rec.lang || "en";
+  const opts = [{ k: "en", label: "English" }, { k: "ur", label: "اردو" }, { k: "lud", label: "لسان الدعوة" }];
+  return (
+    <div className="flex items-center gap-1 rounded-full bg-mist p-0.5">
+      {opts.map((o) => (
+        <button key={o.k} onClick={() => set({ lang: o.k, mgmtChat: [] })} className={"rounded-full px-3 py-1 text-sm font-semibold transition " + (lang === o.k ? "bg-ink text-white" : "text-slate-500 hover:text-ink")}>{o.label}</button>
+      ))}
+    </div>
+  );
+}
+
 function Manage({ rec, set, code }: any) {
   const mode = rec.mode || "";
+  const lang = rec.lang || "en";
   async function onCall(history: Msg[], onChunk?: (d: string) => void) {
-    return streamPost("/api/census/interview", { messages: history }, onChunk || (() => {}));
+    return streamPost("/api/census/interview", { messages: history, lang }, onChunk || (() => {}));
   }
   if (!mode) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-slate-600">Now the interesting part: how you actually run the business. Pick how you would like to answer.</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm text-slate-600">How you actually run the business.</p>
+          <LangToggle rec={rec} set={set} />
+        </div>
         <button onClick={() => set({ mode: "voice" })} className="card w-full p-5 text-left transition hover:shadow-lift">
           <div className="font-bold text-ink">🎙 Talk it through <span className="text-xs font-normal text-slate-400">faster</span></div>
-          <div className="mt-1 text-sm text-slate-500">A short spoken conversation. Best on a phone.</div>
+          <div className="mt-1 text-sm text-slate-500">A short conversation. Type your replies, or use the mic{lang === "en" ? "" : " (mic works best in English)"}.</div>
         </button>
         <button onClick={() => set({ mode: "text", mgmtChat: [] })} className="card w-full p-5 text-left transition hover:shadow-lift">
-          <div className="font-bold text-ink">⌨ Type your answers</div>
-          <div className="mt-1 text-sm text-slate-500">Eight quick multiple-choice questions.</div>
+          <div className="font-bold text-ink">⌨ Quick multiple choice</div>
+          <div className="mt-1 text-sm text-slate-500">Eight quick questions{lang === "en" ? "" : " (shown in English)"}.</div>
         </button>
       </div>
     );
@@ -279,8 +295,9 @@ function Manage({ rec, set, code }: any) {
   if (mode === "voice") {
     return (
       <div className="space-y-2">
-        <RoleplayChat chat={rec.mgmtChat || []} setChat={(c) => set({ mgmtChat: c })} onCall={onCall} counterpartName="Interviewer" aiOpens placeholder="Type or use the mic..." />
-        <p className="text-xs text-slate-400">Answer a few questions, then tap Next. <button className="underline" onClick={() => set({ mode: "" })}>Switch to typing</button></p>
+        <div className="flex justify-end"><LangToggle rec={rec} set={set} /></div>
+        <RoleplayChat chat={rec.mgmtChat || []} setChat={(c) => set({ mgmtChat: c })} onCall={onCall} counterpartName="Interviewer" aiOpens placeholder={lang === "en" ? "Type or use the mic..." : "Type your reply..."} />
+        <p className="text-xs text-slate-400">Answer a few questions, then tap Next. <button className="underline" onClick={() => set({ mode: "" })}>Back</button></p>
       </div>
     );
   }
