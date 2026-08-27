@@ -12,8 +12,11 @@ type Phase = "intro" | "speaking" | "listening" | "thinking" | "unsupported";
 // with silence endpointing, a watchdog so a stuck TTS can't hang it, iOS audio
 // unlocked on the start tap, and the mic released on exit. Transcript is kept in
 // `chat` for the flow to score and submit.
-// Lisan-e-Dawat is a dialect of Gujarati, so it uses Gujarati speech (gu-IN).
+// Lisan-e-Dawat is a dialect of Gujarati. Speech recognition uses Gujarati
+// (gu-IN) so it hears the spoken answer; but the AI writes ROMANIZED Gujarati on
+// screen, so it is read aloud by an English voice (TTS locale below).
 const STT_LANG: Record<string, string> = { en: "en-US", ur: "ur-PK", lud: "gu-IN" };
+const TTS_LANG: Record<string, string> = { en: "en-US", ur: "ur-PK", lud: "en-US" };
 const SILENCE_MS = 2300;
 const MAX_TURN_MS = 30000;
 
@@ -32,7 +35,7 @@ export default function CensusVoiceInterview({ chat, setChat, lang = "en" }: { c
   const [err, setErr] = useState<string | null>(null);
 
   const mref = useRef<Msg[]>(chat); mref.current = chat;
-  const targetRef = useRef("en-US"); targetRef.current = STT_LANG[lang] || "en-US";
+  const targetRef = useRef("en-US"); targetRef.current = TTS_LANG[lang] || "en-US"; // TTS locale
   const mutedRef = useRef(false);
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const recRef = useRef<any>(null);
