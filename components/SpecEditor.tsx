@@ -32,13 +32,14 @@ const STANCE_HINT: Record<string, string> = {
   noncommittal: "Won't confirm or deny",
 };
 
-export default function SpecEditor({ me, initial, insights }: { me: string; initial: any; insights?: any }) {
+export default function SpecEditor({ me, initial, insights, initialStatus, cohorts, cohort }: { me: string; initial: any; insights?: any; initialStatus?: string; cohorts?: string[]; cohort?: string }) {
   const supabase = createClient();
   const [spec, setSpec] = useState<any>(initial);
   const [tab, setTab] = useState<TabId>("overview");
   const [errors, setErrors] = useState<string[]>([]);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState("");
+  const [status, setStatus] = useState(initialStatus || "draft");
 
   // ---- immutable updaters -------------------------------------------------
   const patch = (p: any) => setSpec((s: any) => ({ ...s, ...p }));
@@ -114,12 +115,14 @@ export default function SpecEditor({ me, initial, insights }: { me: string; init
     finally { setBusy(""); }
   }
 
-  async function save() {
+  async function save(nextStatus?: string) {
     const e = validate(); if (e.length) { setMsg(""); return; }
-    setBusy("save"); setMsg("");
-    const { error } = await supabase.from("module_specs").upsert({ slug: spec.slug, version: 1, owner_id: me, status: "draft", spec, updated_at: new Date().toISOString() }, { onConflict: "slug,version" });
+    const st = nextStatus ?? status;
+    setBusy(nextStatus === "published" ? "publish" : nextStatus === "draft" ? "unpublish" : "save"); setMsg("");
+    const { error } = await supabase.from("module_specs").upsert({ slug: spec.slug, version: 1, owner_id: me, status: st, spec, updated_at: new Date().toISOString() }, { onConflict: "slug,version" });
     setBusy("");
-    setMsg(error ? `Save failed: ${error.message}` : "Saved ✓");
+    if (!error) setStatus(st);
+    setMsg(error ? `Save failed: ${error.message}` : nextStatus === "published" ? "Published ✓ — now assignable to a class" : nextStatus === "draft" ? "Unpublished" : "Saved ✓");
   }
 
   // advanced raw JSON, kept in sync
@@ -137,7 +140,11 @@ export default function SpecEditor({ me, initial, insights }: { me: string; init
       {/* action bar */}
       <div className="flex flex-wrap items-center gap-2 border-b border-line pb-3">
         <button onClick={validate} className="btn-ghost text-sm">Validate</button>
-        <button onClick={save} disabled={busy === "save"} className="btn-primary text-sm">{busy === "save" ? "Saving..." : "Save"}</button>
+        <button onClick={() => save()} disabled={busy === "save"} className="btn-primary text-sm">{busy === "save" ? "Saving..." : "Save"}</button>
+        {status === "published"
+          ? <button onClick={() => save("draft")} disabled={!!busy} className="btn-ghost text-sm">{busy === "unpublish" ? "..." : "Unpublish"}</button>
+          : <button onClick={() => save("published")} disabled={!!busy} className="btn-ghost text-sm text-sage">{busy === "publish" ? "Publishing..." : "Publish"}</button>}
+        {status === "published" && <span className="rounded-full bg-sage-soft px-2 py-0.5 text-[11px] font-semibold text-sage">Published</span>}
         {slug && <Link href={`/m/${slug}`} target="_blank" className="btn-ghost text-sm">Open full run →</Link>}
         {msg && <span className="text-sm text-sage">{msg}</span>}
         <span className="ml-auto text-xs text-slate-400">{scenarios.length} scenario{scenarios.length === 1 ? "" : "s"} · {probes.length} probe{probes.length === 1 ? "" : "s"}</span>
@@ -307,6 +314,15 @@ export default function SpecEditor({ me, initial, insights }: { me: string; init
           {tab === "insights" && (
             <>
               <p className="text-sm text-slate-500">How learners actually do on this module. Every graded run feeds this, so you can see where the experience is landing and fix it.</p>
+              {cohorts && cohorts.length > 0 && slug && (
+                <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="text-slate-400">Class:</span>
+                  <a href={`/studio/roleplay/${slug}`} className={`rounded-full px-2 py-0.5 ${!cohort ? "bg-ink text-white" : "bg-mist text-slate-600"}`}>All</a>
+                  {cohorts.map((c) => (
+                    <a key={c} href={`/studio/roleplay/${slug}?cohort=${encodeURIComponent(c)}`} className={`rounded-full px-2 py-0.5 ${cohort === c ? "bg-ink text-white" : "bg-mist text-slate-600"}`}>{c}</a>
+                  ))}
+                </div>
+              )}
               {!insights || insights.runs === 0 ? (
                 <div className="rounded-xl border border-dashed border-line p-6 text-center text-sm text-slate-400">
                   No graded runs yet.{insights === null || insights === undefined ? " Save the module first, then share it." : ""} Once learners run it, you'll see their scores, calibration, and which probes they miss.

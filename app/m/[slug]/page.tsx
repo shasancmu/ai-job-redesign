@@ -9,10 +9,11 @@ export const dynamic = "force-dynamic";
 
 // Run/preview any role-play module by slug. Only the client-safe view of the spec
 // is sent; scenarios and answer keys stay on the server.
-export default async function RunModule({ params }: { params: { slug: string } }) {
+export default async function RunModule({ params, searchParams }: { params: { slug: string }; searchParams: { class?: string; cohort?: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect(`/login?next=/m/${params.slug}`);
+  const cohort = searchParams.class || searchParams.cohort || "";
+  if (!user) redirect(`/login?next=${encodeURIComponent(`/m/${params.slug}${cohort ? `?class=${cohort}` : ""}`)}`);
 
   const spec = await getSpec(params.slug);
   if (!spec || spec.mechanic !== "roleplay") {
@@ -24,5 +25,5 @@ export default async function RunModule({ params }: { params: { slug: string } }
       </main>
     );
   }
-  return <RoleplaySpecRoom spec={publicSpec(spec)} />;
+  return <RoleplaySpecRoom spec={publicSpec(spec)} cohort={cohort || undefined} />;
 }

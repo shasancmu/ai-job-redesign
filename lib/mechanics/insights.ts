@@ -18,15 +18,25 @@ function norm(s: any): string {
   return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-export async function getInsights(slug: string): Promise<Insights | null> {
+// The distinct cohort codes that have runs for this module, for the class filter.
+export async function listResultCohorts(slug: string): Promise<string[]> {
+  try {
+    const { data } = await createAdminClient().from("roleplay_results").select("cohort").eq("slug", slug).not("cohort", "is", null).limit(1000);
+    return [...new Set(((data as any[]) || []).map((r) => r.cohort).filter(Boolean).map(String))].sort();
+  } catch { return []; }
+}
+
+export async function getInsights(slug: string, cohort?: string | null): Promise<Insights | null> {
   try {
     const admin = createAdminClient();
-    const { data } = await admin
+    let q = admin
       .from("roleplay_results")
       .select("report, score")
       .eq("slug", slug)
       .order("created_at", { ascending: false })
       .limit(500);
+    if (cohort) q = q.eq("cohort", cohort);
+    const { data } = await q;
     const rows = data || [];
     const runs = rows.length;
 

@@ -10,7 +10,7 @@ import GenericRoleplayReport from "@/components/GenericRoleplayReport";
 // drives the hidden scenario server-side; transcript lives in client state.
 function makeCode() { let s = ""; for (let i = 0; i < 6; i++) s += "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)]; return s; }
 
-export default function RoleplaySpecRoom({ spec }: { spec: any }) {
+export default function RoleplaySpecRoom({ spec, cohort }: { spec: any; cohort?: string }) {
   const [code] = useState(makeCode);
   const [phase, setPhase] = useState(0);
   const [chat, setChat] = useState<Msg[]>([]);
@@ -34,7 +34,7 @@ export default function RoleplaySpecRoom({ spec }: { spec: any }) {
     setBusy(true); setErr("");
     try {
       const transcript = chat.map((m) => `${m.role === "user" ? "LEARNER" : character.toUpperCase()}: ${m.content}`).join("\n");
-      const res = await fetch("/api/mechanics/roleplay/report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug: spec.slug, code, transcript, verdict }) });
+      const res = await fetch("/api/mechanics/roleplay/report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug: spec.slug, code, transcript, verdict, cohort }) });
       const d = await res.json().catch(() => ({}));
       if (!res.ok || !d.report) throw new Error(d.error || "Couldn't grade.");
       setReport(d.report);

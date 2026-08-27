@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { activeEntitlements, FREE_TIER_MODULES, runsLeftByModule, grantedModuleSlugs } from "@/lib/access";
+import { roleplayCatalogMap } from "@/lib/mechanics/store";
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { isAdmin } from "@/lib/admin";
 import { claimInvites, getMyOrgs, getActiveOrg, facilitatorAccess, masterCohortCode } from "@/lib/orgs";
@@ -127,6 +128,30 @@ export default async function Dashboard({
     const granted = await grantedModuleSlugs(supabase, user.id);
     for (const s of granted) unlocked[s] = true;
   } catch { /* no class grants */ }
+
+  // Role-play modules a class assigned to this learner. These run at /m/[slug]
+  // (a different engine from the catalog), so surface them as their own section
+  // with the class code threaded through, so their results tag to the cohort.
+  type RPAssignment = { slug: string; name: string; emoji: string; classCode: string; className: string };
+  const roleplayAssignments: RPAssignment[] = [];
+  try {
+    const a = createAdminClient();
+    const { data: cms } = await a.from("class_members").select("class_id").eq("user_id", user.id);
+    const ids = [...new Set(((cms as any[]) || []).map((c) => c.class_id).filter(Boolean))];
+    if (ids.length) {
+      const [{ data: cls }, rpMap] = await Promise.all([
+        a.from("classes").select("code, name, modules").in("id", ids),
+        roleplayCatalogMap(),
+      ]);
+      const seen = new Set<string>();
+      for (const c of (cls as any[]) || []) {
+        for (const s of (c.modules as any[]) || []) {
+          const entry = rpMap[String(s)];
+          if (entry && !seen.has(entry.slug)) { seen.add(entry.slug); roleplayAssignments.push({ slug: entry.slug, name: entry.name, emoji: entry.emoji, classCode: c.code, className: c.name }); }
+        }
+      }
+    }
+  } catch { /* no service role or table */ }
 
   // Wide enough that a module's finished run never falls outside the window —
   // otherwise "Done" would flicker back to "In progress" as newer sessions
@@ -306,6 +331,24 @@ export default async function Dashboard({
           </div>
           <span className="shrink-0 text-sm font-semibold text-sage">Start &rarr;</span>
         </a>
+      )}
+
+      {roleplayAssignments.length > 0 && (
+        <section className="mb-8">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Assigned by your class</div>
+          <div className="mt-2 grid gap-3 sm:grid-cols-2">
+            {roleplayAssignments.map((r) => (
+              <a key={r.slug} href={`/m/${r.slug}?class=${encodeURIComponent(r.classCode)}`} className="group flex items-center gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+                <div className="text-2xl">{r.emoji}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-bold text-ink group-hover:text-ai">{r.name}</div>
+                  <div className="text-xs text-slate-400">{r.className}</div>
+                </div>
+                <span className="shrink-0 text-sm font-semibold text-sage">Start &rarr;</span>
+              </a>
+            ))}
+          </div>
+        </section>
       )}
 
       <div data-tour="your-work">
