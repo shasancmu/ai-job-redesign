@@ -103,8 +103,8 @@ function Consent({ rec, set }: any) {
       <p className="text-sm leading-relaxed text-slate-600">This short profile adds your business to the directory: what it does, its size and location, how it is run, and who it works with. You will get an instant read on your business at the end.</p>
       <ul className="space-y-1.5 text-sm text-slate-600">
         <li>• It takes about 10 minutes.</li>
-        <li>• Your details are added to the business directory.</li>
-        <li>• Photos are read into text and not stored as images.</li>
+        <li>• Your details and photos are added to the business directory.</li>
+        <li>• Photos are kept with your profile and read into a short description.</li>
       </ul>
       <label className="flex items-start gap-2 rounded-xl border border-line p-3 text-sm text-slate-700">
         <input type="checkbox" checked={!!rec.consent} onChange={(e) => set({ consent: e.target.checked })} className="mt-0.5 h-4 w-4 accent-[color:var(--ink)]" />
@@ -199,8 +199,8 @@ function Photos({ rec, set }: any) {
     try {
       const url = await fileToDataUrl(files[0]);
       const { data } = await jpost("/api/census/photo", { image: url, shot: `${shot.instruction} ${shot.hint}`, business: rec.industry_desc || "" });
-      if (data && (data.description || data.title)) {
-        const photos = [...(rec.photos || []).filter((p: any) => p.shot !== shot.key), { shot: shot.key, title: data.title || "", description: data.description || "" }];
+      if (data && (data.description || data.title || data.url)) {
+        const photos = [...(rec.photos || []).filter((p: any) => p.shot !== shot.key), { shot: shot.key, title: data.title || "", description: data.description || "", url: data.url || "" }];
         set({ photos });
       }
     } catch {}

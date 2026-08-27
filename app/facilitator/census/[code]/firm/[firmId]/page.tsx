@@ -80,6 +80,33 @@ export default async function FirmHistory({ params }: { params: { code: string; 
         </table>
       </div>
 
+      {/* Photos over time */}
+      {waves.some((w: any) => (w.photos || []).some((p: any) => p.url)) && (
+        <div className="mt-6 card p-5">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Photos over time</div>
+          <div className="mt-3 space-y-4">
+            {waves.map((w: any, i: number) => {
+              const ph = (w.photos || []).filter((p: any) => p.url);
+              if (!ph.length) return null;
+              return (
+                <div key={i}>
+                  <div className="text-[11px] font-semibold text-slate-500">Wave {w.wave || i + 1} · {String(w.created_at).slice(0, 10)}</div>
+                  <div className="mt-1.5 flex gap-2 overflow-x-auto pb-1">
+                    {ph.map((p: any, j: number) => (
+                      <a key={j} href={p.url} target="_blank" rel="noreferrer" className="shrink-0" title={p.description || p.shot}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={p.url} alt={p.shot} className="h-24 w-24 rounded-lg border border-line object-cover" />
+                        <div className="mt-0.5 w-24 truncate text-center text-[10px] capitalize text-slate-400">{p.shot}</div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {latest.report?.headline && (
         <div className="mt-6 card p-5">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Latest read</div>
