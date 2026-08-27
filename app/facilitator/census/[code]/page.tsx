@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import HeaderNav from "@/components/HeaderNav";
 import Logo from "@/components/Logo";
-import { isAdmin } from "@/lib/admin";
+import { facilitatorAccess } from "@/lib/orgs";
 import { project } from "@/lib/census";
 
 export const runtime = "nodejs";
@@ -16,10 +16,13 @@ export default async function CensusDashboard({ params }: { params: { code: stri
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  if (!isAdmin(user.email)) redirect("/dashboard");
+  const acc = await facilitatorAccess(user);
+  if (!(acc.superadmin || acc.orgIds.length > 0)) redirect("/dashboard");
 
   const admin = createAdminClient();
-  const { data: campaign } = await admin.from("business_campaigns").select("label").eq("code", code).maybeSingle();
+  const { data: campaign } = await admin.from("business_campaigns").select("label, owner_id").eq("code", code).maybeSingle();
+  // A director sees only their own collections; the superadmin sees all.
+  if (campaign && !acc.superadmin && campaign.owner_id !== user.id) redirect("/data-collection");
   const { data: rows } = await admin.from("businesses")
     .select("id, firm_id, wave, created_at, name, lat, lng, country, locality, naics, naics_label, isic_label, employees_band, wms_overall, customer_type")
     .eq("campaign_code", code).order("wave").limit(8000);

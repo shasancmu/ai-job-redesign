@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import HeaderNav from "@/components/HeaderNav";
 import Logo from "@/components/Logo";
-import { isAdmin } from "@/lib/admin";
+import { facilitatorAccess } from "@/lib/orgs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,12 +16,19 @@ export default async function FirmHistory({ params }: { params: { code: string; 
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  if (!isAdmin(user.email)) redirect("/dashboard");
+  const acc = await facilitatorAccess(user);
+  if (!(acc.superadmin || acc.orgIds.length > 0)) redirect("/dashboard");
 
   const admin = createAdminClient();
   const { data: rows } = await admin.from("businesses").select("*").eq("firm_id", params.firmId).order("wave");
   const waves = rows || [];
   if (!waves.length) redirect(`/facilitator/census/${code}`);
+  // Directors see only their own collections.
+  if (!acc.superadmin) {
+    const cc = (waves[0] as any).campaign_code;
+    const { data: camp } = await admin.from("business_campaigns").select("owner_id").eq("code", cc).maybeSingle();
+    if (!camp || camp.owner_id !== user.id) redirect("/data-collection");
+  }
   const latest: any = waves[waves.length - 1];
   const maxWms = 5;
 
