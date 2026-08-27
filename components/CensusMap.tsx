@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { WORLD_PATH } from "@/lib/worldPath";
+import { project } from "@/lib/census";
 
 type Point = { lat: number; lng: number; name?: string; label?: string };
 
@@ -58,6 +60,18 @@ export default function CensusMap({ points }: { points: Point[] }) {
     return () => { cancelled = true; if (mapRef.current) { try { mapRef.current.remove(); } catch {} mapRef.current = null; } };
   }, [points]);
 
-  if (failed) return <div className="flex h-[420px] items-center justify-center rounded-xl border border-line bg-mist text-sm text-slate-400">Map couldn't load. Check your connection.</div>;
+  // Fallback when Leaflet can't load: the self-contained static world map.
+  if (failed) {
+    const pts = points.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+    return (
+      <div className="overflow-hidden rounded-xl border border-line">
+        <svg viewBox="0 0 360 180" className="h-auto w-full" preserveAspectRatio="xMidYMid meet">
+          <rect x={0} y={0} width={360} height={180} fill="#eaf1f4" />
+          <path d={WORLD_PATH} fill="#d6ddd2" stroke="#c2cbbd" strokeWidth={0.15} />
+          {pts.map((p, i) => { const pr = project(p.lat, p.lng); return <circle key={i} cx={pr.x * 360} cy={pr.y * 180} r={2.4} fill="#3F7A52" stroke="#fff" strokeWidth={0.6} />; })}
+        </svg>
+      </div>
+    );
+  }
   return <div ref={ref} className="w-full rounded-xl border border-line" style={{ height: 420 }} />;
 }
