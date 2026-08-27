@@ -6,10 +6,12 @@ export default function Timer({
   startedAt,
   minutes,
   onReset,
+  onAdvance,
 }: {
   startedAt: string | null;
   minutes: number;
   onReset: () => void;
+  onAdvance?: () => void; // when the step runs over, offer a gentle "move on"
 }) {
   const [now, setNow] = useState(() => Date.now());
 
@@ -49,6 +51,14 @@ export default function Timer({
       >
         {over ? "0:00" : `${mm}:${ss.toString().padStart(2, "0")}`}
       </div>
+      {over && onAdvance && (
+        <button
+          onClick={onAdvance}
+          className="timer-nudge rounded-lg bg-amber-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-amber-600"
+        >
+          Time&apos;s up · Next →
+        </button>
+      )}
       <button
         onClick={onReset}
         title="Restart this step's timer"
@@ -56,6 +66,7 @@ export default function Timer({
       >
         ↻
       </button>
+      <style>{`@keyframes timer-nudge-k { 0%,100% { opacity: 1; } 50% { opacity: .6; } } .timer-nudge { animation: timer-nudge-k 1.6s ease-in-out infinite; } @media (prefers-reduced-motion: reduce) { .timer-nudge { animation: none; } }`}</style>
     </div>
   );
 }

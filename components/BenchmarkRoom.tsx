@@ -29,6 +29,8 @@ export default function BenchmarkRoom({ me, session }: { me: string; session: an
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const submitted = useRef(false);
+  const [warn, setWarn] = useState<string | null>(null);
+  const firedRef = useRef<Set<number>>(new Set());
 
   // Load the question set + any prior result.
   useEffect(() => {
@@ -59,9 +61,23 @@ export default function BenchmarkRoom({ me, session }: { me: string; session: an
   }, [phase]);
 
   const total = cfg?.total ?? 0;
-  const limit = cfg?.timeLimitSec ?? 480;
+  const limit = 300; // exactly 5 minutes, auto-scored at the mark
   const remaining =
     startedAt != null ? Math.max(0, limit - Math.floor((now - startedAt) / 1000)) : limit;
+
+  // Countdown warnings: subtle, once each, robust to skipped ticks.
+  useEffect(() => {
+    if (phase !== "quiz") return;
+    const THRESH: [number, string][] = [[120, "2 minutes left"], [60, "1 minute left"], [30, "30 seconds"], [10, "10 seconds"]];
+    for (const [th, msg] of THRESH) {
+      if (remaining <= th && remaining > 0 && !firedRef.current.has(th)) { firedRef.current.add(th); setWarn(msg); }
+    }
+  }, [remaining, phase]);
+  useEffect(() => {
+    if (!warn) return;
+    const id = setTimeout(() => setWarn(null), 2600);
+    return () => clearTimeout(id);
+  }, [warn]);
 
   const submit = useCallback(async () => {
     if (submitted.current) return;
@@ -102,8 +118,9 @@ export default function BenchmarkRoom({ me, session }: { me: string; session: an
           <div className="mt-5 flex flex-wrap gap-4 text-sm text-slate2">
             <span className="rounded-lg bg-mist px-3 py-1.5">{t("group.benchQuestions", { n: cfg.total })}</span>
             <span className="rounded-lg bg-mist px-3 py-1.5">
-              {t("group.benchMinTimed", { n: Math.round(cfg.timeLimitSec / 60) })}
+              {t("group.benchMinTimed", { n: 5 })}
             </span>
+            <span className="rounded-lg bg-mist px-3 py-1.5">Auto-submits at 5:00</span>
           </div>
           {!cfg.ready ? (
             <div className="mt-6 rounded-xl bg-amber-soft px-4 py-3 text-sm text-ink">
@@ -112,6 +129,8 @@ export default function BenchmarkRoom({ me, session }: { me: string; session: an
           ) : (
             <button
               onClick={() => {
+                firedRef.current = new Set();
+                setWarn(null);
                 setStartedAt(Date.now());
                 setNow(Date.now());
                 setPhase("quiz");
@@ -132,13 +151,27 @@ export default function BenchmarkRoom({ me, session }: { me: string; session: an
             </span>
             <span
               className={
-                "font-mono text-xl font-bold tabular-nums " +
-                (remaining <= 30 ? "text-clay" : "text-ink")
+                "font-mono text-xl font-bold tabular-nums transition-colors " +
+                (remaining <= 10 ? "bench-pulse text-clay" : remaining <= 30 ? "text-clay" : remaining <= 60 ? "text-amber" : "text-ink")
               }
             >
               {mm}:{ss.toString().padStart(2, "0")}
             </span>
           </div>
+
+          {/* Subtle countdown warnings */}
+          {warn && (
+            <div className="pointer-events-none fixed inset-x-0 top-6 z-50 flex justify-center px-4">
+              <div key={warn} className="bench-warn rounded-full bg-ink/90 px-4 py-2 text-sm font-semibold text-white shadow-lift backdrop-blur">{warn}</div>
+            </div>
+          )}
+          <style>{`
+            @keyframes bench-warn-in { 0% { opacity: 0; transform: translateY(-8px) scale(.96); } 12% { opacity: 1; transform: none; } 88% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-6px); } }
+            .bench-warn { animation: bench-warn-in 2.6s ease-in-out both; }
+            @keyframes bench-pulse-k { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+            .bench-pulse { animation: bench-pulse-k 1s ease-in-out infinite; }
+            @media (prefers-reduced-motion: reduce) { .bench-warn, .bench-pulse { animation: none; } }
+          `}</style>
 
           <div className="space-y-4">
             {cfg.questions.map((q) => (

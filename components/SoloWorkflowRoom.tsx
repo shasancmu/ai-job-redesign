@@ -162,7 +162,7 @@ export default function SoloWorkflowRoom({
         )}
 
         {step.key === "interview" && (
-          <WorkflowInterview name={doc.name} why={doc.why} chat={chat} setChat={setChat} sessionId={session.id} />
+          <WorkflowInterview name={doc.name} why={doc.why} chat={chat} setChat={setChat} sessionId={session.id} onDone={() => go(phase + 1)} />
         )}
 
         {step.key === "map" && (
@@ -263,12 +263,14 @@ function WorkflowInterview({
   chat,
   setChat,
   sessionId,
+  onDone,
 }: {
   name?: string;
   why?: string;
   chat: Msg[];
   setChat: (m: Msg[]) => void;
   sessionId: string;
+  onDone?: () => void;
 }) {
   const t = useT();
   const [input, setInput] = useState("");
@@ -282,18 +284,24 @@ function WorkflowInterview({
     async (history: Msg[]) => {
       setErr(null);
       setBusy(true);
-      setStreaming("");
-      let acc = "";
-      try {
-        const reply = await streamPost("/api/workflow/interview", { messages: history, name, description: why, sessionId }, (d) => { acc += d; setStreaming(acc); });
-        return (reply || acc).trim() || null;
-      } catch (e: any) {
-        setErr(e?.message || t("sworkflow.aiUnavailable"));
-        return null;
-      } finally {
-        setBusy(false);
+      // An empty or dropped reply used to leave the chat frozen (people learned
+      // to type "continue" to nudge it). Retry once automatically, then surface a
+      // clear retry instead of silently hanging.
+      for (let attempt = 0; attempt < 2; attempt++) {
         setStreaming("");
+        let acc = "";
+        try {
+          const reply = await streamPost("/api/workflow/interview", { messages: history, name, description: why, sessionId }, (d) => { acc += d; setStreaming(acc); });
+          const out = (reply || acc).trim();
+          if (out) { setBusy(false); setStreaming(""); return out; }
+        } catch (e: any) {
+          if (attempt === 1) { setErr(e?.message || t("sworkflow.aiUnavailable")); setBusy(false); setStreaming(""); return null; }
+        }
       }
+      setBusy(false);
+      setStreaming("");
+      setErr(t("sworkflow.aiUnavailable"));
+      return null;
     },
     [name, why]
   );
@@ -353,7 +361,17 @@ function WorkflowInterview({
           </div>
         )}
       </div>
-      {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
+      {err && (
+        <div className="mt-2 flex items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <span>{err}</span>
+          <button type="button" onClick={() => call(chat).then((r) => r && setChat([...chat, { role: "assistant", content: r }]))} className="shrink-0 font-semibold underline">Retry</button>
+        </div>
+      )}
+      {onDone && chat.filter((m) => m.role === "user").length >= 3 && (
+        <button type="button" onClick={onDone} className="mt-3 w-full rounded-lg bg-sage-soft px-3 py-2 text-sm font-semibold text-ink transition hover:bg-sage/20">
+          ✓ You&apos;ve covered the workflow — build my map →
+        </button>
+      )}
       <form onSubmit={send} className="mt-3 flex items-center gap-2">
         <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t("room.typeAnswer")} disabled={busy} />
         <button className="btn-primary" disabled={busy || !input.trim()}>{t("room.send")}</button>

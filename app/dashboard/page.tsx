@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { activeEntitlements, FREE_TIER_MODULES, runsLeftByModule } from "@/lib/access";
+import { activeEntitlements, FREE_TIER_MODULES, runsLeftByModule, grantedModuleSlugs } from "@/lib/access";
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { isAdmin } from "@/lib/admin";
 import { claimInvites, getMyOrgs, getActiveOrg, facilitatorAccess, masterCohortCode } from "@/lib/orgs";
@@ -120,6 +120,13 @@ export default async function Dashboard({
   }
   // A white-label org grants its curated modules to members, unlimited.
   if (orgModules) for (const s of orgModules) unlocked[s] = true;
+  // Cohort/class access: modules granted through any class or org the user
+  // belongs to are startable, so the catalog must show them unlocked too. This
+  // matches moduleRunAccess, so a completed cohort module never flips to locked.
+  try {
+    const granted = await grantedModuleSlugs(supabase, user.id);
+    for (const s of granted) unlocked[s] = true;
+  } catch { /* no class grants */ }
 
   // Wide enough that a module's finished run never falls outside the window —
   // otherwise "Done" would flicker back to "In progress" as newer sessions

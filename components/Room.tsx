@@ -331,6 +331,7 @@ export default function Room({
           startedAt={session.phase_started_at || new Date(localStart).toISOString()}
           minutes={phase.minutes}
           onReset={resetTimer}
+          onAdvance={session.phase < PHASES.length - 1 ? () => goToPhase(session.phase + 1, true) : undefined}
         />
       </div>
 

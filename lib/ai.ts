@@ -538,7 +538,9 @@ ${INTERVIEW_CRAFT}
 
 For this interview specifically: map the real steps, who does what, in what order, the inputs and outputs, and where information or approvals hand off between people. Probe where a human exercises judgment, where the process stalls or breaks, how long things take, and what "it went well" vs "it failed" looks like. Pull the concrete story: "Walk me through the last time you ran this." Do not redesign or give advice yet, just understand it.
 
-After about 5 exchanges, reflect the shape of the workflow back, ask if you missed a step, then close.`;
+Above all, work toward the SINGLE BIGGEST BOTTLENECK in this workflow: the one step where time, quality, or value is most often lost, or where everything waits. Steer your questions to pin that down.
+
+Keep it short: ask at most about 5 questions total. Once you can name the key bottleneck (or after 5 exchanges), reflect the shape of the workflow back, name the bottleneck you heard, confirm it in one line, and tell them they have enough and can move on to build their map. After that, do NOT ask new questions; if they keep going, warmly note they can continue to the next step whenever they are ready.`;
 
 export async function workflowInterviewReply(
   history: ChatMsg[],
