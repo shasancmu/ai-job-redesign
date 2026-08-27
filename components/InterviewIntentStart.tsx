@@ -13,6 +13,7 @@ const EXAMPLES = [
   { label: "Jobs-to-be-Done", text: "A Jobs-to-be-Done discovery: interview a product manager about their users, then draft the core job, the current alternatives, and the unmet outcomes." },
   { label: "Pre-mortem", text: "A project pre-mortem: interview the owner about a plan, then draft the top failure modes, early warning signs, and mitigations, scored by risk." },
   { label: "Balanced Scorecard", text: "A Balanced Scorecard for a team: interview the lead, then draft objectives and measures across financial, customer, process, and learning, each with a metric and a target." },
+  { label: "Job / workflow redesign", text: "A redesign coach: interview someone about a job or workflow, then draft the strategic outcome and split the tasks into keep-human, human+AI, and automate, grounded in the AI-and-Human framework (cost of a mistake vs. how varied the work is), ending with a concrete plan." },
 ];
 const LOADING = ["Choosing the format…", "Writing the interview…", "Designing the canvas fields…", "Grounding it in the framework…"];
 
