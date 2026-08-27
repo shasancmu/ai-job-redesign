@@ -20,6 +20,7 @@ const TABS = [
   { id: "assessment", label: "Assessment" },
   { id: "insights", label: "📈 Insights" },
   { id: "critique", label: "🔍 Critique" },
+  { id: "playtest", label: "🧪 Playtest" },
   { id: "history", label: "🕘 History" },
   { id: "ai", label: "✨ Copilot" },
   { id: "advanced", label: "Advanced" },
@@ -152,6 +153,18 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
       if (!res.ok || !d.result) setErrors([d.error || "The critic couldn't finish."]);
       else { setCritique(d.result); critiqueStamp.current = stamp; }
     } catch (e: any) { setErrors([e?.message || "Critique failed."]); }
+    finally { setBusy(""); }
+  }
+
+  const [playtest, setPlaytest] = useState<any>(null);
+  async function runPlaytest() {
+    setBusy("playtest"); setMsg(""); setErrors([]);
+    try {
+      const res = await fetch("/api/mechanics/playtest", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ spec }) });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok || !d.strong) setErrors([d.error || "The playtest couldn't finish."]);
+      else setPlaytest(d);
+    } catch (e: any) { setErrors([e?.message || "Playtest failed."]); }
     finally { setBusy(""); }
   }
 
@@ -546,6 +559,48 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                 </>
               )}
               {!critique && busy !== "critique" && <p className="text-xs text-slate-400">Runs on the full spec, including the hidden scenarios, so it can check whether the tell actually holds.</p>}
+            </>
+          )}
+
+          {/* ---------------- PLAYTEST ---------------- */}
+          {tab === "playtest" && (
+            <>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm text-slate-500">Watch a strong and a weak learner run your module, graded by the real rubric. If the module works, the strong run scores well and the weak run doesn't. If they land close, it isn't rewarding good questioning.</p>
+                <button onClick={runPlaytest} disabled={busy === "playtest"} className="btn-primary shrink-0 text-sm">{busy === "playtest" ? "Running..." : "Run playtest"}</button>
+              </div>
+              {busy === "playtest" && <p className="text-xs text-slate-400">Simulating two runs and grading each. This takes 20-40 seconds.</p>}
+              {playtest && (
+                <>
+                  <div className={`rounded-xl p-3 text-sm ${playtest.separates ? "bg-sage-soft text-sage" : "bg-amber-50 text-amber-900"}`}>
+                    <span className="font-semibold">{playtest.separates ? "The module discriminates ✓" : "Weak signal"}</span> — {playtest.note}
+                    <div className="mt-1 text-[11px] opacity-80">Tested on scenario “{playtest.scenario?.id}” (truth: {playtest.scenario?.truth}) · {playtest.budget} questions</div>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {([["strong", "Strong learner"], ["weak", "Weak learner"]] as const).map(([k, label]) => {
+                      const r = playtest[k]; if (!r) return null;
+                      return (
+                        <div key={k} className="rounded-xl border border-line bg-white p-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-semibold text-ink">{label}</span>
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${r.score >= 60 ? "bg-sage-soft text-sage" : "bg-mist text-slate-500"}`}>{r.score}</span>
+                          </div>
+                          <div className="mt-1 text-xs text-slate-500">Called <b className="text-ink">{r.verdict?.call || "—"}</b> at {r.verdict?.confidence ?? "—"}% · {r.correct ? <span className="text-sage">right call</span> : <span className="text-clay">wrong call</span>}</div>
+                          {Array.isArray(r.report?.questions) && r.report.questions.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {r.report.questions.slice(0, 5).map((q: any, i: number) => (
+                                <div key={i} className="flex items-start gap-1.5 text-[11px]"><span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${q.value === "high" ? "bg-sage" : q.value === "med" ? "bg-amber" : "bg-slate-300"}`} /><span className="text-slate-600">{q.text}</span></div>
+                              ))}
+                            </div>
+                          )}
+                          <details className="mt-2"><summary className="cursor-pointer text-[11px] text-slate-400">Transcript</summary><pre className="mt-1 whitespace-pre-wrap rounded-lg bg-mist p-2 text-[11px] leading-relaxed text-slate-600">{r.transcript}</pre></details>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[11px] text-slate-400">A simulation, not real learners: it estimates whether your design rewards good questioning. Use it to catch problems early, then confirm with a live cohort.</p>
+                </>
+              )}
             </>
           )}
 

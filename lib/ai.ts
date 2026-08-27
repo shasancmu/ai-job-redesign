@@ -438,6 +438,12 @@ export async function moduleCopilotAI(system: string, user: string): Promise<any
 export async function moduleCriticAI(system: string, user: string): Promise<any> {
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.2, maxTokens: 2500, low: false });
 }
+// Simulate a full run for the playtest: the model plays out a realistic learner
+// x character transcript plus the learner's verdict. Higher temperature for
+// believable variation between the strong and weak personas.
+export async function simulateRunAI(system: string, user: string): Promise<any> {
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.75, maxTokens: 1800, low: false });
+}
 // Cheap-model compression of uploaded source material into a grounding briefing.
 // The raw text is never persisted; only this summary is kept, and it feeds the
 // Copilot as source. Uses the FAST model (low: true).
