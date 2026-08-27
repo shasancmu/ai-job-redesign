@@ -1,3 +1,4 @@
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, roleplayReply } from "@/lib/ai";
@@ -12,6 +13,10 @@ export const maxDuration = 60;
 // Non-streaming so every teammate sees the same exchange.
 export async function POST(request: Request) {
   if (!AI_ENABLED) return Response.json({ error: "AI is not configured." }, { status: 503 });
+
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return Response.json({ error: "Please sign in." }, { status: 401 });
 
   let body: any;
   try { body = await request.json(); } catch { return Response.json({ error: "bad request" }, { status: 400 }); }

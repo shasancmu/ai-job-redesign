@@ -5,7 +5,7 @@ import Link from "next/link";
 import { COMPANY, GAP_CENTS, LEVERS, ROLES, CEO_PRESSURE, LEVER_BY_KEY, type Role } from "@/lib/capstone";
 import CapstoneReport from "@/components/CapstoneReport";
 
-type Member = { name: string; role: string };
+type Member = { name: string; role: string; user_id?: string | null };
 type Pick = { lever_key: string; note: string; by_name: string };
 type Turn = { role: "analyst" | "cfo"; name?: string; content: string };
 type State = { phase: number; status: string; members: Member[]; picks: Pick[]; transcript: Turn[]; report: any };
@@ -30,6 +30,18 @@ export default function CapstoneBoard({ code, isHost, myName = "", cohort = "", 
       if (name && role) setMe({ name, role });
     } catch {}
   }, [code]);
+
+  // Auto-resume: if this signed-in user is already a member of the team (on any
+  // device), drop them straight into their seat without re-picking.
+  useEffect(() => {
+    if (me || !userId || !state) return;
+    const mine = state.members.find((m) => m.user_id === userId);
+    if (mine && ROLES.some((r) => r.key === mine.role)) {
+      const resumed = { name: mine.name, role: mine.role as Role };
+      setMe(resumed);
+      try { localStorage.setItem(`capstone-name-${code}`, resumed.name); localStorage.setItem(`capstone-role-${code}`, resumed.role); } catch {}
+    }
+  }, [me, userId, state, code]);
 
   const poll = useCallback(async () => {
     const d = await api("/api/capstone/state", { code });
@@ -95,12 +107,18 @@ function JoinGate({ code, members, onJoin, defaultName = "", userId = "" }: { co
   const [name, setName] = useState(defaultName);
   const [role, setRole] = useState<Role | "">("");
   const [busy, setBusy] = useState(false);
-  const taken = new Set(members.map((m) => m.role));
+  const [err, setErr] = useState("");
+  const takenBy = new Map(members.map((m) => [m.role, m.name] as const));
+  const openSeats = ROLES.filter((r) => !takenBy.has(r.key));
+  const full = openSeats.length === 0;
 
   async function join() {
     if (!name.trim() || !role) return;
-    setBusy(true);
-    await api("/api/capstone/join", { code, name: name.trim(), role, userId });
+    setBusy(true); setErr("");
+    const res = await fetch("/api/capstone/join", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, name: name.trim(), role, userId }) });
+    const d = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) { setErr(d.error || "Could not join. Try again."); return; }
     try { localStorage.setItem(`capstone-name-${code}`, name.trim()); localStorage.setItem(`capstone-role-${code}`, role); } catch {}
     onJoin({ name: name.trim(), role });
   }
@@ -108,24 +126,38 @@ function JoinGate({ code, members, onJoin, defaultName = "", userId = "" }: { co
   return (
     <main className="mx-auto max-w-md px-6 py-12">
       <h1 className="text-2xl font-bold text-ink">Join your CFO team</h1>
-      <p className="mt-1 text-sm text-slate-500">Team code <b className="font-mono">{code}</b>. Pick your name and your seat.</p>
-      <div className="mt-6">
-        <label className="lbl">Your name</label>
-        <input className="field" value={name} onChange={(e) => setName(e.target.value)} placeholder="Alex Rivera" />
-      </div>
-      <div className="mt-4 space-y-2">
-        <label className="lbl">Your seat</label>
-        {ROLES.map((r) => (
-          <button key={r.key} onClick={() => setRole(r.key)} className={"flex w-full items-center justify-between rounded-xl border p-3 text-left " + (role === r.key ? "border-ink bg-ink/5 ring-1 ring-ink" : "border-line bg-white hover:border-slate-300")}>
-            <div>
-              <div className="text-sm font-bold text-ink">{r.label}</div>
-              <div className="text-xs text-slate-500">{r.charge}</div>
-            </div>
-            {taken.has(r.key) && <span className="text-[11px] text-slate-400">taken, can share</span>}
-          </button>
-        ))}
-      </div>
-      <button onClick={join} disabled={busy || !name.trim() || !role} className="btn-primary mt-5 w-full disabled:opacity-50">{busy ? "Joining..." : "Take my seat"}</button>
+      <p className="mt-1 text-sm text-slate-500">Team code <b className="font-mono">{code}</b>. Pick your name and an open seat.</p>
+
+      {full ? (
+        <div className="mt-6 rounded-xl border border-clay/30 bg-clay-soft p-4 text-sm text-ink">
+          This team already has all four seats filled. Double-check the team code with your captain, or start your own team.
+        </div>
+      ) : (
+        <>
+          <div className="mt-6">
+            <label className="lbl">Your name</label>
+            <input className="field" value={name} onChange={(e) => setName(e.target.value)} placeholder="Alex Rivera" />
+          </div>
+          <div className="mt-4 space-y-2">
+            <label className="lbl">Your seat ({openSeats.length} open)</label>
+            {ROLES.map((r) => {
+              const holder = takenBy.get(r.key);
+              const isTaken = !!holder;
+              return (
+                <button key={r.key} disabled={isTaken} onClick={() => setRole(r.key)} className={"flex w-full items-center justify-between rounded-xl border p-3 text-left transition " + (isTaken ? "cursor-not-allowed border-line bg-slate-50 opacity-60" : role === r.key ? "border-ink bg-ink/5 ring-1 ring-ink" : "border-line bg-white hover:border-slate-300")}>
+                  <div>
+                    <div className="text-sm font-bold text-ink">{r.label}</div>
+                    <div className="text-xs text-slate-500">{r.charge}</div>
+                  </div>
+                  {isTaken && <span className="shrink-0 text-[11px] text-slate-400">taken by {holder!.split(" ")[0]}</span>}
+                </button>
+              );
+            })}
+          </div>
+          {err && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</p>}
+          <button onClick={join} disabled={busy || !name.trim() || !role} className="btn-primary mt-5 w-full disabled:opacity-50">{busy ? "Joining..." : "Take my seat"}</button>
+        </>
+      )}
     </main>
   );
 }

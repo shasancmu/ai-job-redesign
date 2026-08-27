@@ -1,11 +1,16 @@
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { LEVER_BY_KEY } from "@/lib/capstone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// PUBLIC: a member toggles a lever on or off for the team, or edits its note.
+// A signed-in member toggles a lever on or off for the team, or edits its note.
 export async function POST(request: Request) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return Response.json({ error: "Please sign in." }, { status: 401 });
+
   let body: any;
   try { body = await request.json(); } catch { return Response.json({ error: "bad request" }, { status: 400 }); }
   const code = String(body.code || "").toUpperCase();
