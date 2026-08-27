@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import Logo from "@/components/Logo";
-import { type Msg } from "@/components/RoleplayChat";
+import RoleplayChat, { type Msg } from "@/components/RoleplayChat";
 import CensusVoiceInterview from "@/components/CensusVoiceInterview";
+import { streamPost } from "@/lib/streamClient";
 import CensusReport from "@/components/CensusReport";
-import { WMS, EMPLOYEE_BANDS, REVENUE_BANDS, CUSTOMER_TYPES, OWNERSHIP_TYPES, TIE_TYPES, shotsFor, type NetworkEdge } from "@/lib/census";
+import { EMPLOYEE_BANDS, REVENUE_BANDS, CUSTOMER_TYPES, OWNERSHIP_TYPES, TIE_TYPES, shotsFor, type NetworkEdge } from "@/lib/census";
 
 async function jpost(path: string, body: any) {
   const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -258,63 +259,65 @@ function Photos({ rec, set }: any) {
 
 function LangToggle({ rec, set }: any) {
   const lang = rec.lang || "en";
-  const opts = [{ k: "en", label: "English" }, { k: "ur", label: "اردو" }, { k: "lud", label: "لسان الدعوة" }];
+  const opts = [{ k: "en", label: "English" }, { k: "ur", label: "اردو" }, { k: "lud", label: "Lisan-e-Dawat" }];
   return (
     <div className="flex items-center gap-1 rounded-full bg-mist p-0.5">
       {opts.map((o) => (
-        <button key={o.k} onClick={() => set({ lang: o.k, mgmtChat: [] })} className={"rounded-full px-3 py-1 text-sm font-semibold transition " + (lang === o.k ? "bg-ink text-white" : "text-slate-500 hover:text-ink")}>{o.label}</button>
+        <button key={o.k} onClick={() => set({ lang: o.k, mgmtChat: [], mode: "" })} className={"rounded-full px-3 py-1 text-sm font-semibold transition " + (lang === o.k ? "bg-ink text-white" : "text-slate-500 hover:text-ink")}>{o.label}</button>
       ))}
     </div>
   );
 }
 
-function Manage({ rec, set, code }: any) {
-  const mode = rec.mode || "";
+// English gets the spoken interview or typing; other languages are typed only,
+// since non-English voice output is unreliable.
+function Manage({ rec, set }: any) {
   const lang = rec.lang || "en";
-  if (!mode) {
+  const mode = rec.mode || "";
+  const effMode = lang === "en" ? mode : "type"; // non-English is always typed
+
+  async function onCall(history: Msg[], onChunk?: (d: string) => void) {
+    return streamPost("/api/census/interview", { messages: history, lang }, onChunk || (() => {}));
+  }
+
+  const header = (
+    <div className="flex items-center justify-between gap-2">
+      {effMode ? <button className="text-xs text-slate-400 underline" onClick={() => set({ mode: "" })}>{lang === "en" ? "← Back" : ""}</button> : <p className="text-sm text-slate-600">How you actually run the business.</p>}
+      <LangToggle rec={rec} set={set} />
+    </div>
+  );
+
+  if (lang === "en" && !mode) {
     return (
       <div className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-sm text-slate-600">How you actually run the business.</p>
-          <LangToggle rec={rec} set={set} />
-        </div>
+        {header}
         <button onClick={() => set({ mode: "voice" })} className="card w-full p-5 text-left transition hover:shadow-lift">
           <div className="font-bold text-ink">🎙 Talk it through <span className="text-xs font-normal text-slate-400">faster</span></div>
-          <div className="mt-1 text-sm text-slate-500">A short spoken conversation. The interviewer talks; you answer out loud{lang === "en" ? "" : " (speech is supported in English, Urdu, and Gujarati where the browser allows)"}.</div>
+          <div className="mt-1 text-sm text-slate-500">A short spoken conversation. The interviewer talks; you answer out loud.</div>
         </button>
-        <button onClick={() => set({ mode: "text", mgmtChat: [] })} className="card w-full p-5 text-left transition hover:shadow-lift">
-          <div className="font-bold text-ink">⌨ Quick multiple choice</div>
-          <div className="mt-1 text-sm text-slate-500">Eight quick questions{lang === "en" ? "" : " (shown in English)"}.</div>
+        <button onClick={() => set({ mode: "type" })} className="card w-full p-5 text-left transition hover:shadow-lift">
+          <div className="font-bold text-ink">⌨ Type your answers</div>
+          <div className="mt-1 text-sm text-slate-500">A short typed conversation instead.</div>
         </button>
       </div>
     );
   }
-  if (mode === "voice") {
+
+  if (effMode === "voice") {
     return (
       <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <button className="text-xs text-slate-400 underline" onClick={() => set({ mode: "" })}>← Back</button>
-          <LangToggle rec={rec} set={set} />
-        </div>
-        <CensusVoiceInterview chat={rec.mgmtChat || []} setChat={(c) => set({ mgmtChat: c })} lang={lang} />
+        {header}
+        <CensusVoiceInterview chat={rec.mgmtChat || []} setChat={(c) => set({ mgmtChat: c })} lang="en" />
       </div>
     );
   }
-  // text: the 8-item WMS
-  const answers = rec.wmsAnswers || {};
+
+  // Typed conversation, in the chosen language.
   return (
-    <div className="space-y-3">
-      {WMS.map((q) => (
-        <div key={q.id} className="card p-4">
-          <div className="text-sm font-semibold text-ink">{q.prompt}</div>
-          <div className="mt-2 space-y-1.5">
-            {q.options.map((o) => (
-              <button key={o.score} onClick={() => set({ wmsAnswers: { ...answers, [q.id]: o.score } })} className={"block w-full rounded-lg border p-2 text-left text-sm " + (answers[q.id] === o.score ? "border-ink bg-ink/5" : "border-line hover:border-slate-300")}>{o.label}</button>
-            ))}
-          </div>
-        </div>
-      ))}
-      <p className="text-xs text-slate-400"><button className="underline" onClick={() => set({ mode: "" })}>Switch to talking instead</button></p>
+    <div className="space-y-2">
+      {header}
+      {lang !== "en" && <p className="text-xs text-slate-400">Voice is available in English. For {lang === "ur" ? "Urdu" : "Lisan-e-Dawat"}, please type your answers below.</p>}
+      <RoleplayChat chat={rec.mgmtChat || []} setChat={(c) => set({ mgmtChat: c })} onCall={onCall} counterpartName="Interviewer" aiOpens placeholder="Type your reply..." />
     </div>
   );
 }

@@ -11,7 +11,7 @@ const MGMT_SYSTEM = `You are a warm, efficient interviewer learning how a small-
 // The three interview languages the respondent can toggle between.
 const LANGS: Record<string, string> = {
   ur: "Urdu, written in Urdu (Nastaliq) script",
-  lud: "Gujarati (Lisan al-Dawat / Lisan-e-Dawat, the Dawoodi Bohra dialect of Gujarati). Write EACH reply TWICE, separated by the exact delimiter ' /// ' (space slash slash slash space): first the reply in native Gujarati script, then ' /// ', then the SAME reply transliterated into the Latin/English alphabet (romanized). Nothing else. Example: [native Gujarati] /// [Tamaro business kem chale chhe?]",
+  lud: "Gujarati (Lisan al-Dawat / Lisan-e-Dawat, the Dawoodi Bohra dialect of Gujarati), TRANSLITERATED into the Latin/English alphabet (romanized, Roman letters only, the way people casually type Gujarati in English, for example 'Tamaro business kem chale chhe?'). Do NOT use Gujarati or Arabic script",
 };
 
 // PUBLIC: one turn of the management interview (voice or text), in the chosen language.
