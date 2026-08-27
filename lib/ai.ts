@@ -435,6 +435,14 @@ export async function roleplayExaminerAI(system: string, user: string, maxTokens
 export async function moduleCopilotAI(system: string, user: string): Promise<any> {
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.5, maxTokens: 6000, low: false });
 }
+// Cheap-model compression of uploaded source material into a grounding briefing.
+// The raw text is never persisted; only this summary is kept, and it feeds the
+// Copilot as source. Uses the FAST model (low: true).
+export async function summarizeSourceAI(text: string): Promise<string> {
+  const system = "You compress source material into a tight briefing that an instructional designer will use to ground a role-play learning module. Capture: the situation and context, the concrete facts and numbers, the people or roles involved, the central tension or decision, and anything that could become a hidden truth or a line of questioning. Be faithful and specific; never invent facts that aren't in the source. 250 to 400 words, plain prose, no preamble, no headings. No em dashes.";
+  const out = await complete([{ role: "system", content: system }, { role: "user", content: text.slice(0, 14000) }], { low: true, maxTokens: 900 });
+  return String(out || "").trim();
+}
 
 // Close a JSON object cut off mid-stream (truncated at max_tokens): trim to the
 // last complete field, drop a dangling comma, then close still-open brackets.

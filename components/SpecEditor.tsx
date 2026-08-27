@@ -104,6 +104,22 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
 
   const [intent, setIntent] = useState("");
   const [source, setSource] = useState("");
+
+  async function onPdf(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-uploading the same file
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) { setErrors(["PDF is too large (max 15MB)."]); return; }
+    setBusy("pdf"); setMsg(""); setErrors([]);
+    try {
+      const b64 = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1] || ""); r.onerror = () => rej(new Error("read failed")); r.readAsDataURL(file); });
+      const resp = await fetch("/api/mechanics/pdf-source", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pdf: b64, name: file.name }) });
+      const d = await resp.json().catch(() => ({}));
+      if (!resp.ok || !d.summary) { setErrors([d.error || "Couldn't read that PDF."]); }
+      else { setSource((s) => (s.trim() ? s + "\n\n" + d.summary : d.summary)); setMsg(`Summarized ${file.name} ✓ (the file isn't stored)`); }
+    } catch (err: any) { setErrors([err?.message || "PDF upload failed."]); }
+    finally { setBusy(""); }
+  }
   async function copilot() {
     if (!intent.trim()) return;
     setBusy("copilot"); setMsg(""); setErrors([]);
@@ -389,10 +405,16 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
               <div className="text-sm font-semibold text-ink">✨ Build or edit with AI</div>
               <p className="mt-1 text-xs text-slate-500">Describe the module you want, or tell it what to change. It drafts or edits the whole spec, and the form and preview update in place.</p>
               <textarea className="field mt-2 text-sm" rows={4} value={intent} onChange={(e) => setIntent(e.target.value)} placeholder="Build an earnings-call-style module where students detect channel stuffing at a pharma company. Or: make the CEO hedge harder on the allowance question." />
-              <label className="lbl mt-3">Source material (optional)</label>
-              <textarea className="field text-xs" rows={5} value={source} onChange={(e) => setSource(e.target.value)} placeholder="Paste a case, framework, or rubric to ground it in." />
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <label className="lbl mb-0">Source material (optional)</label>
+                <label className={`cursor-pointer rounded-full bg-white px-2.5 py-1 text-xs font-medium shadow-sm ${busy === "pdf" ? "text-slate-400" : "text-ink hover:text-ai"}`}>
+                  {busy === "pdf" ? "Reading PDF..." : "＋ Upload a PDF"}
+                  <input type="file" accept="application/pdf" className="hidden" onChange={onPdf} disabled={busy === "pdf"} />
+                </label>
+              </div>
+              <textarea className="field text-xs" rows={5} value={source} onChange={(e) => setSource(e.target.value)} placeholder="Paste a case, framework, or rubric, or upload a PDF above." />
+              <p className="mt-1 text-[11px] text-slate-400">A PDF is converted to a short summary with a fast model and added above. The file and its full text are never stored.</p>
               <button onClick={copilot} disabled={busy === "copilot" || !intent.trim()} className="btn-primary mt-3 w-full text-sm disabled:opacity-50">{busy === "copilot" ? "Drafting..." : "Draft with AI"}</button>
-              <p className="mt-2 text-[11px] text-slate-400">PDF upload is coming; for now paste the source text.</p>
             </div>
           )}
 
