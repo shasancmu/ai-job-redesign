@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Logo from "@/components/Logo";
-import RoleplayChat, { type Msg } from "@/components/RoleplayChat";
-import { streamPost } from "@/lib/streamClient";
+import { type Msg } from "@/components/RoleplayChat";
+import CensusVoiceInterview from "@/components/CensusVoiceInterview";
 import CensusReport from "@/components/CensusReport";
 import { WMS, EMPLOYEE_BANDS, REVENUE_BANDS, CUSTOMER_TYPES, OWNERSHIP_TYPES, TIE_TYPES, shotsFor, type NetworkEdge } from "@/lib/census";
 
@@ -271,9 +271,6 @@ function LangToggle({ rec, set }: any) {
 function Manage({ rec, set, code }: any) {
   const mode = rec.mode || "";
   const lang = rec.lang || "en";
-  async function onCall(history: Msg[], onChunk?: (d: string) => void) {
-    return streamPost("/api/census/interview", { messages: history, lang }, onChunk || (() => {}));
-  }
   if (!mode) {
     return (
       <div className="space-y-3">
@@ -283,7 +280,7 @@ function Manage({ rec, set, code }: any) {
         </div>
         <button onClick={() => set({ mode: "voice" })} className="card w-full p-5 text-left transition hover:shadow-lift">
           <div className="font-bold text-ink">🎙 Talk it through <span className="text-xs font-normal text-slate-400">faster</span></div>
-          <div className="mt-1 text-sm text-slate-500">A short conversation. Type your replies, or use the mic{lang === "en" ? "" : " (mic works best in English)"}.</div>
+          <div className="mt-1 text-sm text-slate-500">A short spoken conversation. The interviewer talks; you answer out loud{lang === "en" ? "" : " (speech works best in English; Urdu on some phones)"}.</div>
         </button>
         <button onClick={() => set({ mode: "text", mgmtChat: [] })} className="card w-full p-5 text-left transition hover:shadow-lift">
           <div className="font-bold text-ink">⌨ Quick multiple choice</div>
@@ -295,9 +292,11 @@ function Manage({ rec, set, code }: any) {
   if (mode === "voice") {
     return (
       <div className="space-y-2">
-        <div className="flex justify-end"><LangToggle rec={rec} set={set} /></div>
-        <RoleplayChat chat={rec.mgmtChat || []} setChat={(c) => set({ mgmtChat: c })} onCall={onCall} counterpartName="Interviewer" aiOpens placeholder={lang === "en" ? "Type or use the mic..." : "Type your reply..."} />
-        <p className="text-xs text-slate-400">Answer a few questions, then tap Next. <button className="underline" onClick={() => set({ mode: "" })}>Back</button></p>
+        <div className="flex items-center justify-between gap-2">
+          <button className="text-xs text-slate-400 underline" onClick={() => set({ mode: "" })}>← Back</button>
+          <LangToggle rec={rec} set={set} />
+        </div>
+        <CensusVoiceInterview chat={rec.mgmtChat || []} setChat={(c) => set({ mgmtChat: c })} lang={lang} />
       </div>
     );
   }
