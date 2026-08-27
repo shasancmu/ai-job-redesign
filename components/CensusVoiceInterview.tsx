@@ -12,9 +12,17 @@ type Phase = "intro" | "speaking" | "listening" | "thinking" | "unsupported";
 // with silence endpointing, a watchdog so a stuck TTS can't hang it, iOS audio
 // unlocked on the start tap, and the mic released on exit. Transcript is kept in
 // `chat` for the flow to score and submit.
-const STT_LANG: Record<string, string> = { en: "en-US", ur: "ur-PK", lud: "en-US" };
+// Lisan-e-Dawat is a dialect of Gujarati, so it uses Gujarati speech (gu-IN).
+const STT_LANG: Record<string, string> = { en: "en-US", ur: "ur-PK", lud: "gu-IN" };
 const SILENCE_MS = 2300;
 const MAX_TURN_MS = 30000;
+
+// Pick a TTS voice that matches the target locale, else fall back.
+function voiceForLang(voices: SpeechSynthesisVoice[], target: string): SpeechSynthesisVoice | null {
+  const pref = target.toLowerCase();
+  const base = pref.split("-")[0];
+  return voices.find((v) => v.lang.toLowerCase() === pref) || voices.find((v) => v.lang.toLowerCase().startsWith(base)) || null;
+}
 
 export default function CensusVoiceInterview({ chat, setChat, lang = "en" }: { chat: Msg[]; setChat: (m: Msg[]) => void; lang?: string }) {
   const [phase, setPhase] = useState<Phase>("intro");
@@ -24,6 +32,7 @@ export default function CensusVoiceInterview({ chat, setChat, lang = "en" }: { c
   const [err, setErr] = useState<string | null>(null);
 
   const mref = useRef<Msg[]>(chat); mref.current = chat;
+  const targetRef = useRef("en-US"); targetRef.current = STT_LANG[lang] || "en-US";
   const mutedRef = useRef(false);
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const recRef = useRef<any>(null);
@@ -49,7 +58,10 @@ export default function CensusVoiceInterview({ chat, setChat, lang = "en" }: { c
     try {
       synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.rate = 0.98; u.voice = voiceRef.current || pickBestVoice(synth.getVoices());
+      const target = targetRef.current;
+      u.rate = 0.98; u.lang = target;
+      // For non-English, prefer a voice in that language; for English, the best voice.
+      u.voice = (target.startsWith("en") ? (voiceRef.current || pickBestVoice(synth.getVoices())) : voiceForLang(synth.getVoices(), target)) || voiceRef.current || pickBestVoice(synth.getVoices());
       const wd = setTimeout(() => { try { synth.cancel(); } catch {} finish(); }, Math.min(3500 + text.length * 65, 24000));
       u.onend = () => { clearTimeout(wd); finish(); };
       u.onerror = () => { clearTimeout(wd); finish(); };

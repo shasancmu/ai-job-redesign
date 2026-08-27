@@ -7,7 +7,7 @@ import { wmsScore } from "@/lib/census";
 
 const REPORT_LANGS: Record<string, string> = {
   ur: "Urdu, written in Urdu (Nastaliq) script",
-  lud: "Lisan al-Dawat (Lisan-e-Dawat), the Dawoodi Bohra community language (Gujarati in Arabic/Urdu script with Arabic and Persian loanwords)",
+  lud: "Gujarati (this is Lisan al-Dawat / Lisan-e-Dawat, the Dawoodi Bohra dialect of Gujarati). Use natural, conversational Gujarati",
 };
 
 export const runtime = "nodejs";

@@ -280,7 +280,7 @@ function Manage({ rec, set, code }: any) {
         </div>
         <button onClick={() => set({ mode: "voice" })} className="card w-full p-5 text-left transition hover:shadow-lift">
           <div className="font-bold text-ink">🎙 Talk it through <span className="text-xs font-normal text-slate-400">faster</span></div>
-          <div className="mt-1 text-sm text-slate-500">A short spoken conversation. The interviewer talks; you answer out loud{lang === "en" ? "" : " (speech works best in English; Urdu on some phones)"}.</div>
+          <div className="mt-1 text-sm text-slate-500">A short spoken conversation. The interviewer talks; you answer out loud{lang === "en" ? "" : " (speech is supported in English, Urdu, and Gujarati where the browser allows)"}.</div>
         </button>
         <button onClick={() => set({ mode: "text", mgmtChat: [] })} className="card w-full p-5 text-left transition hover:shadow-lift">
           <div className="font-bold text-ink">⌨ Quick multiple choice</div>

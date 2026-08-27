@@ -11,7 +11,7 @@ const MGMT_SYSTEM = `You are a warm, efficient interviewer learning how a small-
 // The three interview languages the respondent can toggle between.
 const LANGS: Record<string, string> = {
   ur: "Urdu, written in Urdu (Nastaliq) script",
-  lud: "Lisan al-Dawat (Lisan-e-Dawat), the Dawoodi Bohra community language, which is Gujarati vocabulary and grammar written in the Arabic (Urdu-style) script with many Arabic and Persian loanwords",
+  lud: "Gujarati (this is Lisan al-Dawat / Lisan-e-Dawat, the Dawoodi Bohra dialect of Gujarati). Use natural, conversational Gujarati",
 };
 
 // PUBLIC: one turn of the management interview (voice or text), in the chosen language.
