@@ -33,6 +33,8 @@ export default function CensusVoiceInterview({ chat, setChat, lang = "en" }: { c
   const [interim, setInterim] = useState("");
   const [muted, setMuted] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [isIOS, setIsIOS] = useState(false);
+  useEffect(() => { try { setIsIOS(/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)); } catch {} }, []);
 
   const mref = useRef<Msg[]>(chat); mref.current = chat;
   const targetRef = useRef("en-US"); targetRef.current = TTS_LANG[lang] || "en-US"; // TTS locale
@@ -62,9 +64,14 @@ export default function CensusVoiceInterview({ chat, setChat, lang = "en" }: { c
       synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
       const target = targetRef.current;
-      u.rate = 0.98; u.lang = target;
-      // For non-English, prefer a voice in that language; for English, the best voice.
-      u.voice = (target.startsWith("en") ? (voiceRef.current || pickBestVoice(synth.getVoices())) : voiceForLang(synth.getVoices(), target)) || voiceRef.current || pickBestVoice(synth.getVoices());
+      u.rate = 0.98;
+      if (target.startsWith("en")) {
+        // Match the proven resume-module path exactly: default voice, no u.lang.
+        u.voice = voiceRef.current || pickBestVoice(synth.getVoices());
+      } else {
+        u.lang = target;
+        u.voice = voiceForLang(synth.getVoices(), target) || voiceRef.current || pickBestVoice(synth.getVoices());
+      }
       const wd = setTimeout(() => { try { synth.cancel(); } catch {} finish(); }, Math.min(3500 + text.length * 65, 24000));
       u.onend = () => { clearTimeout(wd); finish(); };
       u.onerror = () => { clearTimeout(wd); finish(); };
@@ -123,7 +130,8 @@ export default function CensusVoiceInterview({ chat, setChat, lang = "en" }: { c
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR || !window.speechSynthesis) { setPhase("unsupported"); return; }
     deadRef.current = false;
-    window.speechSynthesis.getVoices();
+    const warm = () => { try { voiceRef.current = pickBestVoice(window.speechSynthesis.getVoices()); } catch {} };
+    warm(); try { window.speechSynthesis.onvoiceschanged = warm; } catch {}
     const rec = new SR();
     rec.lang = STT_LANG[lang] || "en-US";
     rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
@@ -142,7 +150,7 @@ export default function CensusVoiceInterview({ chat, setChat, lang = "en" }: { c
       deadRef.current = true; runningRef.current = false; turnDoneRef.current = true;
       clearTurnTimers(); clearInterval(keepAliveRef.current);
       try { rec.onresult = null; rec.onend = null; rec.onerror = null; rec.stop(); rec.abort(); } catch {}
-      try { window.speechSynthesis?.cancel(); } catch {}
+      try { window.speechSynthesis.onvoiceschanged = null; window.speechSynthesis.cancel(); } catch {}
     };
   }, [lang]);
 
@@ -174,7 +182,8 @@ export default function CensusVoiceInterview({ chat, setChat, lang = "en" }: { c
           <div className="cv-orb idle" />
           <p className="mt-4 text-sm text-slate-600">A short spoken conversation about how you run the business. The interviewer talks; you answer out loud. Just pause when you are done speaking.</p>
           <button onClick={start} className="btn-primary mt-4 px-6 py-2.5 text-sm">{chat.length ? "Resume" : "Start"} the interview →</button>
-          <p className="mt-2 text-xs text-slate-400">Your mic is used only while you are answering.</p>
+          <p className="mt-2 text-xs text-slate-400">Turn your volume up. Your mic is used only while you are answering.</p>
+          {isIOS && <p className="mx-auto mt-2 max-w-xs rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">On iPhone: flip the side Silent switch off, or you won't hear the interviewer.</p>}
         </>
       ) : (
         <>
