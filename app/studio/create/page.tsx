@@ -155,6 +155,19 @@ export default async function CreateGallery() {
           <div className="mt-2 text-right"><Link href="/studio/redesign" className="text-xs text-slate2 hover:text-ink">Your redesigns →</Link></div>
         </section>
       )}
+
+      {canRoleplay && (
+        <section className="mt-8">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Live group activity</div>
+          <p className="mt-1 text-sm text-slate-500">Author a whole-room activity — word cloud, poll, or open responses with an AI synthesis — then run it by code. Participants join on their phones, no account.</p>
+          <Link href="/studio/live/new" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
+            <div className="text-2xl">🌥️</div>
+            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Author a live activity</div><div className="text-xs text-slate-500">Pick a type, write the prompt, run it any time.</div></div>
+            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
+          </Link>
+          <div className="mt-2 text-right"><Link href="/studio/live" className="text-xs text-slate2 hover:text-ink">Your live activities →</Link></div>
+        </section>
+      )}
     </main>
   );
 }

@@ -828,6 +828,53 @@ drop policy if exists "redesign_specs owner" on public.redesign_specs;
 create policy "redesign_specs owner" on public.redesign_specs
   for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
 
+-- Authored live activities (word cloud / poll / open responses). The spec is
+-- jsonb; a run creates a live_sessions row; anonymous participants write
+-- live_entries via a no-auth service-role API (mirrors the cloud triad).
+create table if not exists public.live_specs (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null,
+  version int not null default 1,
+  owner_id uuid references auth.users (id) on delete set null,
+  status text not null default 'draft',
+  spec jsonb not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (slug, version)
+);
+alter table public.live_specs enable row level security;
+drop policy if exists "live_specs owner" on public.live_specs;
+create policy "live_specs owner" on public.live_specs
+  for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+
+create table if not exists public.live_sessions (
+  id uuid primary key default gen_random_uuid(),
+  code text unique not null,
+  host_id uuid references auth.users (id) on delete cascade,
+  slug text not null,
+  status text not null default 'open',
+  created_at timestamptz not null default now()
+);
+alter table public.live_sessions enable row level security;
+drop policy if exists "live_sessions host" on public.live_sessions;
+create policy "live_sessions host" on public.live_sessions
+  for all using (auth.uid() = host_id) with check (auth.uid() = host_id);
+
+create table if not exists public.live_entries (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.live_sessions (id) on delete cascade,
+  text text default '',
+  choice text default '',
+  norm text default '',
+  created_at timestamptz not null default now()
+);
+create index if not exists live_entries_session_idx on public.live_entries (session_id);
+alter table public.live_entries enable row level security;
+-- The host reads their own session's entries; writes are service-role only.
+drop policy if exists "live_entries host reads" on public.live_entries;
+create policy "live_entries host reads" on public.live_entries
+  for select using (exists (select 1 from public.live_sessions s where s.id = live_entries.session_id and s.host_id = auth.uid()));
+
 -- Version history: a snapshot of a module's spec on each save, for restore + diff.
 create table if not exists public.module_spec_versions (
   id uuid primary key default gen_random_uuid(),
