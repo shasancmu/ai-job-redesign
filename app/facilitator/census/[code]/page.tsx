@@ -6,8 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import HeaderNav from "@/components/HeaderNav";
 import Logo from "@/components/Logo";
 import { facilitatorAccess } from "@/lib/orgs";
-import { project } from "@/lib/census";
-import { WORLD_PATH } from "@/lib/worldPath";
+import CensusMap from "@/components/CensusMap";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -89,12 +88,8 @@ export default async function CensusDashboard({ params }: { params: { code: stri
 
       <div className="mt-6 card p-5">
         <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Where they are ({withGeo.length} located)</div>
-        <div className="mt-3 overflow-hidden rounded-xl border border-line">
-          <svg viewBox="0 0 360 180" className="h-auto w-full" preserveAspectRatio="xMidYMid meet">
-            <rect x={0} y={0} width={360} height={180} fill="#eaf1f4" />
-            <path d={WORLD_PATH} fill="#d6ddd2" stroke="#c2cbbd" strokeWidth={0.15} />
-            {withGeo.map((b: any, i: number) => { const p = project(b.lat, b.lng); return <circle key={i} cx={p.x * 360} cy={p.y * 180} r={2.4} fill="#3F7A52" stroke="#fff" strokeWidth={0.6} />; })}
-          </svg>
+        <div className="mt-3">
+          <CensusMap points={withGeo.map((b: any) => ({ lat: b.lat, lng: b.lng, name: b.name, label: b.isic_label || b.locality || "" }))} />
         </div>
       </div>
 
