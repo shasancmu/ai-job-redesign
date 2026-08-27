@@ -718,6 +718,26 @@ drop policy if exists "module_specs owner" on public.module_specs;
 create policy "module_specs owner" on public.module_specs
   for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
 
+-- Role-play run outcomes: one row per graded run, keyed to the module slug (and
+-- optionally a cohort). Written server-side with the service role; the module
+-- owner may read their own module's rows to power the editor's Insights.
+create table if not exists public.roleplay_results (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null,
+  user_id uuid references auth.users (id) on delete set null,
+  scenario text,
+  cohort text,
+  verdict jsonb,
+  report jsonb,
+  score int,
+  created_at timestamptz not null default now()
+);
+create index if not exists roleplay_results_slug_idx on public.roleplay_results (slug);
+alter table public.roleplay_results enable row level security;
+drop policy if exists "roleplay_results owner reads" on public.roleplay_results;
+create policy "roleplay_results owner reads" on public.roleplay_results
+  for select using (exists (select 1 from public.module_specs ms where ms.slug = roleplay_results.slug and ms.owner_id = auth.uid()));
+
 create index if not exists photo_entries_session_idx on public.photo_entries (session_id);
 
 alter table public.photo_sessions enable row level security;

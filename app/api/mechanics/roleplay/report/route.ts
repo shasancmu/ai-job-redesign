@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, roleplayExaminerAI } from "@/lib/ai";
 import { selectScenario, examinerPrompt } from "@/lib/mechanics/roleplay";
@@ -31,6 +32,19 @@ export async function POST(request: Request) {
   try {
     const report = await roleplayExaminerAI(system, userMsg);
     if (!report) return Response.json({ error: "Couldn't grade. Try again." }, { status: 502 });
+    // Persist the run so the module's author can observe how learners do. Best
+    // effort: a missing table or write error must never block the learner.
+    try {
+      await createAdminClient().from("roleplay_results").insert({
+        slug,
+        user_id: user.id,
+        scenario: scn.id,
+        cohort: body.cohort ? String(body.cohort).slice(0, 64) : null,
+        verdict: body.verdict || {},
+        report,
+        score: typeof report.score === "number" ? Math.round(report.score) : null,
+      });
+    } catch { /* table not migrated yet, or transient — ignore */ }
     return Response.json({ report });
   } catch (e: any) {
     return Response.json({ error: e?.message || "AI request failed." }, { status: 500 });

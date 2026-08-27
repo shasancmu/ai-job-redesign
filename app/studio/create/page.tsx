@@ -1,0 +1,79 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import HeaderNav from "@/components/HeaderNav";
+import Logo from "@/components/Logo";
+import { roleFor } from "@/lib/orgs";
+import { isAdmin } from "@/lib/admin";
+import { ROLEPLAY_TEMPLATES } from "@/lib/mechanics/templates";
+
+export const dynamic = "force-dynamic";
+
+// The one authoring home: pick a template, from either mechanic, and land in the
+// right editor. The two engines stay specialized underneath; this is the shared
+// front door for "create".
+const INTERVIEW_TEMPLATES = [
+  { type: "report", emoji: "📝", name: "Interview → report", domain: "Reflection · discovery", whenToUse: "An AI interviewer draws someone out on a topic, then writes a narrative report back. The workhorse." },
+  { type: "scorecard", emoji: "📊", name: "Interview → scorecard", domain: "Assessment", whenToUse: "The interview ends in ratings across dimensions you define. Good for skills and readiness checks." },
+  { type: "verdict", emoji: "⚖️", name: "Interview → verdict", domain: "Decision", whenToUse: "The interview drives to a labeled decision or recommendation the learner walks away with." },
+];
+
+export default async function CreateGallery() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const role = await roleFor(user);
+  const canInterview = role.superadmin || role.directorOrgIds.length > 0;
+  const canRoleplay = isAdmin(user.email);
+  if (!canInterview && !canRoleplay) redirect("/dashboard");
+
+  return (
+    <main className="mx-auto max-w-4xl px-6 py-8">
+      <header className="mb-6 flex items-center justify-between">
+        <Logo href="/dashboard" />
+        <div className="flex items-center gap-2"><Link href="/studio" className="text-sm text-slate2 hover:text-ink">← Studio</Link><HeaderNav /></div>
+      </header>
+      <h1 className="text-3xl text-ink">Create a module</h1>
+      <p className="mt-1 max-w-2xl text-slate2">Start from a template, not a blank page. Pick the shape that fits what you teach; the editor and AI copilot take it from there.</p>
+
+      {canInterview && (
+        <section className="mt-8">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Guided interview → output</div>
+          <p className="mt-1 text-sm text-slate-500">An AI interviewer talks the learner through a topic, then produces a report, scorecard, or verdict.</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            {INTERVIEW_TEMPLATES.map((t) => (
+              <Link key={t.type} href={`/build/new?type=${t.type}`} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+                <div className="text-2xl">{t.emoji}</div>
+                <div className="mt-2 text-sm font-bold text-ink group-hover:text-ai">{t.name}</div>
+                <div className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-400">{t.domain}</div>
+                <p className="mt-2 text-xs leading-relaxed text-slate-500">{t.whenToUse}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {canRoleplay && (
+        <section className="mt-8">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Role-play with hidden truth</div>
+          <p className="mt-1 text-sm text-slate-500">The learner interrogates an AI character who won't lie but will spin, then makes a call under uncertainty. Like The Earnings Call.</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            {ROLEPLAY_TEMPLATES.map((t) => (
+              <div key={t.id} className="flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+                <div className="text-2xl">{t.emoji}</div>
+                <div className="mt-2 text-sm font-bold text-ink">{t.name}</div>
+                <div className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-400">{t.domain}</div>
+                <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-500">{t.whenToUse}</p>
+                <div className="mt-3 flex items-center gap-2">
+                  <Link href={`/studio/roleplay/new?from=${t.id}`} className="btn-primary text-sm">{t.id === "blank" ? "Start" : "Use template"}</Link>
+                  {t.runnable && <Link href={`/m/${t.id}`} target="_blank" className="btn-ghost text-sm">Preview →</Link>}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2 text-right"><Link href="/studio/roleplay" className="text-xs text-slate2 hover:text-ink">Your role-play modules →</Link></div>
+        </section>
+      )}
+    </main>
+  );
+}

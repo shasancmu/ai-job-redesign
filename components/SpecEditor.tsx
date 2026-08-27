@@ -17,6 +17,7 @@ const TABS = [
   { id: "probes", label: "Probes" },
   { id: "scenarios", label: "Scenarios" },
   { id: "assessment", label: "Assessment" },
+  { id: "insights", label: "📈 Insights" },
   { id: "ai", label: "✨ Copilot" },
   { id: "advanced", label: "Advanced" },
 ] as const;
@@ -31,7 +32,7 @@ const STANCE_HINT: Record<string, string> = {
   noncommittal: "Won't confirm or deny",
 };
 
-export default function SpecEditor({ me, initial }: { me: string; initial: any }) {
+export default function SpecEditor({ me, initial, insights }: { me: string; initial: any; insights?: any }) {
   const supabase = createClient();
   const [spec, setSpec] = useState<any>(initial);
   const [tab, setTab] = useState<TabId>("overview");
@@ -299,6 +300,57 @@ export default function SpecEditor({ me, initial }: { me: string; initial: any }
                 <p className="mb-1 text-xs text-slate-400">Grade the quality of their questions and the calibration of their verdict, not whether they guessed the label.</p>
                 <textarea className="field text-sm" rows={6} value={spec.rubric?.instructions || ""} onChange={(e) => setRubric({ instructions: e.target.value })} />
               </div>
+            </>
+          )}
+
+          {/* ---------------- INSIGHTS ---------------- */}
+          {tab === "insights" && (
+            <>
+              <p className="text-sm text-slate-500">How learners actually do on this module. Every graded run feeds this, so you can see where the experience is landing and fix it.</p>
+              {!insights || insights.runs === 0 ? (
+                <div className="rounded-xl border border-dashed border-line p-6 text-center text-sm text-slate-400">
+                  No graded runs yet.{insights === null || insights === undefined ? " Save the module first, then share it." : ""} Once learners run it, you'll see their scores, calibration, and which probes they miss.
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="rounded-xl border border-line bg-white p-3 text-center"><div className="text-2xl font-bold text-ink">{insights.runs}</div><div className="text-[11px] text-slate-500">runs</div></div>
+                    <div className="rounded-xl border border-line bg-white p-3 text-center"><div className="text-2xl font-bold text-ink">{insights.avgScore ?? "—"}</div><div className="text-[11px] text-slate-500">avg score</div></div>
+                    <div className="rounded-xl border border-line bg-white p-3 text-center"><div className="text-2xl font-bold text-ink">{insights.correctPct != null ? `${insights.correctPct}%` : "—"}</div><div className="text-[11px] text-slate-500">right call</div></div>
+                  </div>
+
+                  {insights.weakest && insights.weakest.askRate < 50 && (
+                    <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
+                      <span className="font-semibold">Only {insights.weakest.askRate}% of learners probed “{insights.weakest.label}”</span>, even though it's decisive in at least one scenario. If the tell is too buried, learners can't find it. Sharpen the brief, the character's opener, or that scenario's answers.
+                      <button onClick={() => setTab("scenarios")} className="mt-2 block text-amber-900 underline">Improve the scenarios →</button>
+                    </div>
+                  )}
+
+                  {insights.calibration?.length > 0 && (
+                    <div>
+                      <div className="lbl">Calibration</div>
+                      <div className="mt-1 flex flex-wrap gap-2">
+                        {insights.calibration.map((c: any) => (
+                          <span key={c.label} className="rounded-full bg-mist px-2 py-1 text-xs text-slate-600">{c.label}: <span className="font-semibold">{c.count}</span></span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="lbl">Probe coverage — how often learners ask each cut</div>
+                    <div className="mt-2 space-y-1.5">
+                      {insights.probes.map((p: any) => (
+                        <div key={p.key} className="flex items-center gap-2">
+                          <div className="w-40 shrink-0 truncate text-xs text-slate-600" title={p.label}>{p.label}{p.highValue && <span className="ml-1 text-[10px] font-semibold text-clay">key</span>}</div>
+                          <div className="h-2 flex-1 overflow-hidden rounded-full bg-mist"><div className={`h-full rounded-full ${p.highValue && p.askRate < 50 ? "bg-clay" : "bg-sage"}`} style={{ width: `${p.askRate}%` }} /></div>
+                          <div className="w-9 shrink-0 text-right text-xs tabular-nums text-slate-500">{p.askRate}%</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </>
           )}
 

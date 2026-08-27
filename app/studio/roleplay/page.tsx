@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import HeaderNav from "@/components/HeaderNav";
 import Logo from "@/components/Logo";
 import { isAdmin } from "@/lib/admin";
-import { BUILTIN_SPECS } from "@/lib/mechanics/seed";
+import { ROLEPLAY_TEMPLATES } from "@/lib/mechanics/templates";
 
 export const dynamic = "force-dynamic";
 
@@ -21,21 +21,37 @@ export default async function RoleplayStudio() {
     .order("updated_at", { ascending: false })
     .limit(50);
 
-  const builtins = Object.keys(BUILTIN_SPECS);
-
   return (
-    <main className="mx-auto max-w-3xl px-6 py-8">
+    <main className="mx-auto max-w-4xl px-6 py-8">
       <header className="mb-6 flex items-center justify-between">
         <Logo href="/dashboard" />
         <div className="flex items-center gap-2"><Link href="/studio" className="text-sm text-slate2 hover:text-ink">← Studio</Link><HeaderNav /></div>
       </header>
       <h1 className="text-3xl text-ink">Role-play modules</h1>
-      <p className="mt-1 max-w-2xl text-slate2">Build interrogation and simulation modules like The Earnings Call, with an AI copilot. Describe what you want, ground it in a document, iterate, and preview, without code.</p>
+      <p className="mt-1 max-w-2xl text-slate2">Interrogation and simulation modules like The Earnings Call: a learner questions an AI character who won't lie but will spin, then makes a call under uncertainty. Start from a template, iterate with the Copilot, preview, no code.</p>
 
-      <Link href="/studio/roleplay/new" className="btn-primary mt-6 inline-block">+ New module</Link>
+      {/* Template gallery */}
+      <div className="mt-8">
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Start from a template</div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {ROLEPLAY_TEMPLATES.map((t) => (
+            <div key={t.id} className="flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+              <div className="text-2xl">{t.emoji}</div>
+              <div className="mt-2 text-sm font-bold text-ink">{t.name}</div>
+              <div className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-400">{t.domain}</div>
+              <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-500">{t.whenToUse}</p>
+              <div className="mt-3 flex items-center gap-2">
+                <Link href={`/studio/roleplay/new?from=${t.id}`} className="btn-primary text-sm">{t.id === "blank" ? "Start" : "Use template"}</Link>
+                {t.runnable && <Link href={`/m/${t.id}`} target="_blank" className="btn-ghost text-sm">Preview →</Link>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
+      {/* Your modules */}
       {(mine || []).length > 0 && (
-        <div className="mt-6">
+        <div className="mt-8">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Your modules</div>
           <div className="mt-2 space-y-2">
             {(mine || []).map((m: any) => (
@@ -47,18 +63,6 @@ export default async function RoleplayStudio() {
           </div>
         </div>
       )}
-
-      <div className="mt-6">
-        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Reference examples (clone to start)</div>
-        <div className="mt-2 space-y-2">
-          {builtins.map((slug) => (
-            <div key={slug} className="flex items-center justify-between gap-2 rounded-xl border border-dashed border-line p-3">
-              <span className="font-mono text-sm text-slate-600">{slug}</span>
-              <div className="flex items-center gap-2"><Link href={`/studio/roleplay/${slug}`} className="btn-ghost text-sm">Open</Link><Link href={`/m/${slug}`} className="btn-ghost text-sm">Preview →</Link></div>
-            </div>
-          ))}
-        </div>
-      </div>
     </main>
   );
 }
