@@ -10,10 +10,11 @@ export async function POST(request: Request) {
   const country = String(body.country || "").trim();
   if (!address) return Response.json({ error: "Enter an address." }, { status: 400 });
 
-  const usLike = !country || /^(us|usa|united states)$/i.test(country);
+  const isUS = /^(us|usa|u\.s\.|united states)$/i.test(country);
 
-  // US Census Geocoder first for US-like addresses.
-  if (usLike) {
+  // US Census Geocoder only when the address is explicitly US (most collection
+  // is international, so default to the global geocoder below).
+  if (isUS) {
     try {
       const url = `https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=${encodeURIComponent(address)}&benchmark=Public_AR_Current&format=json`;
       const r = await fetch(url, { signal: AbortSignal.timeout(8000) });

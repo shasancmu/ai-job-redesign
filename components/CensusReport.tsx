@@ -37,7 +37,7 @@ export default function CensusReport({ report }: { report: CensusReportData }) {
         {report.model?.note && <p className="mt-1 text-sm text-slate-600">{report.model.note}</p>}
       </section>
 
-      <p className="text-center text-xs text-slate-400">Thanks for taking part. Your responses help build a research picture of how businesses really run.</p>
+      <p className="text-center text-xs text-slate-400">Thanks. Your business is now in the directory.</p>
     </div>
   );
 }

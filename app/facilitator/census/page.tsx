@@ -27,9 +27,9 @@ export default async function FacilitatorCensus() {
         <Logo href="/dashboard" />
         <div className="flex items-center gap-2"><Link href="/facilitator" className="text-sm text-slate2 hover:text-ink">← Cohorts</Link><HeaderNav /></div>
       </header>
-      <h1 className="text-3xl text-ink">Business census</h1>
+      <h1 className="text-3xl text-ink">Business directory</h1>
       <p className="mt-1 text-slate2">
-        A 10-minute, multimodal business profile that builds into a research panel. Create a collection, share the link, and each completed profile adds a geocoded, industry-classified, management-scored firm record with an instant report back to the respondent.
+        A 10-minute, multimodal business profile that builds a catalog of the businesses in your program or region. Create a collection, share the link, and each completed profile adds a geocoded, industry-classified, management-scored firm record, with an instant read back to the respondent. Works worldwide.
       </p>
       <div className="mt-6"><CensusManager me={user.id} initial={(campaigns as any) || []} /></div>
     </main>

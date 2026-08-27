@@ -91,15 +91,15 @@ export default function BusinessProfileFlow({ code }: { code: string }) {
 function Consent({ rec, set }: any) {
   return (
     <div className="space-y-4">
-      <p className="text-sm leading-relaxed text-slate-600">This short profile builds a research picture of your business: what it does, its size and location, how it is managed, and who it works with. You will get an instant read on your business at the end.</p>
+      <p className="text-sm leading-relaxed text-slate-600">This short profile adds your business to the directory: what it does, its size and location, how it is run, and who it works with. You will get an instant read on your business at the end.</p>
       <ul className="space-y-1.5 text-sm text-slate-600">
         <li>• It takes about 10 minutes.</li>
-        <li>• Your answers are used for research and shown only in aggregate.</li>
+        <li>• Your details are added to the business directory.</li>
         <li>• Photos are read into text and not stored as images.</li>
       </ul>
       <label className="flex items-start gap-2 rounded-xl border border-line p-3 text-sm text-slate-700">
         <input type="checkbox" checked={!!rec.consent} onChange={(e) => set({ consent: e.target.checked })} className="mt-0.5 h-4 w-4 accent-[color:var(--ink)]" />
-        <span>I agree to take part and to my responses being used for research.</span>
+        <span>I agree to add my business to the directory.</span>
       </label>
     </div>
   );
@@ -128,9 +128,13 @@ function Identify({ rec, set }: any) {
     <div className="space-y-4">
       <div><label className="lbl">Business name</label><input className="field" value={rec.name || ""} onChange={(e) => set({ name: e.target.value })} placeholder="Acme Bakery" /></div>
       <div>
+        <label className="lbl">Country</label>
+        <input className="field" value={rec.country || ""} onChange={(e) => set({ country: e.target.value, lat: null })} placeholder="e.g. Kenya, India, Brazil" />
+      </div>
+      <div>
         <label className="lbl">Address</label>
         <div className="flex items-center gap-2">
-          <input className="field" value={rec.address || ""} onChange={(e) => set({ address: e.target.value, lat: null })} placeholder="123 Main St, City, Country" />
+          <input className="field" value={rec.address || ""} onChange={(e) => set({ address: e.target.value, lat: null })} placeholder="Street, city / town" />
           <button onClick={locate} disabled={locating || !rec.address} className="btn-ghost shrink-0 text-sm">{locating ? "..." : "Locate"}</button>
         </div>
         {rec.lat != null && <p className="mt-1 text-xs text-sage">✓ Located{rec.locality ? `: ${rec.locality}` : ""}{rec.admin1 ? `, ${rec.admin1}` : ""}{rec.country ? `, ${rec.country}` : ""}</p>}
@@ -141,8 +145,8 @@ function Identify({ rec, set }: any) {
         {classifying && <p className="mt-1 text-xs text-slate-400">Classifying...</p>}
         {rec.naics && (
           <div className="mt-2 rounded-xl bg-mist p-3 text-sm">
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Industry (edit if wrong)</div>
-            <div className="mt-1 text-ink"><b>{rec.naics_label}</b> <span className="text-xs text-slate-400">NAICS {rec.naics}{rec.isic ? ` · ISIC ${rec.isic}` : ""}{typeof rec.classify_conf === "number" ? ` · ${Math.round(rec.classify_conf * 100)}% conf` : ""}</span></div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Industry</div>
+            <div className="mt-1 text-ink"><b>{rec.isic_label || rec.naics_label}</b> <span className="text-xs text-slate-400">{rec.isic ? `ISIC ${rec.isic}` : ""}{rec.naics ? ` · NAICS ${rec.naics}` : ""}{typeof rec.classify_conf === "number" ? ` · ${Math.round(rec.classify_conf * 100)}% conf` : ""}</span></div>
           </div>
         )}
       </div>
