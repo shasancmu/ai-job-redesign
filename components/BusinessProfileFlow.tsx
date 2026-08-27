@@ -23,12 +23,13 @@ async function fileToDataUrl(file: File, max = 1100, q = 0.72): Promise<string> 
 
 const STEPS = ["Consent", "Your business", "The basics", "Show us", "How you run it", "Who you work with", "Your profile"];
 
-export default function BusinessProfileFlow({ code }: { code: string }) {
+export default function BusinessProfileFlow({ code, firmCode }: { code: string; firmCode?: string }) {
   const [step, setStep] = useState(0);
   const [rec, setRec] = useState<any>({ network: [], photos: [], mgmtChat: [] as Msg[], wmsAnswers: {} });
   const set = (patch: any) => setRec((r: any) => ({ ...r, ...patch }));
 
   const [report, setReport] = useState<any>(null);
+  const [result, setResult] = useState<{ firmCode?: string; wave?: number }>({});
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState("");
 
@@ -37,18 +38,26 @@ export default function BusinessProfileFlow({ code }: { code: string }) {
     const transcript = (rec.mgmtChat || []).map((m: Msg) => `${m.role === "user" ? "Owner" : "Interviewer"}: ${m.content}`).join("\n");
     const record = { ...rec, transcript, mode: rec.mode || (transcript ? "voice" : "text") };
     delete record.mgmtChat;
-    const { ok, data } = await jpost("/api/census/submit", { campaign: code, record });
+    const { ok, data } = await jpost("/api/census/submit", { campaign: code, firmCode: firmCode || "", record });
     setSubmitting(false);
     if (!ok || !data.report) { setErr(data.error || "Couldn't build your profile. Try again."); return; }
-    setReport(data.report);
+    setReport(data.report); setResult({ firmCode: data.firmCode, wave: data.wave });
   }
 
   if (report) {
+    const updateUrl = result.firmCode ? `${typeof window !== "undefined" ? window.location.origin : ""}/census/${code}?firm=${result.firmCode}` : "";
     return (
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <div className="mb-6 flex items-center justify-between"><Logo /><span className="text-sm text-sage">Saved. Thank you.</span></div>
+        <div className="mb-6 flex items-center justify-between"><Logo /><span className="text-sm text-sage">Saved{result.wave && result.wave > 1 ? ` · update ${result.wave}` : ""}. Thank you.</span></div>
         <div className="mb-4"><div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Your business profile</div><h1 className="mt-1 text-3xl text-ink">{rec.name || "Your business"}</h1></div>
         <CensusReport report={report} />
+        {updateUrl && (
+          <div className="mt-5 rounded-xl border border-line bg-mist p-4 text-sm">
+            <div className="font-semibold text-ink">Come back to update your profile</div>
+            <p className="mt-1 text-slate-600">Use this link next time so your progress is tracked, not overwritten.</p>
+            <div className="mt-2 break-all font-mono text-xs text-slate-500">{updateUrl}</div>
+          </div>
+        )}
       </main>
     );
   }

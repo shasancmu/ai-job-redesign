@@ -1,0 +1,91 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import HeaderNav from "@/components/HeaderNav";
+import Logo from "@/components/Logo";
+import { isAdmin } from "@/lib/admin";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const AREAS = ["operations", "monitoring", "targets", "people"];
+
+export default async function FirmHistory({ params }: { params: { code: string; firmId: string } }) {
+  const code = String(params.code || "").toUpperCase();
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  if (!isAdmin(user.email)) redirect("/dashboard");
+
+  const admin = createAdminClient();
+  const { data: rows } = await admin.from("businesses").select("*").eq("firm_id", params.firmId).order("wave");
+  const waves = rows || [];
+  if (!waves.length) redirect(`/facilitator/census/${code}`);
+  const latest: any = waves[waves.length - 1];
+  const maxWms = 5;
+
+  return (
+    <main className="mx-auto max-w-3xl px-6 py-8">
+      <header className="mb-6 flex items-center justify-between">
+        <Logo href="/dashboard" />
+        <div className="flex items-center gap-2"><Link href={`/facilitator/census/${code}`} className="text-sm text-slate2 hover:text-ink">← Directory</Link><HeaderNav /></div>
+      </header>
+
+      <h1 className="text-3xl text-ink">{latest.name || "Business"}</h1>
+      <p className="mt-1 text-slate2">{latest.isic_label || latest.naics_label || ""}{latest.locality ? ` · ${latest.locality}` : ""}{latest.country ? `, ${latest.country}` : ""} · {waves.length} wave{waves.length === 1 ? "" : "s"}</p>
+
+      {/* Management over time */}
+      <div className="mt-6 card p-5">
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Management score over time</div>
+        <div className="mt-4 flex items-end gap-4">
+          {waves.map((w: any, i: number) => {
+            const v = Number(w.wms_overall) || 0;
+            return (
+              <div key={i} className="flex flex-1 flex-col items-center">
+                <div className="text-sm font-bold text-ink tabular-nums">{v || "—"}</div>
+                <div className="mt-1 flex h-32 w-8 items-end rounded bg-slate-100"><div className="w-full rounded bg-sage" style={{ height: `${(v / maxWms) * 100}%` }} /></div>
+                <div className="mt-1 text-[10px] text-slate-400">Wave {w.wave || i + 1}</div>
+                <div className="text-[10px] text-slate-400">{String(w.created_at).slice(0, 10)}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Wave detail table */}
+      <div className="mt-6 card overflow-x-auto p-5">
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Wave by wave</div>
+        <table className="mt-3 w-full text-sm">
+          <thead>
+            <tr className="text-left text-xs text-slate-400">
+              <th className="py-1 pr-3">Wave</th><th className="py-1 pr-3">Date</th><th className="py-1 pr-3">Size</th><th className="py-1 pr-3">Mgmt</th>
+              {AREAS.map((a) => <th key={a} className="py-1 pr-3 capitalize">{a}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {waves.map((w: any, i: number) => {
+              const byArea = (w.wms?.byArea) || {};
+              return (
+                <tr key={i} className="border-t border-line/60">
+                  <td className="py-1.5 pr-3 font-semibold text-ink">{w.wave || i + 1}</td>
+                  <td className="py-1.5 pr-3 text-slate-500">{String(w.created_at).slice(0, 10)}</td>
+                  <td className="py-1.5 pr-3 text-slate-500">{w.employees_band || "—"}</td>
+                  <td className="py-1.5 pr-3 font-semibold tabular-nums text-ink">{w.wms_overall || "—"}</td>
+                  {AREAS.map((a) => <td key={a} className="py-1.5 pr-3 tabular-nums text-slate-600">{byArea[a] ?? "—"}</td>)}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {latest.report?.headline && (
+        <div className="mt-6 card p-5">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Latest read</div>
+          <p className="mt-1 text-sm text-slate-700">{latest.report.headline}</p>
+        </div>
+      )}
+    </main>
+  );
+}

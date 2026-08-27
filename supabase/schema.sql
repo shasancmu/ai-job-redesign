@@ -681,7 +681,16 @@ create table if not exists public.businesses (
   report jsonb,
   created_at timestamptz not null default now()
 );
+-- Panel identity: waves of the same firm share a firm_id (append-only, never
+-- replaced). firm_key is the auto-match fingerprint; firm_code is the stable
+-- code for a reliable re-survey link.
+alter table public.businesses add column if not exists firm_id uuid;
+alter table public.businesses add column if not exists firm_key text;
+alter table public.businesses add column if not exists firm_code text;
 create index if not exists businesses_campaign_idx on public.businesses (campaign_code);
+create index if not exists businesses_firm_idx on public.businesses (firm_id);
+create index if not exists businesses_firmcode_idx on public.businesses (firm_code);
+create index if not exists businesses_firmkey_idx on public.businesses (campaign_code, firm_key);
 alter table public.business_campaigns enable row level security;
 alter table public.businesses enable row level security;
 drop policy if exists "business campaigns owner all" on public.business_campaigns;

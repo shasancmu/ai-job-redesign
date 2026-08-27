@@ -47,9 +47,38 @@ export async function POST(request: Request) {
   let ownerId: string | null = null;
   try { const sb = createClient(); const { data: { user } } = await sb.auth.getUser(); ownerId = user?.id || null; } catch {}
 
+  // Panel identity. A new profile of the SAME firm is a new wave linked by
+  // firm_id, never a replacement. Match by the re-survey code if the respondent
+  // came back via their update link, else by a name+place fingerprint.
+  const campaign = String(b.campaign || "").toUpperCase() || null;
+  const norm = (s: any) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const firmKey = `${norm(r.name)}|${norm(r.locality || r.admin1 || r.country)}`;
+  const firmCodeIn = String(b.firmCode || "").toUpperCase();
+  const admin0 = createAdminClient();
+  let firmId: string | null = null;
+  let firmCode: string | null = null;
+  let wave = 1;
+  try {
+    let prior: any = null;
+    if (firmCodeIn) {
+      const { data } = await admin0.from("businesses").select("firm_id, firm_code, wave").eq("firm_code", firmCodeIn).order("wave", { ascending: false }).limit(1).maybeSingle();
+      prior = data;
+    }
+    if (!prior && campaign && norm(r.name)) {
+      const { data } = await admin0.from("businesses").select("firm_id, firm_code, wave").eq("campaign_code", campaign).eq("firm_key", firmKey).order("wave", { ascending: false }).limit(1).maybeSingle();
+      prior = data;
+    }
+    if (prior?.firm_id) { firmId = prior.firm_id; firmCode = prior.firm_code; wave = (Number(prior.wave) || 1) + 1; }
+  } catch { /* new firm */ }
+  if (!firmId) { firmId = (globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.round(Math.random() * 1e9)}`); firmCode = ("B" + Math.random().toString(36).slice(2, 7)).toUpperCase(); wave = 1; }
+
   const row: any = {
-    campaign_code: String(b.campaign || "").toUpperCase() || null,
+    campaign_code: campaign,
     owner_id: ownerId,
+    firm_id: firmId,
+    firm_key: firmKey,
+    firm_code: firmCode,
+    wave,
     name: String(r.name || "").slice(0, 200),
     address: String(r.address || "").slice(0, 400),
     lat: typeof r.lat === "number" ? r.lat : null,
@@ -89,7 +118,7 @@ export async function POST(request: Request) {
     const admin = createAdminClient();
     const { data, error } = await admin.from("businesses").insert(row).select("id").single();
     if (error) return Response.json({ error: "Couldn't save. Try again." }, { status: 500 });
-    return Response.json({ ok: true, id: data.id, report, wms: score });
+    return Response.json({ ok: true, id: data.id, report, wms: score, firmCode, wave });
   } catch (e: any) {
     return Response.json({ error: e?.message || "Save failed." }, { status: 500 });
   }

@@ -5,9 +5,11 @@ import BusinessProfileFlow from "@/components/BusinessProfileFlow";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// PUBLIC, no sign-in: a respondent completes a business profile.
-export default async function CensusJoin({ params }: { params: { code: string } }) {
+// PUBLIC, no sign-in: a respondent completes a business profile. A ?firm=CODE
+// link attaches the response as a new wave of an existing business.
+export default async function CensusJoin({ params, searchParams }: { params: { code: string }; searchParams: { firm?: string } }) {
   const code = String(params.code || "").toUpperCase();
+  const firmCode = String(searchParams.firm || "").toUpperCase();
 
   let exists = false;
   try {
@@ -26,5 +28,5 @@ export default async function CensusJoin({ params }: { params: { code: string } 
     );
   }
 
-  return <BusinessProfileFlow code={code} />;
+  return <BusinessProfileFlow code={code} firmCode={firmCode || undefined} />;
 }

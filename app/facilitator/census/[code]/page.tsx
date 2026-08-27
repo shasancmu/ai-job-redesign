@@ -20,27 +20,41 @@ export default async function CensusDashboard({ params }: { params: { code: stri
 
   const admin = createAdminClient();
   const { data: campaign } = await admin.from("business_campaigns").select("label").eq("code", code).maybeSingle();
-  const { data: rows } = await admin.from("businesses").select("name, lat, lng, country, locality, naics, naics_label, employees_band, wms_overall, customer_type").eq("campaign_code", code).limit(5000);
-  const biz = rows || [];
+  const { data: rows } = await admin.from("businesses")
+    .select("id, firm_id, wave, created_at, name, lat, lng, country, locality, naics, naics_label, isic_label, employees_band, wms_overall, customer_type")
+    .eq("campaign_code", code).order("wave").limit(8000);
+  const all = rows || [];
 
+  // Group into firms (waves of the same business). Fallback to id for old rows.
+  const firms = new Map<string, any[]>();
+  for (const b of all as any[]) { const k = b.firm_id || b.id; if (!firms.has(k)) firms.set(k, []); firms.get(k)!.push(b); }
+  const firmList = [...firms.entries()].map(([fid, waves]) => {
+    const sorted = [...waves].sort((a, b) => (a.wave || 1) - (b.wave || 1));
+    const first = sorted[0], latest = sorted[sorted.length - 1];
+    const delta = (Number(latest.wms_overall) || 0) - (Number(first.wms_overall) || 0);
+    return { fid, waves: sorted, first, latest, delta, count: sorted.length };
+  }).sort((a, b) => new Date(b.latest.created_at).getTime() - new Date(a.latest.created_at).getTime());
+
+  const latest = firmList.map((f) => f.latest);
   const h = headers();
   const host = (h.get("host") || "superadditive.app").replace(/^www\./, "");
   const joinUrl = `https://${host}/census/${code}`;
 
-  const withGeo = biz.filter((b: any) => typeof b.lat === "number" && typeof b.lng === "number");
-  const wmsVals = biz.map((b: any) => Number(b.wms_overall)).filter((v: number) => v > 0);
+  const withGeo = latest.filter((b: any) => typeof b.lat === "number" && typeof b.lng === "number");
+  const wmsVals = latest.map((b: any) => Number(b.wms_overall)).filter((v: number) => v > 0);
   const wmsAvg = wmsVals.length ? Math.round((wmsVals.reduce((a: number, b: number) => a + b, 0) / wmsVals.length) * 100) / 100 : null;
 
-  const tally = (key: string, label?: (v: any) => string) => {
+  const tally = (arr: any[], key: string, label?: (v: any) => string) => {
     const m = new Map<string, number>();
-    for (const b of biz as any[]) { const raw = b[key]; if (!raw) continue; const k = label ? label(raw) : String(raw); m.set(k, (m.get(k) || 0) + 1); }
+    for (const b of arr) { const raw = b[key]; if (!raw) continue; const k = label ? label(raw) : String(raw); m.set(k, (m.get(k) || 0) + 1); }
     return [...m.entries()].sort((a, b) => b[1] - a[1]);
   };
-  const sectors = tally("naics", (v) => String(v).slice(0, 2));
-  const sizes = tally("employees_band");
-  const countries = tally("country");
+  const sectors = tally(latest, "isic_label");
+  const sizes = tally(latest, "employees_band");
+  const countries = tally(latest, "country");
   const maxSector = sectors[0]?.[1] || 1;
   const maxSize = sizes[0]?.[1] || 1;
+  const revisited = firmList.filter((f) => f.count > 1).length;
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-8">
@@ -51,25 +65,24 @@ export default async function CensusDashboard({ params }: { params: { code: stri
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl text-ink">Business census: {code}</h1>
+          <h1 className="text-3xl text-ink">Business directory: {code}</h1>
           {campaign?.label && <p className="mt-1 text-slate2">{campaign.label}</p>}
         </div>
         <a href={`/api/census/export?campaign=${code}`} className="btn-primary text-sm">Export CSV</a>
       </div>
 
       <div className="mt-3 rounded-xl bg-mist px-4 py-3 text-sm">
-        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Share this link to collect profiles</div>
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Share this link to add businesses</div>
         <div className="mt-0.5 font-mono text-ink">{joinUrl}</div>
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Businesses" value={`${biz.length}`} />
-        <Stat label="Geocoded" value={`${withGeo.length}`} />
+        <Stat label="Businesses" value={`${firmList.length}`} />
+        <Stat label="Profiles (waves)" value={`${all.length}`} sub={revisited ? `${revisited} updated` : undefined} />
         <Stat label="Avg management" value={wmsAvg !== null ? `${wmsAvg}` : "—"} color={wmsAvg && wmsAvg >= 3.5 ? "#3F7A52" : wmsAvg && wmsAvg < 2.5 ? "#B4532E" : "#CE8F2C"} />
         <Stat label="Countries" value={`${countries.length}`} />
       </div>
 
-      {/* Map */}
       <div className="mt-6 card p-5">
         <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Where they are ({withGeo.length} located)</div>
         <div className="mt-3 overflow-hidden rounded-xl border border-line bg-sky-soft/40">
@@ -79,16 +92,14 @@ export default async function CensusDashboard({ params }: { params: { code: stri
             {withGeo.map((b: any, i: number) => { const p = project(b.lat, b.lng); return <circle key={i} cx={p.x * 360} cy={p.y * 180} r={2.2} fill="#3F7A52" fillOpacity={0.75} />; })}
           </svg>
         </div>
-        <p className="mt-2 text-[11px] text-slate-400">Equirectangular scatter of geocoded businesses. A full tile map is next.</p>
       </div>
 
-      {/* Distributions */}
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <div className="card p-5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Top industries (NAICS 2-digit)</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Top industries (ISIC)</div>
           <div className="mt-3 space-y-1.5">
             {sectors.slice(0, 8).map(([s, n]) => (
-              <div key={s} className="flex items-center gap-2 text-sm"><span className="w-10 shrink-0 font-mono text-slate-500">{s}</span><div className="h-3 flex-1 rounded-full bg-slate-100"><div className="h-3 rounded-full bg-sage" style={{ width: `${(n / maxSector) * 100}%` }} /></div><span className="w-6 text-right text-slate-500">{n}</span></div>
+              <div key={s} className="flex items-center gap-2 text-sm"><span className="w-40 shrink-0 truncate text-slate-600" title={s}>{s}</span><div className="h-3 flex-1 rounded-full bg-slate-100"><div className="h-3 rounded-full bg-sage" style={{ width: `${(n / maxSector) * 100}%` }} /></div><span className="w-6 text-right text-slate-500">{n}</span></div>
             ))}
             {!sectors.length && <p className="text-sm text-slate-400">No data yet.</p>}
           </div>
@@ -104,28 +115,33 @@ export default async function CensusDashboard({ params }: { params: { code: stri
         </div>
       </div>
 
-      {/* Recent records */}
+      {/* Firms with panel progress */}
       <div className="mt-6 card p-5">
-        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Records</div>
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Businesses in the panel</div>
         <div className="mt-3 space-y-1.5">
-          {biz.slice(0, 40).map((b: any, i: number) => (
-            <div key={i} className="flex flex-wrap items-center justify-between gap-2 border-b border-line/60 pb-1.5 text-sm">
-              <span className="font-medium text-ink">{b.name || "Unnamed"}</span>
-              <span className="text-xs text-slate-400">{b.naics_label || ""}{b.locality ? ` · ${b.locality}` : ""}{b.wms_overall ? ` · mgmt ${b.wms_overall}` : ""}</span>
-            </div>
+          {firmList.slice(0, 60).map((f) => (
+            <Link key={f.fid} href={`/facilitator/census/${code}/firm/${f.fid}`} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line/60 px-3 py-2 text-sm hover:border-slate-300">
+              <span className="font-medium text-ink">{f.latest.name || "Unnamed"}</span>
+              <span className="flex items-center gap-3 text-xs text-slate-400">
+                <span>{f.latest.isic_label || ""}{f.latest.locality ? ` · ${f.latest.locality}` : ""}</span>
+                {f.count > 1 && <span className="rounded-full bg-mist px-2 py-0.5 font-semibold text-slate-600">{f.count} waves</span>}
+                {f.latest.wms_overall ? <span className="tabular-nums">mgmt {f.latest.wms_overall}{f.count > 1 && f.delta !== 0 ? <b className={f.delta > 0 ? "text-sage" : "text-clay"}> {f.delta > 0 ? "▲" : "▼"}{Math.abs(Math.round(f.delta * 10) / 10)}</b> : ""}</span> : null}
+              </span>
+            </Link>
           ))}
-          {!biz.length && <p className="text-sm text-slate-400">No profiles yet. Share the link above.</p>}
+          {!firmList.length && <p className="text-sm text-slate-400">No businesses yet. Share the link above.</p>}
         </div>
       </div>
     </main>
   );
 }
 
-function Stat({ label, value, color }: { label: string; value: string; color?: string }) {
+function Stat({ label, value, color, sub }: { label: string; value: string; color?: string; sub?: string }) {
   return (
     <div className="rounded-xl bg-mist p-3 text-center">
       <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</div>
       <div className="mt-0.5 text-xl font-bold tabular-nums" style={{ color: color || "#14283A" }}>{value}</div>
+      {sub && <div className="text-[10px] text-slate-400">{sub}</div>}
     </div>
   );
 }
