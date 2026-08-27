@@ -422,9 +422,18 @@ function isParseableJson(raw: string): boolean {
 // that don't parse (see above), so this is just: get the reply, extract it.
 async function completeJson(
   messages: ChatMsg[],
-  opts: { temperature?: number; maxTokens?: number; flow?: string | null } = {},
+  opts: { temperature?: number; maxTokens?: number; flow?: string | null; low?: boolean } = {},
 ): Promise<any> {
   return extractJson(await complete(messages, { ...opts, json: true }));
+}
+
+// Exported helpers for the mechanic engines (lib/mechanics) and the authoring
+// Copilot — the AI boundary stays inside lib/ai.
+export async function roleplayExaminerAI(system: string, user: string, maxTokens = 2400): Promise<any> {
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens });
+}
+export async function moduleCopilotAI(system: string, user: string): Promise<any> {
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.5, maxTokens: 6000, low: false });
 }
 
 // Close a JSON object cut off mid-stream (truncated at max_tokens): trim to the

@@ -16,6 +16,9 @@ export type Dimension = { probe: string; value: "high" | "med" | "low"; stance: 
 export type Scenario = { id: string; label: string; truth: string; weight?: number; narrative: string; dimensions: Dimension[]; tell?: string; foil?: string };
 export type Role = { key: string; kind: "character" | "examiner" | "interviewer"; name: string; model: "fast" | "main"; knowsScenario?: boolean; persona?: string; behavior?: string };
 export type RubricField = { key: string; label: string; type: "score" | "bool" | "enum" | "list" | "text"; range?: [number, number]; of?: string };
+export type VerdictField = { key: string; label: string; type: "choice" | "scale" | "text"; options?: { value: string; label: string }[] };
+export type Phase = { key: string; title: string; minutes?: number; kind: "brief" | "converse" | "decide" | "verdict" | "report" | "form"; intro?: string; with?: string; budget?: number; aiOpens?: boolean; verdict?: VerdictField[] };
+export type ReportBlock = { type: "verdictLine" | "score" | "trail" | "map" | "quote" | "principle" | "section"; source: string; title?: string };
 
 export type ModuleSpec = {
   schemaVersion: 1;
@@ -28,7 +31,9 @@ export type ModuleSpec = {
   probes?: { key: string; label: string }[];
   scenarios: Scenario[];
   selection?: { mode: "deterministic" | "weighted" | "fixed"; fixedId?: string };
+  flow: Phase[];
   rubric?: { gradedBy: string; instructions: string; output: RubricField[] };
+  report: ReportBlock[];
   guardrails: { language?: string; neverReveal?: string[]; immutable: string[]; safety?: string };
 };
 

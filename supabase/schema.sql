@@ -700,6 +700,24 @@ create policy "business campaigns owner all" on public.business_campaigns
 -- businesses: no anon/user policy. Public submit and researcher reads go through
 -- the service role.
 
+-- Authored modules (the no-code builder): a ModuleSpec stored as jsonb. The
+-- engine (lib/mechanics) runs published specs; the Copilot drafts/patches them.
+create table if not exists public.module_specs (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null,
+  version int not null default 1,
+  owner_id uuid references auth.users (id) on delete set null,
+  status text not null default 'draft',
+  spec jsonb not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (slug, version)
+);
+alter table public.module_specs enable row level security;
+drop policy if exists "module_specs owner" on public.module_specs;
+create policy "module_specs owner" on public.module_specs
+  for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+
 create index if not exists photo_entries_session_idx on public.photo_entries (session_id);
 
 alter table public.photo_sessions enable row level security;
