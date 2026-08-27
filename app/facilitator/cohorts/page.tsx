@@ -25,7 +25,7 @@ export default async function Classes() {
   if (!user) redirect("/login");
   if (!(await facilitatorAccess(user)).ok) redirect("/dashboard");
 
-  const [myOrgs, activeOrg, roleplayModules, interviewModules] = await Promise.all([getMyOrgs(user.id), getActiveOrg(user), listRoleplayCatalog(), listAssignableInterviewModules(user.id)]);
+  const [myOrgs, activeOrg, roleplayModules, interviewModules] = await Promise.all([getMyOrgs(user.id), getActiveOrg(user), listRoleplayCatalog(user.id), listAssignableInterviewModules(user.id)]);
   const staffOrgs = myOrgs.filter((m) => m.role !== "member").map((m) => ({ id: m.org.id, name: m.org.name }));
 
   return (

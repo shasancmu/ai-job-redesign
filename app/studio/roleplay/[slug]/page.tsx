@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import HeaderNav from "@/components/HeaderNav";
 import Logo from "@/components/Logo";
-import { isAdmin } from "@/lib/admin";
+import { roleFor } from "@/lib/orgs";
 import { getSpec } from "@/lib/mechanics/store";
 import { getInsights, listResultCohorts } from "@/lib/mechanics/insights";
 import { BLANK, seedFromTemplate } from "@/lib/mechanics/templates";
@@ -17,7 +17,8 @@ export default async function EditRoleplay({ params, searchParams }: { params: {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  if (!isAdmin(user.email)) redirect("/dashboard");
+  const role = await roleFor(user);
+  if (!(role.superadmin || role.directorOrgIds.length > 0)) redirect("/dashboard");
 
   const isNew = params.slug === "new";
   let spec: any;

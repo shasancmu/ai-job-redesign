@@ -159,13 +159,18 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
     const st = nextStatus ?? status;
     setBusy(nextStatus === "published" ? "publish" : nextStatus === "draft" ? "unpublish" : "save"); setMsg("");
     const { error } = await supabase.from("module_specs").upsert({ slug: spec.slug, version: 1, owner_id: me, status: st, spec, updated_at: new Date().toISOString() }, { onConflict: "slug,version" });
-    setBusy("");
-    if (!error) {
-      setStatus(st);
-      // Snapshot this save into version history (best effort), and refresh the tab.
-      supabase.from("module_spec_versions").insert({ slug: spec.slug, owner_id: me, spec, label: nextStatus === "published" ? "published" : null }).then(() => setHistory(null), () => {});
+    setBusy(""); setMsg("");
+    if (error) {
+      const missing = /does not exist|relation|schema cache/i.test(error.message || "");
+      setErrors([missing
+        ? "Nothing was saved: the role-play tables aren't set up in the database yet. An admin needs to run the setup migration in Supabase. Until then your changes won't persist."
+        : `Save failed: ${error.message}`]);
+      return;
     }
-    setMsg(error ? `Save failed: ${error.message}` : nextStatus === "published" ? "Published ✓ — now assignable to a class" : nextStatus === "draft" ? "Unpublished" : "Saved ✓");
+    setStatus(st); setErrors([]);
+    // Snapshot this save into version history (best effort), and refresh the tab.
+    supabase.from("module_spec_versions").insert({ slug: spec.slug, owner_id: me, spec, label: nextStatus === "published" ? "published" : null }).then(() => setHistory(null), () => {});
+    setMsg(nextStatus === "published" ? "Published ✓ — now assignable to a class" : nextStatus === "draft" ? "Unpublished" : "Saved ✓");
   }
 
   // advanced raw JSON, kept in sync

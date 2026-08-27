@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import HeaderNav from "@/components/HeaderNav";
 import Logo from "@/components/Logo";
 import { roleFor } from "@/lib/orgs";
-import { isAdmin } from "@/lib/admin";
 import { ROLEPLAY_TEMPLATES } from "@/lib/mechanics/templates";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +23,7 @@ export default async function CreateGallery() {
   if (!user) redirect("/login");
   const role = await roleFor(user);
   const canInterview = role.superadmin || role.directorOrgIds.length > 0;
-  const canRoleplay = isAdmin(user.email);
+  const canRoleplay = canInterview;
   if (!canInterview && !canRoleplay) redirect("/dashboard");
 
   return (

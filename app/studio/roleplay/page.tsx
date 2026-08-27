@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import HeaderNav from "@/components/HeaderNav";
 import Logo from "@/components/Logo";
-import { isAdmin } from "@/lib/admin";
+import { roleFor } from "@/lib/orgs";
 import { ROLEPLAY_TEMPLATES } from "@/lib/mechanics/templates";
 
 export const dynamic = "force-dynamic";
@@ -12,14 +12,16 @@ export default async function RoleplayStudio() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  if (!isAdmin(user.email)) redirect("/dashboard");
+  const role = await roleFor(user);
+  if (!(role.superadmin || role.directorOrgIds.length > 0)) redirect("/dashboard");
 
-  const { data: mine } = await supabase
+  const { data: mine, error: mineErr } = await supabase
     .from("module_specs")
     .select("slug, spec, status, updated_at")
     .eq("owner_id", user.id)
     .order("updated_at", { ascending: false })
     .limit(50);
+  const needsSetup = !!mineErr && /does not exist|relation|schema cache/i.test(mineErr.message || "");
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-8">
@@ -27,6 +29,12 @@ export default async function RoleplayStudio() {
         <Logo href="/dashboard" />
         <div className="flex items-center gap-2"><Link href="/studio" className="text-sm text-slate2 hover:text-ink">← Studio</Link><HeaderNav /></div>
       </header>
+      {needsSetup && (
+        <div className="mb-4 rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+          <div className="font-semibold">Setup needed: the role-play tables don't exist yet.</div>
+          <p className="mt-1">You can build and preview modules, but nothing will save until an admin runs the role-play setup migration in the Supabase SQL editor. Modules created before then are not stored.</p>
+        </div>
+      )}
       <h1 className="text-3xl text-ink">Role-play modules</h1>
       <p className="mt-1 max-w-2xl text-slate2">Interrogation and simulation modules like The Earnings Call: a learner questions an AI character who won't lie but will spin, then makes a call under uncertainty. Start from a template, iterate with the Copilot, preview, no code.</p>
 
