@@ -3,6 +3,7 @@
 // gallery shows. The two authored ones double as the runnable built-in references.
 import type { ModuleSpec } from "@/lib/mechanics/roleplay";
 import { earningsToSpec, referenceCheckSpec } from "@/lib/mechanics/seed";
+import { LIBRARY_TEMPLATES } from "@/lib/mechanics/library";
 
 // A structurally-complete blank, so the form and preview are never empty.
 export const BLANK: ModuleSpec = {
@@ -51,6 +52,7 @@ export const ROLEPLAY_TEMPLATES: RoleplayTemplate[] = [
     whenToUse: "A guarded, constrained source. The information is in what they won't say. Great for managers and recruiters.",
     runnable: true, make: referenceCheckSpec,
   },
+  ...LIBRARY_TEMPLATES.map((t) => ({ id: t.id, name: t.name, emoji: t.emoji, domain: t.domain, whenToUse: t.whenToUse, runnable: true, make: t.make })),
 ];
 
 export function roleplayTemplate(id: string): RoleplayTemplate | undefined {

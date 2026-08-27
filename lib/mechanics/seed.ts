@@ -3,6 +3,7 @@
 // same experience that was hand-coded.
 import type { ModuleSpec, Stance, Dimension } from "@/lib/mechanics/roleplay";
 import { SURFACE, PROBES, SCENARIOS } from "@/lib/earnings";
+import { LIBRARY_SPECS } from "@/lib/mechanics/library";
 
 function stanceOf(d: { answer: string; evasive?: boolean }): Stance {
   if (d.evasive) return "noncommittal";
@@ -181,4 +182,5 @@ export function referenceCheckSpec(): ModuleSpec {
 export const BUILTIN_SPECS: Record<string, () => ModuleSpec> = {
   "earnings-call": earningsToSpec,
   "reference-check": referenceCheckSpec,
+  ...LIBRARY_SPECS,
 };
