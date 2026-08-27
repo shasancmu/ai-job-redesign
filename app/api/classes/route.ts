@@ -4,6 +4,7 @@ import { facilitatorAccess, getActiveOrg } from "@/lib/orgs";
 import { normalizeCode } from "@/lib/classes";
 import { MODULES } from "@/lib/modules";
 import { listRoleplayCatalog } from "@/lib/mechanics/store";
+import { listAssignableInterviewModules } from "@/lib/customModules";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -73,10 +74,12 @@ export async function POST(request: Request) {
   const code = normalizeCode(body.code);
   const name = String(body.name || "").trim();
   // Valid module slugs = the static registry plus this instructor's published
-  // role-play modules (they run at /m/[slug] but are assigned the same way).
-  const rpSlugs = new Set((await listRoleplayCatalog()).map((m) => m.slug));
+  // dynamic modules: role-play (run at /m/[slug]) and custom interview (run at
+  // /start/[slug]). All assigned the same way.
+  const [rpList, ivList] = await Promise.all([listRoleplayCatalog(), listAssignableInterviewModules(user.id)]);
+  const dynSlugs = new Set([...rpList.map((m) => m.slug), ...ivList.map((m) => m.slug)]);
   const modules = (Array.isArray(body.modules) ? body.modules : []).filter((s: string) =>
-    VALID.has(s) || rpSlugs.has(s)
+    VALID.has(s) || dynSlugs.has(s)
   );
   const language = String(body.language || "English").slice(0, 40) || "English";
   const kind = body.kind === "enterprise" ? "enterprise" : "teaching";

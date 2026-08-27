@@ -6,6 +6,7 @@ import { facilitatorAccess, getMyOrgs, getActiveOrg } from "@/lib/orgs";
 import ClassManager from "@/components/ClassManager";
 import Tour from "@/components/Tour";
 import { listRoleplayCatalog } from "@/lib/mechanics/store";
+import { listAssignableInterviewModules } from "@/lib/customModules";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function Classes() {
   if (!user) redirect("/login");
   if (!(await facilitatorAccess(user)).ok) redirect("/dashboard");
 
-  const [myOrgs, activeOrg, roleplayModules] = await Promise.all([getMyOrgs(user.id), getActiveOrg(user), listRoleplayCatalog()]);
+  const [myOrgs, activeOrg, roleplayModules, interviewModules] = await Promise.all([getMyOrgs(user.id), getActiveOrg(user), listRoleplayCatalog(), listAssignableInterviewModules(user.id)]);
   const staffOrgs = myOrgs.filter((m) => m.role !== "member").map((m) => ({ id: m.org.id, name: m.org.name }));
 
   return (
@@ -38,7 +39,7 @@ export default async function Classes() {
         Create a cohort, choose its modules, and share the link. Everyone who joins is grouped
         together, and their results roll up under one place.
       </p>
-      <ClassManager orgs={staffOrgs} defaultOrgId={activeOrg?.id || ""} roleplayModules={roleplayModules} />
+      <ClassManager orgs={staffOrgs} defaultOrgId={activeOrg?.id || ""} roleplayModules={roleplayModules} interviewModules={interviewModules} />
       <Tour
         steps={COHORT_TOUR}
         storageKey="tour-cohort-v1"

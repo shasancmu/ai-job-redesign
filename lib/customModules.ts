@@ -82,6 +82,27 @@ export async function listCustomModulesForUser(userId: string): Promise<CustomMo
   });
 }
 
+// Published interview modules an instructor can assign to a class (card meta).
+export type InterviewCatalogEntry = { slug: string; name: string; emoji: string };
+export async function listAssignableInterviewModules(userId: string): Promise<InterviewCatalogEntry[]> {
+  const rows = await listCustomModulesForUser(userId);
+  return rows
+    .filter((r) => r.status === "published")
+    .map((r) => ({ slug: r.slug, name: r.name || r.slug, emoji: (r.spec as any)?.emoji || "🧩" }));
+}
+
+// Resolve specific assigned slugs to card meta (published only), for a learner
+// who may not otherwise see them in a catalog. Keyed by slug.
+export async function interviewMetaBySlugs(slugs: string[]): Promise<Record<string, InterviewCatalogEntry>> {
+  if (!slugs.length) return {};
+  let admin;
+  try { admin = createAdminClient(); } catch { return {}; }
+  const { data } = await admin.from("custom_modules").select("slug, name, spec, status").in("slug", slugs).eq("status", "published");
+  const out: Record<string, InterviewCatalogEntry> = {};
+  for (const r of ((data || []) as any[])) out[r.slug] = { slug: r.slug, name: r.name || r.slug, emoji: (r.spec as any)?.emoji || "🧩" };
+  return out;
+}
+
 export async function listAuthoredBy(userId: string): Promise<CustomModuleRow[]> {
   let admin;
   try { admin = createAdminClient(); } catch { return []; }

@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin, UNTAGGED } from "@/lib/admin";
 import { facilitatorAccess, getActiveOrg } from "@/lib/orgs";
 import { moduleByExercise } from "@/lib/modules";
+import { roleplayCatalogMap } from "@/lib/mechanics/store";
 import { ROLE_META } from "@/lib/workflow";
 import { canvasByExercise, scoreColor } from "@/lib/canvases";
 import { analyze as negAnalyze, scenarioByExercise as negScenario, maxJointOf } from "@/lib/negotiation";
@@ -386,6 +387,17 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
   }
   if (benchUsers > 0) results.push({ key: "benchmark", name: "You vs. AI (Benchmark)", count: benchUsers, href: `/facilitator/benchmark?cohort=${encodeURIComponent(cohort)}`, action: "View results →" });
   if (netUsers > 0) results.push({ key: "network", name: "The Network", count: netUsers, href: `/facilitator/network?cohort=${encodeURIComponent(cohort)}`, action: "View map →" });
+  // Role-play modules run at /m/[slug]; their runs live in roleplay_results,
+  // keyed by this cohort's code. Group by module and open its results view.
+  if (!untagged) {
+    const { data: rp } = await admin.from("roleplay_results").select("slug, user_id").eq("cohort", cohort);
+    if (rp && rp.length) {
+      const rpMap = await roleplayCatalogMap();
+      const bySlug = new Map<string, Set<string>>();
+      for (const r of rp as any[]) { if (!bySlug.has(r.slug)) bySlug.set(r.slug, new Set()); if (r.user_id) bySlug.get(r.slug)!.add(r.user_id); }
+      for (const [slug, users] of bySlug) results.push({ key: `rp:${slug}`, name: rpMap[slug]?.name || slug, count: users.size, href: `/facilitator/roleplay?cohort=${encodeURIComponent(cohort)}&slug=${encodeURIComponent(slug)}`, action: "View results →" });
+    }
+  }
   results.sort((a, b) => (a.href ? 0 : 1) - (b.href ? 0 : 1) || b.count - a.count);
 
   // Focused on one activity: filter everything below to just its sessions.

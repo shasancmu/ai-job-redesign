@@ -9,12 +9,14 @@ import { I18N_ENABLED } from "@/lib/flags";
 
 type Klass = { id: string; code: string; name: string; modules: string[]; members: number; language?: string; kind?: string; allowed_emails?: string[]; org_id?: string | null };
 
-type RoleplayModule = { slug: string; name: string; emoji?: string };
+type DynModule = { slug: string; name: string; emoji?: string };
 
-export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayModules = [] }: { orgs?: { id: string; name: string }[]; defaultOrgId?: string; roleplayModules?: RoleplayModule[] }) {
+export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayModules = [], interviewModules = [] }: { orgs?: { id: string; name: string }[]; defaultOrgId?: string; roleplayModules?: DynModule[]; interviewModules?: DynModule[] }) {
   const rpBySlug = useMemo(() => Object.fromEntries(roleplayModules.map((m) => [m.slug, m])), [roleplayModules]);
-  const nameOf = (slug: string) => MODULES.find((m) => m.slug === slug)?.name || rpBySlug[slug]?.name || slug;
+  const ivBySlug = useMemo(() => Object.fromEntries(interviewModules.map((m) => [m.slug, m])), [interviewModules]);
+  const nameOf = (slug: string) => MODULES.find((m) => m.slug === slug)?.name || rpBySlug[slug]?.name || ivBySlug[slug]?.name || slug;
   const isRoleplay = (slug: string) => !!rpBySlug[slug];
+  const isCustom = (slug: string) => !!ivBySlug[slug];
   const [classes, setClasses] = useState<Klass[]>([]);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -49,10 +51,11 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
     });
 
   const available = useMemo(() => {
-    const base = MODULES.map((m) => ({ slug: m.slug, name: m.name, rp: false }));
-    const rp = roleplayModules.map((m) => ({ slug: m.slug, name: m.name, rp: true }));
-    return [...base, ...rp].filter((m) => !order.includes(m.slug));
-  }, [order, roleplayModules]);
+    const base = MODULES.map((m) => ({ slug: m.slug, name: m.name, tag: "" }));
+    const rp = roleplayModules.map((m) => ({ slug: m.slug, name: m.name, tag: "role-play" }));
+    const iv = interviewModules.map((m) => ({ slug: m.slug, name: m.name, tag: "custom" }));
+    return [...base, ...rp, ...iv].filter((m) => !order.includes(m.slug));
+  }, [order, roleplayModules, interviewModules]);
 
   function edit(k: Klass) {
     setName(k.name);
@@ -229,7 +232,7 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
               {order.map((slug, i) => (
                 <li key={slug} className="flex items-center gap-2 rounded-xl border border-line px-3 py-2">
                   <span className="w-5 text-right text-sm font-semibold text-slate2">{i + 1}</span>
-                  <span className="flex-1 text-sm font-medium text-ink">{nameOf(slug)}{isRoleplay(slug) && <span className="ml-1 rounded-full bg-amber-soft px-1.5 py-0.5 text-[10px] font-semibold text-amber">role-play</span>}</span>
+                  <span className="flex-1 text-sm font-medium text-ink">{nameOf(slug)}{isRoleplay(slug) && <span className="ml-1 rounded-full bg-amber-soft px-1.5 py-0.5 text-[10px] font-semibold text-amber">role-play</span>}{isCustom(slug) && <span className="ml-1 rounded-full bg-amber-soft px-1.5 py-0.5 text-[10px] font-semibold text-amber">custom</span>}</span>
                   <div className="flex items-center gap-1">
                     <button
                       type="button"
@@ -274,7 +277,7 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
                     onClick={() => add(m.slug)}
                     className="rounded-full border border-line px-3 py-1.5 text-sm text-ink hover:border-sage hover:bg-sage-soft"
                   >
-                    + {m.name}{m.rp && <span className="ml-1 rounded-full bg-amber-soft px-1.5 py-0.5 text-[10px] font-semibold text-amber">role-play</span>}
+                    + {m.name}{m.tag && <span className="ml-1 rounded-full bg-amber-soft px-1.5 py-0.5 text-[10px] font-semibold text-amber">{m.tag}</span>}
                   </button>
                 ))}
               </div>

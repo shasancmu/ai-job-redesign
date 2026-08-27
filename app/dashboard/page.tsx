@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { activeEntitlements, FREE_TIER_MODULES, runsLeftByModule, grantedModuleSlugs } from "@/lib/access";
 import { roleplayCatalogMap } from "@/lib/mechanics/store";
+import { interviewMetaBySlugs } from "@/lib/customModules";
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { isAdmin } from "@/lib/admin";
 import { claimInvites, getMyOrgs, getActiveOrg, facilitatorAccess, masterCohortCode } from "@/lib/orgs";
@@ -129,25 +130,28 @@ export default async function Dashboard({
     for (const s of granted) unlocked[s] = true;
   } catch { /* no class grants */ }
 
-  // Role-play modules a class assigned to this learner. These run at /m/[slug]
-  // (a different engine from the catalog), so surface them as their own section
-  // with the class code threaded through, so their results tag to the cohort.
-  type RPAssignment = { slug: string; name: string; emoji: string; classCode: string; className: string };
-  const roleplayAssignments: RPAssignment[] = [];
+  // Modules a class assigned to this learner that DON'T live in the static
+  // catalog: role-play (run at /m/[slug]) and custom interview (run at
+  // /start/[slug]). Surfaced as their own section with the class code threaded
+  // through, so results tag to the cohort. Registry slugs are skipped here — the
+  // catalog below already shows them.
+  type ClassAssignment = { slug: string; name: string; emoji: string; href: string; className: string };
+  const classAssignments: ClassAssignment[] = [];
   try {
     const a = createAdminClient();
     const { data: cms } = await a.from("class_members").select("class_id").eq("user_id", user.id);
     const ids = [...new Set(((cms as any[]) || []).map((c) => c.class_id).filter(Boolean))];
     if (ids.length) {
-      const [{ data: cls }, rpMap] = await Promise.all([
-        a.from("classes").select("code, name, modules").in("id", ids),
-        roleplayCatalogMap(),
-      ]);
+      const { data: cls } = await a.from("classes").select("code, name, modules").in("id", ids);
+      const assignedSlugs = [...new Set(((cls as any[]) || []).flatMap((c) => (c.modules as any[]) || []).map(String))];
+      const [rpMap, ivMap] = await Promise.all([roleplayCatalogMap(), interviewMetaBySlugs(assignedSlugs)]);
       const seen = new Set<string>();
       for (const c of (cls as any[]) || []) {
         for (const s of (c.modules as any[]) || []) {
-          const entry = rpMap[String(s)];
-          if (entry && !seen.has(entry.slug)) { seen.add(entry.slug); roleplayAssignments.push({ slug: entry.slug, name: entry.name, emoji: entry.emoji, classCode: c.code, className: c.name }); }
+          const slug = String(s);
+          if (seen.has(slug)) continue;
+          if (rpMap[slug]) { seen.add(slug); classAssignments.push({ slug, name: rpMap[slug].name, emoji: rpMap[slug].emoji, href: `/m/${slug}?class=${encodeURIComponent(c.code)}`, className: c.name }); }
+          else if (ivMap[slug]) { seen.add(slug); classAssignments.push({ slug, name: ivMap[slug].name, emoji: ivMap[slug].emoji, href: `/start/${slug}?cohort=${encodeURIComponent(c.code)}`, className: c.name }); }
         }
       }
     }
@@ -333,12 +337,12 @@ export default async function Dashboard({
         </a>
       )}
 
-      {roleplayAssignments.length > 0 && (
+      {classAssignments.length > 0 && (
         <section className="mb-8">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Assigned by your class</div>
           <div className="mt-2 grid gap-3 sm:grid-cols-2">
-            {roleplayAssignments.map((r) => (
-              <a key={r.slug} href={`/m/${r.slug}?class=${encodeURIComponent(r.classCode)}`} className="group flex items-center gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+            {classAssignments.map((r) => (
+              <a key={r.slug} href={r.href} className="group flex items-center gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
                 <div className="text-2xl">{r.emoji}</div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-bold text-ink group-hover:text-ai">{r.name}</div>
