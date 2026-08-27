@@ -53,6 +53,7 @@ export default function SpecPreview({ spec }: { spec: any }) {
             <div className="min-w-0">
               <div className="text-base font-bold text-ink">{meta.name || "Untitled module"}</div>
               {meta.tagline && <div className="text-xs text-slate-500">{meta.tagline}</div>}
+              {spec?.lineage?.forkedFromName && <div className="text-[10px] text-slate-400">Adapted from {spec.lineage.forkedFromName}</div>}
             </div>
           </div>
 

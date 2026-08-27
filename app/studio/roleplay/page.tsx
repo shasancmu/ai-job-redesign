@@ -42,6 +42,7 @@ export default async function RoleplayStudio() {
               <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-500">{t.whenToUse}</p>
               <div className="mt-3 flex items-center gap-2">
                 <Link href={`/studio/roleplay/new?from=${t.id}`} className="btn-primary text-sm">{t.id === "blank" ? "Start" : "Use template"}</Link>
+                {t.runnable && <Link href={`/studio/roleplay/new?remix=${t.id}`} className="btn-ghost text-sm">Remix</Link>}
                 {t.runnable && <Link href={`/m/${t.id}`} target="_blank" className="btn-ghost text-sm">Preview →</Link>}
               </div>
             </div>
@@ -57,7 +58,7 @@ export default async function RoleplayStudio() {
             {(mine || []).map((m: any) => (
               <div key={m.slug} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-white p-3">
                 <div><span className="font-semibold text-ink">{m.spec?.meta?.emoji} {m.spec?.meta?.name || m.slug}</span><span className="ml-2 rounded-full bg-mist px-2 py-0.5 text-[11px] text-slate-500">{m.status}</span></div>
-                <div className="flex items-center gap-2"><Link href={`/studio/roleplay/${m.slug}`} className="btn-ghost text-sm">Edit</Link><Link href={`/m/${m.slug}`} className="btn-ghost text-sm">Preview →</Link></div>
+                <div className="flex items-center gap-2"><Link href={`/studio/roleplay/${m.slug}`} className="btn-ghost text-sm">Edit</Link><Link href={`/studio/roleplay/new?remix=${m.slug}`} className="btn-ghost text-sm">Remix</Link><Link href={`/m/${m.slug}`} className="btn-ghost text-sm">Preview →</Link></div>
               </div>
             ))}
           </div>

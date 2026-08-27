@@ -435,6 +435,9 @@ export async function roleplayExaminerAI(system: string, user: string, maxTokens
 export async function moduleCopilotAI(system: string, user: string): Promise<any> {
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.5, maxTokens: 6000, low: false });
 }
+export async function moduleCriticAI(system: string, user: string): Promise<any> {
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.2, maxTokens: 2500, low: false });
+}
 // Cheap-model compression of uploaded source material into a grounding briefing.
 // The raw text is never persisted; only this summary is kept, and it feeds the
 // Copilot as source. Uses the FAST model (low: true).

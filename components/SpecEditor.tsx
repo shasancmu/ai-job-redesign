@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { validateSpec } from "@/lib/mechanics/roleplay";
@@ -19,6 +19,8 @@ const TABS = [
   { id: "scenarios", label: "Scenarios" },
   { id: "assessment", label: "Assessment" },
   { id: "insights", label: "📈 Insights" },
+  { id: "critique", label: "🔍 Critique" },
+  { id: "history", label: "🕘 History" },
   { id: "ai", label: "✨ Copilot" },
   { id: "advanced", label: "Advanced" },
 ] as const;
@@ -41,6 +43,14 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState("");
   const [status, setStatus] = useState(initialStatus || "draft");
+  const [history, setHistory] = useState<any[] | null>(null);
+
+  useEffect(() => {
+    if (tab === "history" && history === null && spec?.slug) {
+      supabase.from("module_spec_versions").select("id, spec, label, created_at").eq("slug", spec.slug).order("created_at", { ascending: false }).limit(50).then(({ data }) => setHistory(data || []));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
 
   // ---- immutable updaters -------------------------------------------------
   const patch = (p: any) => setSpec((s: any) => ({ ...s, ...p }));
@@ -104,6 +114,18 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
 
   const [intent, setIntent] = useState("");
   const [source, setSource] = useState("");
+  const [critique, setCritique] = useState<any>(null);
+
+  async function runCritique() {
+    setBusy("critique"); setMsg("");
+    try {
+      const res = await fetch("/api/mechanics/critic", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ spec }) });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok || !d.result) setErrors([d.error || "The critic couldn't finish."]);
+      else setCritique(d.result);
+    } catch (e: any) { setErrors([e?.message || "Critique failed."]); }
+    finally { setBusy(""); }
+  }
 
   async function onPdf(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -138,7 +160,11 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
     setBusy(nextStatus === "published" ? "publish" : nextStatus === "draft" ? "unpublish" : "save"); setMsg("");
     const { error } = await supabase.from("module_specs").upsert({ slug: spec.slug, version: 1, owner_id: me, status: st, spec, updated_at: new Date().toISOString() }, { onConflict: "slug,version" });
     setBusy("");
-    if (!error) setStatus(st);
+    if (!error) {
+      setStatus(st);
+      // Snapshot this save into version history (best effort), and refresh the tab.
+      supabase.from("module_spec_versions").insert({ slug: spec.slug, owner_id: me, spec, label: nextStatus === "published" ? "published" : null }).then(() => setHistory(null), () => {});
+    }
     setMsg(error ? `Save failed: ${error.message}` : nextStatus === "published" ? "Published ✓ — now assignable to a class" : nextStatus === "draft" ? "Unpublished" : "Saved ✓");
   }
 
@@ -162,6 +188,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
           ? <button onClick={() => save("draft")} disabled={!!busy} className="btn-ghost text-sm">{busy === "unpublish" ? "..." : "Unpublish"}</button>
           : <button onClick={() => save("published")} disabled={!!busy} className="btn-ghost text-sm text-sage">{busy === "publish" ? "Publishing..." : "Publish"}</button>}
         {status === "published" && <span className="rounded-full bg-sage-soft px-2 py-0.5 text-[11px] font-semibold text-sage">Published</span>}
+        {spec.lineage?.forkedFromName && <span className="rounded-full bg-mist px-2 py-0.5 text-[11px] text-slate-500">Adapted from {spec.lineage.forkedFromName}</span>}
         {slug && <Link href={`/m/${slug}`} target="_blank" className="btn-ghost text-sm">Open full run →</Link>}
         {msg && <span className="text-sm text-sage">{msg}</span>}
         <span className="ml-auto text-xs text-slate-400">{scenarios.length} scenario{scenarios.length === 1 ? "" : "s"} · {probes.length} probe{probes.length === 1 ? "" : "s"}</span>
@@ -352,6 +379,26 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                   ))}
                 </div>
               )}
+              {insights?.funnel?.some((s: any) => s.count > 0) && (
+                <div className="rounded-2xl border border-line bg-white p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Where learners drop off</div>
+                  <div className="mt-2 space-y-1.5">
+                    {insights.funnel.map((s: any, i: number) => {
+                      const start = insights.funnel[0]?.count || 0;
+                      const pct = start ? Math.round((s.count / start) * 100) : 0;
+                      const prev = i > 0 ? insights.funnel[i - 1].count : s.count;
+                      const drop = prev - s.count;
+                      return (
+                        <div key={s.key} className="flex items-center gap-2">
+                          <div className="w-28 shrink-0 truncate text-xs text-slate-600" title={s.label}>{s.label}</div>
+                          <div className="h-3 flex-1 overflow-hidden rounded-full bg-mist"><div className="h-full rounded-full bg-ai" style={{ width: `${pct}%` }} /></div>
+                          <div className="w-24 shrink-0 text-right text-xs tabular-nums text-slate-500">{s.count} · {pct}%{i > 0 && drop > 0 && <span className="text-clay"> (-{drop})</span>}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               {!insights || insights.runs === 0 ? (
                 <div className="rounded-xl border border-dashed border-line p-6 text-center text-sm text-slate-400">
                   No graded runs yet.{insights === null || insights === undefined ? " Save the module first, then share it." : ""} Once learners run it, you'll see their scores, calibration, and which probes they miss.
@@ -395,6 +442,68 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                     </div>
                   </div>
                 </>
+              )}
+            </>
+          )}
+
+          {/* ---------------- CRITIQUE ---------------- */}
+          {tab === "critique" && (
+            <>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm text-slate-500">An adversarial read of your design before you publish: leaked tells, scenarios that don't separate, a rubric that grades the guess instead of the thinking.</p>
+                <button onClick={runCritique} disabled={busy === "critique"} className="btn-primary shrink-0 text-sm">{busy === "critique" ? "Reading..." : "Run critique"}</button>
+              </div>
+              {critique && (
+                <>
+                  <div className={`rounded-xl p-3 text-sm ${critique.readiness === "ready" ? "bg-sage-soft text-sage" : critique.readiness === "not-ready" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-900"}`}>
+                    <span className="font-semibold">{critique.readiness === "ready" ? "Looks ready ✓" : critique.readiness === "not-ready" ? "Not ready" : "Needs work"}</span>
+                    {critique.summary && <span> — {critique.summary}</span>}
+                  </div>
+                  <div className="space-y-2">
+                    {(critique.findings || []).length === 0 ? (
+                      <p className="text-sm text-slate-500">No issues flagged. Nicely designed.</p>
+                    ) : (critique.findings || []).map((f: any, i: number) => {
+                      const sev = f.severity === "high" ? "border-red-300 bg-red-50" : f.severity === "medium" ? "border-amber-300 bg-amber-50" : "border-line bg-mist/50";
+                      const dot = f.severity === "high" ? "bg-red-500" : f.severity === "medium" ? "bg-amber-500" : "bg-slate-400";
+                      return (
+                        <div key={i} className={`rounded-xl border p-3 ${sev}`}>
+                          <div className="flex items-center gap-2">
+                            <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
+                            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{f.area || f.severity}</span>
+                            <span className="text-sm font-semibold text-ink">{f.title}</span>
+                          </div>
+                          {f.detail && <p className="mt-1 text-sm text-slate-600">{f.detail}</p>}
+                          {f.fix && <p className="mt-1 text-sm text-ink"><span className="font-semibold">Fix:</span> {f.fix}</p>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+              {!critique && busy !== "critique" && <p className="text-xs text-slate-400">Runs on the full spec, including the hidden scenarios, so it can check whether the tell actually holds.</p>}
+            </>
+          )}
+
+          {/* ---------------- HISTORY ---------------- */}
+          {tab === "history" && (
+            <>
+              <p className="text-sm text-slate-500">Every save is snapshotted here. Restore any version to bring it back into the editor, then Save to make it current.</p>
+              {history === null ? (
+                <p className="text-xs text-slate-400">Loading…</p>
+              ) : history.length === 0 ? (
+                <p className="text-xs text-slate-400">No saved versions yet. Save the module to start its history.</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {history.map((h, i) => (
+                    <div key={h.id} className="flex items-center gap-3 rounded-lg border border-line bg-white px-3 py-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium text-ink">{new Date(h.created_at).toLocaleString()}{i === 0 && <span className="ml-2 rounded-full bg-mist px-1.5 py-0.5 text-[10px] text-slate-500">latest</span>}{h.label && <span className="ml-1 rounded-full bg-sage-soft px-1.5 py-0.5 text-[10px] font-semibold text-sage">{h.label}</span>}</div>
+                        <div className="truncate text-[11px] text-slate-400">{h.spec?.meta?.name} · {h.spec?.scenarios?.length || 0} scenarios · {h.spec?.probes?.length || 0} probes</div>
+                      </div>
+                      <button onClick={() => { setSpec(h.spec); setMsg("Restored — Save to keep it"); setTab("overview"); }} className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-ink shadow-sm hover:text-ai">Restore</button>
+                    </div>
+                  ))}
+                </div>
               )}
             </>
           )}

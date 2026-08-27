@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import RoleplayChat, { type Msg } from "@/components/RoleplayChat";
 import { streamPost } from "@/lib/streamClient";
@@ -21,6 +21,13 @@ export default function RoleplaySpecRoom({ spec, cohort }: { spec: any; cohort?:
 
   const flow = (spec.flow || []) as any[];
   const step = flow[phase] || flow[0] || { kind: "brief", title: "" };
+
+  // Drop-off funnel: log which phase this run reaches (and when it grades).
+  function logEvent(phaseKey: string) {
+    fetch("/api/mechanics/roleplay/event", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug: spec.slug, code, cohort, phase: phaseKey }) }).catch(() => {});
+  }
+  useEffect(() => { logEvent(flow[phase]?.key || `step${phase}`); /* eslint-disable-next-line */ }, [phase]);
+  useEffect(() => { if (report) logEvent("graded"); /* eslint-disable-next-line */ }, [report]);
   const character = spec.character?.name || "the character";
   const conv = flow.find((f) => f.kind === "converse");
   const budget = conv?.budget || 0;

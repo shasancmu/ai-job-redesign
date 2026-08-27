@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getSpec } from "@/lib/mechanics/store";
 
 export type ProbeStat = { key: string; label: string; askRate: number; highValue: boolean };
+export type FunnelStep = { key: string; label: string; count: number };
 export type Insights = {
   runs: number;
   avgScore: number | null;
@@ -12,6 +13,7 @@ export type Insights = {
   calibration: { label: string; count: number }[];
   probes: ProbeStat[];
   weakest: ProbeStat | null; // the highest-value probe learners ask least
+  funnel: FunnelStep[]; // distinct runs reaching each phase (drop-off)
 };
 
 function norm(s: any): string {
@@ -46,8 +48,18 @@ export async function getInsights(slug: string, cohort?: string | null): Promise
     const highValue = new Set<string>();
     for (const s of spec?.scenarios || []) for (const d of (s as any).dimensions || []) if (d.value === "high") highValue.add(d.probe);
 
+    // Drop-off funnel: distinct runs (by code) that reached each phase. Computed
+    // even when nothing was graded, since that IS the drop-off signal.
+    let evq = admin.from("roleplay_events").select("code, phase").eq("slug", slug).limit(5000);
+    if (cohort) evq = evq.eq("cohort", cohort);
+    const { data: ev } = await evq;
+    const byPhase = new Map<string, Set<string>>();
+    for (const e of ((ev as any[]) || [])) { if (!e.phase) continue; if (!byPhase.has(e.phase)) byPhase.set(e.phase, new Set()); if (e.code) byPhase.get(e.phase)!.add(e.code); }
+    const funnel: FunnelStep[] = [...(spec?.flow || []).map((f: any) => ({ key: f.key, label: f.title || f.key })), { key: "graded", label: "Graded" }]
+      .map((o) => ({ key: o.key, label: o.label, count: byPhase.get(o.key)?.size || 0 }));
+
     if (runs === 0) {
-      return { runs: 0, avgScore: null, correctPct: null, calibration: [], weakest: null,
+      return { runs: 0, avgScore: null, correctPct: null, calibration: [], weakest: null, funnel,
         probes: probeDefs.map((p) => ({ key: p.key, label: p.label, askRate: 0, highValue: highValue.has(p.key) })) };
     }
 
@@ -77,7 +89,7 @@ export async function getInsights(slug: string, cohort?: string | null): Promise
     const probes: ProbeStat[] = probeDefs.map((p) => ({ key: p.key, label: p.label, askRate: Math.round((askCount[p.key] / runs) * 100), highValue: highValue.has(p.key) }));
     const weakest = probes.filter((p) => p.highValue).sort((a, b) => a.askRate - b.askRate)[0] || null;
 
-    return { runs, avgScore, correctPct, calibration, probes, weakest };
+    return { runs, avgScore, correctPct, calibration, probes, weakest, funnel };
   } catch {
     return null; // table not migrated yet
   }

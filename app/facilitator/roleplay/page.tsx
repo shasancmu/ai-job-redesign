@@ -68,6 +68,25 @@ export default async function RoleplayResults({ searchParams }: { searchParams: 
               This class rarely probed <span className="font-semibold">“{insights.weakest.label}”</span> ({insights.weakest.askRate}%), a decisive cut. Worth a debrief.
             </div>
           )}
+          {insights.funnel?.some((s) => s.count > 0) && (
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Where this class dropped off</div>
+              <div className="mt-2 space-y-1.5">
+                {insights.funnel.map((s, i) => {
+                  const start = insights.funnel[0]?.count || 0;
+                  const pct = start ? Math.round((s.count / start) * 100) : 0;
+                  const drop = i > 0 ? insights.funnel[i - 1].count - s.count : 0;
+                  return (
+                    <div key={s.key} className="flex items-center gap-2">
+                      <div className="w-28 shrink-0 truncate text-xs text-slate-600" title={s.label}>{s.label}</div>
+                      <div className="h-3 flex-1 overflow-hidden rounded-full bg-mist"><div className="h-full rounded-full bg-ai" style={{ width: `${pct}%` }} /></div>
+                      <div className="w-24 shrink-0 text-right text-xs tabular-nums text-slate-500">{s.count} · {pct}%{i > 0 && drop > 0 && <span className="text-clay"> (-{drop})</span>}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {insights.probes?.length > 0 && (
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Probe coverage</div>

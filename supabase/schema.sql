@@ -755,6 +755,38 @@ drop policy if exists "module_components owner" on public.module_components;
 create policy "module_components owner" on public.module_components
   for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
 
+-- Version history: a snapshot of a module's spec on each save, for restore + diff.
+create table if not exists public.module_spec_versions (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null,
+  owner_id uuid references auth.users (id) on delete cascade,
+  spec jsonb not null,
+  label text,
+  created_at timestamptz not null default now()
+);
+create index if not exists module_spec_versions_slug_idx on public.module_spec_versions (slug, created_at desc);
+alter table public.module_spec_versions enable row level security;
+drop policy if exists "module_spec_versions owner" on public.module_spec_versions;
+create policy "module_spec_versions owner" on public.module_spec_versions
+  for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+
+-- Run progress events, for the drop-off funnel (which phase learners reach).
+-- Written server-side; the module owner may read their own module's events.
+create table if not exists public.roleplay_events (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null,
+  cohort text,
+  code text,
+  user_id uuid references auth.users (id) on delete set null,
+  phase text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists roleplay_events_slug_idx on public.roleplay_events (slug);
+alter table public.roleplay_events enable row level security;
+drop policy if exists "roleplay_events owner reads" on public.roleplay_events;
+create policy "roleplay_events owner reads" on public.roleplay_events
+  for select using (exists (select 1 from public.module_specs ms where ms.slug = roleplay_events.slug and ms.owner_id = auth.uid()));
+
 create index if not exists photo_entries_session_idx on public.photo_entries (session_id);
 
 alter table public.photo_sessions enable row level security;

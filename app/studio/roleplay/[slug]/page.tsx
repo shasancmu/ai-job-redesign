@@ -13,16 +13,25 @@ import SpecEditor from "@/components/SpecEditor";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export default async function EditRoleplay({ params, searchParams }: { params: { slug: string }; searchParams: { from?: string; cohort?: string } }) {
+export default async function EditRoleplay({ params, searchParams }: { params: { slug: string }; searchParams: { from?: string; cohort?: string; remix?: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   if (!isAdmin(user.email)) redirect("/dashboard");
 
   const isNew = params.slug === "new";
-  const spec = isNew
-    ? (searchParams.from ? seedFromTemplate(searchParams.from) : BLANK)
-    : (await getSpec(params.slug)) || BLANK;
+  let spec: any;
+  if (isNew && searchParams.remix) {
+    // Fork: seed a fresh draft from a published module, keep a lineage crumb.
+    const src = await getSpec(searchParams.remix);
+    spec = src
+      ? { ...src, slug: "", meta: { ...(src.meta || {}), name: `${src.meta?.name || "Module"} (remix)` }, lineage: { forkedFrom: searchParams.remix, forkedFromName: src.meta?.name || searchParams.remix } }
+      : BLANK;
+  } else if (isNew) {
+    spec = searchParams.from ? seedFromTemplate(searchParams.from) : BLANK;
+  } else {
+    spec = (await getSpec(params.slug)) || BLANK;
+  }
   const cohort = searchParams.cohort || null;
   const statusOf = async (): Promise<any> => {
     try { const { data } = await createAdminClient().from("module_specs").select("status").eq("slug", params.slug).eq("owner_id", user.id).order("version", { ascending: false }).limit(1).maybeSingle(); return data; }
