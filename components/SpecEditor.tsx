@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { validateSpec } from "@/lib/mechanics/roleplay";
@@ -49,6 +49,9 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
     if (tab === "history" && history === null && spec?.slug) {
       supabase.from("module_spec_versions").select("id, spec, label, created_at").eq("slug", spec.slug).order("created_at", { ascending: false }).limit(50).then(({ data }) => setHistory(data || []));
     }
+    // Proactive: the critic runs itself the first time you open Critique, and
+    // whenever the spec has meaningfully changed since the last critique.
+    if (tab === "critique" && !busy && (critique === null || critiqueStamp.current !== specStamp())) runCritique();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
@@ -115,16 +118,34 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
   const [intent, setIntent] = useState("");
   const [source, setSource] = useState("");
   const [critique, setCritique] = useState<any>(null);
+  const critiqueStamp = useRef<string>("");
+  const specStamp = () => `${JSON.stringify(spec).length}:${spec.scenarios?.length || 0}:${spec.probes?.length || 0}`;
 
   async function runCritique() {
     setBusy("critique"); setMsg("");
+    const stamp = specStamp();
     try {
       const res = await fetch("/api/mechanics/critic", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ spec }) });
       const d = await res.json().catch(() => ({}));
       if (!res.ok || !d.result) setErrors([d.error || "The critic couldn't finish."]);
-      else setCritique(d.result);
+      else { setCritique(d.result); critiqueStamp.current = stamp; }
     } catch (e: any) { setErrors([e?.message || "Critique failed."]); }
     finally { setBusy(""); }
+  }
+
+  // Findings whose text touches a given section, so the critique comes to you.
+  function sectionFindings(re: RegExp): any[] {
+    return (critique?.findings || []).filter((f: any) => re.test(`${f.area} ${f.title} ${f.detail}`.toLowerCase()));
+  }
+  function SectionCritique({ re }: { re: RegExp }) {
+    const fs = sectionFindings(re);
+    if (!fs.length) return null;
+    return (
+      <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-900">
+        <span className="font-semibold">🔍 The critic flagged {fs.length} issue{fs.length > 1 ? "s" : ""} here:</span>
+        <ul className="mt-1 list-disc pl-4">{fs.map((f, i) => <li key={i}>{f.title}{f.fix ? <> — <span className="text-amber-800">{f.fix}</span></> : null}</li>)}</ul>
+      </div>
+    );
   }
 
   async function onPdf(e: React.ChangeEvent<HTMLInputElement>) {
@@ -156,6 +177,11 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
 
   async function save(nextStatus?: string) {
     const e = validate(); if (e.length) { setMsg(""); return; }
+    // Proactive gate: don't let a module ship over known high-severity critique.
+    if (nextStatus === "published") {
+      const highs = (critique?.findings || []).filter((f: any) => f.severity === "high");
+      if (highs.length && !window.confirm(`The Critique flagged ${highs.length} high-severity issue${highs.length > 1 ? "s" : ""}:\n\n${highs.map((f: any) => "• " + f.title).join("\n")}\n\nPublish anyway?`)) { setMsg(""); return; }
+    }
     const st = nextStatus ?? status;
     setBusy(nextStatus === "published" ? "publish" : nextStatus === "draft" ? "unpublish" : "save"); setMsg("");
     const { error } = await supabase.from("module_specs").upsert({ slug: spec.slug, version: 1, owner_id: me, status: st, spec, updated_at: new Date().toISOString() }, { onConflict: "slug,version" });
@@ -208,9 +234,15 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
 
       {/* tabs */}
       <div className="mt-3 flex flex-wrap gap-1">
-        {TABS.map((t) => (
-          <button key={t.id} onClick={() => setTab(t.id)} className={`rounded-full px-3 py-1 text-sm transition ${tab === t.id ? "bg-ink text-white" : "text-slate2 hover:bg-mist"}`}>{t.label}</button>
-        ))}
+        {TABS.map((t) => {
+          const n = t.id === "critique" ? (critique?.findings?.length || 0) : 0;
+          const hasHigh = t.id === "critique" && (critique?.findings || []).some((f: any) => f.severity === "high");
+          return (
+            <button key={t.id} onClick={() => setTab(t.id)} className={`rounded-full px-3 py-1 text-sm transition ${tab === t.id ? "bg-ink text-white" : "text-slate2 hover:bg-mist"}`}>
+              {t.label}{n > 0 && <span className={`ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${hasHigh ? "bg-red-500 text-white" : "bg-amber-soft text-amber"}`}>{n}</span>}
+            </button>
+          );
+        })}
       </div>
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_360px]">
@@ -256,6 +288,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
           {/* ---------------- CHARACTER ---------------- */}
           {tab === "character" && char && (
             <>
+              <SectionCritique re={/character|behavior|contract|persona|leak|lie/} />
               <ComponentLibrary me={me} kind="character" label="character"
                 summarize={(d) => d?.name || d?.persona || "character"}
                 getData={() => ({ name: char.name, persona: char.persona, behavior: char.behavior })}
@@ -289,6 +322,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
           {/* ---------------- SCENARIOS ---------------- */}
           {tab === "scenarios" && (
             <>
+              <SectionCritique re={/scenario|probe|tell|discrimin|ambig|separate|leak/} />
               <ComponentLibrary me={me} kind="scenario-set" label="scenario set"
                 summarize={(d) => `${d?.probes?.length || 0} probes · ${d?.scenarios?.length || 0} scenarios`}
                 getData={() => ({ probes: spec.probes || [], scenarios: spec.scenarios || [] })}
@@ -345,6 +379,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
           {/* ---------------- ASSESSMENT ---------------- */}
           {tab === "assessment" && (
             <>
+              <SectionCritique re={/rubric|grade|grading|verdict|calibrat|objective|score/} />
               <div>
                 <div className="lbl">The verdict the learner commits to</div>
                 {choiceField ? (
