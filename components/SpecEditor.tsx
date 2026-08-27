@@ -27,6 +27,18 @@ const TABS = [
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
+const STORY_TOOLS = [
+  { id: "ai", label: "✨ Copilot" },
+  { id: "critique", label: "🔍 Critique" },
+  { id: "playtest", label: "🧪 Playtest" },
+  { id: "insights", label: "📈 Insights" },
+  { id: "history", label: "🕘 History" },
+] as const;
+const PLAYTEST_COLS = [
+  { k: "strong", label: "Strong learner" },
+  { k: "weak", label: "Weak learner" },
+] as const;
+
 const VALUES = ["high", "med", "low"] as const;
 const STANCES = ["affirm", "hedge", "deny", "noncommittal"] as const;
 const STANCE_HINT: Record<string, string> = {
@@ -62,6 +74,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [tab, setTab] = useState<TabId>("overview");
+  const [view, setView] = useState<"story" | "fields">("story");
   const [errors, setErrors] = useState<string[]>([]);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState("");
@@ -134,6 +147,11 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
     return { ...s, flow };
   });
   const setRubric = (p: any) => setSpec((s: any) => ({ ...s, rubric: { ...(s.rubric || {}), ...p } }));
+  // Flow-step conveniences for the storyboard beats.
+  const convBudget = ((spec.flow || []).find((f: any) => f.kind === "converse") || {}).budget;
+  const setBudget = (v: number) => setSpec((s: any) => { const flow = [...(s.flow || [])]; const i = flow.findIndex((f: any) => f.kind === "converse"); if (i >= 0) flow[i] = { ...flow[i], budget: v }; return { ...s, flow }; });
+  const briefIntro = ((spec.flow || []).find((f: any) => f.kind === "brief") || {}).intro;
+  const setBriefIntro = (v: string) => setSpec((s: any) => { const flow = [...(s.flow || [])]; const i = flow.findIndex((f: any) => f.kind === "brief"); if (i >= 0) { flow[i] = { ...flow[i], intro: v }; return { ...s, flow }; } return s; });
 
   // ---- actions ------------------------------------------------------------
   function validate() { const e = validateSpec(spec); setErrors(e); setMsg(e.length ? "" : "Valid ✓"); return e; }
@@ -166,6 +184,59 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
       else setPlaytest(d);
     } catch (e: any) { setErrors([e?.message || "Playtest failed."]); }
     finally { setBusy(""); }
+  }
+
+  // The matrix + per-scenario editors, shared by the Scenarios tab and the
+  // storyboard's hidden-layer track.
+  function scenarioEditors() {
+    return (
+      <>
+        {probes.length > 0 && scenarios.length > 0 && <ScenarioMatrix probes={probes} scenarios={scenarios} />}
+        {scenarios.map((scn, si) => (
+          <details key={si} className="rounded-xl border border-line" open={scenarios.length <= 2}>
+            <summary className="cursor-pointer list-none px-3 py-2 text-sm font-semibold text-ink">
+              <span className="mr-2">🎭</span>{scn.label || scn.id || `Scenario ${si + 1}`}
+              <span className="ml-2 rounded-full bg-mist px-2 py-0.5 text-[11px] font-normal text-slate-500">truth: {scn.truth || "—"}</span>
+              <button onClick={(e) => { e.preventDefault(); removeScn(si); }} className="float-right text-slate-300 hover:text-red-500">✕</button>
+            </summary>
+            <div className="space-y-3 border-t border-line p-3">
+              <div className="grid grid-cols-3 gap-2">
+                <div><label className="lbl">Id</label><input className="field font-mono text-xs" value={scn.id || ""} onChange={(e) => setScn(si, { id: e.target.value.replace(/[^a-zA-Z0-9]/g, "") })} /></div>
+                <div><label className="lbl">Label</label><input className="field text-sm" value={scn.label || ""} onChange={(e) => setScn(si, { label: e.target.value })} /></div>
+                <div><label className="lbl">Truth (the correct call)</label><input className="field text-sm" value={scn.truth || ""} onChange={(e) => setScn(si, { truth: e.target.value })} placeholder="stuffing / clean / cant_tell" /></div>
+              </div>
+              <div><label className="lbl">Hidden narrative (character + examiner only)</label><textarea className="field text-sm" rows={3} value={scn.narrative || ""} onChange={(e) => setScn(si, { narrative: e.target.value })} /></div>
+              <div className="grid grid-cols-2 gap-2">
+                <div><label className="lbl">The tell — what actually discriminated it</label><textarea className="field text-xs" rows={2} value={scn.tell || ""} onChange={(e) => setScn(si, { tell: e.target.value })} /></div>
+                <div><label className="lbl">The naive-AI wrong read</label><textarea className="field text-xs" rows={2} value={scn.foil || ""} onChange={(e) => setScn(si, { foil: e.target.value })} /></div>
+              </div>
+              <div>
+                <div className="lbl">How the character answers each probe here</div>
+                <div className="mt-1 space-y-2">
+                  {probes.map((p) => { const d = dimFor(scn, p.key); return (
+                    <div key={p.key} className="rounded-lg bg-mist/60 p-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-semibold text-ink">{p.label || p.key}</span>
+                        <select className="field h-7 w-24 py-0 text-xs" value={d.value || ""} onChange={(e) => setDim(si, p.key, { value: e.target.value })}>
+                          <option value="">value</option>{VALUES.map((v) => <option key={v} value={v}>{v}</option>)}
+                        </select>
+                        <select className="field h-7 w-36 py-0 text-xs" value={d.stance || ""} onChange={(e) => setDim(si, p.key, { stance: e.target.value })} title={STANCE_HINT[d.stance] || ""}>
+                          <option value="">stance</option>{STANCES.map((v) => <option key={v} value={v}>{v}</option>)}
+                        </select>
+                        {d.stance && <span className="text-[10px] text-slate-400">{STANCE_HINT[d.stance]}</span>}
+                      </div>
+                      <textarea className="field mt-1 text-xs" rows={2} value={d.answer || ""} onChange={(e) => setDim(si, p.key, { answer: e.target.value })} placeholder="The character's private truth and exactly how to deliver it." />
+                    </div>
+                  ); })}
+                  {probes.length === 0 && <p className="text-xs text-slate-400">Add probes to fill in answers.</p>}
+                </div>
+              </div>
+            </div>
+          </details>
+        ))}
+        <button onClick={addScn} className="btn-ghost text-sm">+ Add scenario</button>
+      </>
+    );
   }
 
   // Findings whose text touches a given section, so the critique comes to you.
@@ -269,6 +340,25 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
         </div>
       )}
 
+      {/* view toggle + quick tools */}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className="inline-flex rounded-full border border-line p-0.5 text-sm">
+          <button onClick={() => setView("story")} className={`rounded-full px-3 py-1 ${view === "story" ? "bg-ink text-white" : "text-slate2"}`}>Storyboard</button>
+          <button onClick={() => setView("fields")} className={`rounded-full px-3 py-1 ${view === "fields" ? "bg-ink text-white" : "text-slate2"}`}>Fields</button>
+        </div>
+        {view === "story" && (
+          <div className="flex flex-wrap gap-1">
+            {STORY_TOOLS.map((tt) => (
+              <button key={tt.id} onClick={() => { setView("fields"); setTab(tt.id as TabId); }} className="rounded-full px-2.5 py-1 text-xs text-slate2 hover:bg-mist">
+                {tt.label}{tt.id === "critique" && (critique?.findings?.length || 0) > 0 && <span className={`ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${(critique?.findings || []).some((f: any) => f.severity === "high") ? "bg-red-500 text-white" : "bg-amber-soft text-amber"}`}>{critique.findings.length}</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {view === "fields" && (
+      <>
       {/* tabs */}
       <div className="mt-3 flex flex-wrap gap-1">
         {TABS.map((t) => {
@@ -366,51 +456,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                 onInsert={(d) => setSpec((s: any) => ({ ...s, probes: d.probes || [], scenarios: d.scenarios || [] }))} />
               <p className="text-sm text-slate-500">The hidden truths. Learners are assigned one at random from the session code and never told which. Give each the same probes, with different answers, and include one that's genuinely ambiguous.</p>
               {probes.length === 0 && <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">Define your probes first — scenarios answer them.</div>}
-              {probes.length > 0 && scenarios.length > 0 && <ScenarioMatrix probes={probes} scenarios={scenarios} />}
-              {scenarios.map((scn, si) => (
-                <details key={si} className="rounded-xl border border-line" open={scenarios.length <= 2}>
-                  <summary className="cursor-pointer list-none px-3 py-2 text-sm font-semibold text-ink">
-                    <span className="mr-2">🎭</span>{scn.label || scn.id || `Scenario ${si + 1}`}
-                    <span className="ml-2 rounded-full bg-mist px-2 py-0.5 text-[11px] font-normal text-slate-500">truth: {scn.truth || "—"}</span>
-                    <button onClick={(e) => { e.preventDefault(); removeScn(si); }} className="float-right text-slate-300 hover:text-red-500">✕</button>
-                  </summary>
-                  <div className="space-y-3 border-t border-line p-3">
-                    <div className="grid grid-cols-3 gap-2">
-                      <div><label className="lbl">Id</label><input className="field font-mono text-xs" value={scn.id || ""} onChange={(e) => setScn(si, { id: e.target.value.replace(/[^a-zA-Z0-9]/g, "") })} /></div>
-                      <div><label className="lbl">Label</label><input className="field text-sm" value={scn.label || ""} onChange={(e) => setScn(si, { label: e.target.value })} /></div>
-                      <div><label className="lbl">Truth (the correct call)</label><input className="field text-sm" value={scn.truth || ""} onChange={(e) => setScn(si, { truth: e.target.value })} placeholder="stuffing / clean / cant_tell" /></div>
-                    </div>
-                    <div><label className="lbl">Hidden narrative (character + examiner only)</label><textarea className="field text-sm" rows={3} value={scn.narrative || ""} onChange={(e) => setScn(si, { narrative: e.target.value })} /></div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div><label className="lbl">The tell — what actually discriminated it</label><textarea className="field text-xs" rows={2} value={scn.tell || ""} onChange={(e) => setScn(si, { tell: e.target.value })} /></div>
-                      <div><label className="lbl">The naive-AI wrong read</label><textarea className="field text-xs" rows={2} value={scn.foil || ""} onChange={(e) => setScn(si, { foil: e.target.value })} /></div>
-                    </div>
-                    {/* dimensions keyed to probes */}
-                    <div>
-                      <div className="lbl">How the character answers each probe here</div>
-                      <div className="mt-1 space-y-2">
-                        {probes.map((p) => { const d = dimFor(scn, p.key); return (
-                          <div key={p.key} className="rounded-lg bg-mist/60 p-2">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="text-xs font-semibold text-ink">{p.label || p.key}</span>
-                              <select className="field h-7 w-24 py-0 text-xs" value={d.value || ""} onChange={(e) => setDim(si, p.key, { value: e.target.value })}>
-                                <option value="">value</option>{VALUES.map((v) => <option key={v} value={v}>{v}</option>)}
-                              </select>
-                              <select className="field h-7 w-36 py-0 text-xs" value={d.stance || ""} onChange={(e) => setDim(si, p.key, { stance: e.target.value })} title={STANCE_HINT[d.stance] || ""}>
-                                <option value="">stance</option>{STANCES.map((v) => <option key={v} value={v}>{v}</option>)}
-                              </select>
-                              {d.stance && <span className="text-[10px] text-slate-400">{STANCE_HINT[d.stance]}</span>}
-                            </div>
-                            <textarea className="field mt-1 text-xs" rows={2} value={d.answer || ""} onChange={(e) => setDim(si, p.key, { answer: e.target.value })} placeholder="The character's private truth and exactly how to deliver it." />
-                          </div>
-                        ); })}
-                        {probes.length === 0 && <p className="text-xs text-slate-400">Add probes to fill in answers.</p>}
-                      </div>
-                    </div>
-                  </div>
-                </details>
-              ))}
-              <button onClick={addScn} className="btn-ghost text-sm">+ Add scenario</button>
+              {scenarioEditors()}
             </>
           )}
 
@@ -577,12 +623,12 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                     <div className="mt-1 text-[11px] opacity-80">Tested on scenario “{playtest.scenario?.id}” (truth: {playtest.scenario?.truth}) · {playtest.budget} questions</div>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {([["strong", "Strong learner"], ["weak", "Weak learner"]] as const).map(([k, label]) => {
-                      const r = playtest[k]; if (!r) return null;
+                    {PLAYTEST_COLS.map((col) => {
+                      const r = playtest[col.k]; if (!r) return null;
                       return (
-                        <div key={k} className="rounded-xl border border-line bg-white p-3">
+                        <div key={col.k} className="rounded-xl border border-line bg-white p-3">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-semibold text-ink">{label}</span>
+                            <span className="text-sm font-semibold text-ink">{col.label}</span>
                             <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${r.score >= 60 ? "bg-sage-soft text-sage" : "bg-mist text-slate-500"}`}>{r.score}</span>
                           </div>
                           <div className="mt-1 text-xs text-slate-500">Called <b className="text-ink">{r.verdict?.call || "—"}</b> at {r.verdict?.confidence ?? "—"}% · {r.correct ? <span className="text-sage">right call</span> : <span className="text-clay">wrong call</span>}</div>
@@ -659,6 +705,96 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
         {/* live preview */}
         <SpecPreview spec={spec} />
       </div>
+      </>
+      )}
+
+      {view === "story" && (
+        <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_360px]">
+          <div className="min-w-0 space-y-4">
+            {/* Header / identity */}
+            <div className="rounded-2xl border border-line bg-white p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <input className="field w-14 text-center text-2xl" value={spec.meta?.emoji || ""} onChange={(e) => setMeta({ emoji: e.target.value })} />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <input className="field text-lg font-bold" value={spec.meta?.name || ""} onChange={(e) => setMeta({ name: e.target.value })} placeholder="Module name" />
+                  <input className="field text-sm" value={spec.meta?.tagline || ""} onChange={(e) => setMeta({ tagline: e.target.value })} placeholder="One line on what the learner does and why it matters." />
+                </div>
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <div><label className="lbl">Learning goal</label><textarea className="field text-xs" rows={2} value={spec.objective?.goal || ""} onChange={(e) => setObjective({ goal: e.target.value })} /></div>
+                <div><label className="lbl">The aha</label><textarea className="field text-xs" rows={2} value={spec.objective?.aha || ""} onChange={(e) => setObjective({ aha: e.target.value })} /></div>
+              </div>
+              <div className="mt-2"><label className="lbl">Slug (the URL)</label><input className="field font-mono text-xs" value={spec.slug || ""} onChange={(e) => patch({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-") })} placeholder="earnings-call" /></div>
+            </div>
+
+            {/* Beat 1: the brief */}
+            <Beat n="1" title="The brief" hint="What every learner sees">
+              <div><label className="lbl">The situation</label><textarea className="field text-sm" rows={6} value={spec.world || ""} onChange={(e) => patch({ world: e.target.value })} placeholder="The public setup: the company, the person, the numbers on the table. No hidden truth here." /></div>
+              <div><label className="lbl">The assignment (the learner's task)</label><textarea className="field text-sm" rows={3} value={briefIntro || ""} onChange={(e) => setBriefIntro(e.target.value)} /></div>
+            </Beat>
+
+            {/* Beat 2: the conversation */}
+            <Beat n="2" title="The conversation" hint="Who they question, and for how long">
+              <SectionCritique re={/character|behavior|contract|persona|leak|lie/} />
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div><label className="lbl">Character name</label><input className="field text-sm" value={char?.name || ""} onChange={(e) => setChar({ name: e.target.value })} placeholder="Daniel Voss" /></div>
+                <div><label className="lbl">Questions the learner gets</label><input type="number" className="field text-sm" value={convBudget ?? ""} onChange={(e) => setBudget(Number(e.target.value) || 0)} /></div>
+              </div>
+              <div><label className="lbl">Persona — voice and personality</label><input className="field text-sm" value={char?.persona || ""} onChange={(e) => setChar({ persona: e.target.value })} placeholder="Confident, media-trained founder-CEO who believes in the company." /></div>
+              <details><summary className="cursor-pointer text-xs font-semibold text-slate-500">Behavior contract — how they handle the truth</summary><textarea className="field mt-1 text-sm" rows={5} value={char?.behavior || ""} onChange={(e) => setChar({ behavior: e.target.value })} /></details>
+              <div>
+                <label className="lbl">The cuts a learner can probe</label>
+                <div className="mt-1 space-y-1.5">
+                  {probes.map((p, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input className="field w-28 font-mono text-xs" value={p.key || ""} onChange={(e) => setProbe(i, { key: e.target.value.replace(/[^a-zA-Z0-9]/g, "") })} placeholder="key" />
+                      <input className="field flex-1 text-sm" value={p.label || ""} onChange={(e) => setProbe(i, { label: e.target.value })} placeholder="The question a sharp learner would ask" />
+                      <button onClick={() => removeProbe(i)} className="text-slate-300 hover:text-red-500">✕</button>
+                    </div>
+                  ))}
+                  <button onClick={addProbe} className="btn-ghost text-sm">+ Add probe</button>
+                </div>
+              </div>
+            </Beat>
+
+            {/* Hidden layer */}
+            <div className="rounded-2xl border-2 border-dashed border-line bg-mist/30 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">🎭 Hidden layer — learners never see this</div>
+              <p className="mt-0.5 text-[11px] text-slate-400">The scenarios behind the conversation. One is chosen at random each run; the character and examiner know it, the learner never does. Keep the same probes with different answers, and include one that's genuinely ambiguous.</p>
+              <div className="mt-3 space-y-3">
+                <SectionCritique re={/scenario|probe|tell|discrimin|ambig|separate/} />
+                {probes.length === 0 && <div className="rounded-lg bg-amber-50 p-2.5 text-xs text-amber-800">Add probes above first — scenarios answer them.</div>}
+                {scenarioEditors()}
+              </div>
+            </div>
+
+            {/* Beat 3: the decision */}
+            <Beat n="3" title="The decision" hint="The call the learner commits to">
+              {choiceField ? (
+                <div className="space-y-2">
+                  {(choiceField.options || []).map((o: any, oi: number) => (
+                    <div key={oi} className="flex items-center gap-2">
+                      <input className="field w-40 font-mono text-xs" value={o.value || ""} onChange={(e) => setChoiceOption(oi, { value: e.target.value })} placeholder="value" />
+                      <input className="field flex-1 text-sm" value={o.label || ""} onChange={(e) => setChoiceOption(oi, { label: e.target.value })} placeholder="What the learner sees" />
+                    </div>
+                  ))}
+                  <button onClick={addChoiceOption} className="btn-ghost text-sm">+ Add option</button>
+                </div>
+              ) : <p className="text-xs text-slate-400">No choice field here. Edit it in Fields → Assessment.</p>}
+            </Beat>
+
+            {/* Beat 4: the debrief */}
+            <Beat n="4" title="The debrief" hint="How they're graded and what they get back">
+              <SectionCritique re={/rubric|grade|grading|verdict|calibrat|objective|score/} />
+              <div><label className="lbl">How the examiner grades (performance, not the guess)</label><textarea className="field text-sm" rows={4} value={spec.rubric?.instructions || ""} onChange={(e) => setRubric({ instructions: e.target.value })} /></div>
+              {(spec.report || []).length > 0 && <div><label className="lbl">The report shows</label><div className="mt-1 flex flex-wrap gap-1">{(spec.report || []).map((b: any, i: number) => <span key={i} className="rounded-full bg-mist px-2 py-0.5 text-[11px] text-slate-500">{b.title || b.source}</span>)}</div></div>}
+              <p className="text-[11px] text-slate-400">Fine-tune the grading fields and report layout in Fields → Assessment / Advanced.</p>
+            </Beat>
+          </div>
+
+          <SpecPreview spec={spec} />
+        </div>
+      )}
     </div>
   );
 }
@@ -718,6 +854,22 @@ function ScenarioMatrix({ probes, scenarios }: { probes: any[]; scenarios: any[]
         </table>
       </div>
       <p className="mt-2 text-[10px] leading-relaxed text-slate-400">A probe marked <span className="font-semibold text-clay">same everywhere</span> can't help a learner tell scenarios apart; a <span className="font-semibold text-clay">duplicate</span> scenario is indistinguishable from another. Vary the stance or value to fix it.</p>
+    </div>
+  );
+}
+
+// One storyboard beat: a numbered, titled card the author edits in place.
+function Beat({ n, title, hint, children }: { n: string; title: string; hint?: string; children: any }) {
+  return (
+    <div className="rounded-2xl border border-line bg-white p-4 shadow-sm">
+      <div className="mb-3 flex items-baseline gap-2.5">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-bold text-white">{n}</span>
+        <div>
+          <div className="text-sm font-bold text-ink">{title}</div>
+          {hint && <div className="text-[11px] text-slate-400">{hint}</div>}
+        </div>
+      </div>
+      <div className="space-y-3">{children}</div>
     </div>
   );
 }
