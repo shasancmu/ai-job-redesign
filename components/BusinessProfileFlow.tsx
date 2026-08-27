@@ -5,7 +5,7 @@ import Logo from "@/components/Logo";
 import RoleplayChat, { type Msg } from "@/components/RoleplayChat";
 import { streamPost } from "@/lib/streamClient";
 import CensusReport from "@/components/CensusReport";
-import { WMS, EMPLOYEE_BANDS, REVENUE_BANDS, CUSTOMER_TYPES, OWNERSHIP_TYPES, TIE_TYPES, type NetworkEdge } from "@/lib/census";
+import { WMS, EMPLOYEE_BANDS, REVENUE_BANDS, CUSTOMER_TYPES, OWNERSHIP_TYPES, TIE_TYPES, shotsFor, type NetworkEdge } from "@/lib/census";
 
 async function jpost(path: string, body: any) {
   const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -189,35 +189,45 @@ function Basics({ rec, set }: any) {
 }
 
 function Photos({ rec, set }: any) {
-  const [busy, setBusy] = useState(false);
-  async function add(files: FileList | null) {
+  const shots = shotsFor(rec);
+  const [busy, setBusy] = useState<string>("");
+  const got = (key: string) => (rec.photos || []).find((p: any) => p.shot === key);
+
+  async function capture(shot: any, files: FileList | null) {
     if (!files || !files.length) return;
-    setBusy(true);
-    const next = [...(rec.photos || [])];
-    for (const f of Array.from(files).slice(0, 3)) {
-      try {
-        const url = await fileToDataUrl(f);
-        const { data } = await jpost("/api/census/photo", { image: url, context: rec.industry_desc || "" });
-        if (data && (data.description || data.title)) next.push({ title: data.title || "", description: data.description || "" });
-      } catch {}
-    }
-    set({ photos: next.slice(0, 3) }); setBusy(false);
+    setBusy(shot.key);
+    try {
+      const url = await fileToDataUrl(files[0]);
+      const { data } = await jpost("/api/census/photo", { image: url, shot: `${shot.instruction} ${shot.hint}`, business: rec.industry_desc || "" });
+      if (data && (data.description || data.title)) {
+        const photos = [...(rec.photos || []).filter((p: any) => p.shot !== shot.key), { shot: shot.key, title: data.title || "", description: data.description || "" }];
+        set({ photos });
+      }
+    } catch {}
+    setBusy("");
   }
+
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-600">Snap 1 to 3 photos: your storefront, workspace, or products. We read them into text to ground your profile. Optional, but it makes the read much better.</p>
-      <label className="flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-line bg-mist py-6 text-sm font-medium text-slate-600 hover:border-slate-300">
-        {busy ? "Reading..." : "+ Add photos"}
-        <input type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={(e) => add(e.target.files)} />
-      </label>
-      <div className="space-y-2">
-        {(rec.photos || []).map((p: any, i: number) => (
-          <div key={i} className="rounded-xl bg-mist p-3 text-sm">
-            <div className="font-semibold text-ink">{p.title || "Photo"}</div>
-            <div className="mt-0.5 text-xs text-slate-500 line-clamp-2">{p.description}</div>
+    <div className="space-y-3">
+      <p className="text-sm text-slate-600">Take these {shots.length} photos so we can build a standard picture of your business. Take the same shots each time you update, so your progress shows. Optional, but it makes the read much better.</p>
+      {shots.map((shot) => {
+        const p = got(shot.key);
+        return (
+          <div key={shot.key} className={"card p-4 " + (p ? "border-sage/40" : "")}>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <div className="text-sm font-bold text-ink">{p ? "✓ " : ""}{shot.label}</div>
+                <div className="text-xs text-slate-500">{shot.instruction}</div>
+              </div>
+              <label className="btn-ghost shrink-0 cursor-pointer text-sm">
+                {busy === shot.key ? "Reading..." : p ? "Retake" : "Take photo"}
+                <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => capture(shot, e.target.files)} />
+              </label>
+            </div>
+            {p && <div className="mt-2 rounded-lg bg-mist p-2 text-xs leading-snug text-slate-500 line-clamp-2">{p.description}</div>}
           </div>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 }

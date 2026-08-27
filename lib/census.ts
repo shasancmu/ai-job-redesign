@@ -60,6 +60,35 @@ export type BusinessRecord = {
   contact_email?: string;
 };
 
+// Standardized photo protocol. Three core shots are the same for every business
+// (so records are comparable across firms and across waves); a fourth shot is
+// chosen by business type, so each firm photographs what is actually informative.
+export type Shot = { key: string; label: string; instruction: string; hint: string };
+
+export const CORE_SHOTS: Shot[] = [
+  { key: "front", label: "The front", instruction: "The outside: your storefront, sign, or entrance.", hint: "Assess visibility, signage and branding, formality, and the condition of the premises." },
+  { key: "workspace", label: "Where the work happens", instruction: "Inside, where the work gets done: your floor, kitchen, workshop, or desk.", hint: "Assess how organized, clean, and well-equipped the workspace is, the tools present, and the apparent scale. This reflects operational management." },
+  { key: "product", label: "What you sell or make", instruction: "Your products, your inventory, or a service being delivered.", hint: "Assess product range, quality, presentation, and how much stock is visible." },
+];
+
+// The type-specific fourth shot, from the classified industry.
+export function fourthShot(input: { naics?: string; naics_label?: string; isic_label?: string; industry_desc?: string }): Shot {
+  const t = `${input.naics_label || ""} ${input.isic_label || ""} ${input.industry_desc || ""}`.toLowerCase();
+  const n2 = (input.naics || "").slice(0, 2);
+  const is = (re: RegExp, ...codes: string[]) => re.test(t) || codes.includes(n2);
+  if (is(/restaurant|cafe|café|food|bakery|catering|kitchen|eatery|bar\b/, "72")) return { key: "kitchen", label: "Your kitchen or prep area", instruction: "Where food is prepared or cooked.", hint: "Assess cleanliness, equipment, hygiene, and organization of the prep or cooking area." };
+  if (is(/shop|store|retail|boutique|kiosk|market stall|grocer|pharmac/, "44", "45")) return { key: "shelves", label: "Your shelves and counter", instruction: "How your goods are stocked and displayed, and your point of sale.", hint: "Assess stock depth, how full the shelves are, merchandising, and the point of sale setup." };
+  if (is(/manufactur|factory|workshop|produc|assembl|fabricat|mill\b|processing/, "31", "32", "33")) return { key: "production", label: "Your production area", instruction: "Your machinery, production line, or raw materials.", hint: "Assess equipment, capacity, work-in-progress and raw material, and how organized production is." };
+  if (is(/farm|agri|crop|livestock|poultry|dairy|fish|forestry|plantation|harvest/, "11")) return { key: "field", label: "Your field, crop, or livestock", instruction: "Your land, crops, animals, or storage.", hint: "Assess the crop or livestock, land in use, storage, and apparent scale and condition." };
+  if (is(/construct|builder|contractor|renovation|civil works/, "23")) return { key: "site", label: "A job site or your equipment", instruction: "A current project or your tools and equipment.", hint: "Assess the type of work, equipment, materials, and scale of the project." };
+  if (is(/transport|logistic|delivery|haul|freight|courier|taxi|fleet/, "48", "49")) return { key: "fleet", label: "Your vehicles or storage", instruction: "Your vehicles, warehouse, or storage.", hint: "Assess the fleet or storage, its condition, and the apparent scale." };
+  return { key: "team", label: "Your team at work", instruction: "Your team working, or the main tools of your trade.", hint: "Assess the team size, the tools and technology in use, and how the work is set up." };
+}
+
+export function shotsFor(rec: { naics?: string; naics_label?: string; isic_label?: string; industry_desc?: string }): Shot[] {
+  return [...CORE_SHOTS, fourthShot(rec)];
+}
+
 // Equirectangular projection to a 0..1 box, for the dependency-free dot map.
 export function project(lat: number, lng: number) {
   return { x: (lng + 180) / 360, y: (90 - lat) / 180 };
