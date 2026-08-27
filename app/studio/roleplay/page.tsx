@@ -60,10 +60,15 @@ export default async function RoleplayStudio() {
               <div className="mt-2 text-sm font-bold text-ink">{t.name}</div>
               <div className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-400">{t.domain}</div>
               <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-500">{t.whenToUse}</p>
-              <div className="mt-3 flex items-center gap-2">
-                <Link href={`/studio/roleplay/new?from=${t.id}`} className="btn-primary text-sm">{t.id === "blank" ? "Start" : "Use template"}</Link>
-                {t.runnable && <Link href={`/studio/roleplay/new?remix=${t.id}`} className="btn-ghost text-sm">Remix</Link>}
-                {t.runnable && <Link href={`/m/${t.id}`} target="_blank" className="btn-ghost text-sm">Preview →</Link>}
+              <div className="mt-3">
+                <Link href={`/studio/roleplay/new?from=${t.id}`} className="btn-primary w-full whitespace-nowrap text-sm">{t.id === "blank" ? "Start" : "Use template"}</Link>
+                {t.runnable && (
+                  <div className="mt-2 flex items-center justify-center gap-3 text-xs">
+                    <Link href={`/studio/roleplay/new?remix=${t.id}`} className="text-slate2 hover:text-ink">Remix</Link>
+                    <span className="text-slate-300">·</span>
+                    <Link href={`/m/${t.id}`} target="_blank" className="text-slate2 hover:text-ink">Preview →</Link>
+                  </div>
+                )}
               </div>
             </div>
           ))}
