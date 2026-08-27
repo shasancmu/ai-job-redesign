@@ -738,6 +738,23 @@ drop policy if exists "roleplay_results owner reads" on public.roleplay_results;
 create policy "roleplay_results owner reads" on public.roleplay_results
   for select using (exists (select 1 from public.module_specs ms where ms.slug = roleplay_results.slug and ms.owner_id = auth.uid()));
 
+-- Reusable building blocks an author saves once and drops into any module: a
+-- character, a rubric, or a probes+scenarios set. Owner-scoped, jsonb payload.
+create table if not exists public.module_components (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid references auth.users (id) on delete cascade,
+  kind text not null,
+  name text not null,
+  data jsonb not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists module_components_owner_kind_idx on public.module_components (owner_id, kind);
+alter table public.module_components enable row level security;
+drop policy if exists "module_components owner" on public.module_components;
+create policy "module_components owner" on public.module_components
+  for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+
 create index if not exists photo_entries_session_idx on public.photo_entries (session_id);
 
 alter table public.photo_sessions enable row level security;

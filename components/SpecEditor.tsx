@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { validateSpec } from "@/lib/mechanics/roleplay";
 import SpecPreview from "@/components/SpecPreview";
+import ComponentLibrary from "@/components/ComponentLibrary";
 
 // The authoring canvas: a structured, section-by-section editor over the spec
 // OBJECT (never raw JSON, except the advanced escape hatch), with the Copilot
@@ -207,6 +208,10 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
           {/* ---------------- CHARACTER ---------------- */}
           {tab === "character" && char && (
             <>
+              <ComponentLibrary me={me} kind="character" label="character"
+                summarize={(d) => d?.name || d?.persona || "character"}
+                getData={() => ({ name: char.name, persona: char.persona, behavior: char.behavior })}
+                onInsert={(d) => setChar({ name: d.name ?? char.name, persona: d.persona, behavior: d.behavior })} />
               <div><label className="lbl">Character name</label><input className="field" value={char.name || ""} onChange={(e) => setChar({ name: e.target.value })} placeholder="Daniel Voss" /></div>
               <div><label className="lbl">Persona — voice and personality</label><textarea className="field text-sm" rows={3} value={char.persona || ""} onChange={(e) => setChar({ persona: e.target.value })} placeholder="Confident, media-trained founder-CEO who believes in the company." /></div>
               <div>
@@ -236,6 +241,10 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
           {/* ---------------- SCENARIOS ---------------- */}
           {tab === "scenarios" && (
             <>
+              <ComponentLibrary me={me} kind="scenario-set" label="scenario set"
+                summarize={(d) => `${d?.probes?.length || 0} probes · ${d?.scenarios?.length || 0} scenarios`}
+                getData={() => ({ probes: spec.probes || [], scenarios: spec.scenarios || [] })}
+                onInsert={(d) => setSpec((s: any) => ({ ...s, probes: d.probes || [], scenarios: d.scenarios || [] }))} />
               <p className="text-sm text-slate-500">The hidden truths. Learners are assigned one at random from the session code and never told which. Give each the same probes, with different answers, and include one that's genuinely ambiguous.</p>
               {probes.length === 0 && <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">Define your probes first — scenarios answer them.</div>}
               {scenarios.map((scn, si) => (
@@ -302,6 +311,10 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                   </div>
                 ) : <p className="text-xs text-slate-400">No choice field in the verdict step. Edit it in Advanced.</p>}
               </div>
+              <ComponentLibrary me={me} kind="rubric" label="rubric"
+                summarize={(d) => (d?.output?.length ? `${d.output.length} graded fields` : "rubric")}
+                getData={() => spec.rubric || {}}
+                onInsert={(d) => setSpec((s: any) => ({ ...s, rubric: d }))} />
               <div>
                 <label className="lbl">How the examiner grades (performance, not the guess)</label>
                 <p className="mb-1 text-xs text-slate-400">Grade the quality of their questions and the calibration of their verdict, not whether they guessed the label.</p>
