@@ -809,6 +809,25 @@ drop policy if exists "analytical_specs owner" on public.analytical_specs;
 create policy "analytical_specs owner" on public.analytical_specs
   for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
 
+-- Authored paired-redesign experiences. The AUTHORING spec is jsonb here; the
+-- RUNTIME reuses the existing (already-realtime) sessions + workspaces tables,
+-- so no new realtime plumbing is introduced. Owner-scoped.
+create table if not exists public.redesign_specs (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null,
+  version int not null default 1,
+  owner_id uuid references auth.users (id) on delete set null,
+  status text not null default 'draft',
+  spec jsonb not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (slug, version)
+);
+alter table public.redesign_specs enable row level security;
+drop policy if exists "redesign_specs owner" on public.redesign_specs;
+create policy "redesign_specs owner" on public.redesign_specs
+  for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+
 -- Version history: a snapshot of a module's spec on each save, for restore + diff.
 create table if not exists public.module_spec_versions (
   id uuid primary key default gen_random_uuid(),

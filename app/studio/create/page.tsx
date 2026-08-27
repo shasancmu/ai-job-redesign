@@ -142,6 +142,19 @@ export default async function CreateGallery() {
           <div className="mt-2 text-right"><Link href="/studio/analytical" className="text-xs text-slate2 hover:text-ink">Your instruments →</Link></div>
         </section>
       )}
+
+      {canRoleplay && (
+        <section className="mt-8">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Paired redesign <span className="ml-1 rounded-full bg-amber-soft px-1.5 py-0.5 text-[10px] font-semibold text-amber">beta · live</span></div>
+          <p className="mt-1 text-sm text-slate-500">Two learners interview each other, then redesign each other's subject on an instrument you define. A live two-person experience.</p>
+          <Link href="/studio/redesign/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
+            <div className="text-2xl">🤝</div>
+            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Describe your redesign, and build it</div><div className="text-xs text-slate-500">Name the subject and the AI/Human split.</div></div>
+            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
+          </Link>
+          <div className="mt-2 text-right"><Link href="/studio/redesign" className="text-xs text-slate2 hover:text-ink">Your redesigns →</Link></div>
+        </section>
+      )}
     </main>
   );
 }
