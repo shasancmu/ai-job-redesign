@@ -9,13 +9,14 @@ import AutoBuild from "@/components/AutoBuild";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export default async function UploadPage() {
+export default async function UploadPage({ searchParams }: { searchParams?: { start?: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   const role = await roleFor(user);
   if (!(role.superadmin || role.directorOrgIds.length > 0)) redirect("/dashboard");
   const dirOrg = role.memberships.find((m) => m.role === "director")?.org;
+  const startMode = searchParams?.start === "interview" ? "interview" : undefined;
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-10">
@@ -23,7 +24,7 @@ export default async function UploadPage() {
         <Logo href="/dashboard" />
         <div className="flex items-center gap-2"><Link href="/studio/create" className="text-sm text-slate2 hover:text-ink">← Create</Link><HeaderNav /></div>
       </header>
-      <AutoBuild me={user.id} canGlobal={role.superadmin} orgName={dirOrg?.name || null} />
+      <AutoBuild me={user.id} canGlobal={role.superadmin} orgName={dirOrg?.name || null} startMode={startMode} />
     </main>
   );
 }

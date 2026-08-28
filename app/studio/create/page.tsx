@@ -33,7 +33,7 @@ export default async function CreateGallery() {
         <div className="flex items-center gap-2"><Link href="/studio" className="text-sm text-slate2 hover:text-ink">← Studio</Link><HeaderNav /></div>
       </header>
       <h1 className="text-3xl text-ink">Create a module</h1>
-      <p className="mt-1 max-w-2xl text-slate2">Start from your own materials, a template, or a blank page. The editor and AI copilot take it from there.</p>
+      <p className="mt-1 max-w-2xl text-slate2">Start from your own materials, talk it through with the AI, or pick a template. The editor and AI copilot take it from there.</p>
       <p className="mt-2 text-sm text-slate-500">New to this? <Link href="/studio/guide" className="font-medium text-ai hover:underline">Read the guide</Link> — what modules are, and how to build one.</p>
 
       <Link href="/studio/upload" className="group mt-6 block rounded-2xl border border-ai/40 bg-gradient-to-br from-ai/5 to-mist/50 p-5 transition hover:shadow-sm sm:p-6">
@@ -42,6 +42,16 @@ export default async function CreateGallery() {
           <div className="min-w-0 flex-1">
             <div className="text-lg font-bold text-ink group-hover:text-ai">Upload your slides &amp; readings → get a module</div>
             <div className="mt-0.5 text-sm text-slate2">Drop your PDFs, Word docs, or notes. It reads them, picks the best format, and drafts a module you edit and launch. The fastest way in.</div>
+          </div>
+          <span className="shrink-0 text-lg font-semibold text-ai">→</span>
+        </div>
+      </Link>
+      <Link href="/studio/upload?start=interview" className="group mt-3 block rounded-2xl border border-line bg-white p-5 transition hover:border-ai/40 hover:shadow-sm sm:p-6">
+        <div className="flex items-center gap-4">
+          <div className="text-3xl">🎙️</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-lg font-bold text-ink group-hover:text-ai">No materials? Talk it through</div>
+            <div className="mt-0.5 text-sm text-slate2">The AI interviews you, by text or voice, about what you want learners to do, then proposes what to build. Great when you&apos;re not sure which format fits.</div>
           </div>
           <span className="shrink-0 text-lg font-semibold text-ai">→</span>
         </div>

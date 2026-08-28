@@ -144,12 +144,12 @@ export default async function GuidePage() {
           </div>
           <p className="mt-1 text-xs text-slate-500">Best when you&apos;re not sure which format fits, or you have no materials to upload.</p>
           <ol className="mt-3 space-y-2.5 text-[14px] leading-relaxed text-slate2">
-            <li><b className="text-ink">1. Start the interview.</b> On the Upload page choose &ldquo;Talk it through&rdquo;, by <b className="text-ink">text or voice</b> (the blue dot asks the questions aloud). It works with or without materials; if you uploaded some, it draws on them.</li>
+            <li><b className="text-ink">1. Start the interview.</b> Choose &ldquo;Talk it through&rdquo; on Create (or the Upload page), by <b className="text-ink">text or voice</b> (the blue dot asks the questions aloud). It works with or without materials; if you uploaded some, it draws on them.</li>
             <li><b className="text-ink">2. Answer a few questions.</b> It asks what you want learners to be able to do, who they are, and what&apos;s hard, five or six short questions, then tells you when it has enough.</li>
             <li><b className="text-ink">3. See what it can build.</b> It turns the conversation into the same menu of module ideas, already shaped by what you said. Pick one or more.</li>
             <li><b className="text-ink">4. Edit and launch.</b> Same editor, same finish.</li>
           </ol>
-          <Link href="/studio/upload" className="btn-ghost mt-4 inline-block text-sm">Start an interview →</Link>
+          <Link href="/studio/upload?start=interview" className="btn-ghost mt-4 inline-block text-sm">Start an interview →</Link>
         </div>
       </section>
 

@@ -25,9 +25,9 @@ const KINDS: Record<string, { label: string; emoji: string; endpoint: string; ta
 };
 const LOADING = ["Reading your materials…", "Finding the interactive core…", "Drafting your modules…"];
 
-export default function AutoBuild({ me, canGlobal, orgName }: { me: string; canGlobal: boolean; orgName: string | null }) {
+export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: string; canGlobal: boolean; orgName: string | null; startMode?: string }) {
   const supabase = createClient();
-  const [phase, setPhase] = useState<"upload" | "interview" | "choose" | "editor" | "created">("upload");
+  const [phase, setPhase] = useState<"upload" | "interview" | "choose" | "editor" | "created">(startMode === "interview" ? "interview" : "upload");
   const [interviewSource, setInterviewSource] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState("");
