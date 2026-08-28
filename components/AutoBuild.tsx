@@ -11,6 +11,7 @@ import AnalyticalEditor from "@/components/AnalyticalEditor";
 import RedesignEditor from "@/components/RedesignEditor";
 import ExplainerEditor from "@/components/ExplainerEditor";
 import NewsFrameEditor from "@/components/NewsFrameEditor";
+import AuthoringInterview from "@/components/AuthoringInterview";
 
 const KINDS: Record<string, { label: string; emoji: string; endpoint: string; table?: string; editBase: string }> = {
   explainer: { label: "Explainer", emoji: "📖", endpoint: "/api/mechanics/explainer-copilot", table: "explainer_specs", editBase: "/studio/explainer/" },
@@ -26,7 +27,8 @@ const LOADING = ["Reading your materials…", "Finding the interactive core…",
 
 export default function AutoBuild({ me, canGlobal, orgName }: { me: string; canGlobal: boolean; orgName: string | null }) {
   const supabase = createClient();
-  const [phase, setPhase] = useState<"upload" | "choose" | "editor" | "created">("upload");
+  const [phase, setPhase] = useState<"upload" | "interview" | "choose" | "editor" | "created">("upload");
+  const [interviewSource, setInterviewSource] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
@@ -69,6 +71,34 @@ export default function AutoBuild({ me, canGlobal, orgName }: { me: string; canG
       else { setOptions(opts); setSource(d.source || ""); setSel(new Set([0])); setPhase("choose"); }
     } catch (e: any) { setErr(e?.message || "Something went wrong."); }
     finally { setBusy(""); }
+  }
+
+  // Client-extract what we can from uploaded files, to ground the interview.
+  async function collectSource(): Promise<string> {
+    const parts: string[] = [];
+    for (const f of files) {
+      try {
+        if (/\.pdf$/i.test(f.name)) { const { extractPdfTextClient } = await import("@/lib/pdfClient"); parts.push(await extractPdfTextClient(f)); }
+        else if (/\.(txt|md|markdown)$/i.test(f.name)) parts.push(await f.text());
+      } catch { /* skip a file we can't read here */ }
+    }
+    return parts.join("\n\n").slice(0, 12000);
+  }
+
+  async function startInterview() {
+    setErr("");
+    if (files.length) { setBusy("prep"); try { setInterviewSource(await collectSource()); } catch { setInterviewSource(""); } setBusy(""); }
+    else setInterviewSource("");
+    setPhase("interview");
+  }
+
+  function onInterviewDone(opts: any[], transcript: string) {
+    const usable = (opts || []).filter((o) => o && KINDS[o.kind]);
+    if (!usable.length) { setErr("Couldn't turn that into modules. Try again."); setPhase("upload"); return; }
+    setOptions(usable);
+    setSource([interviewSource, transcript].filter(Boolean).join("\n\n"));
+    setSel(new Set([0]));
+    setPhase("choose");
   }
 
   async function generateOne(opt: any, onProgress?: (p: { chars: number; name: string }) => void): Promise<any> {
@@ -179,9 +209,9 @@ export default function AutoBuild({ me, canGlobal, orgName }: { me: string; canG
     );
   }
 
-  if (busy === "analyze") {
+  if (busy === "analyze" || busy === "prep") {
     return (
-      <div className="mx-auto max-w-xl"><div className="rounded-2xl border border-line bg-white p-8 text-center shadow-sm"><div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-ai" /><div className="mt-4 font-serif text-lg text-ink">Reading your materials</div><div className="mt-1 text-sm text-slate-500">{LOADING[step]}</div></div></div>
+      <div className="mx-auto max-w-xl"><div className="rounded-2xl border border-line bg-white p-8 text-center shadow-sm"><div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-ai" /><div className="mt-4 font-serif text-lg text-ink">Reading your materials</div><div className="mt-1 text-sm text-slate-500">{busy === "prep" ? "One moment…" : LOADING[step]}</div></div></div>
     );
   }
 
@@ -211,12 +241,17 @@ export default function AutoBuild({ me, canGlobal, orgName }: { me: string; canG
     );
   }
 
+  // ---- interview ----
+  if (phase === "interview") {
+    return <AuthoringInterview sourceText={interviewSource} onDone={onInterviewDone} onCancel={() => setPhase("upload")} />;
+  }
+
   // ---- choose (the menu) ----
   if (phase === "choose") {
     return (
       <div className="mx-auto max-w-xl">
         <div className="text-center">
-          <h1 className="font-serif text-2xl text-ink">Your materials could become…</h1>
+          <h1 className="font-serif text-2xl text-ink">Here&apos;s what you can build</h1>
           <p className="mt-1 text-sm text-slate2">Pick one, or several. Selected ones get drafted for you.</p>
         </div>
         <div className="mt-5 space-y-2">
@@ -262,6 +297,17 @@ export default function AutoBuild({ me, canGlobal, orgName }: { me: string; canG
       )}
       <button onClick={analyze} disabled={!files.length} className="btn-primary mt-5 w-full text-base disabled:opacity-50">See what I can make →</button>
       {err && <p className="mt-3 text-sm text-red-700">{err}</p>}
+
+      <div className="mt-5 flex items-center gap-3 text-xs text-slate-400"><div className="h-px flex-1 bg-line" />or<div className="h-px flex-1 bg-line" /></div>
+      <button onClick={startInterview} className="mt-5 flex w-full items-center gap-3 rounded-2xl border border-line bg-white p-4 text-left transition hover:border-ai/40 hover:shadow-sm">
+        <div className="text-2xl">🎙️</div>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-bold text-ink">{files.length ? "Talk it through instead" : "No materials? Talk it through"}</div>
+          <div className="text-xs text-slate-500">A few quick questions{files.length ? " about your materials" : ""}, by text or voice, and it proposes what to build.</div>
+        </div>
+        <span className="shrink-0 text-sm font-semibold text-ai">→</span>
+      </button>
+
       <p className="mt-4 text-center text-xs text-slate-400">Files are read for this draft only and never stored. Scanned PDFs (images) aren't supported.</p>
     </div>
   );

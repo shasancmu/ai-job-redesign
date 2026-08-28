@@ -153,6 +153,22 @@ textarea.field {
   @apply min-h-[92px] resize-y leading-relaxed;
 }
 
+/* The voice-interview orb (shared by VoiceInterview and AuthoringInterview). */
+.voice-orb {
+  width: 132px; height: 132px; border-radius: 9999px; border: 0; cursor: pointer;
+  background: radial-gradient(circle at 40% 38%, color-mix(in srgb, var(--sky) 60%, white), color-mix(in srgb, var(--sage) 55%, white));
+  box-shadow: 0 10px 40px -10px color-mix(in srgb, var(--sky) 45%, transparent); transition: transform .3s;
+}
+.voice-orb.idle { animation: vo-breathe 4s ease-in-out infinite; }
+.voice-orb.intro { animation: vo-breathe 4s ease-in-out infinite; }
+.voice-orb.speaking { animation: vo-speak 1.1s ease-in-out infinite; }
+.voice-orb.listening { animation: vo-listen 1.6s ease-in-out infinite; box-shadow: 0 0 0 0 color-mix(in srgb, var(--sage) 45%, transparent); }
+.voice-orb.thinking { animation: vo-breathe 1.4s ease-in-out infinite; opacity: .7; }
+@keyframes vo-breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes vo-speak { 0%,100% { transform: scale(1); } 25% { transform: scale(1.09); } 60% { transform: scale(1.03); } }
+@keyframes vo-listen { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--sage) 40%, transparent); } 70% { box-shadow: 0 0 0 26px color-mix(in srgb, var(--sage) 0%, transparent); } 100% { box-shadow: 0 0 0 0 transparent; } }
+@media (prefers-reduced-motion: reduce) { .voice-orb { animation: none !important; } }
+
 .eyebrow {
   @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em];
   color: var(--sage);

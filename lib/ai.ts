@@ -463,6 +463,11 @@ export async function moduleCriticAI(system: string, user: string): Promise<any>
 // Simulate a full run for the playtest: the model plays out a realistic learner
 // x character transcript plus the learner's verdict. Higher temperature for
 // believable variation between the strong and weak personas.
+// Streaming interviewer for the module-authoring flow: given the running
+// conversation, streams the next short question (works for both text and voice).
+export async function authoringInterviewReply(system: string, history: ChatMsg[], onToken: (t: string) => void): Promise<string> {
+  return complete([{ role: "system", content: system }, ...history.slice(-24)], { temperature: 0.7, maxTokens: 400, onToken });
+}
 // One-sentence, specific debrief for a quiz result: fast model, plain text.
 export async function benchmarkNoteAI(system: string, user: string): Promise<string> {
   const text = await complete(
