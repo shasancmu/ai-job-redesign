@@ -1,17 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
 import { scoreConfig, fallbackNote } from "@/lib/benchmark";
 import { getBenchConfig } from "@/lib/mechanics/benchStore";
-import { AI_ENABLED, benchmarkNoteAI } from "@/lib/ai";
+import { AI_ENABLED, benchmarkNoteAI, benchmarkSolveAI } from "@/lib/ai";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 45;
+export const maxDuration = 90;
 
-const SYSTEM = `You give a ONE-sentence debrief on a timed multiple-choice quiz the learner just finished. Be specific to this quiz's topic and to how they actually did. If they did well, say so plainly. If they missed a lot, name the kind of thing they slipped on (drawn from the missed questions) and encourage another pass. Warm and direct, like a good coach. Under 28 words. Plain language, no jargon, no em dashes. Return only the sentence.`;
+const SOLVE_SYSTEM = `You are taking a timed multiple-choice test. For every question, pick the single best answer. Do not skip any. Return ONLY JSON: {"answers": {"<questionId>": "<optionKey>"}} using each question's id and one option key (like "A"). No prose.`;
 
-// Score a benchmark server-side (the key never reaches the client) and return a
-// short debrief that's specific to this module and the learner's own answers,
-// not a generic line.
+const NOTE_SYSTEM = `You give a ONE-sentence debrief on a "you vs AI" benchmark the learner just finished. You know their score, the AI's score on the same test, and which questions they missed. Be specific to the topic and honest about the gap. If the AI beat them, frame it plainly: on recall and pattern tasks like these AI is strong, so their edge is the judgment these questions can't test. If they matched or beat the AI, say so. Warm and direct. Under 30 words. Plain language, no jargon, no em dashes. Return only the sentence.`;
+
+// Score a benchmark server-side (the key never reaches the client) AND run a
+// small AI model on the same questions, so the result is a real you-vs-AI
+// comparison with a debrief specific to this module and the learner's answers.
 export async function POST(request: Request) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -24,6 +26,26 @@ export async function POST(request: Request) {
   const score = scoreConfig(cfg, answers);
   const total = cfg.questions.length;
 
+  // The AI takes the same test (no answer key given to it).
+  let aiScore: number | null = null;
+  if (AI_ENABLED) {
+    try {
+      const quiz = cfg.questions.map((q) => ({
+        id: q.id,
+        question: q.prompt,
+        options: q.options.map((o) => ({ key: o.key, text: o.text })),
+      }));
+      const solved = await benchmarkSolveAI(SOLVE_SYSTEM, JSON.stringify({ questions: quiz }));
+      const raw = solved?.answers && typeof solved.answers === "object" ? solved.answers : {};
+      const aiAnswers: Record<string, string> = {};
+      for (const q of cfg.questions) {
+        const v = raw[String(q.id)] ?? raw[q.id];
+        if (typeof v === "string") aiAnswers[String(q.id)] = v.trim().charAt(0).toUpperCase();
+      }
+      if (Object.keys(aiAnswers).length) aiScore = scoreConfig(cfg, aiAnswers);
+    } catch { /* comparison is optional */ }
+  }
+
   let note = fallbackNote(score, total, cfg.title);
   if (AI_ENABLED) {
     try {
@@ -35,14 +57,15 @@ export async function POST(request: Request) {
         .map((p, i) => `${i + 1}. ${p.slice(0, 160)}`)
         .join("\n");
       const userMsg = [
-        `Quiz: "${cfg.title}".`,
-        `Result: ${score} of ${total} correct.`,
-        missed ? `Questions they got wrong (prompts):\n${missed}` : "They got everything right.",
-      ].join("\n");
-      const ai = await benchmarkNoteAI(SYSTEM, userMsg);
+        `Benchmark: "${cfg.title}".`,
+        `You: ${score} of ${total}.`,
+        aiScore != null ? `A small AI model: ${aiScore} of ${total}.` : "",
+        missed ? `Questions you missed (prompts):\n${missed}` : "You got everything right.",
+      ].filter(Boolean).join("\n");
+      const ai = await benchmarkNoteAI(NOTE_SYSTEM, userMsg);
       if (ai) note = ai;
     } catch { /* keep the fallback */ }
   }
 
-  return Response.json({ score, total, note });
+  return Response.json({ score, total, aiScore, note });
 }
