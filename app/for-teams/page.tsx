@@ -2,13 +2,17 @@ import Link from "next/link";
 import Logo from "@/components/Logo";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
+import { MODULES } from "@/lib/modules";
 
 export const metadata = {
   title: "Superadditive for L&D, exec ed & in-house academies",
-  description: "Turn your experts' materials into interactive, AI-run learning — role-plays, simulations, benchmarks and more — and run, govern, and measure them at scale.",
+  description: "Start from a library of interactive, AI-run learning — role-plays, simulations, benchmarks and more — then turn your own experts' materials into new modules, and run, govern, and measure them at scale.",
 };
 
 const CONTACT = "/contact?source=for-teams";
+
+// Keep the headline number honest and current: the ready-to-run library size.
+const LIBRARY_STAT = `${Math.floor(MODULES.filter((m) => !m.hidden).length / 5) * 5}+`;
 
 const STEPS = [
   { n: "1", title: "Your expert uploads", body: "A faculty member or SME drops their slides, case, or reading. No new content to write — the material already exists." },
@@ -19,7 +23,7 @@ const STEPS = [
 
 const FEATURES = [
   { icon: "🪄", title: "Author from your materials", body: "Upload slides, readings, or a case; the AI drafts a working module. A copilot and a structured editor finish it. Minutes, not an instructional-design queue." },
-  { icon: "🧩", title: "Every kind of experience", body: "Role-plays, negotiations, timed benchmarks, analytical X-rays, guided-interview canvases, paired redesigns, explainers, and live room activities — all authored the same way." },
+  { icon: "🧩", title: "A stocked library, every format", body: `${LIBRARY_STAT} ready modules spanning role-plays, negotiations, timed benchmarks, analytical X-rays, guided-interview canvases, paired redesigns, explainers, and live room activities. Run them as-is, or author your own the same way.` },
   { icon: "✅", title: "Quality you control", body: "An AI critic flags an unfair module and a simulated learner playtests whether it teaches, before a real one runs it. A promotion ladder means only vetted modules reach the wider library." },
   { icon: "🎨", title: "Your brand, your space", body: "Your logo, colors, and a private address. It feels like your program, not a vendor's tool." },
   { icon: "👥", title: "Cohorts, directors & instructors", body: "Organize people into cohorts and sections. Directors run the space; instructors run their groups; each sees only their own people." },
@@ -56,11 +60,11 @@ export default function ForTeams() {
           <div className="relative z-10 max-w-3xl pb-28 pt-16 sm:pb-36 sm:pt-24">
             <span className="eyebrow">For L&amp;D · exec ed · corporate academies · in-house</span>
             <h1 className="display mt-4 text-[2.75rem] leading-[1.05] text-ink sm:text-[4.25rem]">
-              Turn your material into interactive learning. In minutes.
+              A library of interactive learning. Plus the studio to build your own.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate2">
-              Your faculty and subject-matter experts already have the expertise and the decks. Superadditive turns them
-              into AI-run experiences your people actually do — and lets you run, govern, and measure them at scale.
+              Start with {LIBRARY_STAT} AI-run experiences your people can run today. Then turn your faculty&apos;s and
+              experts&apos; own decks and cases into new modules in minutes, and run, govern, and measure all of it at scale.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a href={CONTACT} className="btn-primary">Bring it to your organization <span aria-hidden>→</span></a>
@@ -80,9 +84,9 @@ export default function ForTeams() {
         <Reveal>
           <div className="grid gap-6 rounded-2xl border border-line bg-white p-8 text-center shadow-soft sm:grid-cols-3">
             {[
-              ["8", "kinds of interactive module"],
+              [LIBRARY_STAT, "interactive modules ready to run today"],
+              ["8", "formats you can author your own in"],
               ["Minutes", "from a deck to a live module"],
-              ["0", "IT projects — just share a link"],
             ].map(([n, l]) => (
               <div key={l}>
                 <div className="text-4xl font-bold tracking-tight text-ink sm:text-5xl">{n}</div>
