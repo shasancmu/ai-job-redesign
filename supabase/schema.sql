@@ -265,6 +265,7 @@ drop policy if exists "class_members join self" on public.class_members;
 create policy "class_members join self" on public.class_members
   for insert with check (user_id = auth.uid());
 -- The facilitator reads the full roster via the service role.
+-- (The CLASS tier -- class_units -- is defined after `organizations`, below.)
 
 -- ============================================================================
 -- Network survey: roster (per cohort) + each person's nominations.
@@ -1234,6 +1235,41 @@ select c.id, m.user_id
 from public.org_members m
 join public.classes c on c.org_id = m.org_id and c.is_default
 on conflict do nothing;
+
+-- ============================================================================
+-- The CLASS tier: school/company > CLASS (dept or course) > COHORT (section).
+-- A class owns a reusable module set that every cohort under it inherits (a
+-- cohort can add its own on top). The existing `classes` table is the COHORT;
+-- this `class_units` table is the CLASS. Defined here because it references
+-- `organizations`, which is created above.
+-- ============================================================================
+create table if not exists public.class_units (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references public.organizations (id) on delete cascade,
+  name text not null,
+  modules jsonb not null default '[]'::jsonb, -- the reusable module set cohorts inherit
+  is_default boolean not null default false,
+  created_at timestamptz not null default now()
+);
+alter table public.class_units enable row level security;
+drop policy if exists "class_units read" on public.class_units;
+create policy "class_units read" on public.class_units
+  for select using (auth.role() = 'authenticated'); -- read so inheritance resolves; writes via service role
+-- Each cohort's parent class (nullable: personal / org-less cohorts have none).
+alter table public.classes add column if not exists class_unit_id uuid references public.class_units (id) on delete set null;
+create index if not exists classes_class_unit_idx on public.classes (class_unit_id);
+
+-- Backfill: one default "General" class per org, then point every existing
+-- cohort at its org's default class. Cohorts reorganize into real classes later.
+insert into public.class_units (org_id, name, is_default)
+select o.id, 'General', true
+from public.organizations o
+where not exists (select 1 from public.class_units cu where cu.org_id = o.id and cu.is_default);
+
+update public.classes c
+set class_unit_id = cu.id
+from public.class_units cu
+where cu.org_id = c.org_id and cu.is_default and c.class_unit_id is null and c.org_id is not null;
 
 -- ============================================================================
 -- Contact messages: submissions from the public /contact form. All access via

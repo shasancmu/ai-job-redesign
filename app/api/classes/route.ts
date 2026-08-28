@@ -33,7 +33,7 @@ export async function GET() {
   const activeOrg = await getActiveOrg(user);
   let query = admin
     .from("classes")
-    .select("id, code, name, modules, language, kind, allowed_emails, org_id, created_at")
+    .select("id, code, name, modules, language, kind, allowed_emails, org_id, class_unit_id, created_at")
     .order("created_at", { ascending: false });
   if (activeOrg) {
     query = query.eq("org_id", activeOrg.id);
@@ -121,10 +121,18 @@ export async function POST(request: Request) {
     const activeOrg = await getActiveOrg(user);
     org_id = (activeOrg && canUseOrg(activeOrg.id)) ? activeOrg.id : access.orgIds[0] || access.instructorOrgIds[0] || null;
   }
+  // Parent class (the CLASS tier). Must belong to this cohort's org. "" clears it.
+  let class_unit_id: string | null = null;
+  if (body.class_unit_id !== undefined && String(body.class_unit_id || "")) {
+    const { data: cu } = await admin.from("class_units").select("org_id").eq("id", String(body.class_unit_id)).maybeSingle();
+    if (cu && (cu as any).org_id === org_id) class_unit_id = String(body.class_unit_id);
+    else if (cu) return Response.json({ error: "That class is in a different organization." }, { status: 400 });
+  }
+
   // Always set org_id (including null) so a cohort can be moved between orgs.
   const { error } = await admin
     .from("classes")
-    .upsert({ code, name, owner_id: user.id, modules, language, kind, allowed_emails, org_id }, { onConflict: "code" });
+    .upsert({ code, name, owner_id: user.id, modules, language, kind, allowed_emails, org_id, class_unit_id }, { onConflict: "code" });
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
   return Response.json({ ok: true, code });

@@ -36,9 +36,12 @@ export default async function Classes() {
         <HeaderNav tour />
       </div>
       <h1 className="mt-1 text-2xl font-bold text-ink">Cohorts</h1>
-      <p className="mb-6 text-slate2">
+      <p className="mb-3 text-slate2">
         Create a cohort, choose its modules, and share the link. Everyone who joins is grouped
         together, and their results roll up under one place.
+      </p>
+      <p className="mb-6 text-sm text-slate-500">
+        A cohort is a section or session of a <Link href="/facilitator/classes" className="font-medium text-ai hover:underline">Class</Link> (a department or course). Put a cohort in a class to reuse that class&apos;s module set across all its sections.
       </p>
       <ClassManager orgs={staffOrgs} defaultOrgId={activeOrg?.id || ""} roleplayModules={roleplayModules} interviewModules={interviewModules} />
       <Tour

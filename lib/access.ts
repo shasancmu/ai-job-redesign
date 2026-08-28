@@ -68,8 +68,19 @@ export async function grantedModuleSlugs(supabase: SupabaseClient, userId: strin
     const { data: cms } = await supabase.from("class_members").select("class_id").eq("user_id", userId);
     const ids = [...new Set(((cms as any[]) || []).map((r) => r.class_id).filter(Boolean))];
     if (ids.length) {
-      const { data: cls } = await supabase.from("classes").select("modules").in("id", ids);
-      for (const c of (cls as any[]) || []) for (const s of ((c.modules as any[]) || [])) out.add(String(s));
+      const { data: cls } = await supabase.from("classes").select("modules, class_unit_id").in("id", ids);
+      const unitIds = new Set<string>();
+      for (const c of (cls as any[]) || []) {
+        for (const s of ((c.modules as any[]) || [])) out.add(String(s));
+        if (c.class_unit_id) unitIds.add(String(c.class_unit_id));
+      }
+      // Inherit the parent CLASS's module set (school > class > cohort).
+      if (unitIds.size) {
+        try {
+          const { data: units } = await supabase.from("class_units").select("modules").in("id", [...unitIds]);
+          for (const u of (units as any[]) || []) for (const s of ((u.modules as any[]) || [])) out.add(String(s));
+        } catch { /* class_units not set up yet → cohort modules only */ }
+      }
     }
   } catch { /* RLS or missing table → no class grants */ }
   try {

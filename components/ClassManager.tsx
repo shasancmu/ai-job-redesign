@@ -7,7 +7,8 @@ import { normalizeCode } from "@/lib/classes";
 import { LANGUAGES } from "@/components/LanguagePicker";
 import { I18N_ENABLED } from "@/lib/flags";
 
-type Klass = { id: string; code: string; name: string; modules: string[]; members: number; language?: string; kind?: string; allowed_emails?: string[]; org_id?: string | null };
+type Klass = { id: string; code: string; name: string; modules: string[]; members: number; language?: string; kind?: string; allowed_emails?: string[]; org_id?: string | null; class_unit_id?: string | null };
+type ClassUnitLite = { id: string; name: string; modules: string[] };
 
 type DynModule = { slug: string; name: string; emoji?: string };
 
@@ -28,16 +29,21 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [origin, setOrigin] = useState("");
+  const [classUnitId, setClassUnitId] = useState("");
+  const [classUnits, setClassUnits] = useState<ClassUnitLite[]>([]);
+  const [activeOrgId, setActiveOrgId] = useState<string | null>(null);
 
   useEffect(() => {
     setOrigin(window.location.origin);
     load();
+    fetch("/api/class-units", { cache: "no-store" }).then((r) => r.json()).then((d) => { setClassUnits(d.classes || []); setActiveOrgId(d.orgId || null); }).catch(() => {});
   }, []);
 
   async function load() {
     const d = await fetch("/api/classes", { cache: "no-store" }).then((r) => r.json());
     setClasses(d.classes || []);
   }
+  const selectedClassUnit = classUnits.find((c) => c.id === classUnitId) || null;
 
   const add = (slug: string) => setOrder((o) => (o.includes(slug) ? o : [...o, slug]));
   const remove = (slug: string) => setOrder((o) => o.filter((s) => s !== slug));
@@ -65,6 +71,7 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
     setKind((k.kind as any) || "teaching");
     setEmails(((k.allowed_emails as any) || []).join("\n"));
     setOrder(k.modules || []);
+    setClassUnitId(k.class_unit_id || "");
     setErr(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -77,6 +84,7 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
     setKind("teaching");
     setEmails("");
     setOrder([]);
+    setClassUnitId("");
   }
 
   async function del(k: Klass) {
@@ -126,6 +134,7 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
         name,
         code: c,
         org_id: orgId,
+        class_unit_id: (orgId && orgId === activeOrgId) ? classUnitId : "",
         modules: order,
         language,
         kind,
@@ -173,6 +182,23 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
               <option value="">Personal (no organization)</option>
             </select>
             <div className="mt-1 text-xs text-slate2">Which organization this cohort belongs to. Its results show under that org.</div>
+          </div>
+        )}
+
+        {orgId && orgId === activeOrgId && (
+          <div className="mt-4">
+            <label className="lbl">Class</label>
+            <select className="field" value={classUnitId} onChange={(e) => setClassUnitId(e.target.value)}>
+              <option value="">No class</option>
+              {classUnits.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            <div className="mt-1 text-xs text-slate2">
+              The department or course this cohort is a section of. It inherits the class&apos;s modules.{" "}
+              <Link href="/facilitator/classes" className="text-ai hover:underline">Manage classes</Link>
+            </div>
+            {selectedClassUnit && selectedClassUnit.modules.length > 0 && (
+              <div className="mt-2 rounded-lg bg-sage-soft px-3 py-2 text-xs text-sage">Inherited from {selectedClassUnit.name}: {selectedClassUnit.modules.map(nameOf).join(", ")}. Anything you add below is on top of these.</div>
+            )}
           </div>
         )}
 
