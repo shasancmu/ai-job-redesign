@@ -66,6 +66,13 @@ export default function BenchEditor({ me, initial, initialStatus }: { me: string
             <div><label className="lbl">Slug</label><input className="field font-mono text-sm" value={cfg.slug || ""} onChange={(e) => set({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-") })} /></div>
             <div><label className="lbl">Minutes</label><input type="number" className="field text-sm" value={Math.round((cfg.timeLimitSec || 300) / 60)} onChange={(e) => set({ timeLimitSec: Math.max(30, (Number(e.target.value) || 5) * 60) })} /></div>
           </div>
+          <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-line bg-white p-3">
+            <input type="checkbox" checked={cfg.askConfidence !== false} onChange={(e) => set({ askConfidence: e.target.checked })} className="mt-0.5" />
+            <span className="text-sm">
+              <span className="font-semibold text-ink">Ask for confidence, and score calibration</span>
+              <span className="mt-0.5 block text-xs text-slate-500">For each answer, the learner says how sure they are. The result shows how well their confidence matched being right, the core of good judgment.</span>
+            </span>
+          </label>
           <div className="space-y-3">
             {qs.map((q, qi) => (
               <div key={qi} className="rounded-xl border border-line p-3">

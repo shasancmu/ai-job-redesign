@@ -939,6 +939,25 @@ drop policy if exists "newsframe_specs owner" on public.newsframe_specs;
 create policy "newsframe_specs owner" on public.newsframe_specs
   for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
 
+-- Quiz attempts: one row per completed run, so a learner's score AND calibration
+-- (how well their confidence tracked reality) accumulate over time and growth is
+-- visible. Owner-scoped.
+create table if not exists public.quiz_attempts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  slug text not null,
+  score int not null,
+  total int not null,
+  brier real,
+  calibration jsonb,
+  created_at timestamptz not null default now()
+);
+alter table public.quiz_attempts enable row level security;
+drop policy if exists "quiz_attempts owner" on public.quiz_attempts;
+create policy "quiz_attempts owner" on public.quiz_attempts
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create index if not exists quiz_attempts_user_slug_idx on public.quiz_attempts (user_id, slug, created_at desc);
+
 -- Version history: a snapshot of a module's spec on each save, for restore + diff.
 create table if not exists public.module_spec_versions (
   id uuid primary key default gen_random_uuid(),

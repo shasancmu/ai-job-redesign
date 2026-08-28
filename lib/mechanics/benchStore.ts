@@ -31,8 +31,9 @@ export async function listBenchCatalog(ownerId?: string): Promise<BenchCatalogEn
 // Client-safe: no answer key.
 export function publicBenchConfig(c: BenchConfig): any {
   return {
-    name: (c as any).name || "Benchmark",
+    name: (c as any).name || "Quiz",
     timeLimitSec: c.timeLimitSec,
+    askConfidence: c.askConfidence !== false,
     questions: c.questions.map((q) => ({ id: q.id, prompt: q.prompt, options: q.options.map((o) => ({ key: o.key, text: o.text })) })),
   };
 }
