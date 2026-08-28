@@ -8,7 +8,24 @@
 //
 // Returns extracted text (may be "" for a scanned/image-only PDF). Throws only
 // on a genuinely unreadable/corrupt PDF, which callers should surface honestly.
+// pdfjs v5 calls Promise.withResolvers, which only exists on Node 22+. Vercel
+// functions may run an older Node, where every PDF would otherwise throw before a
+// single page is read (this is why text PDFs failed in production but worked
+// locally on Node 22). Polyfill it so extraction is Node-version independent.
+function ensureWithResolvers(): void {
+  const P = Promise as any;
+  if (typeof P.withResolvers !== "function") {
+    P.withResolvers = function <T>() {
+      let resolve!: (v: T | PromiseLike<T>) => void;
+      let reject!: (reason?: any) => void;
+      const promise = new Promise<T>((res, rej) => { resolve = res; reject = rej; });
+      return { promise, resolve, reject };
+    };
+  }
+}
+
 export async function extractPdfText(buf: Buffer): Promise<string> {
+  ensureWithResolvers();
   const pdfjs: any = await import("pdfjs-dist/legacy/build/pdf.mjs");
   const doc = await pdfjs.getDocument({
     data: new Uint8Array(buf),
