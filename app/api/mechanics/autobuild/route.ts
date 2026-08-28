@@ -46,12 +46,19 @@ export async function POST(request: Request) {
     const name = String(f.name || "file");
     const ext = name.toLowerCase().split(".").pop() || "";
     try {
-      const buf = Buffer.from(String(f.b64 || ""), "base64");
-      if (buf.length > 20 * 1024 * 1024) continue;
       let text = "";
-      if (ext === "pdf") { text = await extractPdfText(buf); }
-      else if (ext === "docx") text = extractDocxText(buf);
-      else if (ext === "txt" || ext === "md" || ext === "markdown") text = buf.toString("utf8");
+      // PDFs are extracted in the browser (see lib/pdfClient) and arrive as text,
+      // which sidesteps every serverless-runtime pitfall. Fall back to server-side
+      // extraction only if the client couldn't send text.
+      if (typeof f.text === "string" && f.text.trim()) {
+        text = f.text;
+      } else {
+        const buf = Buffer.from(String(f.b64 || ""), "base64");
+        if (buf.length > 20 * 1024 * 1024) continue;
+        if (ext === "pdf") { text = await extractPdfText(buf); }
+        else if (ext === "docx") text = extractDocxText(buf);
+        else if (ext === "txt" || ext === "md" || ext === "markdown") text = buf.toString("utf8");
+      }
       text = text.replace(/[ \t]+/g, " ").trim();
       if (text) parts.push(`# ${name}\n${text.slice(0, 20000)}`);
       else emptyText = true;

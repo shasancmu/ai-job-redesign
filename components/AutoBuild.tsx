@@ -50,7 +50,18 @@ export default function AutoBuild({ me, canGlobal, orgName }: { me: string; canG
     if (!files.length) return;
     setBusy("analyze"); setErr(""); setStep(0);
     try {
-      const payload = await Promise.all(files.map((f) => new Promise<any>((res, rej) => { const r = new FileReader(); r.onload = () => res({ name: f.name, b64: String(r.result).split(",")[1] || "" }); r.onerror = () => rej(new Error("read failed")); r.readAsDataURL(f); })));
+      const payload = await Promise.all(files.map(async (f) => {
+        // Extract PDFs in the browser (reliable everywhere) and send text; other
+        // types go as bytes for the server to read.
+        if (/\.pdf$/i.test(f.name)) {
+          try {
+            const { extractPdfTextClient } = await import("@/lib/pdfClient");
+            const text = await extractPdfTextClient(f);
+            if (text.trim()) return { name: f.name, text };
+          } catch { /* fall back to sending bytes */ }
+        }
+        return new Promise<any>((res, rej) => { const r = new FileReader(); r.onload = () => res({ name: f.name, b64: String(r.result).split(",")[1] || "" }); r.onerror = () => rej(new Error("read failed")); r.readAsDataURL(f); });
+      }));
       const res = await fetch("/api/mechanics/autobuild", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ files: payload }) });
       const d = await res.json().catch(() => ({}));
       const opts = (d.options || []).filter((o: any) => o && KINDS[o.kind]);
