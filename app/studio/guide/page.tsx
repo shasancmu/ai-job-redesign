@@ -116,15 +116,16 @@ export default async function GuidePage() {
       <section className="mt-16 border-t border-line pt-12">
         <span className="eyebrow text-ai">Step by step</span>
         <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink">How to build one</h2>
-        <p className="mt-2 text-[15px] leading-relaxed text-slate2">Two ways in. Both land you in the same editor, and both take minutes.</p>
+        <p className="mt-2 text-[15px] leading-relaxed text-slate2">Three ways in. All of them land you in the same editor with a working draft, and all take minutes. Pick the one that fits where you&apos;re starting from.</p>
       </section>
 
       <section className="mt-6">
         <div className="rounded-2xl border border-ai/30 bg-gradient-to-br from-ai/5 to-mist/40 p-5">
           <div className="flex items-center gap-2">
             <span className="text-xl">📎</span>
-            <div className="text-sm font-bold text-ink">Path A — Upload your materials (fastest)</div>
+            <div className="text-sm font-bold text-ink">Path A — Upload your materials</div>
           </div>
+          <p className="mt-1 text-xs text-slate-500">Fastest when you already have a deck or reading.</p>
           <ol className="mt-3 space-y-2.5 text-[14px] leading-relaxed text-slate2">
             <li><b className="text-ink">1. Drop your files.</b> Go to Create, then Upload, and add your slides, a PDF, a Word doc, or notes. They are read to draft the module and never stored.</li>
             <li><b className="text-ink">2. See the menu.</b> It reads the material and proposes a few genuinely different modules it could become, across formats. Pick one, a few, or all of them.</li>
@@ -138,9 +139,27 @@ export default async function GuidePage() {
       <section className="mt-4">
         <div className="rounded-2xl border border-line bg-white p-5">
           <div className="flex items-center gap-2">
-            <span className="text-xl">✨</span>
-            <div className="text-sm font-bold text-ink">Path B — Describe what you want</div>
+            <span className="text-xl">🎙️</span>
+            <div className="text-sm font-bold text-ink">Path B — Talk it through</div>
           </div>
+          <p className="mt-1 text-xs text-slate-500">Best when you&apos;re not sure which format fits, or you have no materials to upload.</p>
+          <ol className="mt-3 space-y-2.5 text-[14px] leading-relaxed text-slate2">
+            <li><b className="text-ink">1. Start the interview.</b> On the Upload page choose &ldquo;Talk it through&rdquo;, by <b className="text-ink">text or voice</b> (the blue dot asks the questions aloud). It works with or without materials; if you uploaded some, it draws on them.</li>
+            <li><b className="text-ink">2. Answer a few questions.</b> It asks what you want learners to be able to do, who they are, and what&apos;s hard, five or six short questions, then tells you when it has enough.</li>
+            <li><b className="text-ink">3. See what it can build.</b> It turns the conversation into the same menu of module ideas, already shaped by what you said. Pick one or more.</li>
+            <li><b className="text-ink">4. Edit and launch.</b> Same editor, same finish.</li>
+          </ol>
+          <Link href="/studio/upload" className="btn-ghost mt-4 inline-block text-sm">Start an interview →</Link>
+        </div>
+      </section>
+
+      <section className="mt-4">
+        <div className="rounded-2xl border border-line bg-white p-5">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">✨</span>
+            <div className="text-sm font-bold text-ink">Path C — Describe a specific module</div>
+          </div>
+          <p className="mt-1 text-xs text-slate-500">Best when you already know the shape you want.</p>
           <ol className="mt-3 space-y-2.5 text-[14px] leading-relaxed text-slate2">
             <li><b className="text-ink">1. Pick a shape.</b> In Create, choose the type that fits (a role-play, an interview, a quiz, and so on).</li>
             <li><b className="text-ink">2. Describe it.</b> Say the situation, the characters, or the framework in a sentence or two. The copilot drafts a full first version.</li>
