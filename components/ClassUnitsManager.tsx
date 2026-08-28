@@ -5,7 +5,7 @@ import Link from "next/link";
 import { MODULES } from "@/lib/modules";
 
 type DynModule = { slug: string; name: string; emoji?: string };
-type ClassUnit = { id: string; name: string; modules: string[]; is_default: boolean; cohorts: number; canEdit?: boolean };
+type ClassUnit = { id: string; name: string; slug?: string; modules: string[]; is_default: boolean; cohorts: number; canEdit?: boolean };
 
 // Manage the CLASS tier (dept/course): a class owns a module set that every
 // cohort under it inherits. Director / superadmin of the active school only.
@@ -97,7 +97,7 @@ export default function ClassUnitsManager({ roleplayModules = [], interviewModul
         {classes.map((c) => (
           <div key={c.id} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line bg-white p-4">
             <div className="min-w-0">
-              <div className="text-sm font-bold text-ink">{c.name}{c.is_default && <span className="ml-2 rounded-full bg-mist px-2 py-0.5 text-[11px] font-normal text-slate-500">default</span>}</div>
+              <div className="text-sm font-bold text-ink">{c.name}{c.slug && <span className="ml-2 font-mono text-[11px] font-normal text-slate-400">/{c.slug}</span>}{c.is_default && <span className="ml-2 rounded-full bg-mist px-2 py-0.5 text-[11px] font-normal text-slate-500">default</span>}</div>
               <div className="mt-0.5 text-xs text-slate-500">{c.cohorts} cohort{c.cohorts === 1 ? "" : "s"} · {c.modules.length} module{c.modules.length === 1 ? "" : "s"} inherited{c.modules.length ? `: ${c.modules.slice(0, 3).map(nameOf).join(", ")}${c.modules.length > 3 ? "…" : ""}` : ""}</div>
             </div>
             <div className="flex shrink-0 items-center gap-2">

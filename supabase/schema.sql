@@ -1256,6 +1256,13 @@ alter table public.class_units enable row level security;
 drop policy if exists "class_units read" on public.class_units;
 create policy "class_units read" on public.class_units
   for select using (auth.role() = 'authenticated'); -- read so inheritance resolves; writes via service role
+-- URL slug for the hierarchical path org/class/cohort/module. Unique per org is
+-- enforced in the API; this index is for lookup.
+alter table public.class_units add column if not exists slug text;
+create index if not exists class_units_org_slug_idx on public.class_units (org_id, slug);
+update public.class_units
+  set slug = coalesce(nullif(trim(both '-' from lower(regexp_replace(name, '[^a-zA-Z0-9]+', '-', 'g'))), ''), 'class')
+  where slug is null;
 -- Each cohort's parent class (nullable: personal / org-less cohorts have none).
 alter table public.classes add column if not exists class_unit_id uuid references public.class_units (id) on delete set null;
 create index if not exists classes_class_unit_idx on public.classes (class_unit_id);

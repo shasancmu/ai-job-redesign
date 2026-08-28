@@ -4,7 +4,7 @@ import { facilitatorAccess, getActiveOrg } from "@/lib/orgs";
 import { MODULES } from "@/lib/modules";
 import { listRoleplayCatalog } from "@/lib/mechanics/store";
 import { listAssignableInterviewModules } from "@/lib/customModules";
-import { listClassUnits, cohortCountsByClass } from "@/lib/classUnits";
+import { listClassUnits, cohortCountsByClass, uniqueClassSlug } from "@/lib/classUnits";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,7 +64,8 @@ export async function POST(request: Request) {
   if (body.duplicate) {
     const { data: src } = await admin.from("class_units").select("org_id, name, modules").eq("id", String(body.duplicate)).maybeSingle();
     if (!src || (src as any).org_id !== activeOrg.id) return Response.json({ error: "Not found." }, { status: 404 });
-    const { data, error } = await admin.from("class_units").insert({ org_id: activeOrg.id, owner_id: user.id, name: `${(src as any).name} (copy)`, modules: (src as any).modules || [] }).select("id").maybeSingle();
+    const dupName = `${(src as any).name} (copy)`;
+    const { data, error } = await admin.from("class_units").insert({ org_id: activeOrg.id, owner_id: user.id, name: dupName, slug: await uniqueClassSlug(activeOrg.id, dupName), modules: (src as any).modules || [] }).select("id").maybeSingle();
     if (error) return Response.json({ error: error.message }, { status: 500 });
     return Response.json({ ok: true, id: (data as any)?.id });
   }
@@ -81,7 +82,7 @@ export async function POST(request: Request) {
     if (error) return Response.json({ error: error.message }, { status: 500 });
     return Response.json({ ok: true, id: String(body.id) });
   }
-  const { data, error } = await admin.from("class_units").insert({ org_id: activeOrg.id, owner_id: user.id, name, modules }).select("id").maybeSingle();
+  const { data, error } = await admin.from("class_units").insert({ org_id: activeOrg.id, owner_id: user.id, name, slug: await uniqueClassSlug(activeOrg.id, name), modules }).select("id").maybeSingle();
   if (error) return Response.json({ error: error.message }, { status: 500 });
   return Response.json({ ok: true, id: (data as any)?.id });
 }

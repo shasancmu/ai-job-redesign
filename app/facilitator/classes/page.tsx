@@ -30,7 +30,8 @@ export default async function ClassesPage() {
         A class is a department or course under {activeOrg?.name || "your school"}. It owns a set of modules that
         every cohort (section or session) under it inherits, so you set the exercises once and reuse them.
       </p>
-      <p className="mb-6 text-xs text-slate-400">School or company &rsaquo; <b className="text-slate-500">Class</b> (here) &rsaquo; Cohort (a section or session).</p>
+      <p className="mb-2 text-xs text-slate-400">School or company &rsaquo; <b className="text-slate-500">Class</b> (here) &rsaquo; Cohort (a section or session).</p>
+      {activeOrg?.slug && <p className="mb-6 rounded-lg bg-mist/60 px-3 py-2 font-mono text-xs text-slate-500">Launch link pattern: superadditive.app/<b className="text-slate-700">{activeOrg.slug}</b>/<b className="text-slate-700">class</b>/<b className="text-slate-700">COHORT</b>/<b className="text-slate-700">module</b></p>}
       <ClassUnitsManager roleplayModules={roleplayModules} interviewModules={interviewModules} orgName={activeOrg?.name || null} />
     </main>
   );
