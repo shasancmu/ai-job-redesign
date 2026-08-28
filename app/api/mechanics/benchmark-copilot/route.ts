@@ -5,7 +5,7 @@ import { validateBenchConfig } from "@/lib/mechanics/benchStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 90;
+export const maxDuration = 120;
 
 const SCHEMA = `A benchmark (timed multiple-choice quiz) as JSON:
 { "slug": "kebab-case", "name": "the benchmark name", "timeLimitSec": 300,

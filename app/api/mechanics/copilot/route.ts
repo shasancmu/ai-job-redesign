@@ -5,7 +5,7 @@ import { validateSpec, type ModuleSpec } from "@/lib/mechanics/roleplay";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 90;
+export const maxDuration = 120;
 
 const SCHEMA = `A ModuleSpec for a role-play/adversary learning module (JSON):
 {

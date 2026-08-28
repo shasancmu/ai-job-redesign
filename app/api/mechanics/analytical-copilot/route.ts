@@ -5,7 +5,7 @@ import { validateAnalyticalSpec } from "@/lib/mechanics/analyticalStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 90;
+export const maxDuration = 120;
 
 const SCHEMA = `An analytical instrument (X-ray style) as JSON. It decomposes a subject into units and scores each against ordered levels.
 {

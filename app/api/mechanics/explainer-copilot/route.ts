@@ -5,7 +5,7 @@ import { validateExplainerSpec } from "@/lib/mechanics/explainerStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 90;
+export const maxDuration = 120;
 
 const SCHEMA = `An explainer (a taught, guided walkthrough) as JSON:
 { "slug": "kebab-case", "name": "the explainer name", "emoji": "📖",

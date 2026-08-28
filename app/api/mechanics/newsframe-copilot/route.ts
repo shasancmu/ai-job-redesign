@@ -5,7 +5,7 @@ import { validateNewsSpec } from "@/lib/mechanics/newsStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 90;
+export const maxDuration = 120;
 
 const SCHEMA = `An "In the News" module (apply a framework to current real news) as JSON:
 {

@@ -79,9 +79,11 @@ function localize(messages: ChatMsg[]): ChatMsg[] {
 }
 
 // One POST with a hard timeout so a stalled provider can never hang forever.
-async function postJSON(url: string, headers: Record<string, string>, payload: any): Promise<any> {
+// Heavy generations (a full module spec) can pass a longer timeoutMs, bounded by
+// the calling route's maxDuration.
+async function postJSON(url: string, headers: Record<string, string>, payload: any, timeoutMs = 55000): Promise<any> {
   const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 55000);
+  const timer = setTimeout(() => ctl.abort(), timeoutMs);
   let res: Response;
   try {
     res = await fetch(url, { method: "POST", headers, body: JSON.stringify(payload), signal: ctl.signal });
@@ -226,7 +228,7 @@ async function logAiEvent(e: { model: string; flow: string | null; ok: boolean; 
 // runCompletion.
 async function complete(
   messages: ChatMsg[],
-  opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean; low?: boolean; onToken?: (delta: string) => void; flow?: string | null } = {}
+  opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean; low?: boolean; onToken?: (delta: string) => void; flow?: string | null; timeoutMs?: number } = {}
 ): Promise<string> {
   const started = Date.now();
   // Mirror runCompletion's routing so the logged model matches what actually ran.
@@ -263,7 +265,7 @@ async function complete(
 
 async function runCompletion(
   messages: ChatMsg[],
-  opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean; low?: boolean; onToken?: (delta: string) => void; flow?: string | null } = {}
+  opts: { json?: boolean; temperature?: number; maxTokens?: number; vision?: boolean; low?: boolean; onToken?: (delta: string) => void; flow?: string | null; timeoutMs?: number } = {}
 ): Promise<{ text: string; usage: AiUsage | null }> {
   // Model routing. Vision uses its own config. Otherwise the "low" (fast) model
   // is used for one-shot GENERATIONS (reports, analyses, drafts), while the main
@@ -322,7 +324,7 @@ async function runCompletion(
           opts.onToken);
         if (text && text.trim()) return { text, usage };
       } else {
-        const data = await postJSON(`${baseUrl}/messages`, anthropicHeaders, payload);
+        const data = await postJSON(`${baseUrl}/messages`, anthropicHeaders, payload, opts.timeoutMs);
         const out = (data?.content || []).filter((b: any) => b?.type === "text").map((b: any) => b.text).join("");
         if (out && out.trim()) {
           // Re-attach the prefilled "{" the model was told to continue from.
@@ -353,7 +355,7 @@ async function runCompletion(
       (evt) => evt?.choices?.[0]?.delta?.content || "",
       opts.onToken);
   }
-  const data = await postJSON(`${baseUrl}/chat/completions`, compatHeaders, payload);
+  const data = await postJSON(`${baseUrl}/chat/completions`, compatHeaders, payload, opts.timeoutMs);
   return { text: data.choices?.[0]?.message?.content ?? "", usage: normalizeUsage(data?.usage) };
 }
 
@@ -422,7 +424,7 @@ function isParseableJson(raw: string): boolean {
 // that don't parse (see above), so this is just: get the reply, extract it.
 async function completeJson(
   messages: ChatMsg[],
-  opts: { temperature?: number; maxTokens?: number; flow?: string | null; low?: boolean } = {},
+  opts: { temperature?: number; maxTokens?: number; flow?: string | null; low?: boolean; timeoutMs?: number } = {},
 ): Promise<any> {
   return extractJson(await complete(messages, { ...opts, json: true }));
 }
@@ -433,7 +435,9 @@ export async function roleplayExaminerAI(system: string, user: string, maxTokens
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens });
 }
 export async function moduleCopilotAI(system: string, user: string): Promise<any> {
-  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.5, maxTokens: 6000, low: false });
+  // A full module spec is a heavy generation; give it near the route's maxDuration
+  // rather than the default 55s so it doesn't abort mid-build.
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.5, maxTokens: 6000, low: false, timeoutMs: 110000 });
 }
 export async function moduleCriticAI(system: string, user: string): Promise<any> {
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.2, maxTokens: 2500, low: false });

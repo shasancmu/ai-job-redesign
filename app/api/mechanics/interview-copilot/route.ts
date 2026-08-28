@@ -5,7 +5,7 @@ import { validateSpec, type BuilderSpec } from "@/lib/moduleBuilder";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 90;
+export const maxDuration = 120;
 
 const SCHEMA = `A BuilderSpec for an interview-to-artifact module (JSON). The learner names a subject, an AI interviews them, then the AI drafts a structured canvas.
 {
