@@ -13,6 +13,7 @@ import { titleCaseName } from "@/lib/name";
 import { MODULES } from "@/lib/modules";
 import { levelFor, loadBundles, bundlesFor, nextCertificateStep } from "@/lib/credentials";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { listAuthoredModules } from "@/lib/moduleCatalog";
 import Catalog from "@/components/Catalog";
 import SessionsPanel from "@/components/SessionsPanel";
 import LanguagePicker from "@/components/LanguagePicker";
@@ -144,7 +145,8 @@ export default async function Dashboard({
     if (ids.length) {
       const { data: cls } = await a.from("classes").select("code, name, modules").in("id", ids);
       const assignedSlugs = [...new Set(((cls as any[]) || []).flatMap((c) => (c.modules as any[]) || []).map(String))];
-      const [rpMap, ivMap] = await Promise.all([roleplayCatalogMap(), interviewMetaBySlugs(assignedSlugs)]);
+      const [rpMap, ivMap, authored] = await Promise.all([roleplayCatalogMap(), interviewMetaBySlugs(assignedSlugs), listAuthoredModules()]);
+      const auMap: Record<string, { name: string; emoji: string; prefix: string }> = Object.fromEntries(authored.map((m) => [m.slug, { name: m.name, emoji: m.emoji, prefix: m.prefix }]));
       const seen = new Set<string>();
       for (const c of (cls as any[]) || []) {
         for (const s of (c.modules as any[]) || []) {
@@ -152,6 +154,7 @@ export default async function Dashboard({
           if (seen.has(slug)) continue;
           if (rpMap[slug]) { seen.add(slug); classAssignments.push({ slug, name: rpMap[slug].name, emoji: rpMap[slug].emoji, href: `/m/${slug}?class=${encodeURIComponent(c.code)}`, className: c.name }); }
           else if (ivMap[slug]) { seen.add(slug); classAssignments.push({ slug, name: ivMap[slug].name, emoji: ivMap[slug].emoji, href: `/start/${slug}?cohort=${encodeURIComponent(c.code)}`, className: c.name }); }
+          else if (auMap[slug]) { seen.add(slug); classAssignments.push({ slug, name: auMap[slug].name, emoji: auMap[slug].emoji, href: `/${auMap[slug].prefix}/${slug}?cohort=${encodeURIComponent(c.code)}`, className: c.name }); }
         }
       }
     }

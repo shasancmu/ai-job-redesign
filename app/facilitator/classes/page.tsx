@@ -6,6 +6,7 @@ import { facilitatorAccess, getActiveOrg } from "@/lib/orgs";
 import { listAssignableRoleplay } from "@/lib/mechanics/store";
 import { listAssignableInterviewModules } from "@/lib/customModules";
 import ClassUnitsManager from "@/components/ClassUnitsManager";
+import { listAuthoredModules } from "@/lib/moduleCatalog";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export default async function ClassesPage() {
   if (!user) redirect("/login");
   if (!(await facilitatorAccess(user)).ok) redirect("/dashboard");
 
-  const [activeOrg, interviewModules] = await Promise.all([getActiveOrg(user), listAssignableInterviewModules(user.id)]);
+  const [activeOrg, interviewModules, authoredModules] = await Promise.all([getActiveOrg(user), listAssignableInterviewModules(user.id), listAuthoredModules()]);
   const roleplayModules = await listAssignableRoleplay(user.id, activeOrg?.id || null);
 
   return (
@@ -32,7 +33,7 @@ export default async function ClassesPage() {
       </p>
       <p className="mb-2 text-xs text-slate-400">School or company &rsaquo; <b className="text-slate-500">Class</b> (here) &rsaquo; Cohort (a section or session).</p>
       {activeOrg?.slug && <p className="mb-6 rounded-lg bg-mist/60 px-3 py-2 font-mono text-xs text-slate-500">Launch link pattern: superadditive.app/<b className="text-slate-700">{activeOrg.slug}</b>/<b className="text-slate-700">class</b>/<b className="text-slate-700">COHORT</b>/<b className="text-slate-700">module</b></p>}
-      <ClassUnitsManager roleplayModules={roleplayModules} interviewModules={interviewModules} orgName={activeOrg?.name || null} />
+      <ClassUnitsManager roleplayModules={roleplayModules} interviewModules={interviewModules} authoredModules={authoredModules} orgName={activeOrg?.name || null} />
     </main>
   );
 }

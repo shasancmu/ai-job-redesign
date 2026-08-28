@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getOrgBySlug } from "@/lib/orgs";
 import { getClassUnitBySlug } from "@/lib/classUnits";
+import { authoredRunHref } from "@/lib/moduleCatalog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,8 +53,12 @@ export default async function HierarchicalRun({ params }: { params: { code: stri
   // The link both joins the cohort and launches the module.
   await admin.from("class_members").upsert({ class_id: (cohort as any).id, user_id: user.id }, { onConflict: "class_id,user_id", ignoreDuplicates: true });
 
-  // Resolve the module to its runner. Authored role-plays run at /m; everything
-  // else (custom interviews, library modules) launches at /start.
+  // Resolve the module to its runner: the newer authored engines (negotiation,
+  // quiz, analytical, news, explainer, redesign) go to their own runner; role-
+  // plays to /m; everything else (custom interviews, library modules) to /start.
+  const authored = await authoredRunHref(moduleSlug, cohortCode);
+  if (authored) redirect(authored);
+
   let isRoleplay = false;
   try {
     const { data: rp } = await admin.from("module_specs").select("slug").eq("slug", moduleSlug).eq("status", "published").limit(1).maybeSingle();

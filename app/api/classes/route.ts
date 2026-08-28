@@ -5,6 +5,7 @@ import { normalizeCode } from "@/lib/classes";
 import { MODULES } from "@/lib/modules";
 import { listRoleplayCatalog } from "@/lib/mechanics/store";
 import { listAssignableInterviewModules } from "@/lib/customModules";
+import { listAuthoredModules } from "@/lib/moduleCatalog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -76,8 +77,8 @@ export async function POST(request: Request) {
   // Valid module slugs = the static registry plus this instructor's published
   // dynamic modules: role-play (run at /m/[slug]) and custom interview (run at
   // /start/[slug]). All assigned the same way.
-  const [rpList, ivList] = await Promise.all([listRoleplayCatalog(), listAssignableInterviewModules(user.id)]);
-  const dynSlugs = new Set([...rpList.map((m) => m.slug), ...ivList.map((m) => m.slug)]);
+  const [rpList, ivList, authored] = await Promise.all([listRoleplayCatalog(), listAssignableInterviewModules(user.id), listAuthoredModules()]);
+  const dynSlugs = new Set([...rpList.map((m) => m.slug), ...ivList.map((m) => m.slug), ...authored.map((m) => m.slug)]);
   const modules = (Array.isArray(body.modules) ? body.modules : []).filter((s: string) =>
     VALID.has(s) || dynSlugs.has(s)
   );

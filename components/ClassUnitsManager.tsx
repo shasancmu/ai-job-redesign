@@ -9,14 +9,14 @@ type ClassUnit = { id: string; name: string; slug?: string; modules: string[]; i
 
 // Manage the CLASS tier (dept/course): a class owns a module set that every
 // cohort under it inherits. Director / superadmin of the active school only.
-export default function ClassUnitsManager({ roleplayModules = [], interviewModules = [], orgName }: { roleplayModules?: DynModule[]; interviewModules?: DynModule[]; orgName?: string | null }) {
+export default function ClassUnitsManager({ roleplayModules = [], interviewModules = [], authoredModules = [], orgName }: { roleplayModules?: DynModule[]; interviewModules?: DynModule[]; authoredModules?: DynModule[]; orgName?: string | null }) {
   const available = useMemo(() => {
     const seen = new Set<string>();
     const list: DynModule[] = [];
     for (const m of MODULES) { if ((m as any).hidden) continue; if (seen.has(m.slug)) continue; seen.add(m.slug); list.push({ slug: m.slug, name: m.name, emoji: (m as any).emoji }); }
-    for (const m of [...roleplayModules, ...interviewModules]) { if (seen.has(m.slug)) continue; seen.add(m.slug); list.push(m); }
+    for (const m of [...roleplayModules, ...interviewModules, ...authoredModules]) { if (seen.has(m.slug)) continue; seen.add(m.slug); list.push(m); }
     return list;
-  }, [roleplayModules, interviewModules]);
+  }, [roleplayModules, interviewModules, authoredModules]);
   const nameOf = (slug: string) => available.find((m) => m.slug === slug)?.name || slug;
 
   const [classes, setClasses] = useState<ClassUnit[] | null>(null);

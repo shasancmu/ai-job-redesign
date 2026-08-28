@@ -12,10 +12,11 @@ type ClassUnitLite = { id: string; name: string; modules: string[] };
 
 type DynModule = { slug: string; name: string; emoji?: string };
 
-export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayModules = [], interviewModules = [] }: { orgs?: { id: string; name: string }[]; defaultOrgId?: string; roleplayModules?: DynModule[]; interviewModules?: DynModule[] }) {
+export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayModules = [], interviewModules = [], authoredModules = [] }: { orgs?: { id: string; name: string }[]; defaultOrgId?: string; roleplayModules?: DynModule[]; interviewModules?: DynModule[]; authoredModules?: DynModule[] }) {
   const rpBySlug = useMemo(() => Object.fromEntries(roleplayModules.map((m) => [m.slug, m])), [roleplayModules]);
   const ivBySlug = useMemo(() => Object.fromEntries(interviewModules.map((m) => [m.slug, m])), [interviewModules]);
-  const nameOf = (slug: string) => MODULES.find((m) => m.slug === slug)?.name || rpBySlug[slug]?.name || ivBySlug[slug]?.name || slug;
+  const auBySlug = useMemo(() => Object.fromEntries(authoredModules.map((m) => [m.slug, m])), [authoredModules]);
+  const nameOf = (slug: string) => MODULES.find((m) => m.slug === slug)?.name || rpBySlug[slug]?.name || ivBySlug[slug]?.name || auBySlug[slug]?.name || slug;
   const isRoleplay = (slug: string) => !!rpBySlug[slug];
   const isCustom = (slug: string) => !!ivBySlug[slug];
   const [classes, setClasses] = useState<Klass[]>([]);
@@ -60,8 +61,9 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
     const base = MODULES.map((m) => ({ slug: m.slug, name: m.name, tag: "" }));
     const rp = roleplayModules.map((m) => ({ slug: m.slug, name: m.name, tag: "role-play" }));
     const iv = interviewModules.map((m) => ({ slug: m.slug, name: m.name, tag: "custom" }));
-    return [...base, ...rp, ...iv].filter((m) => !order.includes(m.slug));
-  }, [order, roleplayModules, interviewModules]);
+    const au = authoredModules.map((m) => ({ slug: m.slug, name: m.name, tag: "module" }));
+    return [...base, ...rp, ...iv, ...au].filter((m) => !order.includes(m.slug));
+  }, [order, roleplayModules, interviewModules, authoredModules]);
 
   function edit(k: Klass) {
     setName(k.name);

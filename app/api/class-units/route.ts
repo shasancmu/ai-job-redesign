@@ -5,6 +5,7 @@ import { MODULES } from "@/lib/modules";
 import { listRoleplayCatalog } from "@/lib/mechanics/store";
 import { listAssignableInterviewModules } from "@/lib/customModules";
 import { listClassUnits, cohortCountsByClass, uniqueClassSlug } from "@/lib/classUnits";
+import { listAuthoredModules } from "@/lib/moduleCatalog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,8 +73,8 @@ export async function POST(request: Request) {
 
   const name = String(body.name || "").trim();
   if (!name) return Response.json({ error: "Name required." }, { status: 400 });
-  const [rpList, ivList] = await Promise.all([listRoleplayCatalog(), listAssignableInterviewModules(user.id)]);
-  const dyn = new Set([...rpList.map((m) => m.slug), ...ivList.map((m) => m.slug)]);
+  const [rpList, ivList, authored] = await Promise.all([listRoleplayCatalog(), listAssignableInterviewModules(user.id), listAuthoredModules()]);
+  const dyn = new Set([...rpList.map((m) => m.slug), ...ivList.map((m) => m.slug), ...authored.map((m) => m.slug)]);
   const modules = (Array.isArray(body.modules) ? body.modules : []).filter((s: string) => VALID.has(s) || dyn.has(s));
 
   if (body.id) {
