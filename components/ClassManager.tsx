@@ -76,6 +76,21 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  // Clone a cohort's setup into the new-cohort form (fresh code, empty data).
+  // Saving creates a new cohort; nobody's carried over, no results copied.
+  function duplicate(k: Klass) {
+    setName(`${k.name} (copy)`);
+    setCode("");
+    setOrgId(k.org_id || "");
+    setLanguage(k.language || "English");
+    setKind((k.kind as any) || "teaching");
+    setEmails(((k.allowed_emails as any) || []).join("\n"));
+    setOrder(k.modules || []);
+    setClassUnitId(k.class_unit_id || "");
+    setErr(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function reset() {
     setName("");
     setCode("");
@@ -343,6 +358,9 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
                   <div className="flex flex-wrap gap-2">
                     <button onClick={() => edit(c)} className="btn-ghost text-sm">
                       Edit
+                    </button>
+                    <button onClick={() => duplicate(c)} className="btn-ghost text-sm" title="Make a new empty cohort with the same modules and settings">
+                      Duplicate
                     </button>
                     <button
                       onClick={() => navigator.clipboard?.writeText(`${origin}/${c.code}`)}

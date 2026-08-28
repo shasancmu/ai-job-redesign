@@ -1246,6 +1246,7 @@ on conflict do nothing;
 create table if not exists public.class_units (
   id uuid primary key default gen_random_uuid(),
   org_id uuid not null references public.organizations (id) on delete cascade,
+  owner_id uuid references auth.users (id) on delete set null, -- the instructor who created it (null = org default, director-managed)
   name text not null,
   modules jsonb not null default '[]'::jsonb, -- the reusable module set cohorts inherit
   is_default boolean not null default false,

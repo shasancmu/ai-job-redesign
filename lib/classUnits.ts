@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export type ClassUnit = {
   id: string;
   org_id: string;
+  owner_id: string | null;
   name: string;
   modules: string[];
   is_default: boolean;
@@ -21,8 +22,8 @@ export async function listClassUnits(orgId: string): Promise<ClassUnit[]> {
   const db = admin();
   if (!db || !orgId) return [];
   try {
-    const { data } = await db.from("class_units").select("id, org_id, name, modules, is_default").eq("org_id", orgId);
-    const rows = ((data as any[]) || []).map((r) => ({ id: r.id, org_id: r.org_id, name: r.name, modules: Array.isArray(r.modules) ? r.modules : [], is_default: !!r.is_default }));
+    const { data } = await db.from("class_units").select("id, org_id, owner_id, name, modules, is_default").eq("org_id", orgId);
+    const rows = ((data as any[]) || []).map((r) => ({ id: r.id, org_id: r.org_id, owner_id: r.owner_id ?? null, name: r.name, modules: Array.isArray(r.modules) ? r.modules : [], is_default: !!r.is_default }));
     rows.sort((a, b) => (a.is_default === b.is_default ? a.name.localeCompare(b.name) : a.is_default ? 1 : -1));
     return rows;
   } catch { return []; }
@@ -32,10 +33,10 @@ export async function getClassUnit(id: string): Promise<ClassUnit | null> {
   const db = admin();
   if (!db || !id) return null;
   try {
-    const { data } = await db.from("class_units").select("id, org_id, name, modules, is_default").eq("id", id).maybeSingle();
+    const { data } = await db.from("class_units").select("id, org_id, owner_id, name, modules, is_default").eq("id", id).maybeSingle();
     if (!data) return null;
     const r = data as any;
-    return { id: r.id, org_id: r.org_id, name: r.name, modules: Array.isArray(r.modules) ? r.modules : [], is_default: !!r.is_default };
+    return { id: r.id, org_id: r.org_id, owner_id: r.owner_id ?? null, name: r.name, modules: Array.isArray(r.modules) ? r.modules : [], is_default: !!r.is_default };
   } catch { return null; }
 }
 

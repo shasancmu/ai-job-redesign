@@ -5,7 +5,7 @@ import Link from "next/link";
 import { MODULES } from "@/lib/modules";
 
 type DynModule = { slug: string; name: string; emoji?: string };
-type ClassUnit = { id: string; name: string; modules: string[]; is_default: boolean; cohorts: number };
+type ClassUnit = { id: string; name: string; modules: string[]; is_default: boolean; cohorts: number; canEdit?: boolean };
 
 // Manage the CLASS tier (dept/course): a class owns a module set that every
 // cohort under it inherits. Director / superadmin of the active school only.
@@ -20,7 +20,7 @@ export default function ClassUnitsManager({ roleplayModules = [], interviewModul
   const nameOf = (slug: string) => available.find((m) => m.slug === slug)?.name || slug;
 
   const [classes, setClasses] = useState<ClassUnit[] | null>(null);
-  const [canManage, setCanManage] = useState(false);
+  const [canCreate, setCanCreate] = useState(false);
   const [noOrg, setNoOrg] = useState(false);
   const [editing, setEditing] = useState<null | "new" | string>(null);
   const [name, setName] = useState("");
@@ -33,13 +33,14 @@ export default function ClassUnitsManager({ roleplayModules = [], interviewModul
     try {
       const d = await fetch("/api/class-units", { cache: "no-store" }).then((r) => r.json());
       setClasses(d.classes || []);
-      setCanManage(!!d.canManage);
+      setCanCreate(!!d.canCreate);
       setNoOrg(!d.orgId);
     } catch { setClasses([]); }
   }
 
   function startNew() { setEditing("new"); setName(""); setSel(new Set()); setErr(""); }
   function startEdit(c: ClassUnit) { setEditing(c.id); setName(c.name); setSel(new Set(c.modules)); setErr(""); }
+  function startDuplicate(c: ClassUnit) { setEditing("new"); setName(`${c.name} (copy)`); setSel(new Set(c.modules)); setErr(""); }
   const toggle = (slug: string) => setSel((s) => { const n = new Set(s); n.has(slug) ? n.delete(slug) : n.add(slug); return n; });
 
   async function save() {
@@ -59,7 +60,7 @@ export default function ClassUnitsManager({ roleplayModules = [], interviewModul
 
   return (
     <div>
-      {canManage ? (
+      {canCreate ? (
         editing ? (
           <div className="rounded-2xl border border-line bg-white p-5">
             <div className="text-sm font-bold text-ink">{editing === "new" ? "New class" : "Edit class"}</div>
@@ -88,7 +89,7 @@ export default function ClassUnitsManager({ roleplayModules = [], interviewModul
           <button onClick={startNew} className="btn-primary text-sm">+ New class</button>
         )
       ) : (
-        <div className="rounded-xl bg-mist p-3 text-sm text-slate2">Only a director can create or edit classes for {orgName || "this school"}. You can still see them below.</div>
+        <div className="rounded-xl bg-mist p-3 text-sm text-slate2">You need instructor status in {orgName || "this school"} to create classes. Ask a director to add you.</div>
       )}
 
       <div className="mt-5 space-y-2">
@@ -99,7 +100,10 @@ export default function ClassUnitsManager({ roleplayModules = [], interviewModul
               <div className="text-sm font-bold text-ink">{c.name}{c.is_default && <span className="ml-2 rounded-full bg-mist px-2 py-0.5 text-[11px] font-normal text-slate-500">default</span>}</div>
               <div className="mt-0.5 text-xs text-slate-500">{c.cohorts} cohort{c.cohorts === 1 ? "" : "s"} · {c.modules.length} module{c.modules.length === 1 ? "" : "s"} inherited{c.modules.length ? `: ${c.modules.slice(0, 3).map(nameOf).join(", ")}${c.modules.length > 3 ? "…" : ""}` : ""}</div>
             </div>
-            {canManage && <button onClick={() => startEdit(c)} className="btn-ghost text-sm">Edit</button>}
+            <div className="flex shrink-0 items-center gap-2">
+              {canCreate && <button onClick={() => startDuplicate(c)} className="btn-ghost text-sm">Duplicate</button>}
+              {c.canEdit && <button onClick={() => startEdit(c)} className="btn-ghost text-sm">Edit</button>}
+            </div>
           </div>
         ))}
       </div>
