@@ -921,6 +921,24 @@ drop policy if exists "explainer_specs owner" on public.explainer_specs;
 create policy "explainer_specs owner" on public.explainer_specs
   for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
 
+-- Authored "In the News" modules: apply a business framework to CURRENT real
+-- news (fetched live at runtime). Owner-scoped, jsonb spec.
+create table if not exists public.newsframe_specs (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null,
+  version int not null default 1,
+  owner_id uuid references auth.users (id) on delete set null,
+  status text not null default 'draft',
+  spec jsonb not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (slug, version)
+);
+alter table public.newsframe_specs enable row level security;
+drop policy if exists "newsframe_specs owner" on public.newsframe_specs;
+create policy "newsframe_specs owner" on public.newsframe_specs
+  for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+
 -- Version history: a snapshot of a module's spec on each save, for restore + diff.
 create table if not exists public.module_spec_versions (
   id uuid primary key default gen_random_uuid(),

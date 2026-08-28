@@ -10,6 +10,7 @@ import BenchEditor from "@/components/BenchEditor";
 import AnalyticalEditor from "@/components/AnalyticalEditor";
 import RedesignEditor from "@/components/RedesignEditor";
 import ExplainerEditor from "@/components/ExplainerEditor";
+import NewsFrameEditor from "@/components/NewsFrameEditor";
 
 const KINDS: Record<string, { label: string; emoji: string; endpoint: string; table?: string; editBase: string }> = {
   explainer: { label: "Explainer", emoji: "📖", endpoint: "/api/mechanics/explainer-copilot", table: "explainer_specs", editBase: "/studio/explainer/" },
@@ -19,6 +20,7 @@ const KINDS: Record<string, { label: string; emoji: string; endpoint: string; ta
   benchmark: { label: "Timed benchmark", emoji: "⏱️", endpoint: "/api/mechanics/benchmark-copilot", table: "benchmark_specs", editBase: "/studio/benchmark/" },
   analytical: { label: "Analytical instrument", emoji: "📊", endpoint: "/api/mechanics/analytical-copilot", table: "analytical_specs", editBase: "/studio/analytical/" },
   redesign: { label: "Paired redesign", emoji: "🤝", endpoint: "/api/mechanics/redesign-copilot", table: "redesign_specs", editBase: "/studio/redesign/" },
+  newsframe: { label: "In the News", emoji: "🗞️", endpoint: "/api/mechanics/newsframe-copilot", table: "newsframe_specs", editBase: "/studio/news/" },
 };
 const LOADING = ["Reading your materials…", "Finding the interactive core…", "Drafting your modules…"];
 
@@ -110,6 +112,7 @@ export default function AutoBuild({ me, canGlobal, orgName }: { me: string; canG
         {k === "analytical" && <AnalyticalEditor me={me} initial={spec} initialStatus="draft" />}
         {k === "redesign" && <RedesignEditor me={me} initial={spec} initialStatus="draft" />}
         {k === "explainer" && <ExplainerEditor me={me} initial={spec} initialStatus="draft" />}
+        {k === "newsframe" && <NewsFrameEditor me={me} initial={spec} initialStatus="draft" />}
       </div>
     );
   }

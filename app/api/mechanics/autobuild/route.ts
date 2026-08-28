@@ -20,6 +20,7 @@ The module types:
 - analytical: the learner pastes a subject; the AI decomposes it into units and scores each against a scale the author defines. Best for: X-ray / audit style analysis (AI-exposure of a job, risk of a plan, evidence strength of an argument).
 - redesign: two learners interview each other, then redesign each other's work on an AI/Human instrument (a live paired session). Best for: workshop-style peer redesign of a job or workflow.
 - explainer: a taught, guided walkthrough that explains a topic section by section (exposition, not interactive). Best for: teaching a concept, framework, or process clearly before the interactive work.
+- newsframe: the learner applies a business framework to a real, current news story pulled live at runtime, then makes a calibrated call and is graded on the application. Best for: keeping a framework alive against this week's headlines (Five Forces on the AI industry, disruption watch, moat check).
 
 Output ONLY JSON: {"options":[{"kind":"<one type key>","title":"a short module name","concept":"a specific one-paragraph brief for that type's copilot, naming the situation, the characters/subject, and what the learner should walk away able to do, grounded in the materials","rationale":"one sentence on why this fits these materials"}]}. Give 3 to 4 options, best first. No em dashes.`;
 

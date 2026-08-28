@@ -193,6 +193,19 @@ export default async function CreateGallery() {
           <div className="mt-2 text-right"><Link href="/studio/explainer" className="text-xs text-slate2 hover:text-ink">Your explainers →</Link></div>
         </section>
       )}
+
+      {canRoleplay && (
+        <section className="mt-8">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">In the News</div>
+          <p className="mt-1 text-sm text-slate-500">Pick a framework and a news beat. Every run pulls real, current headlines, so learners apply the framework to a story that broke this week. The module never goes stale.</p>
+          <Link href="/studio/news/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
+            <div className="text-2xl">🗞️</div>
+            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Build a framework desk</div><div className="text-xs text-slate-500">Name the framework and the beat; the AI writes the fields and the call.</div></div>
+            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
+          </Link>
+          <div className="mt-2 text-right"><Link href="/studio/news" className="text-xs text-slate2 hover:text-ink">Your desks →</Link></div>
+        </section>
+      )}
     </main>
   );
 }
