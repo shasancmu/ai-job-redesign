@@ -86,15 +86,17 @@ export default async function Home() {
           </nav>
 
           <div className="relative z-10 max-w-2xl pb-28 pt-16 sm:pb-36 sm:pt-24">
-            <span className="eyebrow">AI for business strategy and innovation</span>
+            <span className="eyebrow">The experiential method top programs teach with</span>
             <h1 className="display mt-4 text-[2.75rem] text-ink sm:text-[4rem]">
-              Better strategy, with AI as your partner.
+              Get better at the calls AI can&apos;t make for you.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate2">
-              Superadditive puts real business frameworks to work on your
-              strategy, your innovation bets, your negotiations, and your own
-              job. AI runs the interview, plays your counterpart, and coaches the
-              debrief. You bring the judgment.
+              The tasks are getting automated. What you are paid for now is
+              judgment: your strategy, your negotiations, the redesign of your
+              own job. Superadditive is where you sharpen it. You work through a
+              real situation of your own, a tough counterpart tests your
+              thinking, and you get coached on where it held up and where it
+              slipped. You leave having actually done it, with a plan you keep.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/login?mode=signup" className="btn-primary">
@@ -118,7 +120,7 @@ export default async function Home() {
         <Reveal>
           <div className="grid gap-6 rounded-2xl border border-line bg-white p-8 text-center shadow-soft sm:grid-cols-3">
             {[
-              [EXERCISE_STAT, "AI-run exercises, and growing"],
+              [EXERCISE_STAT, "hands-on exercises to practice on"],
               ["Free", "to start — no card needed"],
               ["Yours", "every result is yours to keep"],
             ].map(([n, l]) => (
