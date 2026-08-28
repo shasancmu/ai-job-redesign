@@ -8,11 +8,11 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
-const SCHEMA = `A benchmark (timed multiple-choice quiz) as JSON:
-{ "slug": "kebab-case", "name": "the benchmark name", "timeLimitSec": 300,
+const SCHEMA = `A timed multiple-choice quiz as JSON:
+{ "slug": "kebab-case", "name": "the quiz name", "timeLimitSec": 300,
   "questions": [ { "id": 1, "prompt": "the question", "options": [ { "key": "A", "text": "..." }, { "key": "B", "text": "..." } ], "answer": "A" } ] }`;
 
-const SYSTEM = `You author timed multiple-choice benchmarks for a learning platform. The framing is "you vs. AI": the questions test reasoning a person should be able to do.
+const SYSTEM = `You author timed multiple-choice quizzes for a learning platform. The questions test understanding of the topic.
 ${SCHEMA}
 RULES:
 - Write 5 to 12 clear questions, each with 4 or 5 options keyed A, B, C, ... and exactly one correct "answer" (the key).
@@ -31,17 +31,17 @@ export async function POST(request: Request) {
   const intent = String(body.intent || "").slice(0, 4000);
   const source = String(body.sourceText || "").slice(0, 12000);
   const current = body.currentSpec ? JSON.stringify(body.currentSpec).slice(0, 12000) : "";
-  if (!intent && !current) return Response.json({ error: "Describe the benchmark you want." }, { status: 400 });
+  if (!intent && !current) return Response.json({ error: "Describe the quiz you want." }, { status: 400 });
   setFlow("mechanics:benchmark-copilot");
   const user_msg = [
-    current ? `IMPROVE this benchmark per the instruction. Return the full updated JSON.\n\nCURRENT:\n${current}` : "Draft a new benchmark.",
+    current ? `IMPROVE this quiz per the instruction. Return the full updated JSON.\n\nCURRENT:\n${current}` : "Draft a new quiz.",
     intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "",
     source ? `\nSOURCE MATERIAL:\n${source}` : "",
   ].join("\n");
   try {
     if (body?.stream) return streamSpecResponse(SYSTEM, user_msg, validateBenchConfig);
     const spec = await moduleCopilotAI(SYSTEM, user_msg);
-    if (!spec) return Response.json({ error: "The copilot couldn't produce a benchmark. Try rephrasing." }, { status: 502 });
+    if (!spec) return Response.json({ error: "The copilot couldn't produce a quiz. Try rephrasing." }, { status: 502 });
     return Response.json({ spec, errors: validateBenchConfig(spec) });
   } catch (e: any) { return Response.json({ error: e?.message || "AI request failed." }, { status: 500 }); }
 }

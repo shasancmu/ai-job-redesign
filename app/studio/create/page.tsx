@@ -129,17 +129,17 @@ export default async function CreateGallery() {
 
       {canRoleplay && (
         <section className="mt-8">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Timed benchmark</div>
-          <p className="mt-1 text-sm text-slate-500">A timed, scored "you vs. AI" multiple-choice test. Server-scored so the answer key stays private.</p>
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Timed quiz</div>
+          <p className="mt-1 text-sm text-slate-500">A timed, scored multiple-choice quiz. Server-scored, so the answer key stays private.</p>
           <Link href="/studio/benchmark/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
             <div className="text-2xl">⏱️</div>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe your benchmark, and build it</div>
+              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe your quiz, and build it</div>
               <div className="text-xs text-slate-500">The copilot writes the questions and the answer key.</div>
             </div>
             <span className="shrink-0 text-sm font-semibold text-ai">→</span>
           </Link>
-          <div className="mt-2 text-right"><Link href="/studio/benchmark" className="text-xs text-slate2 hover:text-ink">Your benchmarks →</Link></div>
+          <div className="mt-2 text-right"><Link href="/studio/benchmark" className="text-xs text-slate2 hover:text-ink">Your quizzes →</Link></div>
         </section>
       )}
 

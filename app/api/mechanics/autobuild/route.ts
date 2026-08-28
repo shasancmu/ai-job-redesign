@@ -17,7 +17,7 @@ The module types:
 - roleplay: the learner interrogates an AI character who won't lie but will spin, under a hidden truth, and must judge under uncertainty. Best for: detecting deception/wrongdoing, eliciting from a guarded source, diagnosis, diligence, investigation, reading a person. (The Earnings Call is this.)
 - interview: an AI interviews the learner about a subject, then drafts a structured framework canvas / scorecard / verdict. Best for: applying a FRAMEWORK to the learner's own situation (Five Forces, Jobs-to-be-Done, a scorecard, a strategy canvas, a reflection).
 - negotiation: the learner negotiates a scored deal against an AI counterpart with a hidden payoff table. Best for: negotiation, bargaining, deal-making, trade-offs.
-- benchmark: a timed multiple-choice "you vs. AI" test. Best for: testing recall/reasoning on factual or conceptual material.
+- benchmark: a timed multiple-choice quiz, scored server-side. Best for: testing recall or understanding of factual or conceptual material.
 - analytical: the learner pastes a subject; the AI decomposes it into units and scores each against a scale the author defines. Best for: X-ray / audit style analysis (AI-exposure of a job, risk of a plan, evidence strength of an argument).
 - redesign: two learners interview each other, then redesign each other's work on an AI/Human instrument (a live paired session). Best for: workshop-style peer redesign of a job or workflow.
 - explainer: a taught, guided walkthrough that explains a topic section by section (exposition, not interactive). Best for: teaching a concept, framework, or process clearly before the interactive work.

@@ -17,8 +17,8 @@ export default async function RunBenchmark({ params }: { params: { slug: string 
     return (
       <main className="mx-auto flex min-h-[100dvh] max-w-md flex-col items-center justify-center px-6 text-center">
         <Logo />
-        <h1 className="mt-6 text-xl font-bold text-ink">Benchmark not found</h1>
-        <p className="mt-2 text-sm text-slate2">This benchmark doesn't exist yet.</p>
+        <h1 className="mt-6 text-xl font-bold text-ink">Quiz not found</h1>
+        <p className="mt-2 text-sm text-slate2">This quiz doesn't exist yet.</p>
       </main>
     );
   }

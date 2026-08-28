@@ -40,13 +40,13 @@ export default function BenchIntentStart({ me }: { me: string }) {
     <div className="mx-auto max-w-2xl">
       <div className="text-center">
         <div className="text-3xl">⏱️</div>
-        <h1 className="mt-2 font-serif text-3xl text-ink">Describe the benchmark to build</h1>
-        <p className="mt-2 text-slate2">Name the topic and difficulty; the copilot writes the questions and the answer key. A timed "you vs. AI" test.</p>
+        <h1 className="mt-2 font-serif text-3xl text-ink">Describe the quiz to build</h1>
+        <p className="mt-2 text-slate2">Name the topic and difficulty; the copilot writes the questions and the answer key. A timed, server-scored quiz.</p>
       </div>
       {busy ? (
         <div className="mt-8 rounded-2xl border border-line bg-white p-8 text-center shadow-sm">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-ai" />
-          <div className="mt-4 font-serif text-lg text-ink">Writing your benchmark</div>
+          <div className="mt-4 font-serif text-lg text-ink">Writing your quiz</div>
           <div className="mt-1 text-sm text-slate-500">{LOADING[step]}</div>
         </div>
       ) : (

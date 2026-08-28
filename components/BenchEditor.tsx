@@ -31,7 +31,7 @@ export default function BenchEditor({ me, initial, initialStatus }: { me: string
     try {
       const res = await fetch("/api/mechanics/benchmark-copilot", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intent, currentSpec: cfg }) });
       const d = await res.json().catch(() => ({}));
-      if (!res.ok || !d.spec) setErrors([d.error || "The copilot couldn't produce a benchmark."]);
+      if (!res.ok || !d.spec) setErrors([d.error || "The copilot couldn't produce a quiz."]);
       else { setCfg(d.spec); setErrors(d.errors || []); setMsg(d.errors?.length ? "Draft ready (warnings below)" : "Draft ready ✓"); setIntent(""); }
     } catch (e: any) { setErrors([e?.message || "Copilot failed."]); }
     finally { setBusy(""); }

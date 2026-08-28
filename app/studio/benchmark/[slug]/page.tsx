@@ -11,7 +11,7 @@ import BenchEditor from "@/components/BenchEditor";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const BLANK: any = { slug: "", name: "New benchmark", timeLimitSec: 300, questions: [{ id: 1, prompt: "", options: [{ key: "A", text: "" }, { key: "B", text: "" }, { key: "C", text: "" }, { key: "D", text: "" }], answer: "A" }] };
+const BLANK: any = { slug: "", name: "New quiz", timeLimitSec: 300, questions: [{ id: 1, prompt: "", options: [{ key: "A", text: "" }, { key: "B", text: "" }, { key: "C", text: "" }, { key: "D", text: "" }], answer: "A" }] };
 
 export default async function EditBenchmark({ params }: { params: { slug: string } }) {
   const supabase = createClient();
@@ -29,9 +29,9 @@ export default async function EditBenchmark({ params }: { params: { slug: string
     <main className="mx-auto max-w-4xl px-6 py-8">
       <header className="mb-6 flex items-center justify-between">
         <Logo href="/dashboard" />
-        <div className="flex items-center gap-2"><Link href="/studio/benchmark" className="text-sm text-slate2 hover:text-ink">← Benchmarks</Link><HeaderNav /></div>
+        <div className="flex items-center gap-2"><Link href="/studio/benchmark" className="text-sm text-slate2 hover:text-ink">← Quizzes</Link><HeaderNav /></div>
       </header>
-      <h1 className="text-2xl font-bold text-ink">{isNew ? "New benchmark" : `Edit: ${(cfg as any).name || params.slug}`}</h1>
+      <h1 className="text-2xl font-bold text-ink">{isNew ? "New quiz" : `Edit: ${(cfg as any).name || params.slug}`}</h1>
       <BenchEditor me={user.id} initial={cfg} initialStatus={status} />
     </main>
   );

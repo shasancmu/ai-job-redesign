@@ -19,7 +19,7 @@ export default async function StartBenchmark() {
     <main className="mx-auto max-w-5xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between">
         <Logo href="/dashboard" />
-        <div className="flex items-center gap-2"><Link href="/studio/benchmark" className="text-sm text-slate2 hover:text-ink">← Benchmarks</Link><HeaderNav /></div>
+        <div className="flex items-center gap-2"><Link href="/studio/benchmark" className="text-sm text-slate2 hover:text-ink">← Quizzes</Link><HeaderNav /></div>
       </header>
       <BenchIntentStart me={user.id} />
     </main>
