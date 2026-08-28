@@ -2,35 +2,39 @@ import Link from "next/link";
 import Logo from "@/components/Logo";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
-import ForTeamsStory from "@/components/ForTeamsStory";
-import { MODULES } from "@/lib/modules";
 
 export const metadata = {
-  title: "Superadditive for teams & programs",
-  description: "A branded, AI-run learning space that keeps your participants engaged long after the program ends.",
+  title: "Superadditive for L&D, exec ed & in-house academies",
+  description: "Turn your experts' materials into interactive, AI-run learning — role-plays, simulations, benchmarks and more — and run, govern, and measure them at scale.",
 };
 
 const CONTACT = "/contact?source=for-teams";
 
-// Live count of catalog exercises, rounded down to a clean "N+" so it stays
-// honest as modules are added (no hardcoded number to update).
-const EXERCISE_COUNT = MODULES.filter((m) => !m.hidden).length;
-const EXERCISE_STAT = `${Math.floor(EXERCISE_COUNT / 5) * 5}+`;
-
-const FEATURES = [
-  { icon: "🎨", title: "Your brand, your space", body: "Your logo, colors, hero, and a private address — superadditive.app/your-org. It feels like your program, not a vendor." },
-  { icon: "🧩", title: `${EXERCISE_STAT} AI-run exercises`, body: "A growing library of hands-on exercises where an AI runs the interview, plays a partner or counterpart, and coaches the debrief." },
-  { icon: "👥", title: "Cohorts, directors & instructors", body: "Organize people into cohorts and sections. Directors run the space; instructors run their groups. You only see your own people." },
-  { icon: "📡", title: "Live, in-room activities", body: "Run a live word cloud, benchmark, or network map your whole room joins from their phones — no sign-in for them." },
-  { icon: "📄", title: "Their work is theirs", body: "Each exercise ends in a concrete artifact — a plan, a scorecard, a map — that belongs to the participant, to keep and share on their own terms." },
-  { icon: "🌱", title: "Know it's landing", body: "See how the cohort is engaging and the themes rising across the room — the pulse of your program, so you can keep the community connected." },
+const STEPS = [
+  { n: "1", title: "Your expert uploads", body: "A faculty member or SME drops their slides, case, or reading. No new content to write — the material already exists." },
+  { n: "2", title: "The AI proposes modules", body: "It reads the material and offers a menu of interactive modules across formats. They pick one, a few, or the whole set." },
+  { n: "3", title: "Edit and publish", body: "A structured editor and an AI copilot make the last edits fast. An AI critic and a simulated learner check quality before it ships." },
+  { n: "4", title: "Run, govern, measure", body: "Assign to cohorts under your brand. Approve which modules go org-wide. See completion, scores, and where learners got stuck." },
 ];
 
-const RESEARCH = [
-  { title: "The economics of AI & work", body: "How AI is actually reshaping specific tasks, roles, and careers — not the hype." },
-  { title: "Elicitation & interviewing", body: "What makes an interview — spoken or typed — draw out real signal instead of platitudes." },
-  { title: "Network science", body: "How advice, trust, and influence really move through a team or a room." },
-  { title: "Behavioral strategy", body: "The frameworks that hold up when a real decision, bet, or negotiation is on the line." },
+const FEATURES = [
+  { icon: "🪄", title: "Author from your materials", body: "Upload slides, readings, or a case; the AI drafts a working module. A copilot and a structured editor finish it. Minutes, not an instructional-design queue." },
+  { icon: "🧩", title: "Every kind of experience", body: "Role-plays, negotiations, timed benchmarks, analytical X-rays, guided-interview canvases, paired redesigns, explainers, and live room activities — all authored the same way." },
+  { icon: "✅", title: "Quality you control", body: "An AI critic flags an unfair module and a simulated learner playtests whether it teaches, before a real one runs it. A promotion ladder means only vetted modules reach the wider library." },
+  { icon: "🎨", title: "Your brand, your space", body: "Your logo, colors, and a private address. It feels like your program, not a vendor's tool." },
+  { icon: "👥", title: "Cohorts, directors & instructors", body: "Organize people into cohorts and sections. Directors run the space; instructors run their groups; each sees only their own people." },
+  { icon: "📈", title: "See it land", body: "Completion, scores, where the room gets stuck, how calibrated their judgment is, and the themes rising across a live activity." },
+  { icon: "📡", title: "Live, in the room", body: "Run a word cloud, poll, benchmark, or open prompt your whole room joins from their phones — no sign-in for them." },
+  { icon: "🔒", title: "Your content stays yours", body: "Per-organization isolation. Uploaded materials are read to draft the module and never stored. Your library is yours." },
+];
+
+const AUDIENCES = [
+  ["Executive education", "Scale a professor's teaching into interactive modules learners run before, during, and after the room — under the school's brand."],
+  ["Corporate universities & academies", "Turn your experts' knowledge into a living, branded library without a courseware project for every topic."],
+  ["In-house team enablement", "A function builds exactly the practice its people need, from its own playbooks and cases — no vendor, no dev cycle."],
+  ["Fellowships & accelerators", "Keep a cohort practicing the real thinking between sessions, as a connected group."],
+  ["Alumni & membership", "Turn a one-time program into an ongoing, branded relationship your community returns to."],
+  ["Networks & communities", "Give the people you convene a shared space — and a reason — to keep thinking together."],
 ];
 
 export default function ForTeams() {
@@ -50,20 +54,20 @@ export default function ForTeams() {
           </nav>
 
           <div className="relative z-10 max-w-3xl pb-28 pt-16 sm:pb-36 sm:pt-24">
-            <span className="eyebrow">For programs, teams & organizations</span>
+            <span className="eyebrow">For L&amp;D · exec ed · corporate academies · in-house</span>
             <h1 className="display mt-4 text-[2.75rem] leading-[1.05] text-ink sm:text-[4.25rem]">
-              Keep your people thinking, long after the session ends.
+              Turn your material into interactive learning. In minutes.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate2">
-              Give your team or cohort a private, branded space with {EXERCISE_STAT} AI-run exercises grounded in real research.
-              They keep practicing the ideas; you stay connected to the people you brought together.
+              Your faculty and subject-matter experts already have the expertise and the decks. Superadditive turns them
+              into AI-run experiences your people actually do — and lets you run, govern, and measure them at scale.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a href={CONTACT} className="btn-primary">Bring it to your organization <span aria-hidden>→</span></a>
-              <Link href="/" className="btn-ghost">See the exercises</Link>
+              <Link href="/" className="btn-ghost">See the platform</Link>
             </div>
             <div className="mt-4">
-              <Link href="/contact?source=for-teams" className="text-sm font-medium text-slate2 underline-offset-4 hover:text-ink hover:underline">
+              <Link href={CONTACT} className="text-sm font-medium text-slate2 underline-offset-4 hover:text-ink hover:underline">
                 Prefer to talk first? Contact us <span aria-hidden>→</span>
               </Link>
             </div>
@@ -71,13 +75,13 @@ export default function ForTeams() {
         </div>
       </div>
 
-      {/* Numbers — the wow moment */}
+      {/* Numbers */}
       <section className="mx-auto -mt-6 max-w-4xl px-6">
         <Reveal>
           <div className="grid gap-6 rounded-2xl border border-line bg-white p-8 text-center shadow-soft sm:grid-cols-3">
             {[
-              [EXERCISE_STAT, "AI-run exercises, and growing"],
-              ["~1 week", "from hello to your live space"],
+              ["8", "kinds of interactive module"],
+              ["Minutes", "from a deck to a live module"],
               ["0", "IT projects — just share a link"],
             ].map(([n, l]) => (
               <div key={l}>
@@ -93,20 +97,41 @@ export default function ForTeams() {
       <section className="mx-auto mt-20 max-w-4xl px-6 text-center sm:mt-28">
         <Reveal>
           <p className="text-2xl font-semibold leading-snug tracking-tight text-ink sm:text-[2.2rem]">
-            The insight peaks on the last day — then fades. <span className="text-sage">Superadditive keeps it alive</span>, with exercises your people actually want to return to.
+            Custom courseware is slow and expensive; static content doesn&apos;t stick. <span className="text-sage">Superadditive makes experiential learning as easy as uploading a deck.</span>
           </p>
         </Reveal>
       </section>
 
-      {/* What you get */}
+      {/* How it works */}
+      <section className="mx-auto mt-24 max-w-6xl px-6 sm:mt-32">
+        <Reveal>
+          <div className="max-w-2xl">
+            <span className="eyebrow">How it works</span>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Your expert&apos;s material becomes a live module, in four moves.</h2>
+          </div>
+        </Reveal>
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {STEPS.map((s, i) => (
+            <Reveal key={s.n} delay={(i % 4) * 80}>
+              <div className="card h-full p-6">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">{s.n}</div>
+                <h3 className="mt-4 text-lg font-bold text-ink">{s.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-slate2">{s.body}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+      {/* What your organization gets */}
       <section className="mx-auto mt-24 max-w-6xl px-6 sm:mt-32">
         <Reveal>
           <span className="eyebrow">What your organization gets</span>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">A living program, not a PDF.</h2>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">A platform to build, run, and govern experiential learning.</h2>
         </Reveal>
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((f, i) => (
-            <Reveal key={f.title} delay={(i % 3) * 80}>
+            <Reveal key={f.title} delay={(i % 4) * 70}>
               <div className="card h-full p-6">
                 <div className="text-3xl" aria-hidden>{f.icon}</div>
                 <h3 className="mt-4 text-lg font-bold text-ink">{f.title}</h3>
@@ -117,75 +142,37 @@ export default function ForTeams() {
         </div>
       </section>
 
-      {/* How it works — the scrolly */}
-      <section className="mx-auto mt-28 max-w-6xl px-6 sm:mt-40">
-        <Reveal>
-          <div className="max-w-2xl">
-            <span className="eyebrow">How it works</span>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">From your brand to their breakthrough, in three moves.</h2>
+      {/* Governance — the quality story */}
+      <section className="mt-20 border-y border-line bg-mist/50">
+        <div className="mx-auto max-w-5xl px-6 py-20 sm:py-28">
+          <div className="grid items-center gap-10 lg:grid-cols-2">
+            <Reveal>
+              <div>
+                <span className="eyebrow">Quality &amp; governance</span>
+                <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Open authoring, without a flood of mediocre content.</h2>
+                <p className="mt-4 text-lg leading-relaxed text-slate2">
+                  When everyone can author, quality is the risk. Superadditive builds the control in: a new module lives with
+                  its author until it&apos;s earned wider reach. A director approves what goes org-wide; a curator approves
+                  what reaches everyone — and only after it clears automated gates on real usage and quality.
+                </p>
+              </div>
+            </Reveal>
+            <Reveal delay={120}>
+              <div className="grid gap-3">
+                {[
+                  ["Author freely", "A new module runs in the author's own cohorts by default. No committee to start."],
+                  ["Promoted by a director", "Good ones go org-wide with a director's approval — your quality bar, your call."],
+                  ["Curated for everyone", "Reaching the shared library takes passing automated quality gates plus a curator's review."],
+                  ["Checked and playtested", "An AI critic and a simulated learner vet each module before it ships."],
+                ].map(([t, b]) => (
+                  <div key={t} className="card p-5">
+                    <div className="font-semibold text-ink">{t}</div>
+                    <p className="mt-1 text-sm text-slate2">{b}</p>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
           </div>
-        </Reveal>
-        <div className="mt-12">
-          <ForTeamsStory />
-        </div>
-      </section>
-
-      {/* Grounded in research */}
-      <section className="mt-16 border-y border-line bg-mist/50">
-        <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
-          <Reveal>
-            <div className="max-w-2xl">
-              <span className="eyebrow">Grounded in science</span>
-              <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Frameworks from the frontier — not invented for a webinar.</h2>
-              <p className="mt-4 text-lg leading-relaxed text-slate2">
-                Every exercise is built on peer-reviewed research and put to work by an AI that runs it with each person.
-                The voice and chat interviews draw on the science of elicitation; the work-and-AI exercises on the latest
-                research into how AI reshapes specific jobs; the network maps on decades of network science. Rigor your
-                faculty will recognize, in a form your participants will finish.
-              </p>
-            </div>
-          </Reveal>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {RESEARCH.map((r, i) => (
-              <Reveal key={r.title} delay={(i % 4) * 70}>
-                <div className="card h-full p-5">
-                  <h3 className="font-semibold text-ink">{r.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-slate2">{r.body}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Why cutting edge */}
-      <section className="mx-auto mt-24 max-w-5xl px-6 sm:mt-32">
-        <div className="grid items-center gap-10 lg:grid-cols-2">
-          <Reveal>
-            <div>
-              <span className="eyebrow">Why it feels different</span>
-              <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">The AI runs the exercise. Your people bring the judgment.</h2>
-              <p className="mt-4 text-lg leading-relaxed text-slate2">
-                This isn&apos;t a course to watch. An AI interviews, partners, counters, and coaches — adapting to each
-                person in real time — while the human does the thinking only a human can. It&apos;s the difference between
-                reading about strategy and being pushed to make a real call.
-              </p>
-            </div>
-          </Reveal>
-          <Reveal delay={120}>
-            <div className="grid gap-3">
-              {[
-                ["Adaptive, not scripted", "Every session responds to what the person actually says."],
-                ["Human + AI, by design", "The exercise makes the case for what only people can lead, own, and judge."],
-                ["Live or on their own time", "Run it in the room, or let alumni return to it whenever they like."],
-              ].map(([t, b]) => (
-                <div key={t} className="card p-5">
-                  <div className="font-semibold text-ink">{t}</div>
-                  <p className="mt-1 text-sm text-slate2">{b}</p>
-                </div>
-              ))}
-            </div>
-          </Reveal>
         </div>
       </section>
 
@@ -193,18 +180,11 @@ export default function ForTeams() {
       <section className="mx-auto mt-24 max-w-6xl px-6 sm:mt-32">
         <Reveal>
           <span className="eyebrow">Built for programs like yours</span>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">If you gather people to learn, this keeps them together.</h2>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">If you design or deliver learning, this is your studio.</h2>
         </Reveal>
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          {[
-            ["Executive education", "Extend a program past the classroom and give participants a reason to keep coming back."],
-            ["Teams inside companies", "A manager equips their team to work smarter with AI — no IT project, just a link."],
-            ["Company-wide (site license)", "Roll it out across the organization under your brand, with as many cohorts as you need."],
-            ["Fellowships & accelerators", "Keep a cohort practicing the frameworks between sessions, as a connected group."],
-            ["Alumni & membership", "Turn a one-time experience into an ongoing, branded relationship with your community."],
-            ["Networks & communities", "Give the people you convene a reason — and a shared space — to keep thinking together."],
-          ].map(([t, b], i) => (
-            <Reveal key={t} delay={i * 80}>
+          {AUDIENCES.map(([t, b], i) => (
+            <Reveal key={t} delay={i * 70}>
               <div className="card h-full p-6">
                 <h3 className="text-lg font-bold text-ink">{t}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-slate2">{b}</p>
@@ -218,13 +198,14 @@ export default function ForTeams() {
       <section className="mx-auto mt-24 max-w-6xl px-6 sm:mt-32">
         <Reveal>
           <div className="overflow-hidden rounded-3xl border border-line bg-ink px-8 py-14 text-center sm:py-20">
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-[2.6rem]">Bring Superadditive to your organization.</h2>
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-[2.6rem]">Show us a deck. We&apos;ll build the module on the call.</h2>
             <p className="mx-auto mt-3 max-w-xl text-lg text-white/70">
-              We&apos;ll set up your branded space, help you shape the cohort, and get your people started — usually within a week.
+              Bring one lecture or case. We&apos;ll turn it into a working, interactive module while we talk — so you can see
+              exactly what your program could become.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <a href={CONTACT} className="btn-primary">Talk to us <span aria-hidden>→</span></a>
-              <Link href="/" className="rounded-full px-5 py-2.5 text-sm font-semibold text-white/85 hover:text-white">Explore the exercises</Link>
+              <Link href="/" className="rounded-full px-5 py-2.5 text-sm font-semibold text-white/85 hover:text-white">See the platform</Link>
             </div>
           </div>
         </Reveal>
