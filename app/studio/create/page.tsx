@@ -33,7 +33,19 @@ export default async function CreateGallery() {
         <div className="flex items-center gap-2"><Link href="/studio" className="text-sm text-slate2 hover:text-ink">← Studio</Link><HeaderNav /></div>
       </header>
       <h1 className="text-3xl text-ink">Create a module</h1>
-      <p className="mt-1 max-w-2xl text-slate2">Start from a template, not a blank page. Pick the shape that fits what you teach; the editor and AI copilot take it from there.</p>
+      <p className="mt-1 max-w-2xl text-slate2">Start from your own materials, a template, or a blank page. The editor and AI copilot take it from there.</p>
+
+      <Link href="/studio/upload" className="group mt-6 block rounded-2xl border border-ai/40 bg-gradient-to-br from-ai/5 to-mist/50 p-5 transition hover:shadow-sm sm:p-6">
+        <div className="flex items-center gap-4">
+          <div className="text-3xl">📎</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-lg font-bold text-ink group-hover:text-ai">Upload your slides &amp; readings → get a module</div>
+            <div className="mt-0.5 text-sm text-slate2">Drop your PDFs, Word docs, or notes. It reads them, picks the best format, and drafts a module you edit and launch. The fastest way in.</div>
+          </div>
+          <span className="shrink-0 text-lg font-semibold text-ai">→</span>
+        </div>
+      </Link>
+      <div className="mt-6 text-xs font-semibold uppercase tracking-wide text-slate-400">Or build from a template</div>
 
       {canInterview && (
         <section className="mt-8">

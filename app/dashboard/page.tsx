@@ -338,11 +338,11 @@ export default async function Dashboard({
       )}
 
       {(facAccess.superadmin || facAccess.orgIds.length > 0) && (
-        <a href="/studio/roleplay/start" className="group mb-8 flex items-center gap-4 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
-          <div className="text-2xl">✨</div>
+        <a href="/studio/upload" className="group mb-8 flex items-center gap-4 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
+          <div className="text-2xl">📎</div>
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-bold text-ink group-hover:text-ai">Create a learning experience</div>
-            <div className="text-xs text-slate-500">Describe an idea and build an interactive module, no code. Or open the <span className="underline">Studio</span> for all your tools.</div>
+            <div className="text-sm font-bold text-ink group-hover:text-ai">Turn your materials into a module</div>
+            <div className="text-xs text-slate-500">Upload your slides or readings and get a launch-ready draft. Or open the <span className="underline">Studio</span> for all your tools.</div>
           </div>
           <span className="shrink-0 text-sm font-semibold text-ai">Build →</span>
         </a>
