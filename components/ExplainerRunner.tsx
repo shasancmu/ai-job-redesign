@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+
+function beacon(slug: string, stage: string) {
+  try { fetch("/api/module-event", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug, kind: "explainer", stage }), keepalive: true }).catch(() => {}); } catch { /* ignore */ }
+}
 
 // A taught walkthrough: paginated sections, key points, an optional check, and
 // the takeaway at the end.
@@ -10,6 +14,11 @@ export default function ExplainerRunner({ spec }: { spec: any }) {
   const total = sections.length + 1; // + takeaway/intro handled inline
   const [i, setI] = useState(0);
   const done = i >= sections.length;
+
+  // Drop-off funnel: opened, and reached the takeaway (once).
+  useEffect(() => { if (spec.slug) beacon(spec.slug, "start"); }, [spec.slug]);
+  const completed = useRef(false);
+  useEffect(() => { if (done && spec.slug && !completed.current) { completed.current = true; beacon(spec.slug, "complete"); } }, [done, spec.slug]);
 
   return (
     <div className="mx-auto max-w-2xl">
