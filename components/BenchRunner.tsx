@@ -41,33 +41,12 @@ export default function BenchRunner({ cfg }: { cfg: any }) {
 
   if (result) {
     const pct = result.total ? Math.round((result.score / result.total) * 100) : 0;
-    const hasAi = typeof result.aiScore === "number";
     return (
       <div className="mx-auto max-w-lg text-center">
         <div className="rounded-2xl border border-line bg-white p-8 shadow-sm">
-          {hasAi ? (
-            <>
-              <div className="flex items-stretch justify-center gap-4">
-                <div className="flex-1">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">You</div>
-                  <div className="mt-1 text-5xl font-bold text-ink">{result.score}<span className="text-2xl text-slate-400">/{result.total}</span></div>
-                  <div className="mt-1 text-xs text-slate-500">{pct}% correct</div>
-                </div>
-                <div className="w-px bg-line" />
-                <div className="flex-1">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">A small AI model</div>
-                  <div className="mt-1 text-5xl font-bold text-slate-400">{result.aiScore}<span className="text-2xl text-slate-300">/{result.total}</span></div>
-                  <div className="mt-1 text-xs text-slate-400">{result.total ? Math.round((result.aiScore / result.total) * 100) : 0}% correct</div>
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Your score</div>
-              <div className="mt-2 text-5xl font-bold text-ink">{result.score}<span className="text-2xl text-slate-400">/{result.total}</span></div>
-              <div className="mt-1 text-sm text-slate-500">{pct}% correct</div>
-            </>
-          )}
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Your score</div>
+          <div className="mt-2 text-5xl font-bold text-ink">{result.score}<span className="text-2xl text-slate-400">/{result.total}</span></div>
+          <div className="mt-1 text-sm text-slate-500">{pct}% correct</div>
           <p className="mx-auto mt-5 max-w-sm text-sm leading-relaxed text-slate-600">{result.note || fallbackNote(result.score, result.total, cfg.name)}</p>
           <Link href="/studio/benchmark" className="btn-ghost mt-5 inline-block text-sm">Done</Link>
         </div>

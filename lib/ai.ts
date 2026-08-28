@@ -463,15 +463,7 @@ export async function moduleCriticAI(system: string, user: string): Promise<any>
 // Simulate a full run for the playtest: the model plays out a realistic learner
 // x character transcript plus the learner's verdict. Higher temperature for
 // believable variation between the strong and weak personas.
-// Have a small/fast model actually TAKE the benchmark, so the result is a real
-// "you vs AI" comparison instead of a plain quiz score. Returns { "id": "A", ... }.
-export async function benchmarkSolveAI(system: string, user: string): Promise<any> {
-  return completeJson(
-    [{ role: "system", content: system }, { role: "user", content: user }],
-    { temperature: 0, maxTokens: 700, low: true, timeoutMs: 35000, flow: "mechanics:benchmark-solve" },
-  );
-}
-// One-sentence, specific debrief for a benchmark result: fast model, plain text.
+// One-sentence, specific debrief for a quiz result: fast model, plain text.
 export async function benchmarkNoteAI(system: string, user: string): Promise<string> {
   const text = await complete(
     [{ role: "system", content: system }, { role: "user", content: user }],
