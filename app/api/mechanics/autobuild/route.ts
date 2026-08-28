@@ -36,8 +36,11 @@ export async function POST(request: Request) {
   if (!files.length) return Response.json({ error: "Add at least one file." }, { status: 400 });
   setFlow("mechanics:autobuild");
 
-  // Extract text from each file by type.
+  // Extract text from each file by type. Track why a file yielded nothing so the
+  // error we return is honest (a real extraction failure is not a scanned PDF).
   const parts: string[] = [];
+  let threw = false; // extraction errored on at least one file
+  let emptyText = false; // extraction ran but found no text (likely scanned/empty)
   for (const f of files) {
     const name = String(f.name || "file");
     const ext = name.toLowerCase().split(".").pop() || "";
@@ -50,9 +53,19 @@ export async function POST(request: Request) {
       else if (ext === "txt" || ext === "md" || ext === "markdown") text = buf.toString("utf8");
       text = text.replace(/[ \t]+/g, " ").trim();
       if (text) parts.push(`# ${name}\n${text.slice(0, 20000)}`);
-    } catch { /* skip a file we can't read */ }
+      else emptyText = true;
+    } catch (err) {
+      threw = true;
+      console.error(`[autobuild] extraction failed for ${name}:`, err);
+    }
   }
-  if (!parts.join("").trim()) return Response.json({ error: "Couldn't read text from those files. Scanned PDFs and images aren't supported; try a text-based PDF, a .docx, or a .txt." }, { status: 422 });
+  if (!parts.join("").trim()) {
+    const msg = threw
+      ? "We hit an error reading those files. Please try again, or paste the text into the description instead."
+      : "Couldn't find any text in those files. Scanned PDFs and images aren't supported; try a text-based PDF, a .docx, or a .txt.";
+    return Response.json({ error: msg, reason: threw ? "extract_error" : "empty" }, { status: 422 });
+  }
+  void emptyText;
 
   let source = parts.join("\n\n---\n\n");
   if (source.length > 14000) { try { source = await summarizeSourceAI(source); } catch { source = source.slice(0, 14000); } }
