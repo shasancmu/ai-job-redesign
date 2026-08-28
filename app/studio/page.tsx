@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { roleFor } from "@/lib/orgs";
+import Tour, { TourButton, type TourStep } from "@/components/Tour";
 
 export const dynamic = "force-dynamic";
 
@@ -20,14 +21,16 @@ export default async function StudioPage() {
   const canBuild = role.superadmin || role.directorOrgIds.length > 0;
 
   const cards = [
-    { show: true, icon: "🖥️", title: "Presentations", desc: "Build slide decks with live word clouds, quizzes, and room photos, and present them full-screen.", href: "/decks" },
-    { show: canBuild, icon: "🧩", title: "Create a module", desc: "Start from a template and build an interactive learning experience, no code. Interviews, scorecards, and role-play like The Earnings Call.", href: "/studio/create" },
-    { show: canBuild, icon: "📘", title: "How to create a module", desc: "A short guide: what modules are, the shapes to choose from, and the step-by-step to build and publish one.", href: "/studio/guide" },
-    { show: canBuild, icon: "✅", title: "Promotion review", desc: "Modules default to your own classes. Approve which ones go org-wide, and (curators) which reach everyone.", href: "/studio/review" },
-    { show: true, icon: "👥", title: "Cohorts", desc: "Run modules with a class or cohort and watch results come in live.", href: "/facilitator" },
-    { show: true, icon: "📚", title: "Module overview", desc: "A guided deck of every module group: what learners get and the credentials they earn.", href: "/overview" },
-    { show: true, icon: "📔", title: "Guided tour", desc: "A ten-minute tour of the whole app, start to finish.", href: "/tutorial" },
+    { show: canBuild, key: "create", icon: "🧩", title: "Create a module", desc: "Start from a template and build an interactive learning experience, no code. Interviews, scorecards, and role-play like The Earnings Call.", href: "/studio/create", tour: "Everything starts here. Upload your slides or describe an idea, and the copilot drafts an interactive module you edit and launch." },
+    { show: canBuild, key: "guide", icon: "📘", title: "How to create a module", desc: "A short guide: what modules are, the shapes to choose from, and the step-by-step to build and publish one.", href: "/studio/guide", tour: "New to this? A five-minute read on what modules are, the shapes to choose from, and exactly how to build one." },
+    { show: true, key: "cohorts", icon: "👥", title: "Cohorts", desc: "Run modules with a class or cohort and watch results come in live.", href: "/facilitator", tour: "Once a module exists, run it with a class here and watch scores and insights come in live." },
+    { show: canBuild, key: "review", icon: "✅", title: "Promotion review", desc: "Modules default to your own classes. Approve which ones go org-wide, and (curators) which reach everyone.", href: "/studio/review", tour: "Your modules stay in your own classes by default. This is where good ones get promoted to run org-wide." },
+    { show: true, key: "decks", icon: "🖥️", title: "Presentations", desc: "Build slide decks with live word clouds, quizzes, and room photos, and present them full-screen.", href: "/decks", tour: "Build slide decks with live word clouds, quizzes, and room photos, and present them full-screen." },
+    { show: true, key: "overview", icon: "📚", title: "Module overview", desc: "A guided deck of every module group: what learners get and the credentials they earn.", href: "/overview", tour: "A guided deck of every module group already in the library: what learners get, and the credentials they earn." },
+    { show: true, key: "tour", icon: "📔", title: "Guided tour", desc: "A ten-minute tour of the whole app, start to finish.", href: "/tutorial", tour: "Want the bigger picture? A ten-minute tour of the whole app, start to finish." },
   ].filter((c) => c.show);
+
+  const steps: TourStep[] = cards.map((c) => ({ sel: `[data-tour="${c.key}"]`, title: c.title, body: c.tour }));
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-10">
@@ -35,17 +38,29 @@ export default async function StudioPage() {
         <Logo href="/dashboard" />
         <HeaderNav />
       </header>
-      <h1 className="text-2xl font-bold text-ink">Studio</h1>
-      <p className="mt-1 text-sm text-slate-500">Create and run learning experiences.</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-ink">Studio</h1>
+          <p className="mt-1 text-sm text-slate-500">Create and run learning experiences.</p>
+        </div>
+        <TourButton label="Take a tour" />
+      </div>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {cards.map((c) => (
-          <Link key={c.href} href={c.href} className="group rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+          <Link key={c.href} href={c.href} data-tour={c.key} className="group rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
             <div className="text-2xl">{c.icon}</div>
             <div className="mt-2 text-sm font-bold text-ink group-hover:text-ai">{c.title}</div>
             <div className="mt-1 text-sm text-slate-500">{c.desc}</div>
           </Link>
         ))}
       </div>
+
+      <Tour
+        steps={steps}
+        storageKey="tour:studio:v1"
+        welcomeTitle="Welcome to the Studio"
+        welcomeBody="This is your workshop for creating and running interactive learning. Here's a 60-second tour of what's here."
+      />
     </main>
   );
 }
