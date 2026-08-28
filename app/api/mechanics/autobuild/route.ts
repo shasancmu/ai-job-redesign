@@ -73,9 +73,17 @@ export async function POST(request: Request) {
 
   try {
     const routed = await moduleCopilotAI(ROUTER, source);
-    if (!routed?.kind) return Response.json({ error: "Couldn't read the materials into a module. Try adding a note about what you want." }, { status: 502 });
-    return Response.json({ kind: routed.kind, concept: routed.concept || "", title: routed.title || "", rationale: routed.rationale || "", alternate: routed.alternate || "", source });
+    // The router returns a MENU: { options: [{ kind, title, concept, rationale }] }.
+    const options = Array.isArray(routed?.options)
+      ? routed.options.filter((o: any) => o && typeof o.kind === "string" && o.kind.trim())
+      : [];
+    if (!options.length) {
+      console.error("[autobuild] router returned no usable options:", JSON.stringify(routed)?.slice(0, 500));
+      return Response.json({ error: "Couldn't turn those materials into module ideas. Try adding a short note about what you want to build." }, { status: 502 });
+    }
+    return Response.json({ options, source });
   } catch (e: any) {
+    console.error("[autobuild] router failed:", e);
     return Response.json({ error: e?.message || "Something went wrong." }, { status: 500 });
   }
 }
