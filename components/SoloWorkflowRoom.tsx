@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
 import { SOLO_WORKFLOW_STEPS, STEP_ROLES } from "@/lib/workflow";
+import { moduleBeacon } from "@/lib/clientBeacon";
 import Timer from "@/components/Timer";
 import WorkflowFlow from "@/components/WorkflowFlow";
 import TradeoffPlan from "@/components/TradeoffPlan";
@@ -44,6 +45,11 @@ export default function SoloWorkflowRoom({
   const [doc, setDoc] = useState<any>({ steps: [], ...initialDoc });
   const [chat, setChat] = useState<Msg[]>([]);
   const step = SOLO_WORKFLOW_STEPS[phase] ?? SOLO_WORKFLOW_STEPS[0];
+
+  // Drop-off funnel: entered the room, and reached the final step (once).
+  useEffect(() => { if (session?.exercise) moduleBeacon(session.exercise, "solo", "start"); }, [session?.exercise]);
+  const completedBeaconRef = useRef(false);
+  useEffect(() => { if (session?.exercise && phase >= SOLO_WORKFLOW_STEPS.length - 1 && !completedBeaconRef.current) { completedBeaconRef.current = true; moduleBeacon(session.exercise, "solo", "complete"); } }, [phase, session?.exercise]);
 
   // autosave doc
   const pending = useRef<Record<string, any>>({});

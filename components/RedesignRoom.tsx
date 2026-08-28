@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useCohortPing } from "@/components/useCohortLive";
 import { REDESIGN_PHASES } from "@/lib/mechanics/redesignStore";
+import { moduleBeacon } from "@/lib/clientBeacon";
 
 // A spec-driven PAIRED redesign, on the proven realtime path: phase lives on the
 // `sessions` row (already realtime), each partner's canvas on their own
@@ -27,6 +28,11 @@ export default function RedesignRoom({ me, spec, initialSession, initialWorkspac
   const phaseIdx = Math.max(0, Math.min(REDESIGN_PHASES.length - 1, session.phase || 0));
   const phase = REDESIGN_PHASES[phaseIdx];
   const activeField = useRef<string>("");
+
+  // Drop-off funnel: entered the room, and reached the final phase (once).
+  useEffect(() => { if (spec?.slug) moduleBeacon(spec.slug, "redesign", "start"); }, [spec?.slug]);
+  const completedRef = useRef(false);
+  useEffect(() => { if (phase?.key === "final" && spec?.slug && !completedRef.current) { completedRef.current = true; moduleBeacon(spec.slug, "redesign", "complete"); } }, [phase?.key, spec?.slug]);
 
   // ---- realtime: sessions (phase) + workspaces (both canvases) --------------
   useEffect(() => {

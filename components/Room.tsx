@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useCohortPing } from "@/components/useCohortLive";
 import { PHASES } from "@/lib/exercise";
+import { moduleBeacon } from "@/lib/clientBeacon";
 import SetupPanel from "@/components/phases/SetupPanel";
 import InterviewPanel from "@/components/phases/InterviewPanel";
 import RealJobPanel from "@/components/phases/RealJobPanel";
@@ -60,6 +61,11 @@ export default function Room({
   );
 
   const phase = PHASES[session.phase] ?? PHASES[0];
+
+  // Drop-off funnel: entered the room, and reached the final phase (once).
+  useEffect(() => { if (session?.exercise) moduleBeacon(session.exercise, "paired", "start"); }, [session?.exercise]);
+  const completedBeaconRef = useRef(false);
+  useEffect(() => { if (session?.exercise && (session.phase ?? 0) >= PHASES.length - 1 && !completedBeaconRef.current) { completedBeaconRef.current = true; moduleBeacon(session.exercise, "paired", "complete"); } }, [session?.phase, session?.exercise]);
 
   // ---- Facilitator broadcast nudge -> toast --------------------------------
   const [nudge, setNudge] = useState<string | null>(null);

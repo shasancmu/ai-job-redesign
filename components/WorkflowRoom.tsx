@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useCohortPing } from "@/components/useCohortLive";
 import { WORKFLOW_STEPS, STEP_ROLES } from "@/lib/workflow";
+import { moduleBeacon } from "@/lib/clientBeacon";
 import Timer from "@/components/Timer";
 import PairWaiting from "@/components/PairWaiting";
 import WorkflowFlow from "@/components/WorkflowFlow";
@@ -53,6 +54,11 @@ export default function WorkflowRoom({
   const partnerId = session.host_id === me ? session.guest_id : session.host_id;
   const partnerProfile = profiles.find((p) => p.id === partnerId);
   const step = WORKFLOW_STEPS[session.phase] ?? WORKFLOW_STEPS[0];
+
+  // Drop-off funnel: entered the room, and reached the final step (once).
+  useEffect(() => { if (session?.exercise) moduleBeacon(session.exercise, "paired", "start"); }, [session?.exercise]);
+  const completedBeaconRef = useRef(false);
+  useEffect(() => { if (session?.exercise && (session.phase ?? 0) >= WORKFLOW_STEPS.length - 1 && !completedBeaconRef.current) { completedBeaconRef.current = true; moduleBeacon(session.exercise, "paired", "complete"); } }, [session?.phase, session?.exercise]);
 
   const activeField = useRef<string | null>(null);
 
