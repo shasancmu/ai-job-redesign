@@ -251,7 +251,9 @@ async function complete(
         ...messages,
         { role: "system", content: "Your previous reply could not be parsed. Reply with ONLY a single valid JSON object: no prose, no questions, no markdown code fences." },
       ];
-      const r2 = await runCompletion(retryMsgs, { ...opts, temperature: 0 });
+      // Cap the repair retry so a heavy call plus its retry can never exceed the
+      // route's maxDuration (which would make Vercel return a non-JSON 504).
+      const r2 = await runCompletion(retryMsgs, { ...opts, temperature: 0, timeoutMs: Math.min(opts.timeoutMs ?? 55000, 20000) });
       usage = r2.usage || usage;
       if ((r2.text || "").trim()) text = r2.text; // keep the retry's text (better parse, or a better error snippet)
     }
@@ -437,8 +439,9 @@ export async function roleplayExaminerAI(system: string, user: string, maxTokens
 }
 export async function moduleCopilotAI(system: string, user: string): Promise<any> {
   // A full module spec is a heavy generation; give it near the route's maxDuration
-  // rather than the default 55s so it doesn't abort mid-build.
-  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.5, maxTokens: 6000, low: false, timeoutMs: 110000 });
+  // rather than the default 55s so it doesn't abort mid-build. 95s + a 20s capped
+  // retry stays under the routes' 120s limit.
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.5, maxTokens: 6000, low: false, timeoutMs: 95000 });
 }
 // Streaming variant of moduleCopilotAI: forwards raw tokens to onToken as they
 // arrive (so the UI can show live progress) and returns the parsed spec. Streamed
@@ -452,13 +455,18 @@ export async function moduleCopilotStream(system: string, user: string, onToken:
   return moduleCopilotAI(system, user);
 }
 export async function moduleCriticAI(system: string, user: string): Promise<any> {
-  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.2, maxTokens: 2500, low: false });
+  // Reviews a full spec (up to 30k chars); the default 55s was too tight and, with
+  // the repair retry, could exceed the route limit and return a 504. 85s + a capped
+  // retry fits under the critic route's 120s.
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.2, maxTokens: 2500, low: false, timeoutMs: 85000 });
 }
 // Simulate a full run for the playtest: the model plays out a realistic learner
 // x character transcript plus the learner's verdict. Higher temperature for
 // believable variation between the strong and weak personas.
 export async function simulateRunAI(system: string, user: string): Promise<any> {
-  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.75, maxTokens: 1800, low: false });
+  // The playtest runs this then the examiner in one request; bound it so the pair
+  // stays under the route's 120s.
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.75, maxTokens: 1800, low: false, timeoutMs: 45000 });
 }
 // Cheap-model compression of uploaded source material into a grounding briefing.
 // The raw text is never persisted; only this summary is kept, and it feeds the

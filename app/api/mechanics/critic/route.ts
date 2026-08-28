@@ -4,7 +4,7 @@ import { AI_ENABLED, moduleCriticAI } from "@/lib/ai";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 90;
+export const maxDuration = 120;
 
 // The pre-publish critic: an adversarial read of the module's design that
 // playtests it on paper and returns concrete, ranked weaknesses to fix.

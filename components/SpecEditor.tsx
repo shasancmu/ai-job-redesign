@@ -168,7 +168,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
     try {
       const res = await fetch("/api/mechanics/critic", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ spec }) });
       const d = await res.json().catch(() => ({}));
-      if (!res.ok || !d.result) setErrors([d.error || "The critic couldn't finish."]);
+      if (!res.ok || !d.result) setErrors([d.error || (res.status === 504 ? "The critic ran out of time. Save the module, then run the critique again." : "The critic couldn't finish. Try again.")]);
       else { setCritique(d.result); critiqueStamp.current = stamp; }
     } catch (e: any) { setErrors([e?.message || "Critique failed."]); }
     finally { setBusy(""); }
@@ -232,10 +232,10 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                     <div key={p.key} className="rounded-lg bg-mist/60 p-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-xs font-semibold text-ink">{p.label || p.key}</span>
-                        <select className="field h-7 w-24 py-0 text-xs" value={d.value || ""} onChange={(e) => setDim(si, p.key, { value: e.target.value })}>
+                        <select className="field w-full py-1.5 text-xs leading-tight sm:w-24" value={d.value || ""} onChange={(e) => setDim(si, p.key, { value: e.target.value })}>
                           <option value="">value</option>{VALUES.map((v) => <option key={v} value={v}>{v}</option>)}
                         </select>
-                        <select className="field h-7 w-36 py-0 text-xs" value={d.stance || ""} onChange={(e) => setDim(si, p.key, { stance: e.target.value })} title={STANCE_HINT[d.stance] || ""}>
+                        <select className="field w-full py-1.5 text-xs leading-tight sm:w-36" value={d.stance || ""} onChange={(e) => setDim(si, p.key, { stance: e.target.value })} title={STANCE_HINT[d.stance] || ""}>
                           <option value="">stance</option>{STANCES.map((v) => <option key={v} value={v}>{v}</option>)}
                         </select>
                         {d.stance && <span className="text-[10px] text-slate-400">{STANCE_HINT[d.stance]}</span>}
