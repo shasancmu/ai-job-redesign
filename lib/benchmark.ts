@@ -36,6 +36,17 @@ export const DEFAULT_CONFIG: BenchConfig = {
 export const AI_NOTE =
   "On this kind of reasoning test, a small AI model scores around the 92nd–98th percentile, in minutes, for pennies. The question isn't whether AI can do this. It's what only you can.";
 
+// A specific, performance-aware one-liner for when the AI debrief is unavailable.
+// Plain language, no em dashes (per the app copy rule).
+export function fallbackNote(score: number, total: number, title?: string): string {
+  const pct = total ? score / total : 0;
+  const on = title ? ` on ${title}` : "";
+  if (pct >= 0.85) return `Excellent work${on}: ${score} of ${total}. You clearly have this down.`;
+  if (pct >= 0.6) return `Solid${on}: ${score} of ${total}. A strong base, with a few gaps worth a second look.`;
+  if (pct >= 0.35) return `${score} of ${total}${on}. A real start, but several of these tripped you up. Worth another pass.`;
+  return `${score} of ${total}${on}. A tough first run. Review the ones you missed and try it again.`;
+}
+
 export function configReady(c: BenchConfig): boolean {
   return (
     c.questions.length > 0 &&

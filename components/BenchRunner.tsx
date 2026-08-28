@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { AI_NOTE } from "@/lib/benchmark";
+import { fallbackNote } from "@/lib/benchmark";
 
 // Self-contained timed benchmark. Answers are scored server-side; the key never
 // reaches the client (the public config has no answers).
@@ -47,7 +47,7 @@ export default function BenchRunner({ cfg }: { cfg: any }) {
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Your score</div>
           <div className="mt-2 text-5xl font-bold text-ink">{result.score}<span className="text-2xl text-slate-400">/{result.total}</span></div>
           <div className="mt-1 text-sm text-slate-500">{pct}% correct</div>
-          <p className="mx-auto mt-5 max-w-sm text-sm leading-relaxed text-slate-600">{AI_NOTE}</p>
+          <p className="mx-auto mt-5 max-w-sm text-sm leading-relaxed text-slate-600">{result.note || fallbackNote(result.score, result.total, cfg.name)}</p>
           <Link href="/studio/benchmark" className="btn-ghost mt-5 inline-block text-sm">Done</Link>
         </div>
       </div>

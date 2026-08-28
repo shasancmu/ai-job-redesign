@@ -463,6 +463,14 @@ export async function moduleCriticAI(system: string, user: string): Promise<any>
 // Simulate a full run for the playtest: the model plays out a realistic learner
 // x character transcript plus the learner's verdict. Higher temperature for
 // believable variation between the strong and weak personas.
+// One-sentence, specific debrief for a benchmark result: fast model, plain text.
+export async function benchmarkNoteAI(system: string, user: string): Promise<string> {
+  const text = await complete(
+    [{ role: "system", content: system }, { role: "user", content: user }],
+    { temperature: 0.6, maxTokens: 120, low: true, timeoutMs: 30000, flow: "mechanics:benchmark-note" },
+  );
+  return String(text || "").replace(/\s+/g, " ").trim();
+}
 export async function simulateRunAI(system: string, user: string): Promise<any> {
   // The playtest runs this then the examiner in one request; bound it so the pair
   // stays under the route's 120s.
