@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { TeamPerson, TeamInvite } from "@/app/team/page";
+
+export type StaffLink = { token: string; domain: string | null };
 
 function initials(name: string) {
   return (name || "?").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("") || "?";
@@ -15,18 +17,31 @@ async function post(body: any) {
   return d;
 }
 
-export default function TeamConsole({ orgId, people, invites }: { orgId: string; people: TeamPerson[]; invites: TeamInvite[] }) {
+export default function TeamConsole({ orgId, people, invites, links = [] }: { orgId: string; people: TeamPerson[]; invites: TeamInvite[]; links?: StaffLink[] }) {
   const router = useRouter();
   const [emails, setEmails] = useState("");
   const [inviteRole, setInviteRole] = useState<"member" | "instructor">("member");
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [origin, setOrigin] = useState("");
+  const [linkDomain, setLinkDomain] = useState("");
+  const [copied, setCopied] = useState("");
+  useEffect(() => { setOrigin(window.location.origin); }, []);
 
   async function act(body: any, tag: string) {
     setBusy(tag); setErr(null);
     try { await post({ orgId, ...body }); router.refresh(); }
     catch (e: any) { setErr(e.message); }
     finally { setBusy(null); }
+  }
+
+  function makeDirector(p: TeamPerson) {
+    if (!confirm(`Make ${p.name} a co-director? Directors manage everyone and every class in this organization. Only a superadmin can undo it.`)) return;
+    act({ action: "set_role", userId: p.userId, role: "director" }, p.userId);
+  }
+  function copyLink(token: string) {
+    const url = `${origin}/staff/${token}`;
+    navigator.clipboard?.writeText(url); setCopied(token); setTimeout(() => setCopied(""), 1500);
   }
 
   const directors = people.filter((p) => p.role === "director");
@@ -86,6 +101,28 @@ export default function TeamConsole({ orgId, people, invites }: { orgId: string;
         {err && <p className="mt-2 text-sm text-clay">{err}</p>}
       </div>
 
+      {/* Staff invite link */}
+      <div className="card mt-3 p-4">
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Instructor invite link</div>
+        <p className="mb-2 text-xs text-slate-400">Share a link that makes anyone who opens it an instructor. Add a domain to restrict it (e.g. only <span className="font-mono">duke.edu</span> emails).</p>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <input className="field flex-1" value={linkDomain} onChange={(e) => setLinkDomain(e.target.value)} placeholder="Restrict to domain (optional), e.g. duke.edu" />
+          <button onClick={() => act({ action: "staff_link", domain: linkDomain.trim() }, "staff_link").then(() => setLinkDomain(""))} disabled={busy === "staff_link"} className="btn-dark shrink-0 text-sm">{busy === "staff_link" ? "Creating…" : "Create link"}</button>
+        </div>
+        {links.length > 0 && (
+          <div className="mt-3 space-y-1.5">
+            {links.map((l) => (
+              <div key={l.token} className="flex items-center gap-2 rounded-lg border border-line bg-white p-2 text-sm">
+                <span className="min-w-0 flex-1 truncate font-mono text-xs text-slate2">{origin}/staff/{l.token}</span>
+                {l.domain && <span className="shrink-0 rounded-full bg-mist px-2 py-0.5 text-[10px] text-slate2">@{l.domain}</span>}
+                <button onClick={() => copyLink(l.token)} className={btn}>{copied === l.token ? "Copied" : "Copy"}</button>
+                <button onClick={() => act({ action: "revoke_link", token: l.token }, l.token)} disabled={busy === l.token} className={btn + " hover:!text-clay"}>Revoke</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {directors.length > 0 && (
         <Section title="Directors" hint="managed by the platform admin">
           {directors.map((p) => (
@@ -97,6 +134,7 @@ export default function TeamConsole({ orgId, people, invites }: { orgId: string;
       <Section title="Instructors" anchor="team-instructors" hint={instructors.length ? undefined : "none yet — promote a member or add one above"}>
         {instructors.map((p) => (
           <Row key={p.userId} p={p}>
+            <button onClick={() => makeDirector(p)} disabled={busy === p.userId} className={btn}>Make director</button>
             <button onClick={() => act({ action: "set_role", userId: p.userId, role: "member" }, p.userId)} disabled={busy === p.userId} className={btn}>Make member</button>
             <button onClick={() => act({ action: "remove", userId: p.userId }, p.userId)} disabled={busy === p.userId} className={btn + " hover:!text-clay"}>Remove</button>
           </Row>
@@ -108,6 +146,7 @@ export default function TeamConsole({ orgId, people, invites }: { orgId: string;
         {members.map((p) => (
           <Row key={p.userId} p={p}>
             <button onClick={() => act({ action: "set_role", userId: p.userId, role: "instructor" }, p.userId)} disabled={busy === p.userId} className={btn}>Make instructor</button>
+            <button onClick={() => makeDirector(p)} disabled={busy === p.userId} className={btn}>Make director</button>
             <button onClick={() => act({ action: "remove", userId: p.userId }, p.userId)} disabled={busy === p.userId} className={btn + " hover:!text-clay"}>Remove</button>
           </Row>
         ))}

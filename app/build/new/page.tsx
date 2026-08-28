@@ -14,7 +14,7 @@ export default async function NewModulePage({ searchParams }: { searchParams: { 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   const role = await roleFor(user);
-  if (!(role.superadmin || role.directorOrgIds.length > 0)) redirect("/dashboard");
+  if (!(role.superadmin || role.directorOrgIds.length > 0 || role.instructorOrgIds.length > 0)) redirect("/dashboard");
   const dirOrg = role.memberships.find((m) => m.role === "director")?.org;
   const type = searchParams.type;
   const seeded = (type === "report" || type === "scorecard" || type === "verdict") ? { ...DEFAULT_SPEC, superType: type as typeof DEFAULT_SPEC.superType } : undefined;

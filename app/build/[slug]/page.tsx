@@ -15,7 +15,7 @@ export default async function EditModulePage({ params }: { params: { slug: strin
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   const role = await roleFor(user);
-  if (!(role.superadmin || role.directorOrgIds.length > 0)) redirect("/dashboard");
+  if (!(role.superadmin || role.directorOrgIds.length > 0 || role.instructorOrgIds.length > 0)) redirect("/dashboard");
 
   const row = await getModuleForEdit(params.slug, user.id);
   if (!row) redirect("/build");

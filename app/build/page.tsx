@@ -13,7 +13,7 @@ export default async function BuildIndexPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   const role = await roleFor(user);
-  if (!(role.superadmin || role.directorOrgIds.length > 0)) redirect("/dashboard");
+  if (!(role.superadmin || role.directorOrgIds.length > 0 || role.instructorOrgIds.length > 0)) redirect("/dashboard");
 
   const mine = await listAuthoredBy(user.id).catch(() => []);
 

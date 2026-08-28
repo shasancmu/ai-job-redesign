@@ -1273,6 +1273,23 @@ from public.class_units cu
 where cu.org_id = c.org_id and cu.is_default and c.class_unit_id is null and c.org_id is not null;
 
 -- ============================================================================
+-- Staff invite links: a director shares a link/code that grants instructor
+-- status to whoever opens it (optionally restricted to an email domain). All
+-- create/redeem/revoke goes through the service role.
+-- ============================================================================
+create table if not exists public.staff_invite_links (
+  token text primary key,
+  org_id uuid not null references public.organizations (id) on delete cascade,
+  role text not null default 'instructor',
+  domain text, -- optional email-domain restriction, e.g. 'duke.edu'
+  created_by uuid references auth.users (id) on delete set null,
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+alter table public.staff_invite_links enable row level security;
+-- No policies: all access is via service-role routes.
+
+-- ============================================================================
 -- Contact messages: submissions from the public /contact form. All access via
 -- the service-role API — the public form posts through /api/contact and only
 -- the superadmin reads them. RLS with no policies denies direct client access.

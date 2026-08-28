@@ -38,10 +38,11 @@ export default async function TeamPage() {
   const org = directorOrgs.find((o) => active && o.id === active.id) || directorOrgs[0];
 
   const admin = createAdminClient();
-  const [{ data: memberRows }, { data: inviteRows }, { data: profs }] = await Promise.all([
+  const [{ data: memberRows }, { data: inviteRows }, { data: profs }, { data: linkRows }] = await Promise.all([
     admin.from("org_members").select("user_id, org_role").eq("org_id", org.id),
     admin.from("org_invites").select("email, org_role").eq("org_id", org.id),
     admin.from("profiles").select("id, display_name"),
+    admin.from("staff_invite_links").select("token, domain").eq("org_id", org.id).eq("active", true).order("created_at", { ascending: false }).then((r) => r, () => ({ data: [] })),
   ]);
 
   const memberIds = new Set((memberRows || []).map((m: any) => m.user_id));
@@ -93,7 +94,7 @@ export default async function TeamPage() {
         </Link>
       )}
 
-      <TeamConsole orgId={org.id} people={people} invites={invites} />
+      <TeamConsole orgId={org.id} people={people} invites={invites} links={(linkRows as any[]) || []} />
 
       <Tour
         steps={TEAM_TOUR}

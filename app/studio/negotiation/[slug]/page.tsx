@@ -22,7 +22,7 @@ export default async function EditNegotiation({ params }: { params: { slug: stri
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   const role = await roleFor(user);
-  if (!(role.superadmin || role.directorOrgIds.length > 0)) redirect("/dashboard");
+  if (!(role.superadmin || role.directorOrgIds.length > 0 || role.instructorOrgIds.length > 0)) redirect("/dashboard");
 
   const isNew = params.slug === "new";
   const scn = isNew ? BLANK : (await getNegScenario(params.slug)) || BLANK;

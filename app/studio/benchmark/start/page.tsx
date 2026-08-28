@@ -14,7 +14,7 @@ export default async function StartBenchmark() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   const role = await roleFor(user);
-  if (!(role.superadmin || role.directorOrgIds.length > 0)) redirect("/dashboard");
+  if (!(role.superadmin || role.directorOrgIds.length > 0 || role.instructorOrgIds.length > 0)) redirect("/dashboard");
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between">

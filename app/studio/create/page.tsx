@@ -22,7 +22,7 @@ export default async function CreateGallery() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   const role = await roleFor(user);
-  const canInterview = role.superadmin || role.directorOrgIds.length > 0;
+  const canInterview = role.superadmin || role.directorOrgIds.length > 0 || role.instructorOrgIds.length > 0;
   const canRoleplay = canInterview;
   if (!canInterview && !canRoleplay) redirect("/dashboard");
 

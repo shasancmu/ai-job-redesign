@@ -50,12 +50,30 @@ export async function POST(request: Request) {
 
     if (action === "set_role") {
       const userId = String(body.userId || "");
-      const wanted = body.role === "instructor" ? "instructor" : "member";
+      const wanted = ["director", "instructor", "member"].includes(body.role) ? body.role : "member";
       if (!userId) return Response.json({ error: "Missing person." }, { status: 400 });
       const { data: cur } = await admin.from("org_members").select("org_role").eq("org_id", orgId).eq("user_id", userId).maybeSingle();
       if (!cur) return Response.json({ error: "Not a member of this org." }, { status: 404 });
+      // A director can appoint co-directors (promote up), but changing an
+      // EXISTING director (demote/remove) stays superadmin-only, so directors
+      // can't push each other out.
       if (normalizeRole((cur as any).org_role) === "director") return Response.json({ error: "Only a superadmin can change a director." }, { status: 403 });
       await admin.from("org_members").update({ org_role: wanted }).eq("org_id", orgId).eq("user_id", userId);
+      return Response.json({ ok: true });
+    }
+
+    if (action === "staff_link") {
+      const domain = String(body.domain || "").trim().toLowerCase().replace(/^@/, "") || null;
+      const token = "stf_" + Array.from(crypto.getRandomValues(new Uint8Array(16))).map((b) => b.toString(16).padStart(2, "0")).join("");
+      const { error } = await admin.from("staff_invite_links").insert({ token, org_id: orgId, role: "instructor", domain, created_by: user.id });
+      if (error) return Response.json({ error: error.message }, { status: 500 });
+      return Response.json({ ok: true, token });
+    }
+
+    if (action === "revoke_link") {
+      const token = String(body.token || "");
+      if (!token) return Response.json({ error: "Missing link." }, { status: 400 });
+      await admin.from("staff_invite_links").update({ active: false }).eq("token", token).eq("org_id", orgId);
       return Response.json({ ok: true });
     }
 
