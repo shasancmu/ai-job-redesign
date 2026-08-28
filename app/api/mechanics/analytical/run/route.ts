@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
+import { recordMechanicsResult } from "@/lib/cohortData";
 import { AI_ENABLED, roleplayExaminerAI } from "@/lib/ai";
 import { getAnalyticalSpec } from "@/lib/mechanics/analyticalStore";
 
@@ -36,6 +37,7 @@ Output ONLY JSON: {"units":[{"label":"the ${spec.unitLabel}","level":"<one level
     const units = (out.units as any[]).filter((u) => u && u.label).map((u) => ({ label: String(u.label), level: valueOf[u.level] != null ? u.level : spec.levels[0].key, note: String(u.note || "") }));
     const vals = units.map((u) => valueOf[u.level] ?? 0);
     const aggregate = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
+    await recordMechanicsResult("analytical", String(body.slug || ""), user?.id, aggregate, `${spec.name || spec.slug}: ${spec.aggregateLabel || "aggregate"} ${aggregate}. ${String(out.summary || "")}`);
     return Response.json({ units, aggregate, summary: String(out.summary || ""), levels: spec.levels, aggregateLabel: spec.aggregateLabel });
   } catch (e: any) {
     return Response.json({ error: e?.message || "Analysis failed." }, { status: 500 });

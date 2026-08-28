@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
+import { recordMechanicsResult } from "@/lib/cohortData";
 import { AI_ENABLED, roleplayExaminerAI } from "@/lib/ai";
 import { analyze } from "@/lib/negotiation";
 import { getNegScenario } from "@/lib/mechanics/negStore";
@@ -36,5 +37,6 @@ export async function POST(request: Request) {
     try { debrief = await roleplayExaminerAI(system, userMsg, 1200); } catch { debrief = null; }
   }
 
+  await recordMechanicsResult("negotiation", String(body.slug || ""), user?.id, typeof a?.efficiency === "number" ? a.efficiency : null, `joint ${a?.joint}/${a?.maxJoint} (${a?.efficiency}% efficient), beat BATNA: ${a?.beatBATNA}`);
   return Response.json({ analysis: a, debrief });
 }

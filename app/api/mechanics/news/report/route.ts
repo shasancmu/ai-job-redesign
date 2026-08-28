@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
+import { recordMechanicsResult } from "@/lib/cohortData";
 import { AI_ENABLED, roleplayExaminerAI } from "@/lib/ai";
 import { getNewsSpec } from "@/lib/mechanics/newsStore";
 
@@ -34,6 +35,7 @@ Output ONLY JSON: {"score":0-100,"framework_use":[{"field":"the field label","qu
   try {
     const report = await roleplayExaminerAI(system, userMsg, 2200);
     if (!report) return Response.json({ error: "Couldn't grade. Try again." }, { status: 502 });
+    await recordMechanicsResult("newsframe", String(body.slug || ""), user?.id, typeof report?.score === "number" ? report.score : null, `${spec.framework}: ${report?.verdict_note || ""}${report?.best_miss ? ` | missed: ${report.best_miss}` : ""}`);
     return Response.json({ report });
   } catch (e: any) { return Response.json({ error: e?.message || "Grading failed." }, { status: 500 }); }
 }

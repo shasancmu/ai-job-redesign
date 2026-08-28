@@ -1289,6 +1289,22 @@ create table if not exists public.staff_invite_links (
 alter table public.staff_invite_links enable row level security;
 -- No policies: all access is via service-role routes.
 
+-- One compact row per authored-engine run (negotiation, news, analytical, ...),
+-- keyed by user + slug (no cohort needed). The cohort chat joins these to the
+-- cohort's members, so "Ask your cohort" can see these module types too.
+create table if not exists public.mechanics_results (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null,
+  slug text not null,
+  user_id uuid references auth.users (id) on delete cascade,
+  score int,
+  summary text,
+  created_at timestamptz not null default now()
+);
+alter table public.mechanics_results enable row level security;
+create index if not exists mechanics_results_user_idx on public.mechanics_results (user_id, created_at desc);
+-- No policies: written and read via service-role routes only.
+
 -- ============================================================================
 -- Contact messages: submissions from the public /contact form. All access via
 -- the service-role API — the public form posts through /api/contact and only

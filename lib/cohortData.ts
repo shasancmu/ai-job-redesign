@@ -3,8 +3,19 @@
 // Pulls participation, quiz/benchmark scores, role-play grades, and the
 // qualitative outputs people wrote, then caps the size.
 
+import { createAdminClient } from "@/lib/supabase/admin";
+
 function clean(s: any, max = 600): string {
   return String(s || "").replace(/\s+/g, " ").trim().slice(0, max);
+}
+
+// Best-effort: record one compact result for an authored-engine run, keyed by
+// user + slug. The cohort chat joins these to the cohort's members.
+export async function recordMechanicsResult(kind: string, slug: string, userId: string | null | undefined, score: number | null, summary: string): Promise<void> {
+  if (!userId || !slug) return;
+  try {
+    await createAdminClient().from("mechanics_results").insert({ kind, slug, user_id: userId, score: score == null ? null : Math.round(score), summary: clean(summary, 600) });
+  } catch { /* table missing or write failed -> skip */ }
 }
 
 export type CohortDigest = { name: string; members: number; empty: boolean; text: string };
@@ -18,12 +29,14 @@ export async function gatherCohortDigest(admin: any, cohort: string): Promise<Co
   // --- cohort meta + roster ---
   let classId: string | null = null;
   let moduleSlugs: string[] = [];
+  let memberIds: string[] = [];
   try {
     const { data: klass } = await admin.from("classes").select("id, name, modules").eq("code", code).maybeSingle();
     if (klass) { name = klass.name || code; classId = klass.id; moduleSlugs = Array.isArray(klass.modules) ? klass.modules : []; }
     if (classId) {
-      const { count } = await admin.from("class_members").select("user_id", { count: "exact", head: true }).eq("class_id", classId);
-      members = count || 0;
+      const { data: cm } = await admin.from("class_members").select("user_id").eq("class_id", classId);
+      memberIds = ((cm as any[]) || []).map((r) => r.user_id).filter(Boolean);
+      members = memberIds.length;
     }
   } catch { /* ignore */ }
 
@@ -106,6 +119,20 @@ export async function gatherCohortDigest(admin: any, cohort: string): Promise<Co
           if (concl.length) parts.push(`Conclusions: ${concl.join(" | ")}`);
           out.push(parts.join("\n"));
         }
+      }
+    }
+  } catch { /* ignore */ }
+
+  // --- other authored engines: negotiation, news-framework, analytical, etc.
+  // (one compact line each, joined to the cohort's members) ---
+  try {
+    if (memberIds.length) {
+      const { data: mr } = await admin.from("mechanics_results").select("user_id, kind, slug, score, summary").in("user_id", memberIds).order("created_at", { ascending: false }).limit(300);
+      const rows = (mr as any[]) || [];
+      if (rows.length) {
+        await loadNames(rows.map((r) => r.user_id));
+        out.push(`\nOTHER MODULE RESULTS (negotiations, news-framework analyses, analytical instruments, ${rows.length}):`);
+        for (const r of rows.slice(0, 80)) out.push(`- ${nm(r.user_id)} [${r.kind}/${r.slug}]${r.score != null ? ` score ${r.score}` : ""}: ${clean(r.summary, 280)}`);
       }
     }
   } catch { /* ignore */ }
