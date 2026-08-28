@@ -86,17 +86,18 @@ export default async function Home() {
           </nav>
 
           <div className="relative z-10 max-w-2xl pb-28 pt-16 sm:pb-36 sm:pt-24">
-            <span className="eyebrow">The experiential method top programs teach with</span>
+            <span className="eyebrow">Interactive exercises, run by AI</span>
             <h1 className="display mt-4 text-[2.75rem] text-ink sm:text-[4rem]">
-              Get better at the calls AI can&apos;t make for you.
+              Get better at the hard parts of your job.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate2">
-              The tasks are getting automated. What you are paid for now is
-              judgment: your strategy, your negotiations, the redesign of your
-              own job. Superadditive is where you sharpen it. You work through a
-              real situation of your own, a tough counterpart tests your
-              thinking, and you get coached on where it held up and where it
-              slipped. You leave having actually done it, with a plan you keep.
+              Negotiating, setting strategy, making a tough call, rethinking your
+              own role: the parts of work that take real judgment, you only get
+              better at by doing them. Superadditive turns each one into a
+              hands-on exercise. An AI interviews you, plays the counterpart, and
+              coaches you on what worked and what didn&apos;t. You practice on a
+              real situation of your own, and walk away with a concrete plan you
+              can use.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/login?mode=signup" className="btn-primary">
