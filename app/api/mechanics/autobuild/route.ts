@@ -10,7 +10,7 @@ export const maxDuration = 120;
 // Upload teaching materials -> extract text -> pick the best module TYPE and a
 // concrete concept. Generation is then done by the existing per-type copilot on
 // the client (no duplication). This is the router half of the "upload and go".
-const ROUTER = `You help a busy professor turn their teaching materials into an interactive learning module. You are given the text of their slides / readings / notes. Pick the ONE module type that best fits what these materials could TEACH INTERACTIVELY, and propose a concrete, specific module concept grounded in the materials.
+const ROUTER = `You help a busy professor turn their teaching materials into an interactive learning module. You are given the text of their slides / readings / notes. Propose a MENU of 3 to 4 genuinely different modules these materials could become, so the professor can choose. Prefer spread across DIFFERENT types where the materials support it (do not return four role-plays). Best fit first.
 
 The module types:
 - roleplay: the learner interrogates an AI character who won't lie but will spin, under a hidden truth, and must judge under uncertainty. Best for: detecting deception/wrongdoing, eliciting from a guarded source, diagnosis, diligence, investigation, reading a person. (The Earnings Call is this.)
@@ -19,8 +19,9 @@ The module types:
 - benchmark: a timed multiple-choice "you vs. AI" test. Best for: testing recall/reasoning on factual or conceptual material.
 - analytical: the learner pastes a subject; the AI decomposes it into units and scores each against a scale the author defines. Best for: X-ray / audit style analysis (AI-exposure of a job, risk of a plan, evidence strength of an argument).
 - redesign: two learners interview each other, then redesign each other's work on an AI/Human instrument (a live paired session). Best for: workshop-style peer redesign of a job or workflow.
+- explainer: a taught, guided walkthrough that explains a topic section by section (exposition, not interactive). Best for: teaching a concept, framework, or process clearly before the interactive work.
 
-Output ONLY JSON: {"kind":"<one type key>","concept":"a specific one-paragraph brief for that type's copilot, naming the situation, the characters/subject, and what the learner should walk away able to do, grounded in the materials","title":"a short module name","rationale":"one sentence on why this type fits these materials","alternate":"<a second-best type key>"}. No em dashes.`;
+Output ONLY JSON: {"options":[{"kind":"<one type key>","title":"a short module name","concept":"a specific one-paragraph brief for that type's copilot, naming the situation, the characters/subject, and what the learner should walk away able to do, grounded in the materials","rationale":"one sentence on why this fits these materials"}]}. Give 3 to 4 options, best first. No em dashes.`;
 
 export async function POST(request: Request) {
   if (!AI_ENABLED) return Response.json({ error: "AI is not configured." }, { status: 503 });
