@@ -875,6 +875,34 @@ drop policy if exists "live_entries host reads" on public.live_entries;
 create policy "live_entries host reads" on public.live_entries
   for select using (exists (select 1 from public.live_sessions s where s.id = live_entries.session_id and s.host_id = auth.uid()));
 
+-- The visibility ladder for ALL authored modules (any engine). Default is
+-- Personal (no row = the author's own classes only). A director promotes to Org;
+-- a curator promotes to Global, and only after automated eligibility gates pass.
+-- Global membership can decay (status 'demoted'). One row per (kind, slug, tier).
+create table if not exists public.module_promotions (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null,        -- 'roleplay' | 'interview' | 'negotiation' | 'benchmark' | 'analytical' | 'redesign' | 'live'
+  slug text not null,
+  owner_id uuid references auth.users (id) on delete set null,
+  org_id uuid references public.organizations (id) on delete set null,
+  tier text not null,        -- 'org' | 'global'
+  status text not null default 'pending',  -- 'pending' | 'approved' | 'rejected' | 'demoted'
+  readiness jsonb,           -- the evidence captured at nomination (gates + usage)
+  note text,
+  decided_by uuid references auth.users (id) on delete set null,
+  decided_at timestamptz,
+  created_at timestamptz not null default now(),
+  unique (kind, slug, tier)
+);
+create index if not exists module_promotions_lookup_idx on public.module_promotions (kind, slug);
+create index if not exists module_promotions_queue_idx on public.module_promotions (tier, status);
+alter table public.module_promotions enable row level security;
+-- The author reads their own nominations; director/curator reads + decisions go
+-- through the service role after an explicit authority check in the API.
+drop policy if exists "module_promotions owner reads" on public.module_promotions;
+create policy "module_promotions owner reads" on public.module_promotions
+  for select using (auth.uid() = owner_id);
+
 -- Version history: a snapshot of a module's spec on each save, for restore + diff.
 create table if not exists public.module_spec_versions (
   id uuid primary key default gen_random_uuid(),

@@ -22,6 +22,7 @@ export default async function StudioPage() {
   const cards = [
     { show: true, icon: "🖥️", title: "Presentations", desc: "Build slide decks with live word clouds, quizzes, and room photos, and present them full-screen.", href: "/decks" },
     { show: canBuild, icon: "🧩", title: "Create a module", desc: "Start from a template and build an interactive learning experience, no code. Interviews, scorecards, and role-play like The Earnings Call.", href: "/studio/create" },
+    { show: canBuild, icon: "✅", title: "Promotion review", desc: "Modules default to your own classes. Approve which ones go org-wide, and (curators) which reach everyone.", href: "/studio/review" },
     { show: true, icon: "👥", title: "Cohorts", desc: "Run modules with a class or cohort and watch results come in live.", href: "/facilitator" },
     { show: true, icon: "📚", title: "Module overview", desc: "A guided deck of every module group: what learners get and the credentials they earn.", href: "/overview" },
     { show: true, icon: "📔", title: "Guided tour", desc: "A ten-minute tour of the whole app, start to finish.", href: "/tutorial" },

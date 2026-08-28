@@ -6,6 +6,7 @@ import Logo from "@/components/Logo";
 import { roleFor } from "@/lib/orgs";
 import { getSpec } from "@/lib/mechanics/store";
 import { getInsights, listResultCohorts } from "@/lib/mechanics/insights";
+import { currentTier } from "@/lib/mechanics/promotion";
 import { BLANK, seedFromTemplate } from "@/lib/mechanics/templates";
 import { createAdminClient } from "@/lib/supabase/admin";
 import SpecEditor from "@/components/SpecEditor";
@@ -38,9 +39,9 @@ export default async function EditRoleplay({ params, searchParams }: { params: {
     try { const { data } = await createAdminClient().from("module_specs").select("status").eq("slug", params.slug).eq("owner_id", user.id).order("version", { ascending: false }).limit(1).maybeSingle(); return data; }
     catch { return null; }
   };
-  const [insights, cohorts, statusRow] = isNew
-    ? [null, [] as string[], null]
-    : await Promise.all([getInsights(params.slug, cohort), listResultCohorts(params.slug), statusOf()]);
+  const [insights, cohorts, statusRow, tier] = isNew
+    ? [null, [] as string[], null, "personal" as const]
+    : await Promise.all([getInsights(params.slug, cohort), listResultCohorts(params.slug), statusOf(), currentTier("roleplay", params.slug)]);
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-8">
@@ -49,7 +50,7 @@ export default async function EditRoleplay({ params, searchParams }: { params: {
         <div className="flex items-center gap-2"><Link href="/studio/roleplay" className="text-sm text-slate2 hover:text-ink">← Modules</Link><HeaderNav /></div>
       </header>
       <h1 className="text-2xl font-bold text-ink">{isNew ? "New role-play module" : `Edit: ${(spec as any).meta?.name || params.slug}`}</h1>
-      <SpecEditor me={user.id} initial={spec} insights={insights} initialStatus={(statusRow as any)?.status} cohorts={cohorts as string[]} cohort={cohort || undefined} />
+      <SpecEditor me={user.id} initial={spec} insights={insights} initialStatus={(statusRow as any)?.status} cohorts={cohorts as string[]} cohort={cohort || undefined} tier={tier as string} />
     </main>
   );
 }

@@ -48,7 +48,7 @@ const STANCE_HINT: Record<string, string> = {
   noncommittal: "Won't confirm or deny",
 };
 
-export default function SpecEditor({ me, initial, insights, initialStatus, cohorts, cohort }: { me: string; initial: any; insights?: any; initialStatus?: string; cohorts?: string[]; cohort?: string }) {
+export default function SpecEditor({ me, initial, insights, initialStatus, cohorts, cohort, tier }: { me: string; initial: any; insights?: any; initialStatus?: string; cohorts?: string[]; cohort?: string; tier?: string }) {
   const supabase = createClient();
   const [spec, setSpecRaw] = useState<any>(initial);
   // Undo/redo: every structural change is reversible, so authors experiment
@@ -171,6 +171,21 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
       if (!res.ok || !d.result) setErrors([d.error || "The critic couldn't finish."]);
       else { setCritique(d.result); critiqueStamp.current = stamp; }
     } catch (e: any) { setErrors([e?.message || "Critique failed."]); }
+    finally { setBusy(""); }
+  }
+
+  // ---- Deployment scope (the visibility ladder) ---------------------------
+  const [promoteMsg, setPromoteMsg] = useState("");
+  const [promoteMissing, setPromoteMissing] = useState<string[]>([]);
+  async function nominate(t: "org" | "global") {
+    setPromoteMsg(""); setPromoteMissing([]); setBusy("promote");
+    try {
+      const res = await fetch("/api/mechanics/promote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "roleplay", slug: spec.slug, tier: t, criticReady: critique?.readiness === "ready", playtestSeparates: !!playtest?.separates }) });
+      const d = await res.json().catch(() => ({}));
+      if (res.status === 422) { setPromoteMissing(d.missing || ["Not eligible yet."]); }
+      else if (!res.ok) { setPromoteMissing([d.error || "Couldn't submit."]); }
+      else { setPromoteMsg(t === "global" ? "Submitted for global review ✓ — a curator will decide." : "Submitted for org-wide review ✓ — a director will decide."); }
+    } catch (e: any) { setPromoteMissing([e?.message || "Failed."]); }
     finally { setBusy(""); }
   }
 
@@ -332,6 +347,28 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
         {msg && <span className="text-sm text-sage">{msg}</span>}
         <span className="ml-auto text-xs text-slate-400">{scenarios.length} scenario{scenarios.length === 1 ? "" : "s"} · {probes.length} probe{probes.length === 1 ? "" : "s"}</span>
       </div>
+
+      {/* Deployment scope — the visibility ladder */}
+      {status === "published" && slug && (
+        <div className="mt-3 rounded-xl border border-line bg-surface-2 p-3">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Deployment</span>
+            <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${tier === "global" ? "bg-ai/10 text-ai" : tier === "org" ? "bg-sage-soft text-sage" : "bg-mist text-slate-600"}`}>{tier === "global" ? "🌐 Everywhere" : tier === "org" ? "🏢 Your organization" : "👤 Your own classes"}</span>
+            <span className="text-xs text-slate-400">Published modules stay in your own classes until promoted.</span>
+            <div className="ml-auto flex items-center gap-2">
+              <button onClick={() => nominate("org")} disabled={!!busy} className="btn-ghost text-sm">Promote org-wide</button>
+              <button onClick={() => nominate("global")} disabled={!!busy} className="btn-ghost text-sm text-ai">Nominate for everyone</button>
+            </div>
+          </div>
+          {promoteMsg && <p className="mt-2 text-sm text-sage">{promoteMsg}</p>}
+          {promoteMissing.length > 0 && (
+            <div className="mt-2 rounded-lg bg-amber-50 p-2.5 text-xs text-amber-900">
+              <div className="font-semibold">To reach everyone, clear these first:</div>
+              <ul className="mt-1 list-disc pl-4">{promoteMissing.map((x, i) => <li key={i}>{x}</li>)}</ul>
+            </div>
+          )}
+        </div>
+      )}
 
       {errors.length > 0 && (
         <div className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">

@@ -51,6 +51,29 @@ export async function roleplayCatalogMap(): Promise<Record<string, RoleplayCatal
   return Object.fromEntries(list.map((e) => [e.slug, e]));
 }
 
+// What THIS user may assign: their own published modules + ones promoted org-wide
+// for their org + ones promoted global. This is where the visibility ladder is
+// enforced on the assignment surface (nothing personal leaks past its owner).
+export async function listAssignableRoleplay(userId: string, orgId?: string | null): Promise<RoleplayCatalogEntry[]> {
+  const staticSlugs = new Set(MODULES.map((m) => m.slug));
+  const { approvedSlugs } = await import("@/lib/mechanics/promotion");
+  const { org, global } = await approvedSlugs("roleplay", { orgId });
+  const out: RoleplayCatalogEntry[] = [];
+  const seen = new Set<string>();
+  try {
+    const { data } = await createAdminClient().from("module_specs").select("slug, spec, status, owner_id").eq("status", "published").order("updated_at", { ascending: false });
+    for (const r of ((data as any[]) || [])) {
+      if (seen.has(r.slug) || staticSlugs.has(r.slug)) continue;
+      const mine = r.owner_id === userId;
+      if (!mine && !org.has(r.slug) && !global.has(r.slug)) continue; // personal stays with its owner
+      seen.add(r.slug);
+      const m = r.spec?.meta || {};
+      out.push({ slug: r.slug, name: m.name || r.slug, emoji: m.emoji || "🎭", minutes: m.minutes || 20, tagline: m.tagline || "" });
+    }
+  } catch { /* table missing */ }
+  return out;
+}
+
 export function characterRole(spec: ModuleSpec): Role | undefined {
   return spec.roles.find((r) => r.kind === "character" || r.kind === "interviewer");
 }

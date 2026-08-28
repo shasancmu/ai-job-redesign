@@ -5,7 +5,7 @@ import HeaderNav from "@/components/HeaderNav";
 import { facilitatorAccess, getMyOrgs, getActiveOrg } from "@/lib/orgs";
 import ClassManager from "@/components/ClassManager";
 import Tour from "@/components/Tour";
-import { listRoleplayCatalog } from "@/lib/mechanics/store";
+import { listAssignableRoleplay } from "@/lib/mechanics/store";
 import { listAssignableInterviewModules } from "@/lib/customModules";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +25,8 @@ export default async function Classes() {
   if (!user) redirect("/login");
   if (!(await facilitatorAccess(user)).ok) redirect("/dashboard");
 
-  const [myOrgs, activeOrg, roleplayModules, interviewModules] = await Promise.all([getMyOrgs(user.id), getActiveOrg(user), listRoleplayCatalog(user.id), listAssignableInterviewModules(user.id)]);
+  const [myOrgs, activeOrg, interviewModules] = await Promise.all([getMyOrgs(user.id), getActiveOrg(user), listAssignableInterviewModules(user.id)]);
+  const roleplayModules = await listAssignableRoleplay(user.id, activeOrg?.id || null);
   const staffOrgs = myOrgs.filter((m) => m.role !== "member").map((m) => ({ id: m.org.id, name: m.org.name }));
 
   return (
