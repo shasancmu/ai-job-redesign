@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Logo from "@/components/Logo";
 import { createClient } from "@/lib/supabase/server";
+import { recordModuleEvent } from "@/lib/moduleEvents";
 import { getAnalyticalSpec, publicAnalyticalSpec } from "@/lib/mechanics/analyticalStore";
 import AnalyticalRunner from "@/components/AnalyticalRunner";
 
@@ -11,6 +12,7 @@ export default async function RunAnalytical({ params }: { params: { slug: string
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect(`/login?next=/x/${params.slug}`);
+  await recordModuleEvent(params.slug, "analytical", "start", user.id);
   const spec = await getAnalyticalSpec(params.slug);
   if (!spec) {
     return (

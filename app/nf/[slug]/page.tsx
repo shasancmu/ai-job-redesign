@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Logo from "@/components/Logo";
 import { createClient } from "@/lib/supabase/server";
+import { recordModuleEvent } from "@/lib/moduleEvents";
 import { getNewsSpec, publicNewsSpec } from "@/lib/mechanics/newsStore";
 import NewsFrameRunner from "@/components/NewsFrameRunner";
 export const runtime = "nodejs";
@@ -9,6 +10,7 @@ export default async function RunNews({ params }: { params: { slug: string } }) 
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect(`/login?next=/nf/${params.slug}`);
+  await recordModuleEvent(params.slug, "newsframe", "start", user.id);
   const spec = await getNewsSpec(params.slug);
   if (!spec) return <main className="mx-auto flex min-h-[100dvh] max-w-md flex-col items-center justify-center px-6 text-center"><Logo /><h1 className="mt-6 text-xl font-bold text-ink">Not found</h1></main>;
   return (

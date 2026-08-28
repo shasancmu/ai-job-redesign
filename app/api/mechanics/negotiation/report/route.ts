@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { recordModuleEvent } from "@/lib/moduleEvents";
 import { setFlow } from "@/lib/aiflow";
 import { recordMechanicsResult } from "@/lib/cohortData";
 import { AI_ENABLED, roleplayExaminerAI } from "@/lib/ai";
@@ -38,5 +39,6 @@ export async function POST(request: Request) {
   }
 
   await recordMechanicsResult("negotiation", String(body.slug || ""), user?.id, typeof a?.efficiency === "number" ? a.efficiency : null, `joint ${a?.joint}/${a?.maxJoint} (${a?.efficiency}% efficient), beat BATNA: ${a?.beatBATNA}`);
+  await recordModuleEvent(String(body.slug || ""), "negotiation", "complete", user?.id);
   return Response.json({ analysis: a, debrief });
 }

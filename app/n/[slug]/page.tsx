@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Logo from "@/components/Logo";
 import { createClient } from "@/lib/supabase/server";
+import { recordModuleEvent } from "@/lib/moduleEvents";
 import { getNegScenario, publicNegScenario } from "@/lib/mechanics/negStore";
 import NegRunner from "@/components/NegRunner";
 
@@ -13,6 +14,7 @@ export default async function RunNegotiation({ params }: { params: { slug: strin
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect(`/login?next=/n/${params.slug}`);
+  await recordModuleEvent(params.slug, "negotiation", "start", user.id);
 
   const scn = await getNegScenario(params.slug);
   if (!scn) {

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Logo from "@/components/Logo";
 import { createClient } from "@/lib/supabase/server";
+import { recordModuleEvent } from "@/lib/moduleEvents";
 import { getBenchConfig, publicBenchConfig } from "@/lib/mechanics/benchStore";
 import BenchRunner from "@/components/BenchRunner";
 
@@ -11,6 +12,7 @@ export default async function RunBenchmark({ params }: { params: { slug: string 
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect(`/login?next=/b/${params.slug}`);
+  await recordModuleEvent(params.slug, "benchmark", "start", user.id);
 
   const cfg = await getBenchConfig(params.slug);
   if (!cfg) {

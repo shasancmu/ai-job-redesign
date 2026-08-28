@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { recordModuleEvent } from "@/lib/moduleEvents";
 import { scoreConfig, fallbackNote, computeCalibration } from "@/lib/benchmark";
 import { getBenchConfig } from "@/lib/mechanics/benchStore";
 import { AI_ENABLED, benchmarkNoteAI } from "@/lib/ai";
@@ -66,5 +67,6 @@ export async function POST(request: Request) {
     } catch { /* keep the fallback */ }
   }
 
+  await recordModuleEvent(slug, "benchmark", "complete", user.id);
   return Response.json({ score, total, note, calibration, prior });
 }

@@ -1312,6 +1312,21 @@ alter table public.mechanics_results enable row level security;
 create index if not exists mechanics_results_user_idx on public.mechanics_results (user_id, created_at desc);
 -- No policies: written and read via service-role routes only.
 
+-- Module funnel events for drop-off analysis (superadmin only). One row per
+-- stage a learner reaches in a module run: 'start' when they open it, 'complete'
+-- when the report/result lands. Distinct users per stage give the completion
+-- rate. Written and read via service-role only.
+create table if not exists public.module_events (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null,
+  kind text,
+  user_id uuid references auth.users (id) on delete set null,
+  stage text not null,
+  created_at timestamptz not null default now()
+);
+alter table public.module_events enable row level security;
+create index if not exists module_events_slug_idx on public.module_events (slug, stage);
+
 -- ============================================================================
 -- Contact messages: submissions from the public /contact form. All access via
 -- the service-role API — the public form posts through /api/contact and only

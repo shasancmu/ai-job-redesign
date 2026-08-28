@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { recordModuleEvent } from "@/lib/moduleEvents";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, canvasInterviewReply } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
   setFlow("canvas:" + def.exercise);
 
   const messages = Array.isArray(body.messages) ? body.messages : [];
+  if (messages.length === 0) await recordModuleEvent(def.exercise, "interview", "start", user.id);
   try {
     const lang = await getUserLanguage(supabase, user.id);
     return streamingResponse((emit) => withLanguage(lang, () =>

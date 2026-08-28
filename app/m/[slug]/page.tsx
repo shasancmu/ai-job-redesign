@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Logo from "@/components/Logo";
 import { createClient } from "@/lib/supabase/server";
+import { recordModuleEvent } from "@/lib/moduleEvents";
 import { getSpec, publicSpec } from "@/lib/mechanics/store";
 import RoleplaySpecRoom from "@/components/RoleplaySpecRoom";
 
@@ -14,6 +15,7 @@ export default async function RunModule({ params, searchParams }: { params: { sl
   const { data: { user } } = await supabase.auth.getUser();
   const cohort = searchParams.class || searchParams.cohort || "";
   if (!user) redirect(`/login?next=${encodeURIComponent(`/m/${params.slug}${cohort ? `?class=${cohort}` : ""}`)}`);
+  await recordModuleEvent(params.slug, "roleplay", "start", user.id);
 
   const spec = await getSpec(params.slug);
   if (!spec || spec.mechanic !== "roleplay") {

@@ -1,4 +1,5 @@
 import HeaderNav from "@/components/HeaderNav";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -53,7 +54,10 @@ export default async function OrgsAdminPage() {
         <Logo href="/dashboard" />
         <HeaderNav />
       </header>
-      <h1 className="text-2xl font-bold text-ink">White-label organizations</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold text-ink">White-label organizations</h1>
+        <Link href="/admin/dropoff" className="text-sm font-medium text-ai hover:underline">Module drop-off →</Link>
+      </div>
       <p className="mt-1 text-sm text-slate-500">Create a branded org (superadditive.app/slug), assign a facilitator, and invite members. Only you can see this.</p>
 
       <div className="mt-6">

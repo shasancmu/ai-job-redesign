@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { recordModuleEvent } from "@/lib/moduleEvents";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, roleplayExaminerAI } from "@/lib/ai";
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
         score: typeof report.score === "number" ? Math.round(report.score) : null,
       });
     } catch { /* table not migrated yet, or transient — ignore */ }
+    await recordModuleEvent(slug, "roleplay", "complete", user.id);
     return Response.json({ report });
   } catch (e: any) {
     return Response.json({ error: e?.message || "AI request failed." }, { status: 500 });

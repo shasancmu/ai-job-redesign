@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { recordModuleEvent } from "@/lib/moduleEvents";
 import { AI_ENABLED, canvasDraftAI } from "@/lib/ai";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 import { resolveCanvasDefForUser } from "@/lib/customModules";
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
     if (!filled && !canvas.synthesis) {
       return Response.json({ error: "The AI returned an empty canvas. Try again." }, { status: 502 });
     }
+    await recordModuleEvent(String(body.exercise || ""), "interview", "complete", user.id);
     return Response.json({ ok: true, canvas });
   } catch (e: any) {
     return Response.json({ error: e?.message || "Couldn't draft the canvas." }, { status: 502 });
