@@ -83,19 +83,28 @@ export async function gatherCohortDigest(admin: any, cohort: string): Promise<Co
     }
   } catch { /* ignore */ }
 
-  // --- qualitative: job/workflow redesign outputs (workspaces) ---
+  // --- qualitative: job/workflow redesign outputs (workspaces), incl. the
+  // interview each person did and the 2x4 AI/Human allocation they landed on. ---
   try {
-    const { data: ses } = await admin.from("sessions").select("id, host_id").eq("cohort", code).limit(1000);
+    const { data: ses } = await admin.from("sessions").select("id").eq("cohort", code).limit(1000);
     const sids = ((ses as any[]) || []).map((s) => s.id);
     if (sids.length) {
-      const { data: ws } = await admin.from("workspaces").select("author_id, insight, strategic_outcome, final_description, new_job_description").in("session_id", sids.slice(0, 500)).limit(500);
-      const rows = ((ws as any[]) || []).filter((w) => w.insight || w.strategic_outcome || w.final_description || w.new_job_description);
+      const { data: ws } = await admin.from("workspaces")
+        .select("author_id, owner_job_title, real_job, interview_notes, grid, insight, strategic_outcome, final_description, new_job_description")
+        .in("session_id", sids.slice(0, 500)).limit(500);
+      const rows = ((ws as any[]) || []).filter((w) => w.interview_notes || w.insight || w.strategic_outcome || w.final_description || w.new_job_description || (w.grid && Object.keys(w.grid).length));
       if (rows.length) {
         await loadNames(rows.map((r) => r.author_id));
-        out.push(`\nWHAT PEOPLE CONCLUDED (job/workflow redesigns, ${rows.length}):`);
-        for (const w of rows.slice(0, 40)) {
-          const bits = [clean(w.insight, 300), clean(w.strategic_outcome, 200), clean(w.final_description || w.new_job_description, 300)].filter(Boolean);
-          if (bits.length) out.push(`- ${nm(w.author_id)}: ${bits.join(" | ")}`);
+        out.push(`\nPER-PERSON WORK (job/workflow redesigns, ${rows.length}). For each: their role, the interview notes drawn out of them, the AI/Human allocation they chose, and their conclusions.`);
+        for (const w of rows.slice(0, 60)) {
+          const parts: string[] = [];
+          const role = clean(w.owner_job_title || w.real_job, 120);
+          parts.push(`\n### ${nm(w.author_id)}${role ? ` (${role})` : ""}`);
+          if (w.interview_notes) parts.push(`Interview notes: ${clean(w.interview_notes, 1400)}`);
+          if (w.grid && Object.keys(w.grid).length) parts.push(`Allocation (2x4 AI/Human): ${clean(JSON.stringify(w.grid), 500)}`);
+          const concl = [clean(w.insight, 500), clean(w.strategic_outcome, 300), clean(w.final_description || w.new_job_description, 500)].filter(Boolean);
+          if (concl.length) parts.push(`Conclusions: ${concl.join(" | ")}`);
+          out.push(parts.join("\n"));
         }
       }
     }
@@ -103,5 +112,7 @@ export async function gatherCohortDigest(admin: any, cohort: string): Promise<Co
 
   const text = out.join("\n");
   const empty = members === 0 && text.split("\n").length <= 2;
-  return { name, members, empty, text: text.slice(0, 24000) };
+  // Generous cap: the model has a large context window and the digest is stable
+  // within a conversation, so more of the cohort's real work is reachable.
+  return { name, members, empty, text: text.slice(0, 90000) };
 }
