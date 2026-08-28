@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, moduleCopilotAI } from "@/lib/ai";
+import { streamSpecResponse } from "@/lib/mechanics/specStream";
 import { validateNewsSpec } from "@/lib/mechanics/newsStore";
 
 export const runtime = "nodejs";
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
   setFlow("mechanics:newsframe-copilot");
   const user_msg = [current ? `IMPROVE this module per the instruction. Return full JSON.\n\nCURRENT:\n${current}` : "Draft a new module.", intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "", source ? `\nSOURCE MATERIAL (the framework, perhaps):\n${source}` : ""].join("\n");
   try {
+    if (body?.stream) return streamSpecResponse(SYSTEM, user_msg, validateNewsSpec);
     const spec = await moduleCopilotAI(SYSTEM, user_msg);
     if (!spec) return Response.json({ error: "The copilot couldn't produce a module. Try rephrasing." }, { status: 502 });
     return Response.json({ spec, errors: validateNewsSpec(spec) });

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, moduleCopilotAI } from "@/lib/ai";
+import { streamSpecResponse } from "@/lib/mechanics/specStream";
 import { validateExplainerSpec } from "@/lib/mechanics/explainerStore";
 
 export const runtime = "nodejs";
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
   setFlow("mechanics:explainer-copilot");
   const user_msg = [current ? `IMPROVE this explainer per the instruction. Return full JSON.\n\nCURRENT:\n${current}` : "Draft a new explainer.", intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "", source ? `\nSOURCE MATERIAL:\n${source}` : ""].join("\n");
   try {
+    if (body?.stream) return streamSpecResponse(SYSTEM, user_msg, validateExplainerSpec);
     const spec = await moduleCopilotAI(SYSTEM, user_msg);
     if (!spec) return Response.json({ error: "The copilot couldn't produce an explainer. Try rephrasing." }, { status: 502 });
     return Response.json({ spec, errors: validateExplainerSpec(spec) });

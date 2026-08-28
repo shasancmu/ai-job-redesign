@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, moduleCopilotAI } from "@/lib/ai";
+import { streamSpecResponse } from "@/lib/mechanics/specStream";
 import { validateNegScenario } from "@/lib/mechanics/negStore";
 
 export const runtime = "nodejs";
@@ -53,6 +54,7 @@ export async function POST(request: Request) {
   ].join("\n");
 
   try {
+    if (body?.stream) return streamSpecResponse(SYSTEM, user_msg, validateNegScenario);
     const spec = await moduleCopilotAI(SYSTEM, user_msg);
     if (!spec) return Response.json({ error: "The copilot couldn't produce a scenario. Try rephrasing." }, { status: 502 });
     const errors = validateNegScenario(spec);

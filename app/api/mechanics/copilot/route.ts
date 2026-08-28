@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, moduleCopilotAI } from "@/lib/ai";
+import { streamSpecResponse } from "@/lib/mechanics/specStream";
 import { validateSpec, type ModuleSpec } from "@/lib/mechanics/roleplay";
 
 export const runtime = "nodejs";
@@ -75,6 +76,7 @@ export async function POST(request: Request) {
   ].join("\n");
 
   try {
+    if (body?.stream) return streamSpecResponse(SYSTEM, user_msg, validateSpec);
     const spec = (await moduleCopilotAI(SYSTEM, user_msg)) as ModuleSpec;
     if (!spec) return Response.json({ error: "The copilot couldn't produce a valid spec. Try rephrasing." }, { status: 502 });
     const errors = validateSpec(spec);

@@ -36,6 +36,7 @@ export default function AutoBuild({ me, canGlobal, orgName }: { me: string; canG
   const [one, setOne] = useState<{ kind: string; spec: any } | null>(null);
   const [created, setCreated] = useState<any[]>([]);
   const [step, setStep] = useState(0);
+  const [progress, setProgress] = useState<{ chars: number; name: string; label: string } | null>(null);
 
   useEffect(() => { if (!busy) return; const t = setInterval(() => setStep((s) => (s + 1) % LOADING.length), 1700); return () => clearInterval(t); }, [busy]);
 
@@ -59,8 +60,32 @@ export default function AutoBuild({ me, canGlobal, orgName }: { me: string; canG
     finally { setBusy(""); }
   }
 
-  async function generateOne(opt: any) {
-    const res = await fetch(KINDS[opt.kind].endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intent: opt.concept, sourceText: source }) });
+  async function generateOne(opt: any, onProgress?: (p: { chars: number; name: string }) => void): Promise<any> {
+    const res = await fetch(KINDS[opt.kind].endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intent: opt.concept, sourceText: source, stream: true }) });
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("text/event-stream") && res.body) {
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = ""; let spec: any = null; let errText = "";
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let nl: number;
+        while ((nl = buf.indexOf("\n\n")) >= 0) {
+          const line = buf.slice(0, nl).split("\n").find((l) => l.startsWith("data:"));
+          buf = buf.slice(nl + 2);
+          if (!line) continue;
+          let evt: any; try { evt = JSON.parse(line.slice(5).trim()); } catch { continue; }
+          if (evt.type === "progress") onProgress?.({ chars: evt.chars || 0, name: evt.name || "" });
+          else if (evt.type === "done") spec = evt.spec;
+          else if (evt.type === "error") errText = evt.error || "draft failed";
+        }
+      }
+      if (!spec) throw new Error(errText || "draft failed");
+      return spec;
+    }
+    // Fallback: a route that didn't stream returns plain JSON.
     const d = await res.json().catch(() => ({}));
     if (!res.ok || !d.spec) throw new Error(d.error || "draft failed");
     return d.spec;
@@ -82,21 +107,25 @@ export default function AutoBuild({ me, canGlobal, orgName }: { me: string; canG
   async function build() {
     const picked = options.filter((_, i) => sel.has(i));
     if (picked.length === 0) return;
-    setBusy("build"); setErr(""); setStep(0);
+    setBusy("build"); setErr(""); setStep(0); setProgress(null);
     try {
       if (picked.length === 1) {
-        const spec = await generateOne(picked[0]);
+        const spec = await generateOne(picked[0], (p) => setProgress({ ...p, label: picked[0].title || KINDS[picked[0].kind].label }));
         setOne({ kind: picked[0].kind, spec }); setPhase("editor");
       } else {
         const out: any[] = [];
+        let idx = 0;
         for (const opt of picked) {
-          try { const spec = await generateOne(opt); const { slug } = await saveDraft(opt.kind, spec); out.push({ kind: opt.kind, slug, title: opt.title || spec.name || slug, ok: true }); }
+          idx++;
+          const label = `${idx} of ${picked.length} · ${opt.title || KINDS[opt.kind].label}`;
+          setProgress({ chars: 0, name: "", label });
+          try { const spec = await generateOne(opt, (p) => setProgress({ ...p, label })); const { slug } = await saveDraft(opt.kind, spec); out.push({ kind: opt.kind, slug, title: opt.title || spec.name || slug, ok: true }); }
           catch (e: any) { out.push({ kind: opt.kind, title: opt.title, ok: false, err: e?.message }); }
         }
         setCreated(out); setPhase("created");
       }
     } catch (e: any) { setErr(e?.message || "Couldn't build."); }
-    finally { setBusy(""); }
+    finally { setBusy(""); setProgress(null); }
   }
 
   // ---- editor (single pick) ----
@@ -139,9 +168,35 @@ export default function AutoBuild({ me, canGlobal, orgName }: { me: string; canG
     );
   }
 
-  if (busy === "analyze" || busy === "build") {
+  if (busy === "analyze") {
     return (
-      <div className="mx-auto max-w-xl"><div className="rounded-2xl border border-line bg-white p-8 text-center shadow-sm"><div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-ai" /><div className="mt-4 font-serif text-lg text-ink">{busy === "analyze" ? "Reading your materials" : "Building your modules"}</div><div className="mt-1 text-sm text-slate-500">{LOADING[step]}</div></div></div>
+      <div className="mx-auto max-w-xl"><div className="rounded-2xl border border-line bg-white p-8 text-center shadow-sm"><div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-ai" /><div className="mt-4 font-serif text-lg text-ink">Reading your materials</div><div className="mt-1 text-sm text-slate-500">{LOADING[step]}</div></div></div>
+    );
+  }
+
+  if (busy === "build") {
+    const words = progress ? Math.round(progress.chars / 6) : 0;
+    // Indeterminate-but-alive fill: eases toward full as content arrives, never quite reaching it.
+    const pct = Math.min(96, Math.round(100 * (1 - Math.exp(-words / 260))));
+    return (
+      <div className="mx-auto max-w-xl">
+        <div className="rounded-2xl border border-line bg-white p-8 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 shrink-0 animate-spin rounded-full border-2 border-slate-200 border-t-ai" />
+            <div className="min-w-0">
+              <div className="truncate font-serif text-lg text-ink">{progress?.name ? `Writing “${progress.name}”` : "Writing your module"}</div>
+              {progress?.label && <div className="truncate text-sm text-slate-500">{progress.label}</div>}
+            </div>
+          </div>
+          <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-mist">
+            <div className="h-full rounded-full bg-ai transition-all duration-500 ease-out" style={{ width: `${Math.max(6, pct)}%` }} />
+          </div>
+          <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
+            <span>{words > 0 ? `${words.toLocaleString()} words drafted` : "Starting…"}</span>
+            <span>Writing it live, so this can take a moment</span>
+          </div>
+        </div>
+      </div>
     );
   }
 

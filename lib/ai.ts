@@ -110,10 +110,11 @@ async function postSSE(
   headers: Record<string, string>,
   payload: any,
   extractDelta: (evt: any) => string,
-  onToken: (delta: string) => void
+  onToken: (delta: string) => void,
+  timeoutMs = 90000
 ): Promise<{ text: string; usage: AiUsage | null }> {
   const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 90000);
+  const timer = setTimeout(() => ctl.abort(), timeoutMs);
   let res: Response;
   try {
     res = await fetch(url, { method: "POST", headers, body: JSON.stringify({ ...payload, stream: true }), signal: ctl.signal });
@@ -321,7 +322,7 @@ async function runCompletion(
       if (opts.onToken) {
         const { text, usage } = await postSSE(`${baseUrl}/messages`, anthropicHeaders, payload,
           (evt) => (evt?.type === "content_block_delta" && evt?.delta?.type === "text_delta" ? evt.delta.text || "" : ""),
-          opts.onToken);
+          opts.onToken, opts.timeoutMs);
         if (text && text.trim()) return { text, usage };
       } else {
         const data = await postJSON(`${baseUrl}/messages`, anthropicHeaders, payload, opts.timeoutMs);
@@ -353,7 +354,7 @@ async function runCompletion(
     payload.stream_options = { include_usage: true }; // ask compat providers to report tokens on streams
     return postSSE(`${baseUrl}/chat/completions`, compatHeaders, payload,
       (evt) => evt?.choices?.[0]?.delta?.content || "",
-      opts.onToken);
+      opts.onToken, opts.timeoutMs);
   }
   const data = await postJSON(`${baseUrl}/chat/completions`, compatHeaders, payload, opts.timeoutMs);
   return { text: data.choices?.[0]?.message?.content ?? "", usage: normalizeUsage(data?.usage) };
@@ -438,6 +439,17 @@ export async function moduleCopilotAI(system: string, user: string): Promise<any
   // A full module spec is a heavy generation; give it near the route's maxDuration
   // rather than the default 55s so it doesn't abort mid-build.
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.5, maxTokens: 6000, low: false, timeoutMs: 110000 });
+}
+// Streaming variant of moduleCopilotAI: forwards raw tokens to onToken as they
+// arrive (so the UI can show live progress) and returns the parsed spec. Streamed
+// generations skip the non-streamed JSON-repair retry, so if the streamed text
+// doesn't parse we fall back to the non-streamed builder once.
+export async function moduleCopilotStream(system: string, user: string, onToken: (delta: string) => void): Promise<any> {
+  const messages: ChatMsg[] = [{ role: "system", content: system }, { role: "user", content: user }];
+  const text = await complete(messages, { json: true, temperature: 0.5, maxTokens: 6000, low: false, timeoutMs: 110000, onToken });
+  const parsed = extractJson(text);
+  if (parsed) return parsed;
+  return moduleCopilotAI(system, user);
 }
 export async function moduleCriticAI(system: string, user: string): Promise<any> {
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.2, maxTokens: 2500, low: false });

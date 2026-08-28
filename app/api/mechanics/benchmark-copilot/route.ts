@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, moduleCopilotAI } from "@/lib/ai";
+import { streamSpecResponse } from "@/lib/mechanics/specStream";
 import { validateBenchConfig } from "@/lib/mechanics/benchStore";
 
 export const runtime = "nodejs";
@@ -38,6 +39,7 @@ export async function POST(request: Request) {
     source ? `\nSOURCE MATERIAL:\n${source}` : "",
   ].join("\n");
   try {
+    if (body?.stream) return streamSpecResponse(SYSTEM, user_msg, validateBenchConfig);
     const spec = await moduleCopilotAI(SYSTEM, user_msg);
     if (!spec) return Response.json({ error: "The copilot couldn't produce a benchmark. Try rephrasing." }, { status: 502 });
     return Response.json({ spec, errors: validateBenchConfig(spec) });

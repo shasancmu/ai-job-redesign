@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, moduleCopilotAI } from "@/lib/ai";
+import { streamSpecResponse } from "@/lib/mechanics/specStream";
 import { validateRedesignSpec } from "@/lib/mechanics/redesignStore";
 
 export const runtime = "nodejs";
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
   setFlow("mechanics:redesign-copilot");
   const user_msg = [current ? `IMPROVE this per the instruction. Return full JSON.\n\nCURRENT:\n${current}` : "Draft a new redesign.", intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : ""].join("\n");
   try {
+    if (body?.stream) return streamSpecResponse(SYSTEM, user_msg, validateRedesignSpec);
     const spec = await moduleCopilotAI(SYSTEM, user_msg);
     if (!spec) return Response.json({ error: "The copilot couldn't produce a spec. Try rephrasing." }, { status: 502 });
     return Response.json({ spec, errors: validateRedesignSpec(spec) });
