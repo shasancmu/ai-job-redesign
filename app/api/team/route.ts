@@ -55,9 +55,9 @@ export async function POST(request: Request) {
       const { data: cur } = await admin.from("org_members").select("org_role").eq("org_id", orgId).eq("user_id", userId).maybeSingle();
       if (!cur) return Response.json({ error: "Not a member of this org." }, { status: 404 });
       // A director can appoint co-directors (promote up), but changing an
-      // EXISTING director (demote/remove) stays superadmin-only, so directors
-      // can't push each other out.
-      if (normalizeRole((cur as any).org_role) === "director") return Response.json({ error: "Only a superadmin can change a director." }, { status: 403 });
+      // EXISTING director (demote/remove) is superadmin-only, so directors can't
+      // push each other out.
+      if (normalizeRole((cur as any).org_role) === "director" && !role.superadmin) return Response.json({ error: "Only a superadmin can change a director." }, { status: 403 });
       await admin.from("org_members").update({ org_role: wanted }).eq("org_id", orgId).eq("user_id", userId);
       return Response.json({ ok: true });
     }
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       const userId = String(body.userId || "");
       if (!userId) return Response.json({ error: "Missing person." }, { status: 400 });
       const { data: cur } = await admin.from("org_members").select("org_role").eq("org_id", orgId).eq("user_id", userId).maybeSingle();
-      if (cur && normalizeRole((cur as any).org_role) === "director") return Response.json({ error: "Only a superadmin can remove a director." }, { status: 403 });
+      if (cur && normalizeRole((cur as any).org_role) === "director" && !role.superadmin) return Response.json({ error: "Only a superadmin can remove a director." }, { status: 403 });
       await admin.from("org_members").delete().eq("org_id", orgId).eq("user_id", userId);
       return Response.json({ ok: true });
     }

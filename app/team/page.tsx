@@ -28,14 +28,13 @@ export default async function TeamPage() {
 
   const role = await roleFor(user);
   const directorOrgs = role.memberships.filter((m) => m.role === "director").map((m) => m.org);
-  if (directorOrgs.length === 0) {
-    // Superadmins manage orgs from the platform console; everyone else is out.
-    redirect(role.superadmin ? "/admin/orgs" : "/dashboard");
-  }
-
-  // Show the active org if the director runs it, else their first.
   const active = await getActiveOrg(user).catch(() => null);
-  const org = directorOrgs.find((o) => active && o.id === active.id) || directorOrgs[0];
+  // Show the active org if you run it, else your first director org. A superadmin
+  // can manage the active org even without a director membership (so they can, in
+  // particular, remove or demote directors).
+  let org = directorOrgs.find((o) => active && o.id === active.id) || directorOrgs[0];
+  if (!org && role.superadmin && active) org = active;
+  if (!org) redirect(role.superadmin ? "/admin/orgs" : "/dashboard");
 
   const admin = createAdminClient();
   const [{ data: memberRows }, { data: inviteRows }, { data: profs }, { data: linkRows }] = await Promise.all([
@@ -94,7 +93,7 @@ export default async function TeamPage() {
         </Link>
       )}
 
-      <TeamConsole orgId={org.id} people={people} invites={invites} links={(linkRows as any[]) || []} />
+      <TeamConsole orgId={org.id} people={people} invites={invites} links={(linkRows as any[]) || []} isSuperadmin={role.superadmin} />
 
       <Tour
         steps={TEAM_TOUR}

@@ -17,7 +17,7 @@ async function post(body: any) {
   return d;
 }
 
-export default function TeamConsole({ orgId, people, invites, links = [] }: { orgId: string; people: TeamPerson[]; invites: TeamInvite[]; links?: StaffLink[] }) {
+export default function TeamConsole({ orgId, people, invites, links = [], isSuperadmin = false }: { orgId: string; people: TeamPerson[]; invites: TeamInvite[]; links?: StaffLink[]; isSuperadmin?: boolean }) {
   const router = useRouter();
   const [emails, setEmails] = useState("");
   const [inviteRole, setInviteRole] = useState<"member" | "instructor">("member");
@@ -124,9 +124,18 @@ export default function TeamConsole({ orgId, people, invites, links = [] }: { or
       </div>
 
       {directors.length > 0 && (
-        <Section title="Directors" hint="managed by the platform admin">
+        <Section title="Directors" hint={isSuperadmin ? "you can change these" : "managed by the platform admin"}>
           {directors.map((p) => (
-            <Row key={p.userId} p={p}><span className="rounded-full bg-mist px-2 py-0.5 text-[10px] text-slate2">director</span></Row>
+            <Row key={p.userId} p={p}>
+              {isSuperadmin ? (
+                <>
+                  <button onClick={() => act({ action: "set_role", userId: p.userId, role: "instructor" }, p.userId)} disabled={busy === p.userId} className={btn}>Make instructor</button>
+                  <button onClick={() => { if (confirm(`Remove ${p.name} from this organization? They lose director access here.`)) act({ action: "remove", userId: p.userId }, p.userId); }} disabled={busy === p.userId} className={btn + " hover:!text-clay"}>Remove</button>
+                </>
+              ) : (
+                <span className="rounded-full bg-mist px-2 py-0.5 text-[10px] text-slate2">director</span>
+              )}
+            </Row>
           ))}
         </Section>
       )}
