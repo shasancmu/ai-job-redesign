@@ -1,12 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // pdf-parse pulls in pdfjs-dist, which relies on a worker and import.meta.url
-  // to find it. Webpack-bundling it into a server route breaks that at runtime;
-  // loading it from node_modules at runtime (external) works. Keeps the
-  // upload-and-go PDF extraction working.
+  // pdfjs-dist locates its worker/cmap/font assets via import.meta.url. Bundling
+  // it into a server route rewrites those to bogus paths and it throws at
+  // runtime (and Vercel's tracer never ships the assets). Keeping it external
+  // leaves it as real files on disk that resolve correctly and get traced into
+  // the function. This is what makes PDF text extraction work in production.
   experimental: {
-    serverComponentsExternalPackages: ["pdf-parse"],
+    serverComponentsExternalPackages: ["pdfjs-dist", "pdf-parse"],
   },
 };
 

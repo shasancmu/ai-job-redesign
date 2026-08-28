@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, moduleCopilotAI, summarizeSourceAI } from "@/lib/ai";
 import { extractDocxText } from "@/lib/mechanics/docx";
+import { extractPdfText } from "@/lib/mechanics/pdf";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
       const buf = Buffer.from(String(f.b64 || ""), "base64");
       if (buf.length > 20 * 1024 * 1024) continue;
       let text = "";
-      if (ext === "pdf") { const { PDFParse } = (await import("pdf-parse")) as any; text = String((await new PDFParse({ data: new Uint8Array(buf) }).getText())?.text || ""); }
+      if (ext === "pdf") { text = await extractPdfText(buf); }
       else if (ext === "docx") text = extractDocxText(buf);
       else if (ext === "txt" || ext === "md" || ext === "markdown") text = buf.toString("utf8");
       text = text.replace(/[ \t]+/g, " ").trim();

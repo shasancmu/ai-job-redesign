@@ -5,6 +5,7 @@ import { experimentNudge } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 import { setFlow } from "@/lib/aiflow";
+import { extractPdfText } from "@/lib/mechanics/pdf";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
@@ -140,8 +141,6 @@ async function fetchReadable(url: string): Promise<string> {
 }
 
 async function pdfText(buf: Buffer): Promise<string> {
-  const { PDFParse } = (await import("pdf-parse")) as any;
-  const parser = new PDFParse({ data: new Uint8Array(buf) });
-  const r = await parser.getText();
-  return String(r?.text || "").replace(/[ \t]+/g, " ").slice(0, 14000);
+  const text = await extractPdfText(buf);
+  return text.replace(/[ \t]+/g, " ").slice(0, 14000);
 }

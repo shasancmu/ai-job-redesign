@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, summarizeSourceAI } from "@/lib/ai";
+import { extractPdfText } from "@/lib/mechanics/pdf";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,8 +44,6 @@ export async function POST(request: Request) {
 }
 
 async function pdfText(buf: Buffer): Promise<string> {
-  const { PDFParse } = (await import("pdf-parse")) as any;
-  const parser = new PDFParse({ data: new Uint8Array(buf) });
-  const r = await parser.getText();
-  return String(r?.text || "").replace(/[ \t]+/g, " ").slice(0, 14000);
+  const text = await extractPdfText(buf);
+  return text.replace(/[ \t]+/g, " ").slice(0, 14000);
 }
