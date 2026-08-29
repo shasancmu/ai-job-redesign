@@ -146,6 +146,20 @@ export default function ForTeams() {
         </div>
       </section>
 
+      {/* Relationship OS — the beyond-the-program layer */}
+      <section className="mx-auto mt-24 max-w-4xl px-6 sm:mt-32">
+        <Reveal>
+          <div className="rounded-3xl border-2 border-sage/30 bg-gradient-to-br from-sage/5 to-white p-8 sm:p-10">
+            <span className="eyebrow text-sage">Beyond the program</span>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">The program ends. The relationship shouldn&apos;t.</h2>
+            <p className="mt-4 text-lg leading-relaxed text-slate2">
+              A cohort is the start of a relationship, not the end of a transaction. The built-in <b className="text-ink">Relationship OS</b> keeps every learner engaged with micro-doses of value — new modules, well-timed insight — reads your cohort as a living network (who&apos;s cooling, who&apos;s isolated, who the connectors are), and lets you push the right thing to the right people: a module, an event, the next program. A lifelong, high-value relationship with every learner, at fixed cost.
+            </p>
+            <Link href="/relationship-os" className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-sage hover:underline">How the Relationship OS works <span aria-hidden>→</span></Link>
+          </div>
+        </Reveal>
+      </section>
+
       {/* Governance — the quality story */}
       <section className="mt-20 border-y border-line bg-mist/50">
         <div className="mx-auto max-w-5xl px-6 py-20 sm:py-28">
