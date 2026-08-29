@@ -107,7 +107,9 @@ export default async function Dashboard({
   // First-run: send people through onboarding before the dashboard. Guarded so
   // that if the onboarding columns haven't been migrated yet, we DON'T redirect
   // (a missing column would otherwise loop dashboard ⇄ welcome forever).
-  {
+  // (Skipped while proxying: /welcome isn't proxied, so a not-yet-onboarded
+  // target would loop dashboard ⇄ welcome. A superadmin viewing just renders.)
+  if (!isProxy) {
     const { data: ob, error: obErr } = await supabase
       .from("profiles")
       .select("onboarded_at")
