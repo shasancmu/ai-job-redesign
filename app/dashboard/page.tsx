@@ -327,6 +327,15 @@ export default async function Dashboard({
                 <span className="text-slate-400">· {credCount}</span>
               </a>
             )}
+            {showRuns && (
+              <a
+                href="/paywall"
+                title="Your runs — one run is one exercise. Tap to top up."
+                className={"inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium transition hover:border-slate-300 " + (runsBalance === 0 ? "border-clay/40 bg-clay/5 text-clay" : "border-line bg-white text-slate2")}
+              >
+                🎟️ {runsBalance} run{runsBalance === 1 ? "" : "s"} left
+              </a>
+            )}
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2 ml-auto">
