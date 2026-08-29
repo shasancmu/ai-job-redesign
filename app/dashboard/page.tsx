@@ -390,25 +390,15 @@ export default async function Dashboard({
       </header>
 
       {activeOrg && (
-        <div className="mb-6 flex items-center gap-3 rounded-2xl border border-line bg-white p-3.5">
+        <div className="mb-6 flex items-center gap-2.5 text-sm">
           {activeOrg.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={activeOrg.logo_url} alt="" className="h-10 w-10 shrink-0 rounded object-contain" />
+            <img src={activeOrg.logo_url} alt="" className="h-6 w-6 shrink-0 rounded object-contain" />
           ) : (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-mist text-sm font-bold text-slate2">
-              {activeOrg.name.slice(0, 2).toUpperCase()}
-            </div>
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-mist text-[10px] font-bold text-slate2">{activeOrg.name.slice(0, 2).toUpperCase()}</div>
           )}
-          <div className="min-w-0 leading-tight">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-sage">Your cohort</div>
-            <div className="truncate text-sm font-bold text-ink">{cohortName || "All members"}</div>
-            <div className="truncate text-xs text-slate-400">{activeOrg.name}</div>
-          </div>
-          {isOrgLearner && (
-            <div className="ml-auto shrink-0 rounded-full bg-sage/10 px-2.5 py-1 text-[11px] font-semibold text-sage">
-              Included — free to run
-            </div>
-          )}
+          <span className="min-w-0 truncate text-slate2"><span className="font-semibold text-ink">{activeOrg.name}</span> · {cohortName || "All members"}</span>
+          {isOrgLearner && <span className="shrink-0 rounded-full bg-sage/10 px-2 py-0.5 text-[11px] font-semibold text-sage">Included — free</span>}
         </div>
       )}
 
@@ -418,22 +408,35 @@ export default async function Dashboard({
 
       <FollowUps items={followUps} />
 
-      {/* Continue where you left off — the top prompt, at the moment ability is
-          highest (no re-deciding). If it counts toward a certificate, say so. */}
-      {continueItem && (
-        <a href={continueItem.href} className="group mb-8 flex items-center justify-between gap-3 rounded-2xl border-2 border-sage/40 bg-gradient-to-br from-white to-sage/5 p-4 transition hover:shadow-sm">
-          <div className="min-w-0">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-sage">Pick up where you left off</div>
-            <div className="mt-0.5 truncate text-sm font-bold text-ink group-hover:text-sage">{continueItem.name}</div>
-            <div className="truncate text-xs text-slate-400">{continueCert ? `Counts toward your ${continueCert} certificate` : "You were partway through — finish it in a few minutes."}</div>
+      {/* ONE primary "next" card — resume an unfinished run if there is one, else
+          the next step toward the certificate. Certificate progress rides along as
+          a bar so momentum shows without a second competing card. */}
+      {(continueItem || nextStep) && (
+        <a href={continueItem ? continueItem.href : `/start/${nextStep!.nextSlug}`} className="group mb-6 block rounded-2xl border-2 border-sage/40 bg-gradient-to-br from-white to-sage/5 p-5 transition hover:shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-sage">
+                {continueItem ? "Pick up where you left off" : `${nextStep!.progressPct}% toward the ${nextStep!.name} certificate`}
+              </div>
+              <div className="mt-0.5 truncate text-base font-bold text-ink group-hover:text-sage">{continueItem ? continueItem.name : `Next: ${nextStep!.nextName}`}</div>
+              <div className="truncate text-xs text-slate-400">
+                {continueItem
+                  ? (continueCert ? `Toward your ${continueCert} certificate — just ${nextStep ? nextStep.remaining : ""} more` : "You were partway through — finish it in a few minutes.")
+                  : `Just ${nextStep!.remaining} more to earn it — keep the momentum.`}
+              </div>
+            </div>
+            <span className="shrink-0 text-sm font-semibold text-sage">{continueItem ? "Resume" : "Continue"} &rarr;</span>
           </div>
-          <span className="shrink-0 text-sm font-semibold text-sage">Resume &rarr;</span>
+          {nextStep && (
+            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-mist">
+              <div className="h-full rounded-full bg-sage transition-all" style={{ width: `${Math.max(6, nextStep.progressPct)}%` }} />
+            </div>
+          )}
         </a>
       )}
 
-      {/* Runs balance. Alumni in their window get the time-boxed pack nudge;
-          low/empty balances get a top-up prompt; a fresh consumer with runs in
-          hand sees a quiet counter. Institutional learners never see this. */}
+      {/* Runs banner only when it's actually urgent — out of runs, or the alumni
+          window is open. The header chip carries the balance the rest of the time. */}
       {showRuns && offer.active ? (
         <a href="/paywall" className="mb-8 flex items-center justify-between gap-3 rounded-2xl border-2 border-ink bg-white p-4 transition hover:shadow-sm">
           <div className="min-w-0">
@@ -443,43 +446,24 @@ export default async function Dashboard({
           </div>
           <span className="shrink-0 text-sm font-semibold text-ink">Get runs →</span>
         </a>
-      ) : showRuns && (runsBalance <= 3 || !isNewConsumer) ? (
-        <a href="/paywall" className={"mb-8 flex items-center justify-between gap-3 rounded-2xl border bg-white p-4 transition hover:shadow-sm " + (runsBalance === 0 ? "border-2 border-ink" : "border-line")}>
+      ) : showRuns && runsBalance === 0 ? (
+        <a href="/paywall" className="mb-6 flex items-center justify-between gap-3 rounded-2xl border-2 border-ink bg-white p-4 transition hover:shadow-sm">
           <div className="min-w-0">
             <div className="text-[11px] font-semibold uppercase tracking-wide text-sage">Your runs</div>
-            <div className="mt-0.5 text-sm font-bold text-ink">{runsBalance === 0 ? "You're out of runs" : `${runsBalance} run${runsBalance === 1 ? "" : "s"} left`}</div>
-            <div className="text-xs text-slate-400">{runsBalance === 0 ? "Add a pack to keep going — spend runs on any exercise." : "One run = one exercise. Top up anytime; runs never expire."}</div>
+            <div className="mt-0.5 text-sm font-bold text-ink">You&apos;re out of runs</div>
+            <div className="text-xs text-slate-400">Add a pack to keep going — spend runs on any exercise.</div>
           </div>
-          <span className="shrink-0 text-sm font-semibold text-sage">{runsBalance === 0 ? "Get runs →" : "Top up →"}</span>
+          <span className="shrink-0 text-sm font-semibold text-sage">Get runs →</span>
         </a>
       ) : null}
 
-      {nextStep && (
-        <a href={`/start/${nextStep.nextSlug}`} className="group mb-8 block rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-sage">
-                You&apos;re {nextStep.progressPct}% of the way to the {nextStep.name} certificate
-              </div>
-              <div className="mt-0.5 truncate text-sm font-bold text-ink group-hover:text-sage">Next: {nextStep.nextName}</div>
-              <div className="text-xs text-slate-400">Just {nextStep.remaining} more to earn it — keep the momentum.</div>
-            </div>
-            <span className="shrink-0 text-sm font-semibold text-sage">Continue &rarr;</span>
-          </div>
-          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-mist">
-            <div className="h-full rounded-full bg-sage transition-all" style={{ width: `${Math.max(6, nextStep.progressPct)}%` }} />
-          </div>
-        </a>
-      )}
-
+      {/* Staff authoring — demoted to a slim secondary link, not a hero card. */}
       {(facAccess.superadmin || facAccess.orgIds.length > 0) && (
-        <a href="/studio/upload" className="group mb-8 flex items-center gap-4 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
-          <div className="text-2xl">📎</div>
-          <div className="min-w-0 flex-1">
-            <div className="text-sm font-bold text-ink group-hover:text-ai">Turn your materials into a module</div>
-            <div className="text-xs text-slate-500">Upload your slides or readings and get a launch-ready draft. Or open the <span className="underline">Studio</span> for all your tools.</div>
-          </div>
-          <span className="shrink-0 text-sm font-semibold text-ai">Build →</span>
+        <a href="/studio/upload" className="group mb-8 flex items-center gap-2 text-sm text-slate2 transition hover:text-ai">
+          <span aria-hidden>📎</span>
+          <span className="font-medium text-ink group-hover:text-ai">Turn your materials into a module</span>
+          <span className="text-slate-400">· or open the Studio</span>
+          <span className="text-ai">→</span>
         </a>
       )}
 
