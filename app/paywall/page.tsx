@@ -98,30 +98,33 @@ export default async function Paywall({
         </div>
       )}
 
-      {/* Alumni pack — same runs, lower price, only while the window is open. */}
-      {alumniPrice && (
+      {/* One pack, one button. An alumnus in their window pays the $19 price and
+          sees the $29 only as the after-offer reference — never two buy buttons. */}
+      {alumniPrice ? (
+        <>
+          <div className="card mt-6 border-2 border-ink p-6">
+            <div className="mb-1 flex items-baseline gap-2">
+              <span className="text-3xl font-bold">{cohortLabel}</span>
+              <span className="text-slate-400">{PACK_RUNS} runs · cohort alumni price</span>
+            </div>
+            <p className="mb-3 text-sm text-slate-500">
+              You&apos;ve been through a cohort, so this is your price.{" "}
+              <span className="font-semibold text-clay">Ends in {offer.daysLeft} day{offer.daysLeft === 1 ? "" : "s"}.</span>
+            </p>
+            <PayButton plan="cohort" label={`Get ${PACK_RUNS} runs`} />
+          </div>
+          <p className="mt-3 text-center text-xs text-slate-400">Regular price is {allLabel} for {PACK_RUNS} runs.</p>
+        </>
+      ) : (
         <div className="card mt-6 border-2 border-ink p-6">
           <div className="mb-1 flex items-baseline gap-2">
-            <span className="text-3xl font-bold">{cohortLabel}</span>
-            <span className="text-slate-400">{PACK_RUNS} runs · cohort alumni price</span>
+            <span className="text-3xl font-bold">{allLabel}</span>
+            <span className="text-slate-400">{PACK_RUNS} runs</span>
           </div>
-          <p className="mb-3 text-sm text-slate-500">
-            You&apos;ve been through a cohort — your lowest per-run price.{" "}
-            <span className="font-semibold text-clay">Ends in {offer.daysLeft} day{offer.daysLeft === 1 ? "" : "s"}.</span>
-          </p>
-          <PayButton plan="cohort" label={`Get ${PACK_RUNS} runs`} />
+          <p className="mb-3 text-sm text-slate-500">Enough to work through a whole stretch of exercises. Yours until you use them.</p>
+          <PayButton plan="all" label={`Get ${PACK_RUNS} runs`} />
         </div>
       )}
-
-      {/* Public pack. */}
-      <div className={"card mt-4 p-6 " + (alumniPrice ? "" : "border-2 border-ink")}>
-        <div className="mb-1 flex items-baseline gap-2">
-          <span className="text-3xl font-bold">{allLabel}</span>
-          <span className="text-slate-400">{PACK_RUNS} runs</span>
-        </div>
-        <p className="mb-3 text-sm text-slate-500">Enough to work through a whole stretch of exercises. Yours until you use them.</p>
-        <PayButton plan="all" label={`Get ${PACK_RUNS} runs`} />
-      </div>
 
       <p className="mt-3 text-center text-xs text-slate-400">
         Secure payment by Stripe. Have a code? Enter it at checkout — runs never expire.
