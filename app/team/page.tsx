@@ -88,6 +88,9 @@ export default async function TeamPage() {
           <Link href="/team/outcomes" className="inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-sage">
             See your outcomes <span aria-hidden>→</span>
           </Link>
+          <Link href="/team/relationships" className="inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-sage">
+            Relationship OS <span aria-hidden>→</span>
+          </Link>
         </div>
       </div>
 
