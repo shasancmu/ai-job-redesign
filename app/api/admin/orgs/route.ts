@@ -59,6 +59,7 @@ export async function POST(request: Request) {
         primary_color: body.primary_color ? String(body.primary_color).slice(0, 16) : null,
         invite_only: body.invite_only !== false,
         modules: Array.isArray(body.modules) ? [...new Set(body.modules.map((s: any) => String(s)).filter((s: string) => VALID_MODULES.has(s)))] : null,
+        member_can_browse: body.member_can_browse === true,
         about: body.about ? String(body.about).slice(0, 1000) : null,
         highlights: cleanHighlights(body.highlights),
         faculty: cleanFaculty(body.faculty),

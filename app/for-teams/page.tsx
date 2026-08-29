@@ -27,7 +27,7 @@ const FEATURES = [
   { icon: "✅", title: "Quality you control", body: "An AI critic flags an unfair module and a simulated learner playtests whether it teaches, before a real one runs it. A promotion ladder means only vetted modules reach the wider library." },
   { icon: "🎨", title: "Your brand, your space", body: "Your logo, colors, and a private address. It feels like your program, not a vendor's tool." },
   { icon: "👥", title: "Cohorts, directors & instructors", body: "Organize people into cohorts and sections. Directors run the space; instructors run their groups; each sees only their own people." },
-  { icon: "📈", title: "See it land", body: "Completion, scores, where the room gets stuck, how calibrated their judgment is, and the themes rising across a live activity." },
+  { icon: "📈", title: "Prove it worked", body: "An outcomes report rolls up participation, completion, and how calibrated your people's judgment became — measurement most training never has. A snapshot you can bring to a review." },
   { icon: "📡", title: "Live, in the room", body: "Run a word cloud, poll, benchmark, or open prompt your whole room joins from their phones — no sign-in for them." },
   { icon: "🔒", title: "Your content stays yours", body: "Per-organization isolation. Uploaded materials are read to draft the module and never stored. Your library is yours." },
 ];

@@ -5,11 +5,17 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // ---- Tier configuration (env-overridable so you can tune without a deploy) ---
 // Free tier: only these modules, this many runs each (mistakes/retries allowed).
 export const FREE_TIER_RUNS = num(process.env.FREE_TIER_RUNS, 4);
-// Paid ($29 or $19 cohort alumni): a generous per-module cap — high enough that
-// real users almost never hit it, low enough to bound abuse. Buying again resets
-// the window. Set PAID_UNLIMITED=true to remove the cap entirely.
+// The runs wallet (consumer credits model). Everyone gets FREE_RUNS to start; a
+// pack purchase adds PACK_RUNS credits. A "run" is one PERSONAL (null-cohort)
+// session of a for-sale exercise, drawn from the shared wallet — spend it on any
+// exercise. Runs done through a class/org (cohort-tagged) are FREE and never
+// counted: the B2B2C no-arbitrage guarantee. Both env-tunable without a deploy.
+export const FREE_RUNS = num(process.env.FREE_RUNS, 10);
+export const PACK_RUNS = num(process.env.PACK_RUNS, 60);
+// Legacy per-module cap knobs — kept only so old imports don't break; the wallet
+// model above supersedes them.
 export const PAID_UNLIMITED = (process.env.PAID_UNLIMITED ?? "false") !== "false";
-export const PAID_RUNS = num(process.env.PAID_RUNS, 3);
+export const PAID_RUNS = num(process.env.PAID_RUNS, 5);
 // The modules offered on the free tier. Comma-separated slugs in FREE_TIER_MODULES,
 // else this default hero set. Everything not listed is paid-only.
 export const FREE_TIER_MODULES = new Set(
@@ -24,7 +30,7 @@ function num(v: string | undefined, d: number) {
   return Number.isFinite(n) && n > 0 ? n : d;
 }
 
-export type AccessVia = "free-module" | "admin" | "cohort" | "org" | "entitled" | "free-tier" | "blocked";
+export type AccessVia = "free-module" | "admin" | "cohort" | "org" | "entitled" | "free-tier" | "credits" | "blocked";
 export type AccessResult = { ok: boolean; via: AccessVia; runs: number; cap: number };
 
 type Ent = { module: string; current_period_end: string | null; current_period_start: string | null };
@@ -93,6 +99,44 @@ export async function grantedModuleSlugs(supabase: SupabaseClient, userId: strin
   return out;
 }
 
+// The set of exercises that belong to a for-sale module (i.e. draw from the
+// wallet when run personally). Free/instructor-run modules are excluded.
+function forSaleExercises(): Set<string> {
+  return new Set(MODULES.filter((m) => m.forSale !== false).map((m) => m.exercise));
+}
+
+// Credits bought (or comped/refunded): the sum of the run_credits ledger.
+async function purchasedCredits(supabase: SupabaseClient, userId: string): Promise<number> {
+  const { data } = await supabase.from("run_credits").select("delta").eq("user_id", userId);
+  return (data || []).reduce((s: number, r: any) => s + (r.delta || 0), 0);
+}
+
+// Personal runs consumed: this user's sessions with NO cohort tag (institutional
+// runs are cohort-tagged → free, excluded) on for-sale exercises.
+async function personalRunsUsed(supabase: SupabaseClient, userId: string): Promise<number> {
+  const { data } = await supabase
+    .from("sessions")
+    .select("exercise")
+    .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
+    .is("cohort", null);
+  const forSale = forSaleExercises();
+  let n = 0;
+  for (const r of (data as any[]) || []) if (forSale.has((r as any).exercise)) n++;
+  return n;
+}
+
+export type Wallet = { free: number; purchased: number; used: number; balance: number };
+
+// The user's runs wallet. `balance` is FREE_RUNS + purchased − used (may dip to
+// the current in-progress run at the gate; clamp for display).
+export async function runWallet(supabase: SupabaseClient, userId: string): Promise<Wallet> {
+  const [purchased, used] = await Promise.all([
+    purchasedCredits(supabase, userId),
+    personalRunsUsed(supabase, userId),
+  ]);
+  return { free: FREE_RUNS, purchased, used, balance: FREE_RUNS + purchased - used };
+}
+
 // The single source of truth for "can this user run this module right now?".
 export async function moduleRunAccess(
   supabase: SupabaseClient,
@@ -104,35 +148,23 @@ export async function moduleRunAccess(
   if (!PAYMENTS_ENABLED) return unlimited("free-module");
   if (opts.isAdmin) return unlimited("admin");
 
-  // Any class OR org the user belongs to that includes this module grants
-  // unlimited runs, regardless of how it was launched or whether the session
-  // was tagged with a cohort. (The specific session cohort still counts too.)
+  // Institutional run — a cohort-tagged launch, OR a module granted by any class
+  // /org the user belongs to. FREE and never drawn from the personal wallet.
+  // This is the B2B2C no-arbitrage guarantee: a seat is always better than a pack.
+  if (opts.cohort) return unlimited("cohort");
   const granted = await grantedModuleSlugs(supabase, opts.userId);
   if (granted.has(opts.slug)) return unlimited("cohort");
 
-  // Paid all-access takes precedence: PAID_RUNS per module, counted since the
-  // purchase (re-buying resets the window). The run count INCLUDES the current
-  // session, so allow while runs ≤ cap.
-  const ents = await activeEnts(supabase, opts.userId);
-  const paid = ents.find((e) => e.module === "all") || ents.find((e) => e.module === opts.slug);
-  if (paid) {
-    if (PAID_UNLIMITED) return unlimited("entitled");
-    const runs = await runsUsed(supabase, opts.userId, opts.exercise, paid.current_period_start);
-    return { ok: runs <= PAID_RUNS, via: runs <= PAID_RUNS ? "entitled" : "blocked", runs, cap: PAID_RUNS };
-  }
-
-  // Otherwise, free-tier modules get FREE_TIER_RUNS each (lifetime); everything
-  // else needs a purchase.
-  if (FREE_TIER_MODULES.has(opts.slug)) {
-    const runs = await runsUsed(supabase, opts.userId, opts.exercise);
-    return { ok: runs <= FREE_TIER_RUNS, via: runs <= FREE_TIER_RUNS ? "free-tier" : "blocked", runs, cap: FREE_TIER_RUNS };
-  }
-  return { ok: false, via: "blocked", runs: 0, cap: 0 };
+  // Personal run → draw from the shared runs wallet. `used` includes the current
+  // session (created before this gate runs), so allow while balance ≥ 0.
+  const w = await runWallet(supabase, opts.userId);
+  const ok = w.balance >= 0;
+  return { ok, via: ok ? "credits" : "blocked", runs: Math.max(0, w.used), cap: w.free + w.purchased };
 }
 
-// Runs remaining per module for a user, for the catalog counter. null =
-// unlimited (admin, payments off, free-to-run module); a number = new runs they
-// can still start; 0 = out (locked, or entitlement exhausted → re-buy).
+// For the catalog: null = runnable now (free/granted, or wallet has balance) →
+// no per-module counter; 0 = locked (paid exercise, wallet empty → buy runs).
+// The user's actual run balance is shown once, globally, on the dashboard.
 export async function runsLeftByModule(
   supabase: SupabaseClient,
   userId: string,
@@ -143,26 +175,11 @@ export async function runsLeftByModule(
     for (const m of MODULES) out[m.slug] = null;
     return out;
   }
-  const ents = await activeEnts(supabase, userId);
-  const paid = ents.find((e) => e.module === "all");
-  const since = paid?.current_period_start || null;
-  // Modules the user gets free via a class or org they belong to → unlimited.
   const granted = await grantedModuleSlugs(supabase, userId);
-
-  // Count this user's sessions per exercise (paid → since the purchase window).
-  let q = supabase.from("sessions").select("exercise").or(`host_id.eq.${userId},guest_id.eq.${userId}`);
-  if (since) q = q.gte("created_at", since);
-  const { data } = await q;
-  const counts: Record<string, number> = {};
-  for (const r of data || []) counts[(r as any).exercise] = (counts[(r as any).exercise] || 0) + 1;
-
+  const hasBalance = (await runWallet(supabase, userId)).balance > 0;
   for (const m of MODULES) {
-    if (m.forSale === false) { out[m.slug] = null; continue; }
-    if (granted.has(m.slug)) { out[m.slug] = null; continue; } // free via class/org
-    const used = counts[m.exercise] || 0;
-    if (paid) out[m.slug] = PAID_UNLIMITED ? null : Math.max(0, PAID_RUNS - used);
-    else if (FREE_TIER_MODULES.has(m.slug)) out[m.slug] = Math.max(0, FREE_TIER_RUNS - used);
-    else out[m.slug] = 0; // paid-only module, not owned
+    if (m.forSale === false || granted.has(m.slug)) { out[m.slug] = null; continue; }
+    out[m.slug] = hasBalance ? null : 0; // runnable from the shared wallet, or locked
   }
   return out;
 }
@@ -175,4 +192,27 @@ export async function cohortAlumnus(supabase: SupabaseClient, userId: string): P
     .select("class_id", { count: "exact", head: true })
     .eq("user_id", userId);
   return (count || 0) > 0;
+}
+
+// The time-boxed alumni offer. A cohort alumnus gets a limited window to grab
+// all-access at the $19 price — urgency drives the conversion. The clock starts
+// the first time we show it (persisted on the profile), so it's a real, honest
+// deadline rather than a permanent "sale". Returns whether it's live now and how
+// many days remain. Callers still gate on payments being on and not-yet-entitled.
+export const ALUMNI_OFFER_DAYS = num(process.env.ALUMNI_OFFER_DAYS, 14);
+export async function alumniOffer(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<{ active: boolean; daysLeft: number }> {
+  if (!(await cohortAlumnus(supabase, userId))) return { active: false, daysLeft: 0 };
+  const { data } = await supabase.from("profiles").select("alumni_offer_at").eq("id", userId).maybeSingle();
+  let startedAt = (data as any)?.alumni_offer_at as string | null;
+  if (!startedAt) {
+    // First exposure — start the clock (idempotent; own-row update under RLS).
+    startedAt = new Date().toISOString();
+    await supabase.from("profiles").update({ alumni_offer_at: startedAt }).eq("id", userId);
+  }
+  const endMs = new Date(startedAt).getTime() + ALUMNI_OFFER_DAYS * 86_400_000;
+  const daysLeft = Math.max(0, Math.ceil((endMs - Date.now()) / 86_400_000));
+  return { active: daysLeft > 0, daysLeft };
 }

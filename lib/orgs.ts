@@ -44,6 +44,7 @@ export type Org = {
   plan: string;
   owner_id: string | null;
   modules: string[] | null; // module slugs this org grants; null/empty = all
+  member_can_browse: boolean | null; // members see full library (true) or only their program (false/null)
   about: string | null; // short intro paragraph under the hero
   highlights: OrgHighlight[] | null; // institution-specific "why us" cards
   faculty: OrgFaculty[] | null; // key people, shown as circles

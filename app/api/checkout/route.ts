@@ -24,9 +24,10 @@ export async function POST(request: Request) {
     /* default below */
   }
 
-  // Two plans: "all" = $29/yr subscription (public), "cohort" = $19 one-time
-  // (only for people who've been in a cohort). Fall back to "all" if a $19 is
-  // requested but they're not eligible or it isn't configured.
+  // Two ONE-TIME plans (no subscriptions): "all" = $29 (public), "cohort" = $19
+  // (only for people who've been in a cohort). Each buys fixed runs of every
+  // exercise. Fall back to "all" if a $19 is requested but they're not eligible
+  // or it isn't configured.
   let plan: "all" | "cohort" = body.plan === "cohort" ? "cohort" : "all";
   if (plan === "cohort" && (!PRICE_COHORT || !(await cohortAlumnus(supabase, user.id)))) {
     plan = "all";
@@ -40,12 +41,14 @@ export async function POST(request: Request) {
   try {
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
-      mode: "payment", // one-time — $29 (or $19 alumni) opens up 2 runs of every module
+      mode: "payment", // one-time — $29 (or $19 alumni), fixed runs of every exercise
       line_items: [{ price: priceId, quantity: 1 }],
       client_reference_id: user.id,
       customer_email: user.email || undefined,
       metadata: { user_id: user.id, plan, module: "all" },
-      allow_promotion_codes: true, // 100%-off coupons comp a plan
+      // A 100%-off coupon makes a one-time total $0 → Stripe collects no card, so
+      // a code holder joins free with no payment details.
+      allow_promotion_codes: true,
       success_url: `${origin}/paywall?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/paywall?canceled=1`,
     });

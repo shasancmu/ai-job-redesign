@@ -128,6 +128,7 @@ async function Overview({ admin, allowedCohorts, classes, superadmin }: { admin:
           <p className="mt-1 max-w-lg text-sm text-slate2">
             Run a live activity, open a cohort to teach or review the work, or set up a new one.
           </p>
+          <Link href="/facilitator/guide" className="mt-2 inline-block text-sm font-semibold text-sky hover:underline">How this works for your role →</Link>
         </div>
         <HeaderNav tour />
       </div>

@@ -81,9 +81,14 @@ export default async function TeamPage() {
         <p className="mt-1 max-w-lg text-sm text-slate2">
           You&apos;re the director of {org.name}&apos;s space here: manage its people, appoint instructors, and run cohorts. Only your members are shown.
         </p>
-        <Link href="/facilitator" data-tour="team-cohorts" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-sage">
-          Manage cohorts &amp; run live activities <span aria-hidden>→</span>
-        </Link>
+        <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5">
+          <Link href="/facilitator" data-tour="team-cohorts" className="inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-sage">
+            Manage cohorts &amp; run live activities <span aria-hidden>→</span>
+          </Link>
+          <Link href="/team/outcomes" className="inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-sage">
+            See your outcomes <span aria-hidden>→</span>
+          </Link>
+        </div>
       </div>
 
       {!org.dpa_accepted_at && (
@@ -93,7 +98,7 @@ export default async function TeamPage() {
         </Link>
       )}
 
-      <TeamConsole orgId={org.id} people={people} invites={invites} links={(linkRows as any[]) || []} isSuperadmin={role.superadmin} />
+      <TeamConsole orgId={org.id} people={people} invites={invites} links={(linkRows as any[]) || []} isSuperadmin={role.superadmin} memberCanBrowse={!!(org as any).member_can_browse} />
 
       <Tour
         steps={TEAM_TOUR}

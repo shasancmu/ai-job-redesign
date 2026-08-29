@@ -9,7 +9,7 @@ const PICKABLE = MODULES.filter((m) => !m.hidden);
 type Highlight = { title: string; body: string };
 type Faculty = { name: string; title?: string; image_url?: string };
 type User = { id: string; email: string; name: string };
-type Org = { id: string; slug: string; name: string; tagline: string | null; primary_color: string | null; logo_url: string | null; hero_image_url: string | null; invite_only: boolean; modules: string[] | null; about: string | null; highlights: Highlight[] | null; faculty: Faculty[] | null };
+type Org = { id: string; slug: string; name: string; tagline: string | null; primary_color: string | null; logo_url: string | null; hero_image_url: string | null; invite_only: boolean; modules: string[] | null; member_can_browse?: boolean | null; about: string | null; highlights: Highlight[] | null; faculty: Faculty[] | null };
 type Invite = { email: string; org_role: string };
 
 // Upload a faculty photo to the shared branding bucket; returns its public URL.
@@ -78,6 +78,7 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
   const [color, setColor] = useState(org?.primary_color || "#3f7a52");
   const [inviteOnly, setInviteOnly] = useState(org?.invite_only ?? true);
   const [mods, setMods] = useState<Set<string>>(new Set(org?.modules || []));
+  const [memberBrowse, setMemberBrowse] = useState(org?.member_can_browse ?? false);
   const [about, setAbout] = useState(org?.about || "");
   const [highlights, setHighlights] = useState<Highlight[]>(org?.highlights || []);
   const [faculty, setFaculty] = useState<Faculty[]>(org?.faculty || []);
@@ -90,7 +91,7 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
     setBusy(true); setErr(null);
     try {
       await post({
-        action: "save_org", id: org?.id, slug, name, tagline, primary_color: color, invite_only: inviteOnly, modules: [...mods],
+        action: "save_org", id: org?.id, slug, name, tagline, primary_color: color, invite_only: inviteOnly, modules: [...mods], member_can_browse: memberBrowse,
         about,
         highlights: highlights.filter((h) => h.title.trim() || h.body.trim()),
         faculty: faculty.filter((f) => f.name.trim()),
@@ -149,6 +150,10 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
             </button>
           ))}
         </div>
+        <label className="mt-2.5 flex items-start gap-2 text-sm text-ink">
+          <input type="checkbox" checked={memberBrowse} onChange={(e) => setMemberBrowse(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[color:var(--ink)]" />
+          <span>Let members browse the full library<span className="block text-xs font-normal text-slate-400">Off (default): members see a focused home — just the work assigned to their cohort. On: members can also explore every module above.</span></span>
+        </label>
       </div>
       {/* Institution factors */}
       <div>

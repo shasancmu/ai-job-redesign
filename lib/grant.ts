@@ -1,50 +1,33 @@
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { PACK_RUNS } from "@/lib/access";
 
-// Grant "all"-access for a completed checkout. Idempotent. A subscription
-// ($29/yr) carries its period so paid runs refresh on renewal; a one-time $19
-// grant is lifetime (no period end). Called from the webhook and the
-// success-redirect fallback.
+// Add a pack of runs to the wallet for a completed checkout. Idempotent — one
+// credit grant per checkout session (the webhook and the success-redirect both
+// call this). A 100%-off coupon still "completes" at $0, so a free code grants a
+// pack too. Called from the webhook and the success-redirect fallback.
 export async function grantFromSession(session: Stripe.Checkout.Session) {
   const userId = session.client_reference_id || session.metadata?.user_id;
   if (!userId) return;
   if (session.payment_status !== "paid" && session.status !== "complete") return;
 
   const admin = createAdminClient();
-  const base: any = {
+  // One credit grant per session id.
+  const { data: existing } = await admin.from("run_credits").select("id").eq("ref", session.id).maybeSingle();
+  if (existing) return;
+
+  await admin.from("run_credits").insert({
     user_id: userId,
-    module: "all",
-    paid: true,
-    stripe_session_id: session.id,
-    stripe_customer_id: typeof session.customer === "string" ? session.customer : session.customer?.id ?? null,
-    amount_total: session.amount_total ?? null,
-    currency: session.currency ?? null,
-  };
-
-  if (session.mode === "subscription" && session.subscription) {
-    const subId = typeof session.subscription === "string" ? session.subscription : session.subscription.id;
-    try {
-      const sub: any = await getStripe().subscriptions.retrieve(subId);
-      base.stripe_subscription_id = sub.id;
-      base.current_period_start = new Date((sub.current_period_start || 0) * 1000).toISOString();
-      base.current_period_end = new Date((sub.current_period_end || 0) * 1000).toISOString();
-    } catch {
-      base.stripe_subscription_id = subId;
-      base.current_period_start = new Date().toISOString();
-    }
-  } else {
-    // One-time $19: lifetime grant. Runs count from purchase.
-    base.current_period_start = new Date().toISOString();
-    base.current_period_end = null;
-  }
-
-  await admin.from("entitlements").upsert(base, { onConflict: "user_id,module" });
+    delta: PACK_RUNS,
+    reason: "purchase",
+    ref: session.id,
+  });
 }
 
-// Revoke all-access when a purchase is fully refunded. Matches the entitlement
-// to the refunded checkout session (so refunding an OLD purchase doesn't wipe a
-// later valid one); falls back to the user if the session can't be resolved.
+// Claw back a pack when a purchase is fully refunded. Matches the credit grant to
+// the refunded checkout session (so refunding an OLD purchase doesn't touch a
+// later one) and posts an offsetting negative entry. Idempotent per session.
 export async function revokeFromCharge(charge: any) {
   if (!charge?.refunded) return; // only act on a FULL refund
   const pi = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
@@ -60,13 +43,21 @@ export async function revokeFromCharge(charge: any) {
   } catch {
     /* fall through */
   }
+  if (!sessionId && !userId) return;
 
   const admin = createAdminClient();
+  // Find the original purchase grant (by session), and skip if already refunded.
+  const ref = sessionId ? `refund:${sessionId}` : `refund:user:${userId}`;
+  const { data: already } = await admin.from("run_credits").select("id").eq("ref", ref).maybeSingle();
+  if (already) return;
+
+  let delta = -PACK_RUNS;
   if (sessionId) {
-    await admin.from("entitlements").delete().eq("module", "all").eq("stripe_session_id", sessionId);
-  } else if (userId) {
-    await admin.from("entitlements").delete().eq("user_id", userId).eq("module", "all");
+    const { data: orig } = await admin.from("run_credits").select("delta, user_id").eq("ref", sessionId).maybeSingle();
+    if (orig) { delta = -Math.abs((orig as any).delta || PACK_RUNS); userId = userId || (orig as any).user_id; }
   }
+  if (!userId) return; // run_credits.user_id is NOT NULL — need a user to post the refund
+  await admin.from("run_credits").insert({ user_id: userId, delta, reason: "refund", ref });
 }
 
 // Sync an entitlement from a subscription lifecycle event (renewal, cancel).

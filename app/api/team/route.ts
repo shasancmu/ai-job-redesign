@@ -86,6 +86,12 @@ export async function POST(request: Request) {
       return Response.json({ ok: true });
     }
 
+    if (action === "member_browse") {
+      // Whether members see the full library or only their assigned program.
+      await admin.from("organizations").update({ member_can_browse: body.value === true }).eq("id", orgId);
+      return Response.json({ ok: true });
+    }
+
     if (action === "remove_invite") {
       const email = String(body.email || "").trim().toLowerCase();
       if (!email) return Response.json({ error: "Missing email." }, { status: 400 });

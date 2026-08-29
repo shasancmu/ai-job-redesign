@@ -29,6 +29,9 @@ alter table public.profiles add column if not exists founder_stage text;   -- fo
 alter table public.profiles add column if not exists study_field text;     -- students
 alter table public.profiles add column if not exists grad_year text;       -- students
 alter table public.profiles add column if not exists onboarded_at timestamptz;
+-- When we first showed this cohort alumnus the time-boxed $19 all-access offer.
+-- Set once, on first eligible dashboard view; the offer window counts from here.
+alter table public.profiles add column if not exists alumni_offer_at timestamptz;
 -- Passive signals (collected in the background, never asked).
 alter table public.profiles add column if not exists org_type text;        -- personal | education | corporate
 alter table public.profiles add column if not exists org_domain text;      -- email domain
@@ -362,6 +365,24 @@ create table if not exists public.entitlements (
   created_at timestamptz not null default now(),
   primary key (user_id, module)
 );
+-- The runs wallet (consumer credits model). Everyone gets a free starter
+-- allowance (a constant, not stored); a pack purchase adds credits here; a
+-- refund or admin adjustment can subtract. A "run" is NOT stored here — it's
+-- counted from personal (null-cohort) sessions — so this ledger holds only
+-- credit GRANTS. Balance = FREE_RUNS + sum(delta) − personal runs used.
+create table if not exists public.run_credits (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  delta integer not null,                       -- +pack/comp, −refund/adjust
+  reason text not null,                          -- 'purchase' | 'comp' | 'refund' | 'admin'
+  ref text,                                      -- stripe session id, coupon code, note
+  created_at timestamptz not null default now()
+);
+create index if not exists run_credits_user_idx on public.run_credits (user_id);
+alter table public.run_credits enable row level security;
+drop policy if exists run_credits_read_own on public.run_credits;
+create policy run_credits_read_own on public.run_credits for select using (user_id = auth.uid()); -- writes via service role
+
 -- Subscription tracking for the $29/yr plan. Lifetime grants (one-time $19,
 -- coupon, admin) leave current_period_end null. Paid runs are counted since
 -- current_period_start, so a renewal refreshes the allowance.
@@ -1193,6 +1214,12 @@ alter table public.classes add column if not exists org_id uuid references publi
 -- Which modules a white-label org grants its members (array of module slugs).
 -- null/empty = all modules (default); a set = only those, curated.
 alter table public.organizations add column if not exists modules jsonb;
+
+-- Whether org members see the full library on their dashboard, or only the
+-- program (their assigned cohort work). Default false: members get a focused,
+-- cohort-first home; the org/class/library machinery is for staff. Directors
+-- flip this on to let members freely explore every module the org grants.
+alter table public.organizations add column if not exists member_can_browse boolean not null default false;
 
 -- Richer white-label landing content, all optional (the page shows tasteful
 -- placeholder copy until these are set):

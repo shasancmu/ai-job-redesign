@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { roleFor } from "@/lib/orgs";
+import ViewAsControl from "@/components/ViewAsControl";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,13 @@ export default async function AdminPage() {
 
       {isDirector && <Group title="Your organization" cards={org} />}
       {role.superadmin && <Group title="Platform" cards={platform} />}
+
+      {role.superadmin && (
+        <section className="mt-8">
+          <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Support</div>
+          <ViewAsControl />
+        </section>
+      )}
     </main>
   );
 }

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { activeEntitlements, FREE_TIER_MODULES, runsLeftByModule, grantedModuleSlugs } from "@/lib/access";
+import { runWallet, runsLeftByModule, grantedModuleSlugs, alumniOffer } from "@/lib/access";
 import { roleplayCatalogMap } from "@/lib/mechanics/store";
 import { interviewMetaBySlugs } from "@/lib/customModules";
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
@@ -10,9 +10,11 @@ import OrgSwitcher from "@/components/OrgSwitcher";
 import AccountMenu from "@/components/AccountMenu";
 import FacilitatorWelcome from "@/components/FacilitatorWelcome";
 import { titleCaseName } from "@/lib/name";
-import { MODULES } from "@/lib/modules";
+import { MODULES, moduleBySlug } from "@/lib/modules";
 import { levelFor, loadBundles, bundlesFor, nextCertificateStep } from "@/lib/credentials";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { viewAsTarget } from "@/lib/viewAs";
+import ViewAsBanner from "@/components/ViewAsBanner";
 import { listAuthoredModules } from "@/lib/moduleCatalog";
 import Catalog from "@/components/Catalog";
 import SessionsPanel from "@/components/SessionsPanel";
@@ -42,15 +44,23 @@ export default async function Dashboard({
 }: {
   searchParams: { cohort?: string };
 }) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const rls = createClient();
+  const { data: { user: realUser } } = await rls.auth.getUser();
+  if (!realUser) redirect("/login");
+
+  // Superadmin "view as": render this page as another user — a READ lens. Reads
+  // switch to the service-role client + the target's id; the target's session is
+  // never minted, so nothing can act as them. The proxy uses the Personal
+  // context, which is where the consumer runs view lives.
+  const proxy = await viewAsTarget(realUser);
+  const isProxy = !!proxy;
+  const user: any = isProxy ? { id: proxy!.id, email: proxy!.email, user_metadata: {} } : realUser;
+  const supabase: any = isProxy ? createAdminClient() : rls;
 
   // Turn any pending white-label invites for this email into memberships.
-  await claimInvites(user.id, user.email);
-  const [myOrgs, activeOrg, facAccess] = await Promise.all([getMyOrgs(user.id), getActiveOrg(user), facilitatorAccess(user)]);
+  if (!isProxy) await claimInvites(user.id, user.email);
+  const [myOrgs, facAccess] = await Promise.all([getMyOrgs(user.id), facilitatorAccess(user)]);
+  const activeOrg = isProxy ? null : await getActiveOrg(realUser);
   // A white-label org can curate which modules its members see + can run.
   const orgModules: string[] | null = activeOrg?.modules && activeOrg.modules.length ? activeOrg.modules : null;
 
@@ -83,13 +93,13 @@ export default async function Dashboard({
     const display = titleCaseName(
       (user.user_metadata?.display_name as string) || user.email?.split("@")[0] || "You"
     );
-    await supabase.from("profiles").insert({ id: user.id, display_name: display });
+    if (!isProxy) await supabase.from("profiles").insert({ id: user.id, display_name: display });
     profile = { id: user.id, display_name: display } as any;
   } else if (profile.display_name) {
     // Backfill legacy names to proper case (fixes names saved before this rule).
     const clean = titleCaseName(profile.display_name);
     if (clean !== profile.display_name) {
-      await supabase.from("profiles").update({ display_name: clean }).eq("id", user.id);
+      if (!isProxy) await supabase.from("profiles").update({ display_name: clean }).eq("id", user.id);
       profile.display_name = clean;
     }
   }
@@ -107,19 +117,19 @@ export default async function Dashboard({
   }
 
   const instructor = isAdmin(user.email);
-  const ents = await activeEntitlements(supabase, user.id);
+  // Runs wallet: a paid exercise is startable while the shared wallet has runs.
+  const wallet = await runWallet(supabase, user.id);
+  const hasRuns = wallet.balance > 0;
   const unlocked: Record<string, boolean> = {};
   for (const m of MODULES) {
-    // "Unlocked" = startable from the catalog. Free-tier modules qualify (they
-    // carry their own per-run cap, enforced at room entry); paid modules need an
-    // entitlement. Cohort-scoped access is applied on the class view separately.
+    // "Unlocked" = startable from the catalog: free/instructor-run exercises,
+    // payments-off, admin, or the wallet still has runs to spend. Cohort/class
+    // grants are layered on below.
     unlocked[m.slug] =
       m.forSale === false ||
       !PAYMENTS_ENABLED ||
       instructor ||
-      ents.has("all") ||
-      ents.has(m.slug) ||
-      FREE_TIER_MODULES.has(m.slug);
+      hasRuns;
   }
   // A white-label org grants its curated modules to members, unlimited.
   if (orgModules) for (const s of orgModules) unlocked[s] = true;
@@ -257,8 +267,45 @@ export default async function Dashboard({
     if (all[0]) myCapstone = { code: all[0].code, phase: all[0].phase, status: all[0].status };
   } catch { /* no capstone teams */ }
 
+  // Role-appropriate home. The org / class / cohort machinery is for staff;
+  // a learner should see their program (assigned work + progress), not the
+  // whole library. So an org member gets a cohort-first home and the general
+  // library is hidden — unless the org opts members into free exploration.
+  const activeMembership = activeOrg ? myOrgs.find((m) => m.org.id === activeOrg.id) : null;
+  const isStaffHere = facAccess.superadmin || activeMembership?.role === "instructor" || activeMembership?.role === "director";
+  const isOrgLearner = !!activeOrg && !isStaffHere;
+  const showLibrary = !isOrgLearner || !!activeOrg?.member_can_browse;
+
+  // The consumer (no org, not staff). A brand-new one gets a guided front door
+  // — a "Start here" pick and the full library collapsed — instead of the whole
+  // catalog at once. Their runs balance is surfaced so they know where they
+  // stand, with a time-boxed alumni pack nudge when eligible.
+  const isConsumer = !activeOrg && !facAccess.ok;
+  const runsBalance = Math.max(0, wallet.balance);
+  const completedCount = MODULES.filter((m) => m.partner !== "group" && completed[m.slug]).length;
+  const isNewConsumer = isConsumer && completedCount === 0;
+  const startHere = isConsumer
+    ? recommended.map((s) => moduleBySlug(s)).filter((m): m is NonNullable<typeof m> => !!m && m.partner !== "group").slice(0, 3)
+    : [];
+  const showRuns = isConsumer && PAYMENTS_ENABLED;
+  const offer = showRuns ? await alumniOffer(supabase, user.id) : { active: false, daysLeft: 0 };
+
+  const catalogEl = (
+    <Catalog
+      userId={user.id}
+      unlocked={unlocked}
+      initialCohort={searchParams.cohort || (activeOrg ? masterCohortCode(activeOrg.id) : "")}
+      moduleSlugs={orgModules || undefined}
+      completed={completed}
+      lastCode={lastCode}
+      recommended={recommended}
+      runsLeft={runsLeft}
+    />
+  );
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
+      {isProxy && <ViewAsBanner email={proxy!.email} />}
       <header className="mb-8 flex flex-wrap items-center justify-between gap-x-3 gap-y-4">
         <div>
           <Logo />
@@ -320,6 +367,11 @@ export default async function Dashboard({
             <div className="truncate text-sm font-bold text-ink">{cohortName || "All members"}</div>
             <div className="truncate text-xs text-slate-400">{activeOrg.name}</div>
           </div>
+          {isOrgLearner && (
+            <div className="ml-auto shrink-0 rounded-full bg-sage/10 px-2.5 py-1 text-[11px] font-semibold text-sage">
+              Included — free to run
+            </div>
+          )}
         </div>
       )}
 
@@ -328,6 +380,29 @@ export default async function Dashboard({
       <EnrichOnce />
 
       <FollowUps items={followUps} />
+
+      {/* Runs balance. Alumni in their window get the time-boxed pack nudge;
+          low/empty balances get a top-up prompt; a fresh consumer with runs in
+          hand sees a quiet counter. Institutional learners never see this. */}
+      {showRuns && offer.active ? (
+        <a href="/paywall" className="mb-8 flex items-center justify-between gap-3 rounded-2xl border-2 border-ink bg-white p-4 transition hover:shadow-sm">
+          <div className="min-w-0">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-clay">Cohort alumni · ends in {offer.daysLeft} day{offer.daysLeft === 1 ? "" : "s"}</div>
+            <div className="mt-0.5 text-sm font-bold text-ink">{runsBalance} runs left — top up at your alumni price</div>
+            <div className="text-xs text-slate-400">Your lowest per-run price. Runs never expire.</div>
+          </div>
+          <span className="shrink-0 text-sm font-semibold text-ink">Get runs →</span>
+        </a>
+      ) : showRuns && (runsBalance <= 3 || !isNewConsumer) ? (
+        <a href="/paywall" className={"mb-8 flex items-center justify-between gap-3 rounded-2xl border bg-white p-4 transition hover:shadow-sm " + (runsBalance === 0 ? "border-2 border-ink" : "border-line")}>
+          <div className="min-w-0">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-sage">Your runs</div>
+            <div className="mt-0.5 text-sm font-bold text-ink">{runsBalance === 0 ? "You're out of runs" : `${runsBalance} run${runsBalance === 1 ? "" : "s"} left`}</div>
+            <div className="text-xs text-slate-400">{runsBalance === 0 ? "Add a pack to keep going — spend runs on any exercise." : "One run = one exercise. Top up anytime; runs never expire."}</div>
+          </div>
+          <span className="shrink-0 text-sm font-semibold text-sage">{runsBalance === 0 ? "Get runs →" : "Top up →"}</span>
+        </a>
+      ) : null}
 
       {nextStep && (
         <a href={`/start/${nextStep.nextSlug}`} className="mb-8 flex items-center justify-between gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
@@ -351,9 +426,15 @@ export default async function Dashboard({
         </a>
       )}
 
-      {classAssignments.length > 0 && (
+      {(classAssignments.length > 0 || isOrgLearner) && (
         <section className="mb-8">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Assigned by your class</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{isOrgLearner ? "Your program" : "Assigned by your class"}</div>
+          {classAssignments.length === 0 ? (
+            <div className="mt-2 rounded-2xl border border-dashed border-line bg-white p-6 text-center">
+              <div className="text-sm font-semibold text-ink">Nothing assigned yet</div>
+              <div className="mt-1 text-sm text-slate2">When your instructor assigns an exercise{cohortName ? ` to ${cohortName}` : ""}, it appears right here.</div>
+            </div>
+          ) : (
           <div className="mt-2 grid gap-3 sm:grid-cols-2">
             {classAssignments.map((r) => (
               <a key={r.slug} href={r.href} className="group flex items-center gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
@@ -366,6 +447,7 @@ export default async function Dashboard({
               </a>
             ))}
           </div>
+          )}
         </section>
       )}
 
@@ -386,20 +468,36 @@ export default async function Dashboard({
         </a>
       )}
 
-      <section data-tour="catalog">
-        <h2 className="eyebrow">{t("dash.exercises")}</h2>
-        <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">{t("dash.framing")}</p>
-        <Catalog
-          userId={user.id}
-          unlocked={unlocked}
-          initialCohort={searchParams.cohort || (activeOrg ? masterCohortCode(activeOrg.id) : "")}
-          moduleSlugs={orgModules || undefined}
-          completed={completed}
-          lastCode={lastCode}
-          recommended={recommended}
-          runsLeft={runsLeft}
-        />
-      </section>
+      {showLibrary && (isNewConsumer && startHere.length > 0 ? (
+        // A first-time consumer: one clear place to start, with the full library
+        // tucked behind a disclosure so the first screen isn't 80 choices.
+        <section data-tour="catalog">
+          <h2 className="eyebrow">Start here</h2>
+          <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">New to Superadditive? Pick one and do it — about 20 minutes, and you walk away with something real, not a completion checkmark.</p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {startHere.map((m) => (
+              <a key={m.slug} href={`/start/${m.slug}`} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+                <div className="text-2xl">{m.emoji}</div>
+                <div className="mt-2 text-sm font-bold text-ink group-hover:text-ai">{m.name}</div>
+                <div className="mt-0.5 line-clamp-2 text-xs text-slate-400">{m.tagline}</div>
+                <span className="mt-3 text-sm font-semibold text-sage">Start →</span>
+              </a>
+            ))}
+          </div>
+          <details className="group mt-8">
+            <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-slate2 hover:text-ink">
+              <span className="transition group-open:rotate-90">›</span> Browse all {MODULES.length} exercises
+            </summary>
+            <div className="mt-5">{catalogEl}</div>
+          </details>
+        </section>
+      ) : (
+        <section data-tour="catalog">
+          <h2 className="eyebrow">{isOrgLearner ? "Explore more" : t("dash.exercises")}</h2>
+          <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">{t("dash.framing")}</p>
+          {catalogEl}
+        </section>
+      ))}
 
       <section className="mt-10">
         <h2 className="eyebrow mb-3">{t("dash.yourSessions")}</h2>

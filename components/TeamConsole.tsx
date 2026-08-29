@@ -17,7 +17,7 @@ async function post(body: any) {
   return d;
 }
 
-export default function TeamConsole({ orgId, people, invites, links = [], isSuperadmin = false }: { orgId: string; people: TeamPerson[]; invites: TeamInvite[]; links?: StaffLink[]; isSuperadmin?: boolean }) {
+export default function TeamConsole({ orgId, people, invites, links = [], isSuperadmin = false, memberCanBrowse = false }: { orgId: string; people: TeamPerson[]; invites: TeamInvite[]; links?: StaffLink[]; isSuperadmin?: boolean; memberCanBrowse?: boolean }) {
   const router = useRouter();
   const [emails, setEmails] = useState("");
   const [inviteRole, setInviteRole] = useState<"member" | "instructor">("member");
@@ -26,6 +26,7 @@ export default function TeamConsole({ orgId, people, invites, links = [], isSupe
   const [origin, setOrigin] = useState("");
   const [linkDomain, setLinkDomain] = useState("");
   const [copied, setCopied] = useState("");
+  const [browse, setBrowse] = useState(memberCanBrowse);
   useEffect(() => { setOrigin(window.location.origin); }, []);
 
   async function act(body: any, tag: string) {
@@ -121,6 +122,28 @@ export default function TeamConsole({ orgId, people, invites, links = [], isSupe
             ))}
           </div>
         )}
+      </div>
+
+      {/* What members see */}
+      <div className="card mt-3 p-4">
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Member experience</div>
+        <label className="flex items-start gap-3 text-sm text-ink">
+          <input
+            type="checkbox"
+            checked={browse}
+            onChange={(e) => { const v = e.target.checked; setBrowse(v); act({ action: "member_browse", value: v }, "member_browse"); }}
+            disabled={busy === "member_browse"}
+            className="mt-0.5 h-4 w-4 accent-[color:var(--ink)]"
+          />
+          <span>
+            Let members browse the full library
+            <span className="mt-0.5 block text-xs font-normal text-slate-400">
+              {browse
+                ? "On — members see every module you grant, plus their assigned work."
+                : "Off — members get a focused home showing only the work assigned to their cohort. The class/library structure stays with you and your instructors."}
+            </span>
+          </span>
+        </label>
       </div>
 
       {directors.length > 0 && (

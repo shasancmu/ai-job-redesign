@@ -44,6 +44,9 @@ export default function FacilitatorWelcome({ orgs }: { orgs: FacOrg[] }) {
                 ? "You manage the people, instructors, and cohorts in your organization's Superadditive space."
                 : "Build and run your cohorts, run live activities, and review your group's work."}
             </div>
+            <a href="/facilitator/guide" onClick={dismiss} className="mt-1 inline-block text-sm font-semibold text-sky hover:underline">
+              New to this? See how it works for a {show.role} →
+            </a>
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
