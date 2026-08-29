@@ -70,6 +70,11 @@ export default async function Paywall({
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
       {isProxy && <ViewAsBanner email={proxy!.email} />}
+      <div className="mb-4">
+        <span className={"inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium " + (left === 0 ? "border-clay/40 bg-clay/5 text-clay" : "border-line bg-white text-slate2")}>
+          🎟️ {left} run{left === 1 ? "" : "s"} left
+        </span>
+      </div>
       <div className="mb-2 text-sm font-semibold uppercase tracking-wide text-sage">Runs</div>
       <h1 className="text-2xl font-bold text-ink">
         {outOfRuns ? (mod ? "You're out of runs" : "Get more runs") : "Top up your runs"}
