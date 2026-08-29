@@ -5,9 +5,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { roleFor, getActiveOrg } from "@/lib/orgs";
 import { gatherRelationshipOS, type MemberState } from "@/lib/relationships";
 import { SEGMENTS } from "@/lib/pushes";
+import { listAutomations } from "@/lib/automations";
 import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
 import PushComposer from "@/components/PushComposer";
+import AutomationsPanel from "@/components/AutomationsPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -29,11 +31,11 @@ function ago(d: number | null): string {
 function PersonRow({ m, right }: { m: MemberState; right?: string }) {
   const b = BUCKET_META[m.bucket];
   return (
-    <div className="flex items-center gap-3 px-4 py-2.5 text-sm">
+    <Link href={`/team/person/${m.userId}`} className="flex items-center gap-3 px-4 py-2.5 text-sm transition hover:bg-mist/40">
       <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: b.dot }} />
       <span className="min-w-0 flex-1 truncate font-medium text-ink">{m.name}</span>
       <span className="shrink-0 text-xs text-slate-400">{right ?? `${m.degree} tie${m.degree === 1 ? "" : "s"} · ${ago(m.lastActiveDays)}`}</span>
-    </div>
+    </Link>
   );
 }
 
@@ -61,6 +63,7 @@ export default async function RelationshipsPage() {
     isolated: os.isolates.length, connectors: os.connectors.length,
   };
   const segments = SEGMENTS.map((s) => ({ ...s, count: segCount[s.key] ?? 0 }));
+  const rules = await listAutomations(admin, org.id);
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
@@ -145,6 +148,13 @@ export default async function RelationshipsPage() {
             </div>
           )}
         </div>
+      </section>
+
+      {/* Automations — make the relationship maintain itself */}
+      <section className="mt-10">
+        <h2 className="eyebrow mb-1">On autopilot</h2>
+        <p className="mb-4 text-sm text-slate2">Set a rule once and the relationship maintains itself — value drips to people the moment they start slipping, at no ongoing effort. Fires daily.</p>
+        <AutomationsPanel rules={rules} />
       </section>
 
       {/* The rules of the cohort — interact, don't subvert */}

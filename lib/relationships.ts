@@ -1,3 +1,5 @@
+import { moduleByExercise } from "@/lib/modules";
+
 // The Relationship OS — the director's instrument for running the ongoing
 // relationship with a cohort/org, grounded in three lenses:
 //  • Network theory: the cohort is a graph. Paired exercises are edges. We read
@@ -151,4 +153,80 @@ export async function gatherRelationshipOS(admin: any, org: { id: string; name: 
     reengage,
     states,
   };
+}
+
+// A single person's 360° — their tie strength, activity timeline, peers, and the
+// pushes they've received. Director-only; scoped to the director's org.
+export type PersonProfile = {
+  userId: string;
+  name: string;
+  state: MemberState;
+  timeline: { name: string; emoji: string; at: string; done: boolean }[];
+  peers: { userId: string; name: string }[];
+  pushes: { title: string; kind: string; at: string; seen: boolean; clicked: boolean }[];
+};
+
+export async function gatherPerson(admin: any, org: { id: string; name: string }, userId: string): Promise<PersonProfile | null> {
+  const now = Date.now();
+  const { data: classes } = await admin.from("classes").select("id, code").eq("org_id", org.id);
+  const cohortRows = ((classes as any[]) || []).filter(Boolean);
+  const classIds = cohortRows.map((c) => c.id);
+  const cohortCodes = cohortRows.map((c) => c.code);
+
+  // Membership check — only surface people in this org's cohorts.
+  let isMember = false;
+  if (classIds.length) {
+    const { count } = await admin.from("class_members").select("user_id", { count: "exact", head: true }).eq("user_id", userId).in("class_id", cap(classIds));
+    isMember = (count || 0) > 0;
+  }
+  if (!isMember) return null;
+
+  const { data: prof } = await admin.from("profiles").select("display_name").eq("id", userId).maybeSingle();
+  const name = (prof as any)?.display_name || "Member";
+
+  // Sessions in the org's cohorts → timeline + peers + activity signal.
+  const timeline: PersonProfile["timeline"] = [];
+  const peerIds = new Set<string>();
+  let runs = 0, last = 0;
+  if (cohortCodes.length) {
+    const { data: sess } = await admin
+      .from("sessions")
+      .select("exercise, host_id, guest_id, status, created_at")
+      .in("cohort", cap(cohortCodes))
+      .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    for (const s of (sess as any[]) || []) {
+      const ts = s.created_at ? new Date(s.created_at).getTime() : 0;
+      runs++; if (ts > last) last = ts;
+      const m = moduleByExercise(s.exercise);
+      timeline.push({ name: m?.name || s.exercise, emoji: m?.emoji || "•", at: s.created_at, done: s.status === "done" });
+      const other = s.host_id === userId ? s.guest_id : s.host_id;
+      if (other && other !== userId) peerIds.add(other);
+    }
+  }
+
+  const peers: PersonProfile["peers"] = [];
+  if (peerIds.size) {
+    const { data: pn } = await admin.from("profiles").select("id, display_name").in("id", [...peerIds]);
+    for (const p of (pn as any[]) || []) peers.push({ userId: p.id, name: p.display_name || "Member" });
+  }
+
+  const lastDays = last ? Math.floor((now - last) / DAY) : null;
+  const state: MemberState = { userId, name, lastActiveDays: lastDays, runs, degree: peerIds.size, bucket: bucketFor(lastDays) };
+
+  // Pushes this person has received from the org.
+  const pushes: PersonProfile["pushes"] = [];
+  const { data: pr } = await admin
+    .from("push_recipients")
+    .select("seen_at, clicked_at, pushes(title, kind, org_id, created_at)")
+    .eq("user_id", userId)
+    .order("created_at", { foreignTable: "pushes", ascending: false })
+    .limit(12);
+  for (const r of (pr as any[]) || []) {
+    if (!r.pushes || r.pushes.org_id !== org.id) continue;
+    pushes.push({ title: r.pushes.title, kind: r.pushes.kind, at: r.pushes.created_at, seen: !!r.seen_at, clicked: !!r.clicked_at });
+  }
+
+  return { userId, name, state, timeline, peers, pushes };
 }

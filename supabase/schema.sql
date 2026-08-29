@@ -1251,6 +1251,30 @@ alter table public.push_recipients enable row level security;
 drop policy if exists push_recipients_read_own on public.push_recipients;
 create policy push_recipients_read_own on public.push_recipients for select using (user_id = auth.uid()); -- writes via service role
 
+-- Which automation (if any) produced a push, so a rule doesn't re-hit the same
+-- person within its cool-down window.
+alter table public.pushes add column if not exists automation_id uuid;
+
+-- Relationship OS automations: a rule that auto-drips value when a member enters
+-- a state (e.g. goes cooling), so the relationship maintains itself at fixed cost
+-- without the director sending by hand. Fired by a daily cron.
+create table if not exists public.automations (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references public.organizations (id) on delete cascade,
+  created_by uuid references auth.users (id) on delete set null,
+  trigger text not null,                       -- 'cooling' | 'at_risk' | 'reengage' | 'isolated'
+  kind text not null default 'module',
+  title text not null,
+  body text,
+  href text,
+  cta text,
+  enabled boolean not null default true,
+  last_run_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists automations_org_idx on public.automations (org_id);
+alter table public.automations enable row level security; -- service-role only
+
 -- Richer white-label landing content, all optional (the page shows tasteful
 -- placeholder copy until these are set):
 --   about      : a short intro paragraph under the hero.
