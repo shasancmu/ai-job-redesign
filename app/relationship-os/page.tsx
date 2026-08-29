@@ -1,8 +1,12 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { isSuperadmin } from "@/lib/orgs";
 import Logo from "@/components/Logo";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 
+export const dynamic = "force-dynamic";
 export const metadata = {
   title: "The Relationship OS — Superadditive",
   description: "A program is a transaction. The Relationship OS turns it into a lifelong, high-value relationship with every learner — at fixed cost.",
@@ -22,7 +26,12 @@ const LENSES = [
   { icon: "♟️", title: "Game theory", body: "Sustaining a relationship is a repeated cooperation game. Invest value where cooperation is decaying; keep peer interaction positive-sum by design, so it can't be gamed or spammed." },
 ];
 
-export default function RelationshipOS() {
+export default async function RelationshipOS() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login?next=/relationship-os");
+  if (!(await isSuperadmin(user))) redirect("/dashboard");
+
   return (
     <main className="bg-paper text-ink">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
