@@ -56,6 +56,7 @@ export default function Catalog({
   lastCode = {},
   recommended = [],
   runsLeft = {},
+  certByModule = {},
 }: {
   userId: string;
   unlocked: Record<string, boolean>;
@@ -66,6 +67,7 @@ export default function Catalog({
   lastCode?: Record<string, string>;
   recommended?: string[];
   runsLeft?: Record<string, number | null>;
+  certByModule?: Record<string, string>;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -153,6 +155,9 @@ export default function Catalog({
                 <ModuleIcon slug={m.slug} />
               </div>
               <h3 className="mt-4 text-lg font-bold text-ink">{tf("modules." + m.slug + ".name", m.name)}</h3>
+              {certByModule[m.slug] && (
+                <div className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-sage">🏅 Counts toward {certByModule[m.slug]}</div>
+              )}
               <p className="mt-1.5 text-sm leading-relaxed text-slate2">{tf("modules." + m.slug + ".tagline", m.tagline)}</p>
               <div className="mt-2 flex flex-1 flex-wrap content-start gap-1">
                 {modulePills(m.slug).map((p) => (

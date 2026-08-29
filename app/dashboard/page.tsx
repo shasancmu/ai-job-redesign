@@ -11,7 +11,7 @@ import AccountMenu from "@/components/AccountMenu";
 import FacilitatorWelcome from "@/components/FacilitatorWelcome";
 import { titleCaseName } from "@/lib/name";
 import { MODULES, moduleBySlug } from "@/lib/modules";
-import { levelFor, loadBundles, bundlesFor, nextCertificateStep } from "@/lib/credentials";
+import { levelFor, loadBundles, bundlesFor, bundlesForSlug, nextCertificateStep } from "@/lib/credentials";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { viewAsTarget } from "@/lib/viewAs";
 import ViewAsBanner from "@/components/ViewAsBanner";
@@ -243,17 +243,29 @@ export default async function Dashboard({
   const runsLeft = await runsLeftByModule(supabase, user.id, instructor);
   const followUps = await dueFollowUps(supabase, user.id).catch(() => []);
 
-  // Guided path: the next module toward the certificate you're closest to.
+  // Guided path: the next module toward the certificate you're closest to, plus
+  // a slug→certificate map that powers the "counts toward X" tags and the pull to
+  // finish a certificate the moment someone touches one of its modules.
   let nextStep: ReturnType<typeof nextCertificateStep> = null;
+  const certByModule: Record<string, string> = {};
   try {
     const admin = createAdminClient();
     const orgIds = myOrgs.map((m) => m.org.id);
     const completedList = MODULES.filter((m) => m.partner !== "group" && completed[m.slug]).map((m) => ({ slug: m.slug, at: "" }));
     const defs = await loadBundles(admin, { orgIds });
     nextStep = nextCertificateStep(bundlesFor(completedList, defs));
+    for (const m of MODULES) {
+      const b = bundlesForSlug(m.slug, defs)[0];
+      if (b) certByModule[m.slug] = b.name;
+    }
   } catch {
     /* bundles unavailable — skip the nudge */
   }
+
+  // "Continue where you left off": the most recent unfinished run. The single
+  // biggest lever on completion — resuming beats re-deciding what to do.
+  const continueItem = [...workItems].filter((w) => !w.done).sort((a, b) => (a.at < b.at ? 1 : -1))[0] || null;
+  const continueCert = continueItem ? certByModule[continueItem.slug] : undefined;
 
   // The student's most recent capstone team (as captain or member), for a quick
   // revisit to the shared board or their team's graded report.
@@ -302,6 +314,7 @@ export default async function Dashboard({
       lastCode={lastCode}
       recommended={recommended}
       runsLeft={runsLeft}
+      certByModule={certByModule}
     />
   );
 
@@ -392,6 +405,19 @@ export default async function Dashboard({
 
       <FollowUps items={followUps} />
 
+      {/* Continue where you left off — the top prompt, at the moment ability is
+          highest (no re-deciding). If it counts toward a certificate, say so. */}
+      {continueItem && (
+        <a href={continueItem.href} className="group mb-8 flex items-center justify-between gap-3 rounded-2xl border-2 border-sage/40 bg-gradient-to-br from-white to-sage/5 p-4 transition hover:shadow-sm">
+          <div className="min-w-0">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-sage">Pick up where you left off</div>
+            <div className="mt-0.5 truncate text-sm font-bold text-ink group-hover:text-sage">{continueItem.name}</div>
+            <div className="truncate text-xs text-slate-400">{continueCert ? `Counts toward your ${continueCert} certificate` : "You were partway through — finish it in a few minutes."}</div>
+          </div>
+          <span className="shrink-0 text-sm font-semibold text-sage">Resume &rarr;</span>
+        </a>
+      )}
+
       {/* Runs balance. Alumni in their window get the time-boxed pack nudge;
           low/empty balances get a top-up prompt; a fresh consumer with runs in
           hand sees a quiet counter. Institutional learners never see this. */}
@@ -416,13 +442,20 @@ export default async function Dashboard({
       ) : null}
 
       {nextStep && (
-        <a href={`/start/${nextStep.nextSlug}`} className="mb-8 flex items-center justify-between gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-sage">Next toward the {nextStep.name} certificate</div>
-            <div className="mt-0.5 text-sm font-bold text-ink">{nextStep.nextName}</div>
-            <div className="text-xs text-slate-400">{nextStep.remaining} module{nextStep.remaining === 1 ? "" : "s"} to go</div>
+        <a href={`/start/${nextStep.nextSlug}`} className="group mb-8 block rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-sage">
+                You&apos;re {nextStep.progressPct}% of the way to the {nextStep.name} certificate
+              </div>
+              <div className="mt-0.5 truncate text-sm font-bold text-ink group-hover:text-sage">Next: {nextStep.nextName}</div>
+              <div className="text-xs text-slate-400">Just {nextStep.remaining} more to earn it — keep the momentum.</div>
+            </div>
+            <span className="shrink-0 text-sm font-semibold text-sage">Continue &rarr;</span>
           </div>
-          <span className="shrink-0 text-sm font-semibold text-sage">Start &rarr;</span>
+          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-mist">
+            <div className="h-full rounded-full bg-sage transition-all" style={{ width: `${Math.max(6, nextStep.progressPct)}%` }} />
+          </div>
         </a>
       )}
 
