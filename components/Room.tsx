@@ -415,7 +415,7 @@ export default function Room({
               {t("room.next")} →
             </button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">
+            <Link href="/dashboard?done=1" className="btn-primary">
               {t("room.finish")}
             </Link>
           )}

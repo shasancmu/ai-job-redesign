@@ -51,7 +51,7 @@ export default function ExplainerRunner({ spec }: { spec: any }) {
 
       <div className="mt-4 flex items-center justify-between">
         <button onClick={() => setI((x) => Math.max(0, x - 1))} disabled={i === 0} className="btn-ghost disabled:opacity-40">Back</button>
-        {!done ? <button onClick={() => setI((x) => x + 1)} className="btn-primary">Next →</button> : <Link href="/dashboard" className="btn-primary">Done</Link>}
+        {!done ? <button onClick={() => setI((x) => x + 1)} className="btn-primary">Next →</button> : <Link href="/dashboard?done=1" className="btn-primary">Done</Link>}
       </div>
     </div>
   );

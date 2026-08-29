@@ -42,7 +42,7 @@ const DASHBOARD_TOUR = [
 export default async function Dashboard({
   searchParams,
 }: {
-  searchParams: { cohort?: string };
+  searchParams: { cohort?: string; done?: string };
 }) {
   const rls = createClient();
   const { data: { user: realUser } } = await rls.auth.getUser();
@@ -321,6 +321,19 @@ export default async function Dashboard({
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       {isProxy && <ViewAsBanner email={proxy!.email} />}
+
+      {/* Celebration on return from a finished run (Fogg: emotion right after the
+          behavior wires the habit). The Continue + certificate cards below are the
+          "what's next", reached on the motivation wave. */}
+      {searchParams.done && (
+        <div className="mb-6 rounded-2xl border-2 border-sage/40 bg-gradient-to-br from-sage/8 to-white p-4 text-center">
+          <div className="text-2xl" aria-hidden>🎉</div>
+          <div className="mt-0.5 text-sm font-bold text-ink">
+            {(() => { const m = searchParams.done && searchParams.done !== "1" ? moduleBySlug(searchParams.done) : null; return m ? `Nice — you finished ${m.name}.` : "Nice work — that's done and saved."; })()}
+          </div>
+          <div className="mt-0.5 text-xs text-slate2">It&apos;s yours to keep. Keep the momentum going below.</div>
+        </div>
+      )}
       <header className="mb-8 flex flex-wrap items-center justify-between gap-x-3 gap-y-4">
         <div>
           <Logo />

@@ -199,7 +199,7 @@ export default function RedesignRoom({ me, spec, initialSession, initialWorkspac
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <button onClick={() => goToPhase(phaseIdx - 1)} disabled={phaseIdx === 0} className="btn-ghost">Back</button>
           <span className="text-xs text-slate-400">Either partner can advance the room</span>
-          {phaseIdx < REDESIGN_PHASES.length - 1 ? <button onClick={() => goToPhase(phaseIdx + 1)} className="btn-primary">Next →</button> : <Link href="/dashboard" className="btn-primary">Done</Link>}
+          {phaseIdx < REDESIGN_PHASES.length - 1 ? <button onClick={() => goToPhase(phaseIdx + 1)} className="btn-primary">Next →</button> : <Link href={`/dashboard?done=${spec.slug || 1}`} className="btn-primary">Done</Link>}
         </div>
       </div>
     </div>
