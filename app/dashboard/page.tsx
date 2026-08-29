@@ -14,6 +14,7 @@ import { MODULES, moduleBySlug } from "@/lib/modules";
 import { levelFor, loadBundles, bundlesFor, bundlesForSlug, nextCertificateStep } from "@/lib/credentials";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { viewAsTarget } from "@/lib/viewAs";
+import { inboxFor, type InboxItem } from "@/lib/pushes";
 import ViewAsBanner from "@/components/ViewAsBanner";
 import { listAuthoredModules } from "@/lib/moduleCatalog";
 import Catalog from "@/components/Catalog";
@@ -267,6 +268,11 @@ export default async function Dashboard({
   const continueItem = [...workItems].filter((w) => !w.done).sort((a, b) => (a.at < b.at ? 1 : -1))[0] || null;
   const continueCert = continueItem ? certByModule[continueItem.slug] : undefined;
 
+  // Pushes from the org — the Relationship OS "micro-doses of value" (a new
+  // module, an offer, an event) landing in the learner's home.
+  let inbox: InboxItem[] = [];
+  try { inbox = await inboxFor(createAdminClient(), user.id, activeOrg?.name || "Your program"); } catch { /* none */ }
+
   // The student's most recent capstone team (as captain or member), for a quick
   // revisit to the shared board or their team's graded report.
   let myCapstone: { code: string; phase: number; status: string } | null = null;
@@ -456,6 +462,31 @@ export default async function Dashboard({
           <span className="shrink-0 text-sm font-semibold text-sage">Get runs →</span>
         </a>
       ) : null}
+
+      {/* From your program — the org's pushes (new modules, offers, events). */}
+      {inbox.length > 0 && (
+        <section className="mb-8">
+          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">From {inbox[0].from}</div>
+          <div className="space-y-2">
+            {inbox.map((p) => {
+              const emoji = p.kind === "module" ? "✦" : p.kind === "offer" ? "🎓" : p.kind === "event" ? "📅" : "📣";
+              const inner = (
+                <div className="flex items-center gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+                  <span className="text-xl" aria-hidden>{emoji}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-bold text-ink">{p.title}</div>
+                    {p.body && <div className="truncate text-xs text-slate-400">{p.body}</div>}
+                  </div>
+                  {p.href && <span className="shrink-0 text-sm font-semibold text-sage">{p.cta || "Open"} →</span>}
+                </div>
+              );
+              return p.href
+                ? <a key={p.id} href={p.href}>{inner}</a>
+                : <div key={p.id}>{inner}</div>;
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Staff authoring — demoted to a slim secondary link, not a hero card. */}
       {(facAccess.superadmin || facAccess.orgIds.length > 0) && (

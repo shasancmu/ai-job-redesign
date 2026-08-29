@@ -4,8 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { roleFor, getActiveOrg } from "@/lib/orgs";
 import { gatherRelationshipOS, type MemberState } from "@/lib/relationships";
+import { SEGMENTS } from "@/lib/pushes";
 import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
+import PushComposer from "@/components/PushComposer";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +55,13 @@ export default async function RelationshipsPage() {
   const os = await gatherRelationshipOS(admin, org);
   const pct = (n: number) => (os.members ? Math.round((n / os.members) * 100) : 0);
 
+  const segCount: Record<string, number> = {
+    everyone: os.members, active: os.active, reengage: os.reengage.length,
+    cooling: os.buckets.cooling, at_risk: os.buckets.at_risk,
+    isolated: os.isolates.length, connectors: os.connectors.length,
+  };
+  const segments = SEGMENTS.map((s) => ({ ...s, count: segCount[s.key] ?? 0 }));
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between">
@@ -65,6 +74,10 @@ export default async function RelationshipsPage() {
       <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-slate2">
         Your cohort as a living network, not a mailing list. This reads who&apos;s strongly tied, whose tie is <b>cooling</b> (catch it before it&apos;s gone), who&apos;s <b>isolated</b>, and who the <b>connectors</b> are. Your move is always the same: invest value where it&apos;s decaying — never extract before you&apos;ve given.
       </p>
+
+      <div className="mt-6">
+        <PushComposer segments={segments} />
+      </div>
 
       {/* Network health */}
       <section className="mt-8">

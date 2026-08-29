@@ -1221,6 +1221,36 @@ alter table public.organizations add column if not exists modules jsonb;
 -- flip this on to let members freely explore every module the org grants.
 alter table public.organizations add column if not exists member_can_browse boolean not null default false;
 
+-- The Relationship OS "push": a director sends a micro-dose of value (a free
+-- module, an exec-ed offer, an event, or an update) to a cohort or a computed
+-- segment. Recipients are resolved at send time, so engagement is trackable.
+create table if not exists public.pushes (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references public.organizations (id) on delete cascade,
+  created_by uuid references auth.users (id) on delete set null,
+  kind text not null default 'update',        -- 'module' | 'offer' | 'event' | 'update'
+  title text not null,
+  body text,
+  href text,                                   -- a link, or /start/<module-slug>
+  cta text,                                    -- button label
+  segment_label text,                          -- human label of who it went to
+  created_at timestamptz not null default now()
+);
+create index if not exists pushes_org_idx on public.pushes (org_id);
+alter table public.pushes enable row level security; -- reads go through recipients; writes service-role
+
+create table if not exists public.push_recipients (
+  push_id uuid not null references public.pushes (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  seen_at timestamptz,
+  clicked_at timestamptz,
+  primary key (push_id, user_id)
+);
+create index if not exists push_recipients_user_idx on public.push_recipients (user_id);
+alter table public.push_recipients enable row level security;
+drop policy if exists push_recipients_read_own on public.push_recipients;
+create policy push_recipients_read_own on public.push_recipients for select using (user_id = auth.uid()); -- writes via service role
+
 -- Richer white-label landing content, all optional (the page shows tasteful
 -- placeholder copy until these are set):
 --   about      : a short intro paragraph under the hero.
