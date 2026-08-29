@@ -10,18 +10,20 @@ import { viewAsTarget } from "@/lib/viewAs";
 import ViewAsBanner from "@/components/ViewAsBanner";
 import PayButton from "@/components/PayButton";
 
-// Human label for a Stripe price, e.g. "$29".
-async function priceLabel(priceId: string | undefined, fallback: string): Promise<string> {
-  if (!priceId) return fallback;
+// A Stripe price's display label ("$29") and its amount in cents, so we can both
+// show it and compute the alumni discount off the regular price.
+async function priceMeta(priceId: string | undefined, fallbackLabel: string, fallbackCents: number): Promise<{ label: string; cents: number }> {
+  if (!priceId) return { label: fallbackLabel, cents: fallbackCents };
   try {
     const p = await getStripe().prices.retrieve(priceId);
     if (p.unit_amount != null && p.currency) {
-      return new Intl.NumberFormat("en-US", { style: "currency", currency: p.currency.toUpperCase(), minimumFractionDigits: 0 }).format(p.unit_amount / 100);
+      const label = new Intl.NumberFormat("en-US", { style: "currency", currency: p.currency.toUpperCase(), minimumFractionDigits: 0 }).format(p.unit_amount / 100);
+      return { label, cents: p.unit_amount };
     }
   } catch {
     /* fall through */
   }
-  return fallback;
+  return { label: fallbackLabel, cents: fallbackCents };
 }
 
 export default async function Paywall({
@@ -64,8 +66,14 @@ export default async function Paywall({
   const offer = await alumniOffer(supabase, user.id);
   const alumniPrice = offer.active && !!PRICE_COHORT;
 
-  const allLabel = await priceLabel(PRICE_ALL, "$29");
-  const cohortLabel = await priceLabel(PRICE_COHORT, "$19");
+  const all = await priceMeta(PRICE_ALL, "$29", 2900);
+  const cohort = await priceMeta(PRICE_COHORT, "$19", 1900);
+  const allLabel = all.label;
+  const cohortLabel = cohort.label;
+  // Alumni savings vs the regular price, for the discount line.
+  const saveCents = all.cents > cohort.cents ? all.cents - cohort.cents : 0;
+  const saveLabel = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(saveCents / 100);
+  const pctOff = saveCents && all.cents ? Math.round((saveCents / all.cents) * 100) : 0;
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
@@ -90,6 +98,7 @@ export default async function Paywall({
       <ul className="mt-4 space-y-1.5 text-sm text-slate2">
         <li className="flex gap-2"><span className="text-sage">✓</span> Spend on any of the {MODULES.length} exercises</li>
         <li className="flex gap-2"><span className="text-sage">✓</span> Runs never expire — use them whenever</li>
+        <li className="flex gap-2"><span className="text-sage">✓</span> Pay once — no subscription, no auto-renew</li>
       </ul>
 
       {searchParams.canceled && (
@@ -103,17 +112,18 @@ export default async function Paywall({
       {alumniPrice ? (
         <>
           <div className="card mt-6 border-2 border-ink p-6">
-            <div className="mb-1 flex items-baseline gap-2">
+            <div className="mb-1 flex flex-wrap items-baseline gap-2">
               <span className="text-3xl font-bold">{cohortLabel}</span>
               <span className="text-slate-400">{PACK_RUNS} runs · cohort alumni price</span>
+              {pctOff > 0 && <span className="rounded-full bg-sage/10 px-2 py-0.5 text-xs font-semibold text-sage">{pctOff}% off</span>}
             </div>
             <p className="mb-3 text-sm text-slate-500">
-              You&apos;ve been through a cohort, so this is your price.{" "}
+              You&apos;ve been through a cohort — {saveCents > 0 ? <>save {saveLabel} off the regular {allLabel}. </> : "this is your price. "}
               <span className="font-semibold text-clay">Ends in {offer.daysLeft} day{offer.daysLeft === 1 ? "" : "s"}.</span>
             </p>
             <PayButton plan="cohort" label={`Get ${PACK_RUNS} runs`} />
           </div>
-          <p className="mt-3 text-center text-xs text-slate-400">Regular price is {allLabel} for {PACK_RUNS} runs.</p>
+          <p className="mt-3 text-center text-xs text-slate-400">After the offer, {PACK_RUNS} runs is {allLabel}.</p>
         </>
       ) : (
         <div className="card mt-6 border-2 border-ink p-6">
