@@ -90,7 +90,6 @@ export default async function Paywall({
       <ul className="mt-4 space-y-1.5 text-sm text-slate2">
         <li className="flex gap-2"><span className="text-sage">✓</span> Spend on any of the {MODULES.length} exercises</li>
         <li className="flex gap-2"><span className="text-sage">✓</span> Runs never expire — use them whenever</li>
-        <li className="flex gap-2"><span className="text-sage">✓</span> Always free through your school or company</li>
       </ul>
 
       {searchParams.canceled && (
@@ -118,7 +117,7 @@ export default async function Paywall({
       <div className={"card mt-4 p-6 " + (alumniPrice ? "" : "border-2 border-ink")}>
         <div className="mb-1 flex items-baseline gap-2">
           <span className="text-3xl font-bold">{allLabel}</span>
-          <span className="text-slate-400">{PACK_RUNS} runs · about 50¢ a run</span>
+          <span className="text-slate-400">{PACK_RUNS} runs</span>
         </div>
         <p className="mb-3 text-sm text-slate-500">Enough to work through a whole stretch of exercises. Yours until you use them.</p>
         <PayButton plan="all" label={`Get ${PACK_RUNS} runs`} />
