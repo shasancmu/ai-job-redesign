@@ -82,12 +82,12 @@ export default async function Facilitator({
   return cohort ? (
     <CohortDetail admin={admin} cohort={cohort} showHidden={searchParams.showHidden === "1"} exFilter={searchParams.ex || ""} />
   ) : (
-    <Overview admin={admin} allowedCohorts={visibleCohorts} classes={visibleClasses} superadmin={access.superadmin} />
+    <Overview admin={admin} allowedCohorts={visibleCohorts} classes={visibleClasses} superadmin={access.superadmin} orgName={activeOrg?.name || ""} />
   );
 }
 
 // ---------------------------------------------------------------- Overview ---
-async function Overview({ admin, allowedCohorts, classes, superadmin }: { admin: any; allowedCohorts: string[] | null; classes: { code: string; name: string }[] | null; superadmin: boolean }) {
+async function Overview({ admin, allowedCohorts, classes, superadmin, orgName }: { admin: any; allowedCohorts: string[] | null; classes: { code: string; name: string }[] | null; superadmin: boolean; orgName?: string }) {
   const { data: sessions } = await admin
     .from("sessions")
     .select("id, cohort, status, host_id, guest_id, created_at")
@@ -124,7 +124,7 @@ async function Overview({ admin, allowedCohorts, classes, superadmin }: { admin:
       {/* Header: identity + account, kept slick. Actions live on the page. */}
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="text-sm font-medium text-slate-400">Teaching</div>
+          <div className="text-sm font-medium text-slate-400">{orgName || "Teaching"}</div>
           <h1 className="mt-0.5 text-3xl text-ink">Cohorts</h1>
           <p className="mt-1 max-w-lg text-sm text-slate2">
             Run a live activity, open a cohort to teach or review the work, or set up a new one.
@@ -250,7 +250,7 @@ async function Overview({ admin, allowedCohorts, classes, superadmin }: { admin:
                         <span className="text-slate-400">No runs yet, share the link to start</span>
                       ) : (
                         <>
-                          <span><b className="font-semibold text-ink">{list.length}</b> {list.length === 1 ? "pair" : "pairs"}</span>
+                          <span><b className="font-semibold text-ink">{list.length}</b> {list.length === 1 ? "response" : "responses"}</span>
                           <span className="text-slate-300">·</span>
                           <span><b className="font-semibold text-ink">{people.size}</b> {people.size === 1 ? "participant" : "participants"}</span>
                           <span className="text-slate-300">·</span>
@@ -343,15 +343,19 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
   const docFor = (sessionId: string) =>
     docs.find((d) => d.session_id === sessionId);
 
-  // ---- Cohort meta + the whole-cohort activity counts -----------------------
+  // ---- Cohort meta + hierarchy (Org › Class › Cohort) + whole-cohort counts --
   let className = "";
+  let orgName = "", unitName = "", cohortName = untagged ? "Untagged" : cohort;
   let joined = 0;
   let benchUsers = 0;
   let netUsers = 0;
   if (!untagged) {
-    const { data: klass } = await admin.from("classes").select("id, name").eq("code", cohort).maybeSingle();
+    const { data: klass } = await admin.from("classes").select("id, name, is_default, class_unit_id, org_id").eq("code", cohort).maybeSingle();
     if (klass) {
       className = klass.name || "";
+      cohortName = klass.is_default ? "All members" : (klass.name || cohort);
+      if (klass.class_unit_id) { const { data: cu } = await admin.from("class_units").select("name").eq("id", klass.class_unit_id).maybeSingle(); unitName = (cu as any)?.name || ""; }
+      if (klass.org_id) { const { data: org } = await admin.from("organizations").select("name").eq("id", klass.org_id).maybeSingle(); orgName = (org as any)?.name || ""; }
       const [{ count: jc }, { data: bench }, { data: net }] = await Promise.all([
         admin.from("class_members").select("user_id", { count: "exact", head: true }).eq("class_id", klass.id),
         admin.from("benchmark_results").select("user_id").eq("cohort", cohort),
@@ -407,6 +411,8 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
   const focusName = focused ? (moduleByExercise(exFilter)?.name || exFilter) : "";
   const focusCount = focused ? (exerciseUsers.get(exFilter)?.size || 0) : 0;
 
+  const sessCount = (sessions || []).length;
+
   return (
     <Shell>
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
@@ -414,8 +420,21 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
           <Link href={focused ? `/facilitator?cohort=${encodeURIComponent(cohort)}` : "/facilitator"} className="text-sm text-slate-400 hover:text-slate-600">
             {focused ? "← Back to cohort" : "← All cohorts"}
           </Link>
-          <h1 className="mt-1 font-mono text-2xl font-bold">{untagged ? "(untagged)" : cohort}</h1>
-          <p className="text-sm text-slate-500">{focused ? focusName : `${(sessions || []).length} pairs`}</p>
+          {!untagged && (orgName || unitName || focused) && (
+            <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
+              {orgName && <span>{orgName}</span>}
+              {orgName && unitName && <span aria-hidden>›</span>}
+              {unitName && <span>{unitName}</span>}
+              {focused && (orgName || unitName) && <span aria-hidden>›</span>}
+              {focused && <span>{cohortName}</span>}
+            </div>
+          )}
+          <h1 className="mt-1 text-2xl font-bold text-ink">{focused ? focusName : cohortName}</h1>
+          <p className="text-sm text-slate-500">
+            {focused
+              ? `${focusCount} participant${focusCount === 1 ? "" : "s"}`
+              : <>{sessCount} response{sessCount === 1 ? "" : "s"}{!untagged && <> · <span className="font-mono">{cohort}</span></>}</>}
+          </p>
         </div>
         <HeaderNav />
       </div>
