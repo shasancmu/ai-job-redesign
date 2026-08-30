@@ -11,6 +11,7 @@ function JoinInner() {
   const router = useRouter();
   const params = useSearchParams();
   const cohort = (params.get("cohort") || "").toUpperCase();
+  const nextParam = params.get("next") || "";
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -33,9 +34,13 @@ function JoinInner() {
       .from("profiles")
       .upsert({ id: data.user.id, display_name: titleCaseName(name) || "Guest" });
 
-    const dest = cohort
-      ? `/dashboard?cohort=${encodeURIComponent(cohort)}`
-      : "/dashboard";
+    // Honor an explicit next (e.g. back to the cohort activity page, which
+    // enrolls them and shows the live exercise); else the cohort dashboard.
+    const dest = nextParam.startsWith("/")
+      ? nextParam
+      : cohort
+        ? `/dashboard?cohort=${encodeURIComponent(cohort)}`
+        : "/dashboard";
     router.push(dest);
     router.refresh();
   }

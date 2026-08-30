@@ -52,15 +52,17 @@ export default async function CodeOrOrgPage({ params }: { params: { code: string
           <div className="eyebrow">You&apos;re joining</div>
           <h1 className="mt-2 text-3xl font-bold text-ink">{klass.name}</h1>
           <p className="mt-2 text-slate2">
-            Create an account (or sign in) to join this cohort. Everything you do will be part of it.
+            Jump in with just your name — no account needed.
           </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href={`/login?mode=signup&next=/${code}`} className="btn-primary">
-              Create an account
+          <div className="mt-6 flex flex-col gap-3">
+            <Link href={`/join?cohort=${encodeURIComponent(code)}&next=/${code}`} className="btn-primary text-center">
+              Join with your name →
             </Link>
-            <Link href={`/login?next=/${code}`} className="btn-ghost">
-              Sign in
-            </Link>
+            <p className="text-sm text-slate-400">
+              Want to keep your work across sessions?{" "}
+              <Link href={`/login?mode=signup&next=/${code}`} className="text-slate-600 underline">Create an account</Link>
+              {" "}or <Link href={`/login?next=/${code}`} className="text-slate-600 underline">sign in</Link>.
+            </p>
           </div>
         </div>
       </main>
