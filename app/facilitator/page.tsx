@@ -379,7 +379,11 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
     if (s.guest_id) set.add(s.guest_id);
   }
   const SUMMARY_EX = new Set(["job", "workflow", "solo", "workflow-solo"]);
-  type ResultRow = { key: string; name: string; count: number; href?: string; action?: string };
+  // Every module reports into ONE index, tagged by mode so the list reads the
+  // same whether an exercise was Solo, Paired, or Live.
+  type Mode = "Solo" | "Paired" | "Live";
+  const modeFor = (partner?: string): Mode => partner === "group" ? "Live" : partner === "human" ? "Paired" : "Solo";
+  type ResultRow = { key: string; name: string; count: number; mode: Mode; href?: string; action?: string };
   const results: ResultRow[] = [];
   for (const [ex, users] of exerciseUsers) {
     // Every activity opens its own focused results view (aggregate + responses).
@@ -387,12 +391,27 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
       key: ex,
       name: moduleByExercise(ex)?.name || ex,
       count: users.size,
+      mode: modeFor(moduleByExercise(ex)?.partner),
       href: `/facilitator?cohort=${encodeURIComponent(cohort)}&ex=${encodeURIComponent(ex)}`,
       action: "View results →",
     });
   }
-  if (benchUsers > 0) results.push({ key: "benchmark", name: "You vs. AI (Benchmark)", count: benchUsers, href: `/facilitator/benchmark?cohort=${encodeURIComponent(cohort)}`, action: "View results →" });
-  if (netUsers > 0) results.push({ key: "network", name: "The Network", count: netUsers, href: `/facilitator/network?cohort=${encodeURIComponent(cohort)}`, action: "View map →" });
+  if (benchUsers > 0) results.push({ key: "benchmark", name: "You vs. AI (Benchmark)", count: benchUsers, mode: "Live", href: `/facilitator/benchmark?cohort=${encodeURIComponent(cohort)}`, action: "View results →" });
+  if (netUsers > 0) results.push({ key: "network", name: "The Network", count: netUsers, mode: "Live", href: `/facilitator/network?cohort=${encodeURIComponent(cohort)}`, action: "View map →" });
+  // The Number (capstone), if teams ran it tagged to this cohort — so a Live
+  // full-cohort exercise reports into the same index as everything else.
+  if (!untagged) {
+    const { data: caps } = await admin.from("capstone_sessions").select("id, host_id").eq("cohort", cohort);
+    if (caps && caps.length) {
+      const people = new Set<string>();
+      for (const c of caps as any[]) if (c.host_id) people.add(c.host_id);
+      try {
+        const { data: mem } = await admin.from("capstone_members").select("user_id").in("session_id", (caps as any[]).map((c) => c.id));
+        for (const m of (mem as any[]) || []) if (m.user_id) people.add(m.user_id);
+      } catch { /* members table absent → count captains only */ }
+      results.push({ key: "capstone", name: "The Number", count: people.size || caps.length, mode: "Live", href: "/facilitator/capstone", action: "View runs →" });
+    }
+  }
   // Role-play modules run at /m/[slug]; their runs live in roleplay_results,
   // keyed by this cohort's code. Group by module and open its results view.
   if (!untagged) {
@@ -471,7 +490,10 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
                 {results.map((r) => (
                   <div key={r.key} className="flex items-center justify-between gap-3 py-3">
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-ink">{r.name}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="truncate text-sm font-semibold text-ink">{r.name}</span>
+                        <span className={"shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold " + (r.mode === "Live" ? "bg-sage/10 text-sage" : r.mode === "Paired" ? "bg-sky-soft text-sky" : "bg-mist text-slate-400")}>{r.mode}</span>
+                      </div>
                       <div className="text-xs text-slate-400">{r.count} {r.count === 1 ? "participant" : "participants"}</div>
                     </div>
                     <Link href={r.href!} className="btn-primary shrink-0 text-sm">{r.action}</Link>
