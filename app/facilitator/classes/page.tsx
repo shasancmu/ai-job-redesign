@@ -26,7 +26,8 @@ export default async function ClassesPage() {
         <Link href="/facilitator" className="text-sm text-slate2 hover:text-ink">← Cohorts</Link>
         <HeaderNav />
       </div>
-      <h1 className="mt-1 text-2xl font-bold text-ink">Classes</h1>
+      {activeOrg?.name && <div className="mt-2 text-xs text-slate-400">{activeOrg.name}</div>}
+      <h1 className="mt-0.5 text-2xl font-bold text-ink">Classes</h1>
       <p className="mb-2 text-slate2">
         A class is a department or course under {activeOrg?.name || "your school"}. It owns a set of modules that
         every cohort (section or session) under it inherits, so you set the exercises once and reuse them.

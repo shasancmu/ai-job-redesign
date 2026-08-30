@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { MODULES } from "@/lib/modules";
 
-type DynModule = { slug: string; name: string; emoji?: string };
+type DynModule = { slug: string; name: string; emoji?: string; mode?: "Solo" | "Paired" | "Live" };
 type ClassUnit = { id: string; name: string; slug?: string; modules: string[]; is_default: boolean; cohorts: number; canEdit?: boolean };
 
 // Manage the CLASS tier (dept/course): a class owns a module set that every
@@ -13,8 +13,11 @@ export default function ClassUnitsManager({ roleplayModules = [], interviewModul
   const available = useMemo(() => {
     const seen = new Set<string>();
     const list: DynModule[] = [];
-    for (const m of MODULES) { if ((m as any).hidden) continue; if (seen.has(m.slug)) continue; seen.add(m.slug); list.push({ slug: m.slug, name: m.name, emoji: (m as any).emoji }); }
-    for (const m of [...roleplayModules, ...interviewModules, ...authoredModules]) { if (seen.has(m.slug)) continue; seen.add(m.slug); list.push(m); }
+    // Every module is a template in one library; the mode says how it runs:
+    // group → Live (instructor runs it for the room), human → Paired, ai → Solo.
+    const modeFor = (partner?: string): DynModule["mode"] => partner === "group" ? "Live" : partner === "human" ? "Paired" : "Solo";
+    for (const m of MODULES) { if ((m as any).hidden) continue; if (seen.has(m.slug)) continue; seen.add(m.slug); list.push({ slug: m.slug, name: m.name, emoji: (m as any).emoji, mode: modeFor((m as any).partner) }); }
+    for (const m of [...roleplayModules, ...interviewModules, ...authoredModules]) { if (seen.has(m.slug)) continue; seen.add(m.slug); list.push({ ...m, mode: m.mode || "Solo" }); }
     return list;
   }, [roleplayModules, interviewModules, authoredModules]);
   const nameOf = (slug: string) => available.find((m) => m.slug === slug)?.name || slug;
@@ -73,7 +76,8 @@ export default function ClassUnitsManager({ roleplayModules = [], interviewModul
                 {available.map((m) => (
                   <label key={m.slug} className={`flex cursor-pointer items-center gap-2 rounded-lg border p-2 text-sm ${sel.has(m.slug) ? "border-ai bg-ai/5" : "border-transparent hover:bg-mist"}`}>
                     <input type="checkbox" checked={sel.has(m.slug)} onChange={() => toggle(m.slug)} />
-                    <span className="truncate">{m.emoji ? m.emoji + " " : ""}{m.name}</span>
+                    <span className="min-w-0 flex-1 truncate">{m.emoji ? m.emoji + " " : ""}{m.name}</span>
+                    {m.mode && <span className={"shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold " + (m.mode === "Live" ? "bg-sage/10 text-sage" : m.mode === "Paired" ? "bg-sky-soft text-sky" : "bg-mist text-slate-400")}>{m.mode}</span>}
                   </label>
                 ))}
               </div>
