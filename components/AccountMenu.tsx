@@ -86,6 +86,9 @@ export default function AccountMenu({
               <>
                 <div className="my-1 border-t border-line" />
                 <a href="/studio" className={item}>🎬 Studio</a>
+                <a href="/facilitator" className={item}>👥 Cohorts</a>
+                {(director || superadmin) && <a href="/team" className={item}>🏢 Organization</a>}
+                {(director || superadmin) && <a href="/team/relationships" className={item}>🕸️ Relationship OS</a>}
                 {(director || superadmin) && <a href="/data-collection" className={item}>📊 Data collection</a>}
                 {(director || superadmin) && <a href="/admin" className={item}>⚙️ Admin</a>}
               </>
