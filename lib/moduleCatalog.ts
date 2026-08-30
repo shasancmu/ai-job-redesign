@@ -8,16 +8,18 @@ import { listAnalyticalCatalog } from "@/lib/mechanics/analyticalStore";
 import { listNewsCatalog } from "@/lib/mechanics/newsStore";
 import { listExplainerCatalog } from "@/lib/mechanics/explainerStore";
 import { listRedesignCatalog } from "@/lib/mechanics/redesignStore";
+import { listLivePromptCatalog } from "@/lib/mechanics/livePromptStore";
 
-export type AuthoredModule = { slug: string; name: string; emoji: string; kind: string; prefix: string };
+export type AuthoredModule = { slug: string; name: string; emoji: string; kind: string; prefix: string; mode?: "Solo" | "Paired" | "Live" };
 
-const DEFS: { kind: string; prefix: string; emoji: string; list: (ownerId?: string) => Promise<any[]> }[] = [
+const DEFS: { kind: string; prefix: string; emoji: string; mode?: "Solo" | "Paired" | "Live"; list: (ownerId?: string) => Promise<any[]> }[] = [
   { kind: "negotiation", prefix: "n", emoji: "🤝", list: listNegCatalog },
   { kind: "benchmark", prefix: "b", emoji: "⏱️", list: listBenchCatalog },
   { kind: "analytical", prefix: "x", emoji: "📊", list: listAnalyticalCatalog },
   { kind: "newsframe", prefix: "nf", emoji: "🗞️", list: listNewsCatalog },
   { kind: "explainer", prefix: "e", emoji: "📖", list: listExplainerCatalog },
   { kind: "redesign", prefix: "rd", emoji: "🤝", list: listRedesignCatalog },
+  { kind: "liveprompt", prefix: "lp", emoji: "🌥️", mode: "Live", list: listLivePromptCatalog },
 ];
 
 // All published authored modules across the newer engines. ownerId omitted =
@@ -26,7 +28,7 @@ export async function listAuthoredModules(ownerId?: string): Promise<AuthoredMod
   const groups = await Promise.all(DEFS.map(async (d) => {
     try {
       const rows = await d.list(ownerId);
-      return (rows || []).map((r: any) => ({ slug: String(r.slug), name: String(r.name || r.slug), emoji: r.emoji || d.emoji, kind: d.kind, prefix: d.prefix }));
+      return (rows || []).map((r: any) => ({ slug: String(r.slug), name: String(r.name || r.slug), emoji: r.emoji || d.emoji, kind: d.kind, prefix: d.prefix, mode: d.mode }));
     } catch { return []; }
   }));
   return groups.flat();

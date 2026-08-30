@@ -42,9 +42,16 @@ function Grid({ items, cohort }: { items: Act[]; cohort?: string }) {
   );
 }
 
-export default function LiveLauncher({ cohort }: { cohort?: string }) {
+export default function LiveLauncher({ cohort, authored = [] }: { cohort?: string; authored?: { slug: string; name: string; emoji?: string }[] }) {
+  const mine: Act[] = authored.map((a) => ({ name: a.name, emoji: a.emoji || "🌥️", blurb: "Your live prompt — the room answers, live.", href: `/lp/${a.slug}`, cohortAware: true }));
   return (
     <div className="space-y-5">
+      {mine.length > 0 && (
+        <div>
+          <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Your live templates</div>
+          <Grid items={mine} cohort={cohort} />
+        </div>
+      )}
       <div>
         <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Full-cohort exercises</div>
         <Grid items={FULL_COHORT} cohort={cohort} />

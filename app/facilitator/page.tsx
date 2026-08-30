@@ -7,6 +7,7 @@ import { isAdmin, UNTAGGED } from "@/lib/admin";
 import { facilitatorAccess, getActiveOrg } from "@/lib/orgs";
 import { moduleByExercise } from "@/lib/modules";
 import { roleplayCatalogMap } from "@/lib/mechanics/store";
+import { listLivePromptCatalog } from "@/lib/mechanics/livePromptStore";
 import { ROLE_META } from "@/lib/workflow";
 import { canvasByExercise, scoreColor } from "@/lib/canvases";
 import { analyze as negAnalyze, scenarioByExercise as negScenario, maxJointOf } from "@/lib/negotiation";
@@ -411,6 +412,14 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
       } catch { /* members table absent → count captains only */ }
       results.push({ key: "capstone", name: "The Number", count: people.size || caps.length, mode: "Live", href: "/facilitator/capstone", action: "View runs →" });
     }
+    // Authored Live Prompts run on the word-cloud runtime — report each cohort run.
+    try {
+      const { data: lps } = await admin.from("cloud_sessions").select("id, code, question").eq("cohort", cohort);
+      for (const c of (lps as any[]) || []) {
+        const { count } = await admin.from("cloud_entries").select("id", { count: "exact", head: true }).eq("session_id", c.id);
+        results.push({ key: `lp:${c.code}`, name: c.question || "Live prompt", count: count || 0, mode: "Live", href: `/cloud/${c.code}/present`, action: "View responses →" });
+      }
+    } catch { /* no live prompt runs */ }
   }
   // Role-play modules run at /m/[slug]; their runs live in roleplay_results,
   // keyed by this cohort's code. Group by module and open its results view.
@@ -431,6 +440,7 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
   const focusCount = focused ? (exerciseUsers.get(exFilter)?.size || 0) : 0;
 
   const sessCount = (sessions || []).length;
+  const livePrompts = await listLivePromptCatalog().catch(() => []);
 
   return (
     <Shell>
@@ -508,7 +518,7 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
             <div className="mb-6 rounded-2xl border border-line bg-mist/30 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-ink"><span aria-hidden className="text-sage">●</span> Run live</div>
               <p className="mb-4 mt-0.5 text-xs text-slate-500">During class: launch any exercise for the room — including The Number — right from here.</p>
-              <LiveLauncher cohort={cohort} />
+              <LiveLauncher cohort={cohort} authored={livePrompts} />
             </div>
           )}
         </>

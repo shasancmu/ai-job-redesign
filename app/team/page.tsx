@@ -81,17 +81,24 @@ export default async function TeamPage() {
         <p className="mt-1 max-w-lg text-sm text-slate2">
           You&apos;re the director of {org.name}&apos;s space here: manage its people, appoint instructors, and run cohorts. Only your members are shown.
         </p>
-        <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5">
-          <Link href="/facilitator" data-tour="team-cohorts" className="inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-sage">
-            Manage cohorts &amp; run live activities <span aria-hidden>→</span>
-          </Link>
-          <Link href="/team/outcomes" className="inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-sage">
-            See your outcomes <span aria-hidden>→</span>
-          </Link>
-          <Link href="/team/relationships" className="inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-sage">
-            Relationship OS <span aria-hidden>→</span>
-          </Link>
-        </div>
+      </div>
+
+      <div className="mb-8 grid gap-3 sm:grid-cols-3">
+        <Link href="/facilitator" data-tour="team-cohorts" className="group rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+          <div className="text-2xl">👥</div>
+          <div className="mt-2 text-sm font-bold text-ink group-hover:text-sage">Cohorts &amp; live activities</div>
+          <div className="text-xs text-slate-400">Run and review your cohorts</div>
+        </Link>
+        <Link href="/team/relationships" className="group rounded-2xl border-2 border-sage/30 bg-gradient-to-br from-sage/5 to-white p-4 transition hover:shadow-sm">
+          <div className="text-2xl">🕸️</div>
+          <div className="mt-2 text-sm font-bold text-ink group-hover:text-sage">Relationship OS</div>
+          <div className="text-xs text-slate-400">Run the ongoing relationship</div>
+        </Link>
+        <Link href="/team/outcomes" className="group rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+          <div className="text-2xl">📈</div>
+          <div className="mt-2 text-sm font-bold text-ink group-hover:text-sage">Outcomes</div>
+          <div className="text-xs text-slate-400">Participation, completion, proof</div>
+        </Link>
       </div>
 
       {!org.dpa_accepted_at && (

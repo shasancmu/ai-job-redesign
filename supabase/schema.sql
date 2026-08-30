@@ -458,6 +458,32 @@ create table if not exists public.cloud_sessions (
   updated_at timestamptz not null default now()
 );
 create index if not exists cloud_sessions_code_idx on public.cloud_sessions (code);
+-- Tie a live word-cloud run to a cohort (so it reports into the cohort index) and
+-- to the authored Live Prompt template it was launched from.
+alter table public.cloud_sessions add column if not exists cohort text;
+alter table public.cloud_sessions add column if not exists spec_slug text;
+create index if not exists cloud_sessions_cohort_idx on public.cloud_sessions (cohort);
+
+-- Authored LIVE templates: an instructor's own live prompt (a question the room
+-- answers, aggregating on screen). Same authoring model as the other engines —
+-- a reusable module in the library, of mode "Live". Runs on the word-cloud runtime.
+create table if not exists public.live_prompt_specs (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
+  owner_id uuid references auth.users (id) on delete set null,
+  org_id uuid references public.organizations (id) on delete set null,
+  name text not null,
+  emoji text,
+  prompt text not null,                     -- the question the room answers
+  subtitle text,                            -- optional projector subtitle
+  status text not null default 'published', -- draft | published
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists live_prompt_specs_owner_idx on public.live_prompt_specs (owner_id);
+alter table public.live_prompt_specs enable row level security;
+drop policy if exists live_prompt_read on public.live_prompt_specs;
+create policy live_prompt_read on public.live_prompt_specs for select using (auth.role() = 'authenticated'); -- writes via service role
 create index if not exists cloud_sessions_host_idx on public.cloud_sessions (host_id);
 
 -- One row per submitted phrase. Anonymous: no user_id. `norm` is the lowercased,
