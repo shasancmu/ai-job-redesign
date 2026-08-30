@@ -429,7 +429,7 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
       const rpMap = await roleplayCatalogMap();
       const bySlug = new Map<string, Set<string>>();
       for (const r of rp as any[]) { if (!bySlug.has(r.slug)) bySlug.set(r.slug, new Set()); if (r.user_id) bySlug.get(r.slug)!.add(r.user_id); }
-      for (const [slug, users] of bySlug) results.push({ key: `rp:${slug}`, name: rpMap[slug]?.name || slug, count: users.size, href: `/facilitator/roleplay?cohort=${encodeURIComponent(cohort)}&slug=${encodeURIComponent(slug)}`, action: "View results →" });
+      for (const [slug, users] of bySlug) results.push({ key: `rp:${slug}`, name: rpMap[slug]?.name || slug, count: users.size, mode: "Solo", href: `/facilitator/roleplay?cohort=${encodeURIComponent(cohort)}&slug=${encodeURIComponent(slug)}`, action: "View results →" });
     }
   }
   results.sort((a, b) => (a.href ? 0 : 1) - (b.href ? 0 : 1) || b.count - a.count);
