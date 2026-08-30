@@ -484,6 +484,25 @@ create index if not exists live_prompt_specs_owner_idx on public.live_prompt_spe
 alter table public.live_prompt_specs enable row level security;
 drop policy if exists live_prompt_read on public.live_prompt_specs;
 create policy live_prompt_read on public.live_prompt_specs for select using (auth.role() = 'authenticated'); -- writes via service role
+
+-- The self-improvement agent's notebook: a synthetic user runs a module (in a
+-- role) and records how it went + what would improve it. Notes accumulate per
+-- module so quality can be tracked and improved over time (the loop).
+create table if not exists public.agent_feedback (
+  id uuid primary key default gen_random_uuid(),
+  module_slug text not null,
+  module_name text,
+  role text not null default 'learner',      -- which persona/role ran it
+  rating int,                                 -- 1-5 experience score
+  worked jsonb,                               -- what worked (array)
+  friction jsonb,                             -- friction/drop-off points (array)
+  suggestions jsonb,                          -- concrete improvements (array)
+  one_thing text,                             -- single highest-value change
+  summary text,                               -- the user's own-voice take
+  created_at timestamptz not null default now()
+);
+create index if not exists agent_feedback_module_idx on public.agent_feedback (module_slug, created_at desc);
+alter table public.agent_feedback enable row level security; -- superadmin-only, via service role
 create index if not exists cloud_sessions_host_idx on public.cloud_sessions (host_id);
 
 -- One row per submitted phrase. Anonymous: no user_id. `norm` is the lowercased,

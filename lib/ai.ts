@@ -3037,6 +3037,27 @@ ${MYOPIA_FRAMEWORK}
 For THIS interview: open with "${d.opener}" then follow their lead. Your job is to map ${d.subject} as a bundle of choices across ${d.areas.join(", ")}, then gently surface the three blind spots. Ladder from what they are GOOD at toward what that very success makes them ignore (the competency trap), what distant places/markets/skills they dismiss (spatial), what future they are not preparing for (temporal), and how much genuine risk or failure they actually take on (failure). Also draw out where they want to be (aspirations) versus where they are. Do NOT give the diagnosis or advice yet, just interview. One short question per message.`;
 };
 
+// The self-improvement agent's core. An AI plays a persona going through a
+// module (as a given role), then reports how it went and the single highest-
+// value improvement. Works for any module from its description + optional spec —
+// no browser needed. Structured so the notes accumulate and trend over time.
+export async function syntheticLearnerAI(input: { persona: string; role: string; moduleName: string; what: string; context?: string }): Promise<{ rating: number; worked: string[]; friction: string[]; suggestions: string[]; one_thing: string; summary: string }> {
+  const system = `You are a synthetic user testing a learning module, in the role of: ${input.role}. Imagine actually going through it as the persona below — reacting honestly, getting confused where a real person would, noticing friction and delight, and judging whether you'd finish and act on the result. Then report, in that user's voice, how it went and what would most improve it. Be specific and demanding, not a cheerleader. Output STRICT JSON only:
+{"rating": integer 1-5 (how good the experience was), "worked": [up to 3 short strings], "friction": [up to 4 short strings — confusions, drop-off risks, anything that dulled the experience], "suggestions": [up to 4 concrete improvements], "one_thing": "the single highest-value change", "summary": "2-3 sentences in the user's own voice"}`;
+  const user = `Persona: ${input.persona}\n\nModule: ${input.moduleName}\nWhat it is: ${input.what}${input.context ? `\n\nDetails:\n${input.context.slice(0, 8000)}` : ""}`;
+  const raw = await completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.7, maxTokens: 900, low: false, timeoutMs: 60000 });
+  const p = (raw && typeof raw === "object") ? (raw as any) : {};
+  const arr = (v: any) => Array.isArray(v) ? v.map((x) => String(x)).slice(0, 5) : [];
+  return {
+    rating: Math.max(1, Math.min(5, Math.round(Number(p.rating) || 3))),
+    worked: arr(p.worked),
+    friction: arr(p.friction),
+    suggestions: arr(p.suggestions),
+    one_thing: String(p.one_thing || "").slice(0, 300),
+    summary: String(p.summary || "").slice(0, 600),
+  };
+}
+
 export async function myopiaInterviewReply(
   domain: MyopiaDomain,
   history: { role: "user" | "assistant"; content: string }[],
