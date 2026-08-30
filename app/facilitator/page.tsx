@@ -15,6 +15,7 @@ import ExposureCohort from "@/components/ExposureCohort";
 import { AI_CELLS, HUMAN_CELLS, FEEDBACK_FIELDS, Cell } from "@/lib/exercise";
 import AdminTools from "@/components/AdminTools";
 import HeaderNav from "@/components/HeaderNav";
+import LiveLauncher from "@/components/LiveLauncher";
 import Tour from "@/components/Tour";
 import CanvasView from "@/components/CanvasView";
 import HideSessionButton from "@/components/HideSessionButton";
@@ -461,15 +462,12 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
             )}
           </div>
 
-          {/* Run live: real-time facilitation, for while class is in session. */}
+          {/* Run live: one launchpad for every live exercise in this cohort. */}
           {!untagged && (
             <div className="mb-6 rounded-2xl border border-line bg-mist/30 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-ink"><span aria-hidden className="text-sage">●</span> Run live</div>
-              <p className="mt-0.5 text-xs text-slate-500">During class: drive the room in real time, or watch answers aggregate live on screen.</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Link href={`/facilitator/live?cohort=${encodeURIComponent(cohort)}`} className="btn-primary text-sm">● Live cockpit</Link>
-                <Link href={`/facilitator/aggregate?cohort=${encodeURIComponent(cohort)}`} className="btn-ghost text-sm">Live aggregate</Link>
-              </div>
+              <p className="mb-4 mt-0.5 text-xs text-slate-500">During class: launch any exercise for the room — including The Number — right from here.</p>
+              <LiveLauncher cohort={cohort} />
             </div>
           )}
         </>

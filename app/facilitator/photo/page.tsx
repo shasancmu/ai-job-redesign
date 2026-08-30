@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { facilitatorAccess } from "@/lib/orgs";
 import HeaderNav from "@/components/HeaderNav";
 import { isAdmin } from "@/lib/admin";
 import PhotoManager from "@/components/PhotoManager";
@@ -13,7 +14,7 @@ export default async function FacilitatorPhoto() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  if (!isAdmin(user.email)) redirect("/dashboard");
+  if (!(await facilitatorAccess(user)).ok) redirect("/dashboard");
 
   const { data: sessions } = await supabase
     .from("photo_sessions")

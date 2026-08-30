@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { facilitatorAccess } from "@/lib/orgs";
 import { isAdmin, UNTAGGED } from "@/lib/admin";
 import { PHASES } from "@/lib/exercise";
 import Cockpit from "@/components/Cockpit";
@@ -16,7 +17,7 @@ export default async function LivePage({
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  if (!isAdmin(user.email)) redirect("/dashboard");
+  if (!(await facilitatorAccess(user)).ok) redirect("/dashboard");
 
   const cohort = searchParams.cohort || UNTAGGED;
   const stepLabels = PHASES.map((p) => p.title);

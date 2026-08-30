@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { facilitatorAccess } from "@/lib/orgs";
 import { isAdmin, UNTAGGED } from "@/lib/admin";
 import AggregateView from "@/components/AggregateView";
 
@@ -15,7 +16,7 @@ export default async function AggregatePage({
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  if (!isAdmin(user.email)) redirect("/dashboard");
+  if (!(await facilitatorAccess(user)).ok) redirect("/dashboard");
 
   const cohort = searchParams.cohort || UNTAGGED;
   return <AggregateView cohort={cohort} />;

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/server";
+import { facilitatorAccess } from "@/lib/orgs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import NetworkGraph from "@/components/NetworkGraph";
@@ -22,7 +23,7 @@ export default async function FacilitatorNetwork({
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  if (!isAdmin(user.email)) redirect("/dashboard");
+  if (!(await facilitatorAccess(user)).ok) redirect("/dashboard");
 
   const cohort = searchParams.cohort;
 
