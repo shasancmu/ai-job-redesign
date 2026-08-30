@@ -3,14 +3,15 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSuperadmin } from "@/lib/orgs";
 import { AI_ENABLED } from "@/lib/ai";
-import { agentModules, pickStaleModules, runAgentOnModule } from "@/lib/agent";
+import { agentModules, runAgentPanel, claudeCodeBrief } from "@/lib/agent";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-// Run the self-improvement agent over one module or a small batch of the most
-// stale ones. Superadmin only (it spends AI). Runs in parallel to fit the window.
+// Run the QA persona panel over ONE chosen module (all roles, in parallel). The
+// console calls this per module when a set is selected, so each stays inside the
+// time budget. Superadmin only (it spends AI).
 export async function POST(request: Request) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -19,19 +20,14 @@ export async function POST(request: Request) {
 
   let body: any = {};
   try { body = await request.json(); } catch { /* defaults */ }
-  const role = String(body.role || "learner");
+  const slug = String(body.slug || "");
+  const roles: string[] = Array.isArray(body.roles) ? body.roles.map((r: any) => String(r)) : [];
+
+  const mod = agentModules().find((m) => m.slug === slug);
+  if (!mod) return NextResponse.json({ error: "Unknown module." }, { status: 400 });
+
   const admin = createAdminClient();
-
-  let targets: { slug: string; name: string; what: string }[];
-  if (body.slug) {
-    const m = agentModules().find((x) => x.slug === String(body.slug));
-    targets = m ? [m] : [];
-  } else {
-    const n = Math.max(1, Math.min(5, Number(body.count) || 3));
-    targets = await pickStaleModules(admin, role, n);
-  }
-  if (!targets.length) return NextResponse.json({ error: "No modules to run." }, { status: 400 });
-
-  const notes = await Promise.all(targets.map((m) => runAgentOnModule(admin, m, role).catch(() => null)));
-  return NextResponse.json({ ok: true, ran: notes.filter(Boolean).length, notes: notes.filter(Boolean) });
+  const notes = await runAgentPanel(admin, mod, roles);
+  const brief = claudeCodeBrief(mod.name, slug, notes);
+  return NextResponse.json({ ok: true, slug, name: mod.name, ran: notes.length, notes, brief });
 }

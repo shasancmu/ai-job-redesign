@@ -10,6 +10,26 @@ export const AGENT_ROLES: { key: string; label: string; persona: string }[] = [
     label: "Basic learner",
     persona: "A busy mid-career professional trying this for the first time — genuinely curious about the payoff, but easily distracted and low on patience. Bails quickly if instructions are vague, the value isn't obvious fast, or anything is confusing or slow. Rewards a clear promise and a concrete, keepable result.",
   },
+  {
+    key: "skeptic",
+    label: "Skeptic",
+    persona: "A time-poor senior leader who assumes this is fluff. Suspicious of anything that feels like a quiz, a gimmick, or generic AI output. Needs to see rigor and a real, defensible result fast, or dismisses it. Quick to call out where the exercise feels shallow, leading, or unearned.",
+  },
+  {
+    key: "struggling",
+    label: "Struggling learner",
+    persona: "Someone less confident and less fluent — English is their second language, they're new to the topic, and they get lost when instructions assume prior knowledge or use jargon. Notices every place the experience isn't accessible, over-assumes, or doesn't scaffold. Needs clarity and encouragement.",
+  },
+  {
+    key: "expert",
+    label: "Domain expert",
+    persona: "A deep expert in this subject who will spot anything wrong, oversimplified, or pedagogically weak. Judges whether the exercise actually teaches the real skill or just simulates it, and whether the feedback/output is genuinely insightful rather than plausible-sounding filler.",
+  },
+  {
+    key: "hurried",
+    label: "Hurried mobile user",
+    persona: "On their phone between meetings, thumb-typing, half-distracted. Will abandon anything with too much reading, too many steps, or friction on a small screen. A stress test for length, pacing, and whether the payoff arrives before their attention runs out.",
+  },
 ];
 
 export type AgentNote = {
@@ -57,6 +77,37 @@ export async function pickStaleModules(admin: any, roleKey: string, n: number): 
   } catch { /* table absent → everything is stale */ }
   return [...mods].sort((a, b) => (lastByModule.get(a.slug) || 0) - (lastByModule.get(b.slug) || 0)).slice(0, n);
 }
+
+// Run the whole persona panel (or a subset) over one module, in parallel.
+export async function runAgentPanel(admin: any, mod: { slug: string; name: string; what: string }, roleKeys: string[]): Promise<AgentNote[]> {
+  const keys = roleKeys.length ? roleKeys : AGENT_ROLES.map((r) => r.key);
+  const notes = await Promise.all(keys.map((k) => runAgentOnModule(admin, mod, k).catch(() => null)));
+  return notes.filter(Boolean) as AgentNote[];
+}
+
+// A paste-ready improvement brief for Claude Code: consolidated across personas,
+// with the live URL to drive and reproduce.
+export function claudeCodeBrief(moduleName: string, slug: string, notes: AgentNote[]): string {
+  const runUrl = `superadditive.app/start/${slug}`;
+  const avg = notes.length ? (notes.reduce((s, n) => s + (n.rating || 0), 0) / notes.length).toFixed(1) : "—";
+  const lines: string[] = [];
+  lines.push(`# QA: improve the "${moduleName}" module`);
+  lines.push(``);
+  lines.push(`Run it live at ${runUrl} to reproduce, then fix these findings from a synthetic-user QA panel (avg ${avg}/5 across ${notes.length} personas).`);
+  lines.push(``);
+  lines.push(`## Fix first`);
+  for (const n of notes) if (n.one_thing) lines.push(`- **(${roleLabel(n.role)}, ${n.rating}/5)** ${n.one_thing}`);
+  const friction = [...new Set(notes.flatMap((n) => n.friction))];
+  if (friction.length) { lines.push(``); lines.push(`## Friction observed`); for (const f of friction) lines.push(`- ${f}`); }
+  const ideas = [...new Set(notes.flatMap((n) => n.suggestions))];
+  if (ideas.length) { lines.push(``); lines.push(`## Ideas`); for (const s of ideas) lines.push(`- ${s}`); }
+  lines.push(``);
+  lines.push(`## Per-persona takes`);
+  for (const n of notes) lines.push(`- **${roleLabel(n.role)}** (${n.rating}/5): "${n.summary}"`);
+  return lines.join("\n");
+}
+
+function roleLabel(key: string): string { return AGENT_ROLES.find((r) => r.key === key)?.label || key; }
 
 export async function listAgentFeedback(admin: any, limit = 300): Promise<AgentNote[]> {
   try {
