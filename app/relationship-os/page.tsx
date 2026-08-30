@@ -46,7 +46,7 @@ export default async function RelationshipOS() {
       <section className="mx-auto max-w-4xl px-6 pt-12 text-center sm:pt-20">
         <span className="eyebrow text-sage">The Relationship OS</span>
         <h1 className="display mt-4 text-[2.5rem] leading-[1.05] text-ink sm:text-[3.75rem]">
-          A program is a transaction.<br />Make it the start of a relationship.
+          Make your program the start<br />of a <span className="italic text-sage">real</span> relationship.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate2">
           Most schools touch a learner once, then send a magazine and a donation ask. The Relationship OS turns every student and every alum into a <b className="text-ink">lifelong, high-value relationship</b> — run by the platform, at <b className="text-ink">fixed cost</b>.
