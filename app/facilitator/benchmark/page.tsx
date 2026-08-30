@@ -3,6 +3,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import BenchmarkHistogram from "@/components/BenchmarkHistogram";
 import ResetBenchmarkButton from "@/components/ResetBenchmarkButton";
@@ -34,6 +35,17 @@ export default async function FacilitatorBenchmark({
       .order("created_at", { ascending: false });
     return <CohortChooser title="The Benchmark" basePath="/facilitator/benchmark" cohorts={(classes as any) || []} />;
   }
+
+  // Participants join at /<cohort>, which only lists that cohort's own modules —
+  // so hosting must guarantee "benchmark" is in the list, or they can't take part.
+  try {
+    const admin = createAdminClient();
+    const { data: cls } = await admin.from("classes").select("id, modules").eq("code", cohort).maybeSingle();
+    if (cls) {
+      const mods: string[] = (((cls as any).modules as any[]) || []).map(String);
+      if (!mods.includes("benchmark")) await admin.from("classes").update({ modules: [...mods, "benchmark"] }).eq("id", (cls as any).id);
+    }
+  } catch { /* best effort */ }
 
   const h = headers();
   const host = h.get("host") || "superadditive.app";

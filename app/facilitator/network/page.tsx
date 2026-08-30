@@ -3,6 +3,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import NetworkGraph from "@/components/NetworkGraph";
 import NetworkDescribe from "@/components/NetworkDescribe";
@@ -33,6 +34,18 @@ export default async function FacilitatorNetwork({
       .order("created_at", { ascending: false });
     return <CohortChooser title="The Network" basePath="/facilitator/network" cohorts={(classes as any) || []} />;
   }
+
+  // Participants join at /<cohort>, which only lists that cohort's own modules.
+  // So hosting the live activity must guarantee "network" is in the list — else
+  // people scan the QR and see no way to take part. Idempotent, best-effort.
+  try {
+    const admin = createAdminClient();
+    const { data: cls } = await admin.from("classes").select("id, modules").eq("code", cohort).maybeSingle();
+    if (cls) {
+      const mods: string[] = (((cls as any).modules as any[]) || []).map(String);
+      if (!mods.includes("network")) await admin.from("classes").update({ modules: [...mods, "network"] }).eq("id", (cls as any).id);
+    }
+  } catch { /* best effort — falls back to whatever the cohort already lists */ }
 
   const h = headers();
   const host = h.get("host") || "superadditive.app";
