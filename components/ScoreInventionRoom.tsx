@@ -16,7 +16,7 @@ export default function ScoreInventionRoom({ session, initialWorkspace }: { me?:
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const report = state.read ? { read: state.read, scores: state.scores } : null;
+  const report = state.read ? { read: state.read, scores: state.scores, extra: state.extra } : null;
 
   const persist = useCallback(async (canvas: any) => {
     setWs((w: any) => ({ ...w, canvas }));
@@ -35,7 +35,7 @@ export default function ScoreInventionRoom({ session, initialWorkspace }: { me?:
       });
       const j = await res.json();
       if (!res.ok) { setErr(j.error || "Couldn't score it."); setBusy(false); return; }
-      await persist({ ...state, input: { title, abstract: a }, read: j.read, scores: j.scores, title: j.title });
+      await persist({ ...state, input: { title, abstract: a }, read: j.read, scores: j.scores, extra: j.extra, title: j.title });
     } catch { setErr("Couldn't reach the service."); }
     setBusy(false);
   }
@@ -69,7 +69,7 @@ export default function ScoreInventionRoom({ session, initialWorkspace }: { me?:
           {report && <Link href={`/invention/${session.code}`} className="text-sm font-semibold text-ai hover:underline">Open full report →</Link>}
         </div>
 
-        {report && <div className="pt-2"><ScoreInventionReport read={report.read} scores={report.scores} /></div>}
+        {report && <div className="pt-2"><ScoreInventionReport read={report.read} scores={report.scores} extra={report.extra} /></div>}
       </div>
     </main>
   );

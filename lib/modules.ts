@@ -701,9 +701,9 @@ export const MODULES: ModuleDef[] = [
     slug: "score-my-invention",
     exercise: "score-invention",
     name: "Score My Invention",
-    tagline: "Paste an invention, disclosure, or research idea and get its commercial, scientific, and social potential, scored against the field, plus concrete ways to raise the score.",
+    tagline: "Paste an invention, disclosure, or research idea and get its full impact fingerprint — commercial, scientific, social, and deeper potential — scored against the field, plus concrete ways to raise it.",
     description:
-      "The fastest way to gut-check a deep-tech idea, built on Scientifiq.AI. Paste an abstract and it scores the idea for commercial, scientific, and social potential (0-100 and stars), benchmarked against its field. Then AI reads the scores: which dimension is strongest, what a high or low score means for this specific idea, three to four concrete ways to reframe or strengthen it to raise its potential, who would care if it delivers, and a plain verdict. A quick, honest signal before you invest time in a full licensing brief or a venture canvas.",
+      "The fastest way to gut-check a deep-tech idea, built on Scientifiq.AI. Paste an abstract and it scores the idea for commercial, scientific, and social potential (0-100 and stars), benchmarked against its field, plus deeper dimensions from our own models — complex-invention and interdisciplinary potential (and defense relevance, for directors). Then AI reads the scores: which dimension is strongest, what a high or low score means for this specific idea, three to four concrete ways to reframe or strengthen it, who would care if it delivers, and a plain verdict. A quick, honest signal before you invest time in a full licensing brief or a venture canvas.",
     partner: "ai",
     mode: "With AI",
     minutes: 3,

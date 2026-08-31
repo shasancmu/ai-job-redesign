@@ -29,8 +29,22 @@ function ScoreCard({ label, s, note }: { label: string; s?: Score; note?: string
   );
 }
 
-export default function ScoreInventionReport({ read, scores }: { read: Read; scores?: Scores }) {
+const EXTRA_LABEL: Record<string, string> = { complex_invention: "Complex-invention", interdisciplinary: "Interdisciplinary", defense: "Defense" };
+
+function MiniPot({ label, v }: { label: string; v: number }) {
+  const color = v >= 66 ? "#3F7A52" : v >= 33 ? "#CE8F2C" : "#C06A47";
+  return (
+    <div className="rounded-xl border border-line bg-white p-3">
+      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</div>
+      <div className="mt-0.5 flex items-baseline gap-1"><span className="text-lg font-bold text-ink">{v}</span><span className="text-[11px] text-slate-400">/100</span></div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-mist"><div className="h-full rounded-full" style={{ width: `${v}%`, background: color }} /></div>
+    </div>
+  );
+}
+
+export default function ScoreInventionReport({ read, scores, extra }: { read: Read; scores?: Scores; extra?: Record<string, number> }) {
   const r = read || {};
+  const extraEntries = Object.entries(extra || {}).filter(([, v]) => typeof v === "number" && v >= 0);
   return (
     <div className="space-y-5">
       {r.headline && (
@@ -46,6 +60,15 @@ export default function ScoreInventionReport({ read, scores }: { read: Read; sco
         <ScoreCard label="Scientific" s={scores?.scientific} note={r.readScientific} />
         <ScoreCard label="Social" s={scores?.social} note={r.readSocial} />
       </div>
+
+      {extraEntries.length > 0 && (
+        <div>
+          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Deeper potential</div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {extraEntries.map(([k, v]) => <MiniPot key={k} label={EXTRA_LABEL[k] || k} v={v} />)}
+          </div>
+        </div>
+      )}
 
       {Array.isArray(r.raise) && r.raise.length > 0 && (
         <div className="rounded-2xl border border-line bg-white p-5">
