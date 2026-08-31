@@ -101,7 +101,7 @@ export default async function TeamPage() {
         </Link>
         <Link href="/org/settings" className="group rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
           <div className="text-2xl">🎨</div>
-          <div className="mt-2 text-sm font-bold text-ink group-hover:text-sage">Organization page</div>
+          <div className="mt-2 text-sm font-bold text-ink group-hover:text-sage">Public page &amp; branding</div>
           <div className="text-xs text-slate-400">Logo, hero image &amp; text</div>
         </Link>
       </div>
