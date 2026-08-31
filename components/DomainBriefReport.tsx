@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Meter, StatTile, Sparkline, BarList, Drill, RankRow, PotChip, SummaryHero, SortControl } from "@/components/ReportKit";
-import CollabGraph from "@/components/CollabGraph";
+import EcosystemExplorer from "@/components/EcosystemExplorer";
 import Sankey from "@/components/Sankey";
 import { classifyFirm, FIRM_TYPE_META } from "@/lib/firmType";
 import { sciLink, SciLink } from "@/lib/scientifiqLinks";
@@ -107,8 +107,8 @@ export default function DomainBriefReport({ brief, data }: { brief: Brief; data:
       {/* Collaboration network + who-should-talk (the structural-hole insight) */}
       {data.collab && data.collab.nodes.length > 2 && (
         <div>
-          <h2 className="eyebrow mb-2">Collaboration network</h2>
-          <CollabGraph nodes={data.collab.nodes} edges={data.collab.edges} suggestions={data.collab.shouldTalk} />
+          <h2 className="eyebrow mb-2">Explore the ecosystem</h2>
+          <EcosystemExplorer nodes={data.collab.nodes} edges={data.collab.edges} suggestions={data.collab.shouldTalk} />
         </div>
       )}
 

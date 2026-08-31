@@ -1,0 +1,12 @@
+{
+  "task": "interdisciplinary",
+  "kind": "binary",
+  "encoder": "scibert",
+  "max_length": 256,
+  "dim": 768,
+  "n_train": 8500,
+  "n_val": 1500,
+  "description": "Likelihood a paper influences research beyond its own field, learned from the spread of citing works across OpenAlex level-0 disciplines. A research-mapping score.\n",
+  "val_auroc": 0.7535137777777778,
+  "val_auprc": 0.7246387886139447
+}

@@ -1,0 +1,17 @@
+# Complex-Invention Impact — the likelihood that a paper contributes to complex
+# technologies that span multiple disciplines (grant proposal). Operationalized
+# as: cited by a patent whose CPC classification spans >=3 distinct sections —
+# a genuinely multi-domain invention building on the science.
+#
+# Train:  sciscore train --task ml/tasks/complex_invention.yaml --data complex.csv --out models/complex_invention
+name: complex_invention
+kind: binary
+encoder: scibert
+text_col: abstract
+label_col: complex_cited
+sample_size: 10000
+max_length: 256
+C: 1.0
+description: >
+  Likelihood a paper feeds a complex, multi-disciplinary technology, learned from
+  citing patents that span >=3 CPC sections. A research-mapping score.

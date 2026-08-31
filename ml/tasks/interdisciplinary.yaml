@@ -1,0 +1,17 @@
+# Interdisciplinary Impact — the likelihood that a paper influences research
+# outside its primary discipline (grant proposal). Operationalized as: cited by
+# works spanning >=3 distinct OpenAlex level-0 fields (>=5 citing works) — the
+# science is picked up across disciplines, not just within its own.
+#
+# Train:  sciscore train --task ml/tasks/interdisciplinary.yaml --data interdisc.csv --out models/interdisciplinary
+name: interdisciplinary
+kind: binary
+encoder: scibert
+text_col: abstract
+label_col: interdisciplinary
+sample_size: 10000
+max_length: 256
+C: 1.0
+description: >
+  Likelihood a paper influences research beyond its own field, learned from the
+  spread of citing works across OpenAlex level-0 disciplines. A research-mapping score.

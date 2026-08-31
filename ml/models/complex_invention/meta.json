@@ -1,0 +1,12 @@
+{
+  "task": "complex_invention",
+  "kind": "binary",
+  "encoder": "scibert",
+  "max_length": 256,
+  "dim": 768,
+  "n_train": 8500,
+  "n_val": 1500,
+  "description": "Likelihood a paper feeds a complex, multi-disciplinary technology, learned from citing patents that span >=3 CPC sections. A research-mapping score.\n",
+  "val_auroc": 0.8744817777777778,
+  "val_auprc": 0.8667716550382338
+}
