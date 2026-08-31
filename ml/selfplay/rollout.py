@@ -114,7 +114,20 @@ async def _post(client: httpx.AsyncClient, url: str, headers: dict, payload: dic
 
 # ---- scorer ---------------------------------------------------------------
 
+# Global cap on concurrent scorer calls — the Scientifiq sandbox is an interactive
+# (~3s) endpoint that 502s if you burst it. Set in main_async; decoupled from root
+# concurrency so many roots can be in flight without flooding the scorer.
+_score_sem: Optional[asyncio.Semaphore] = None
+
+
 async def score(client: httpx.AsyncClient, cfg: Cfg, abstract: str) -> float:
+    if _score_sem is not None:
+        async with _score_sem:
+            return await _score(client, cfg, abstract)
+    return await _score(client, cfg, abstract)
+
+
+async def _score(client: httpx.AsyncClient, cfg: Cfg, abstract: str) -> float:
     """Target score in [0,1], or -1 on failure."""
     if len(abstract.strip()) < 40:
         return -1.0
@@ -333,7 +346,9 @@ def load_abstracts(path: str) -> list[str]:
 
 
 async def main_async(args):
+    global _score_sem
     cfg = load_cfg(args)
+    _score_sem = asyncio.Semaphore(args.score_concurrency)
     if not cfg.ai_key:
         raise SystemExit("Set AI_API_KEY (or ANTHROPIC_API_KEY) for the proposer.")
     if cfg.scorer == "scientifiq" and not cfg.sci_key:
@@ -390,7 +405,8 @@ def main():
     p.add_argument("--k", type=int, default=4, help="proposals per state per step")
     p.add_argument("--limit", type=int, default=0, help="cap number of root abstracts (0 = all)")
     p.add_argument("--scorer", default="scientifiq", choices=["scientifiq", "sciscore"])
-    p.add_argument("--concurrency", type=int, default=8, help="concurrent roots")
+    p.add_argument("--concurrency", type=int, default=6, help="concurrent roots")
+    p.add_argument("--score-concurrency", type=int, default=6, help="global cap on concurrent scorer calls (keep low for the Scientifiq sandbox; raise for your own sciscore service)")
     args = p.parse_args()
     asyncio.run(main_async(args))
 
