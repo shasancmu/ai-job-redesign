@@ -31,9 +31,9 @@ export default function ReportShell({
 }) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-      <header className="mb-6 flex items-center justify-between">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <Logo href="/dashboard" />
-        <div className="flex items-center gap-2 no-print">
+        <div className="flex shrink-0 items-center gap-2 no-print [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap">
           {hasReport && <PrintButton />}
           {hasReport && <ShareReport code={code} title={shareTitle} text={shareText} />}
           <Link href={`/room/${code}`} className="btn-ghost text-sm">{backLabel}</Link>

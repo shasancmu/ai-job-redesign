@@ -8,9 +8,9 @@
 // the target, rather than guessing. Server-only.
 // ============================================================================
 
-import { scoreAbstractDimension } from "./scientifiq";
+import { scoreAbstract, scoreAbstractDimension } from "./scientifiq";
 import { scoreText } from "./sciscore";
-import { proposeExtensionsAI, researchRoadmapAI } from "./ai";
+import { proposeExtensionsAI } from "./ai";
 
 export const OPTIMIZE_TARGETS = ["commercial", "scientific", "social", "complex_invention", "interdisciplinary", "defense"] as const;
 export type Target = (typeof OPTIMIZE_TARGETS)[number];
@@ -41,24 +41,68 @@ async function mapLimited<T, R>(items: T[], concurrency: number, fn: (x: T) => P
   return out;
 }
 
-export type Extension = { gap: string; abstract: string; score: number; delta: number };
-export type OptimizeResult = { target: Target; baseline: number; extensions: Extension[]; roadmap: any };
+export type Fingerprint = Record<string, number>; // dim -> 0..100 (defense only for directors)
+export type Step = { round: number; gap: string; abstract: string; gain: number; fingerprint: Fingerprint };
+export type OptimizeResult = {
+  target: Target; baseline: Fingerprint; steps: Step[];
+  stop: "plateau" | "ceiling" | "maxRounds" | "no-improvement";
+};
 
-export async function optimizeImpact(abstract: string, target: Target, n = 5): Promise<OptimizeResult> {
-  const baseline = await scoreTarget(abstract, target);
+// Score an abstract on EVERY potential (the full fingerprint) so we can track
+// whether optimizing the target drags the others down. Scoring is free (models,
+// not LLM tokens); resilient per dimension.
+async function fingerprint(abstract: string, includeDefense: boolean): Promise<Fingerprint> {
+  const [base, cplx, intd, def] = await Promise.all([
+    scoreAbstract(abstract).catch(() => null),
+    scoreText("complex_invention", abstract).catch(() => null),
+    scoreText("interdisciplinary", abstract).catch(() => null),
+    includeDefense ? scoreText("defense_impact", abstract).catch(() => null) : Promise.resolve(null),
+  ]);
+  const fp: Fingerprint = {};
+  if (base) { fp.commercial = Math.round(((base as any).commercial?.raw ?? 0) * 100); fp.scientific = Math.round(((base as any).scientific?.raw ?? 0) * 100); fp.social = Math.round(((base as any).social?.raw ?? 0) * 100); }
+  if (cplx) fp.complex_invention = Math.round(cplx.score * 100);
+  if (intd) fp.interdisciplinary = Math.round(intd.score * 100);
+  if (includeDefense && def) fp.defense = Math.round(def.score * 100);
+  return fp;
+}
 
-  const gen = await proposeExtensionsAI(abstract, target, n);
-  const proposed: { gap: string; abstract: string }[] = Array.isArray(gen?.extensions) ? gen.extensions.slice(0, n) : [];
+// Iterative, compounding self-play: each round the AI proposes K next scientific
+// steps that build ON the current best; the (free) model-scorer picks the winner
+// on the TARGET; we fingerprint the winner on all dimensions, compound, and repeat.
+// Stops on diminishing returns, a ceiling, or a round cap. LLM cost is bounded to
+// ~one generation call per round.
+const MAX_ROUNDS = 4;
+const K = 3;
+const EPSILON = 2;
+const CEILING = 92;
 
-  const scored = await mapLimited(proposed, 3, async (e) => {
-    const score = e?.abstract && e.abstract.length >= 60 ? await scoreTarget(e.abstract, target) : -1;
-    return { gap: String(e?.gap || "").slice(0, 300), abstract: String(e?.abstract || ""), score, delta: score >= 0 ? score - Math.max(0, baseline) : 0 };
-  });
-  const extensions = scored.filter((e) => e.score >= 0).sort((a, b) => b.delta - a.delta);
+export async function optimizeImpact(abstract: string, target: Target, opts: { includeDefense?: boolean } = {}): Promise<OptimizeResult> {
+  const includeDefense = !!opts.includeDefense;
+  const baseline = await fingerprint(abstract, includeDefense);
+  let current = abstract;
+  let prev = baseline[target] ?? 0;
+  const steps: Step[] = [];
+  let stop: OptimizeResult["stop"] = "maxRounds";
 
-  const roadmap = extensions.length
-    ? await researchRoadmapAI({ abstract, target, baseline, ranked: extensions.map((e) => ({ gap: e.gap, score: e.score, delta: e.delta })) })
-    : null;
+  for (let round = 1; round <= MAX_ROUNDS; round++) {
+    const gen = await proposeExtensionsAI(current, target, K);
+    const cands: { gap: string; abstract: string }[] = Array.isArray(gen?.extensions) ? gen.extensions.slice(0, K) : [];
+    const scored = await mapLimited(cands, 3, async (e) => ({
+      gap: String(e?.gap || "").slice(0, 300),
+      abstract: String(e?.abstract || ""),
+      score: e?.abstract && e.abstract.length >= 60 ? await scoreTarget(e.abstract, target) : -1,
+    }));
+    const valid = scored.filter((e) => e.score >= 0);
+    if (!valid.length) { stop = "no-improvement"; break; }
+    const best = valid.reduce((a, b) => (b.score > a.score ? b : a));
+    if (best.score - prev < EPSILON) { stop = "plateau"; break; } // diminishing returns
+    const fp = await fingerprint(best.abstract, includeDefense);
+    const tScore = fp[target] ?? best.score;
+    steps.push({ round, gap: best.gap, abstract: best.abstract, gain: tScore - prev, fingerprint: fp });
+    current = best.abstract;
+    prev = tScore;
+    if (tScore >= CEILING) { stop = "ceiling"; break; }
+  }
 
-  return { target, baseline, extensions, roadmap };
+  return { target, baseline, steps, stop };
 }

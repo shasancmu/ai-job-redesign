@@ -27,11 +27,12 @@ export async function POST(request: Request) {
   const target = String(body.target || "commercial") as Target;
   if (abstract.length < 80) return Response.json({ error: "Paste the research as an abstract (a few sentences)." }, { status: 400 });
   if (!OPTIMIZE_TARGETS.includes(target)) return Response.json({ error: "Unknown target." }, { status: 400 });
-  if (target === "defense" && !(await isDirectorOrAdmin(user))) return Response.json({ error: "Defense target is for directors." }, { status: 403 });
+  const canDefense = await isDirectorOrAdmin(user);
+  if (target === "defense" && !canDefense) return Response.json({ error: "Defense target is for directors." }, { status: 403 });
 
   try {
-    const result = await optimizeImpact(abstract, target);
-    if (!result.extensions.length) return Response.json({ error: "Couldn't generate scored extensions. Try again." }, { status: 502 });
+    const result = await optimizeImpact(abstract, target, { includeDefense: canDefense });
+    if (!result.steps.length && !Object.keys(result.baseline).length) return Response.json({ error: "Couldn't score the abstract. Try again." }, { status: 502 });
     return Response.json(result);
   } catch (e: any) {
     if (e instanceof ScientifiqError) return Response.json({ error: e.message }, { status: e.status < 600 ? e.status : 502 });

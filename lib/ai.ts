@@ -3058,7 +3058,7 @@ export async function proposeExtensionsAI(abstract: string, target: string, n: n
 
 These are additions to the SCIENCE, not rewordings. Examples of moves: demonstrate the method on real / at-scale / clinical data; extend it to a new application or domain; add a missing experiment, mechanism, or causal result; integrate it with another technology to enable a concrete product; validate against a real benchmark or against incumbents; show generality across cases.
 
-For EACH extension, write the abstract AS IT WOULD READ if that work were completed — a plausible near-future version of the paper that includes the new science — so its potential can be measured. Be realistic and specific to THIS work; do not fabricate implausible breakthroughs, and keep the original findings intact.
+The abstract you are given may already incorporate earlier extensions — propose the NEXT most valuable additions BEYOND what it already states, not things it already claims. For EACH extension, write the abstract AS IT WOULD READ if that work were completed — a plausible near-future version of the paper that includes the new science — so its potential can be measured. Be realistic and specific to THIS work; do not fabricate implausible breakthroughs, and keep the prior findings intact.
 
 Return STRICT JSON only:
 { "extensions": [ { "gap": "the specific missing science — what to DO, one line", "abstract": "the abstract as it would read once that work is done" } ] }`;
