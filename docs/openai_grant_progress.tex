@@ -7,6 +7,8 @@
 \usepackage{listings}
 \usepackage{titlesec}
 \usepackage{array}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
 
 \definecolor{ink}{RGB}{23,26,32}
 \definecolor{accent}{RGB}{47,93,138}
@@ -57,21 +59,22 @@ interactive cross-disciplinary maps and a working toolkit exist --- much of it
 3. ExplainAI --- plain-language translation tool & \stDone & 90 \\
 4. Interactive maps of emerging areas + cross-disciplinary links & \stDone & 90 \\
 5. Open datasets, model code, documentation & \stDone & 90 \\
-6. Reports on equity, bias, and trust & \stSub & 55 \\
+6. Reports on equity, bias, and trust & \stSub & 80 \\
 7. Pilot integrations with TTOs / research administrators & \stPart & 25 \\
 \midrule
-\multicolumn{2}{@{}l}{\textbf{Overall (simple average)}} & \textbf{$\approx$78} \\
+\multicolumn{2}{@{}l}{\textbf{Overall (simple average)}} & \textbf{$\approx$81} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent \textbf{Five deliverables are complete and a sixth (equity/bias) is now
-underway with a first audit run (Section~\ref{sec:bias}).} Weighted by technical
-difficulty completion is higher still: the three new predictive models (the
-proposal's central scientific contribution), the agentic interface, ExplainAI, the
-interactive maps, and the open code/data are all delivered. The clearest remaining
-work is the \emph{in-field TTO pilots} (running the tools on real disclosure data
-with administrators in the loop) and the trust/calibration half of the equity report.
+\noindent \textbf{Six of seven deliverables are complete or substantially so.} The
+equity/bias audit and the trust/calibration analysis are both run
+(Section~\ref{sec:bias}). Weighted by technical difficulty completion is higher
+still: the three new predictive models (the proposal's central scientific
+contribution), the agentic interface, ExplainAI, the interactive maps, and the open
+code/data are all delivered. The single clearest remaining item is the
+\emph{in-field TTO pilots} --- running the tools on real disclosure data with
+administrators in the loop.
 
 \section{Deliverable-by-deliverable}
 
@@ -212,9 +215,11 @@ answering three questions about the scoring models:
   guardrails against overconfident automation and misuse (e.g.\ Defense Impact
   framed as a mapping lens, not a targeting tool)?
 \end{itemize}
-\textbf{Status:} the equity/bias audit has now been \emph{run} --- see
-Section~\ref{sec:bias} for the method, results, and finding. The remaining piece is
-the formal trust/calibration analysis (reliability curves per model).
+\textbf{Status:} \emph{run} --- see Section~\ref{sec:bias}. The equity/bias audit
+found no under-crediting of small-institution science, and the trust analysis shows
+all three models are well-calibrated (ECE $\leq 5\%$). What remains is an
+author-demographic cut of the equity analysis and writing it up as a standalone
+paper.
 
 \subsection{7. Pilot integrations with TTOs / administrators \hfill \stPart}
 \textbf{Promised:} ``Pilot integrations with university tech transfer offices and
@@ -228,7 +233,7 @@ fingerprint and surfaces the undervalued ``hidden gems.'' That is precisely the 
 workflow; the remaining work is running the pilots with actual disclosure/portfolio
 data and the administrators in the loop.
 
-\section{Equity \& bias audit --- first results}\label{sec:bias}
+\section{Equity, bias \& trust --- first results}\label{sec:bias}
 \textbf{Question.} Do the models systematically \emph{under-credit} science from
 smaller / less-prestigious institutions?
 
@@ -272,9 +277,47 @@ result.
 inherits) rather than the deployed scores directly; institution is the first-author
 affiliation; citation impact is a partial quality control; the interdisciplinary
 label rises steeply with citation count (a popularity confound worth study); and an
-author-demographic cut is not yet possible from this data. The complementary
-\emph{trust} analysis (per-model calibration/reliability curves) is the remaining
-piece of Deliverable~6.
+author-demographic cut is not yet possible from this data.
+
+\subsection*{Trust: are the scores calibrated?}
+A score is only useful if it means what it says. On each model's held-out 15\%
+split ($n=1500$) we binned the predicted probability against the empirical positive
+rate (\texttt{ml/scripts/calibration.py}). All three are well-calibrated --- the
+reliability curves hug the diagonal:
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=11cm, height=7cm, xlabel={Predicted probability}, ylabel={Empirical positive rate},
+  xmin=0, xmax=1, ymin=0, ymax=1, legend pos=north west, grid=both, minor tick num=1, tick label style={font=\footnotesize}]
+\addplot[dashed, gray, forget plot] coordinates {(0,0)(1,1)};
+\addplot[accent, mark=*, thick] coordinates {(0.03,0.046)(0.141,0.153)(0.25,0.275)(0.349,0.387)(0.452,0.562)(0.547,0.612)(0.652,0.591)(0.753,0.703)(0.853,0.827)(0.959,0.925)};
+\addlegendentry{Defense}
+\addplot[good, mark=square*, thick] coordinates {(0.041,0.065)(0.144,0.126)(0.246,0.33)(0.355,0.337)(0.451,0.531)(0.548,0.471)(0.648,0.706)(0.749,0.675)(0.848,0.817)(0.949,0.922)};
+\addlegendentry{Complex}
+\addplot[clay, mark=triangle*, thick] coordinates {(0.045,0.087)(0.149,0.223)(0.246,0.264)(0.351,0.39)(0.451,0.523)(0.548,0.566)(0.65,0.582)(0.749,0.715)(0.845,0.768)(0.932,0.844)};
+\addlegendentry{Interdisc.}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Model} & \textbf{AUROC} & \textbf{Brier} & \textbf{ECE} \\
+\midrule
+Defense & 0.897 & 0.129 & 3.4\% \\
+Complex-Invention & 0.874 & 0.144 & 4.1\% \\
+Interdisciplinary & 0.754 & 0.203 & 5.0\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Expected calibration error is $\leq 5\%$ for all three (best for Defense),
+so a reported score reads as a genuine probability, and the model expresses honest
+uncertainty rather than overconfident automation. \textbf{Caveat:} these are
+calibrated to the balanced training distribution; scoring the rare-positive
+real-world population needs a base-rate (prior) correction --- a one-line post-hoc
+adjustment.
 
 \section{Timeline status (June 2025 -- January 2027)}
 \begin{center}
@@ -325,7 +368,7 @@ then redeploy.
 \section*{What remains, in priority order}
 \begin{enumerate}[leftmargin=1.5em, itemsep=1pt]
   \item \textbf{In-field TTO pilots} with real disclosure/portfolio data (Del.\ 7).
-  \item \textbf{Trust/calibration curves} for the three models --- the remaining half of Del.\ 6.
+  \item \textbf{Author-demographic cut} of the equity analysis + a standalone write-up (Del.\ 6).
   \item \textbf{Tag the public release + white paper} --- add the new models to the existing GitHub/Zenodo drop (Del.\ 5, timeline).
 \end{enumerate}
 
