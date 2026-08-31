@@ -22,6 +22,7 @@ export async function POST(request: Request) {
   const slug = String(body.slug || "");
   const code = String(body.code || "");
   const messages = Array.isArray(body.messages) ? body.messages.slice(-40) : [];
+  const persona = typeof body.persona === "string" ? body.persona.slice(0, 800) : undefined;
   if (!slug || !code) return Response.json({ error: "missing slug or code" }, { status: 400 });
 
   const spec = await getSpec(slug);
@@ -30,7 +31,9 @@ export async function POST(request: Request) {
   if (!role) return Response.json({ error: "module has no character" }, { status: 400 });
 
   const scn = selectScenario(spec, code);
-  const system = characterSystem(spec, role, scn);
+  // For a learner-chosen-persona role, their text fills the persona slot (still
+  // untrusted; the immutable behavior + rails still bind it).
+  const system = characterSystem(spec, role, scn, role.openPersona ? persona : undefined);
   setFlow(`roleplay:${slug}`);
   const lang = spec.guardrails?.language;
   return streamingResponse((emit) => withLanguage(lang && lang !== "en" ? lang : undefined, () =>

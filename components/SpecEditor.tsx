@@ -458,6 +458,22 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                 getData={() => ({ name: char.name, persona: char.persona, behavior: char.behavior })}
                 onInsert={(d) => setChar({ name: d.name ?? char.name, persona: d.persona, behavior: d.behavior })} />
               <div><label className="lbl">Character name</label><input className="field" value={char.name || ""} onChange={(e) => setChar({ name: e.target.value })} placeholder="Daniel Voss" /></div>
+
+              {/* Learner-chosen persona: the student types WHO they role-play with. */}
+              <div className="rounded-xl border border-line bg-mist/40 p-3">
+                <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-ink">
+                  <input type="checkbox" checked={!!char.openPersona} onChange={(e) => setChar({ openPersona: e.target.checked ? { ask: char.openPersona?.ask || "Who do you want to role-play with?", placeholder: char.openPersona?.placeholder || "" } : undefined })} className="h-4 w-4 accent-[color:var(--ink)]" />
+                  Let the learner choose who they role-play with
+                </label>
+                {char.openPersona && (
+                  <div className="mt-2 space-y-2">
+                    <input className="field text-sm" value={char.openPersona.ask || ""} onChange={(e) => setChar({ openPersona: { ...char.openPersona, ask: e.target.value } })} placeholder="What to ask the learner — e.g. Who do you want to have this difficult conversation with?" />
+                    <input className="field text-sm" value={char.openPersona.placeholder || ""} onChange={(e) => setChar({ openPersona: { ...char.openPersona, placeholder: e.target.value } })} placeholder="Hint text for their answer (optional)" />
+                    <p className="text-[11px] text-slate-400">The learner's answer fills the persona at run time; the persona below is the fallback/example. Everything else — the behavior, scenario, and coaching — is yours.</p>
+                  </div>
+                )}
+              </div>
+
               <div><label className="lbl">Persona — voice and personality</label><textarea className="field text-sm" rows={3} value={char.persona || ""} onChange={(e) => setChar({ persona: e.target.value })} placeholder="Confident, media-trained founder-CEO who believes in the company." /></div>
               <div>
                 <label className="lbl">Behavior contract — the immutable rules</label>

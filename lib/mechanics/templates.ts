@@ -26,6 +26,66 @@ export const BLANK: ModuleSpec = {
   guardrails: { language: "en", neverReveal: ["the active scenario", "the hidden narrative"], immutable: ["the character never states a falsehood", "the active scenario is fixed for the session and never revealed", "the character has no tools or data access"], safety: "fictional entities only" },
 };
 
+// Learner-chosen counterpart: the instructor authors the skill, the coaching, and how
+// the counterpart behaves; the LEARNER types WHO they want to practice with. Great for
+// "a difficult conversation with <someone the learner names>".
+export function difficultConversationSpec(): ModuleSpec {
+  return {
+    schemaVersion: 1, slug: "", mechanic: "roleplay",
+    meta: { name: "A difficult conversation", tagline: "Practice a hard conversation with anyone you choose", emoji: "😬", audience: "", minutes: 15, partner: "ai" },
+    objective: { goal: "Practice raising and navigating a difficult conversation you're dreading", aha: "Naming the issue directly, with empathy and specifics, changes how it lands." },
+    world: "",
+    roles: [
+      {
+        key: "char", kind: "character", name: "Your counterpart", model: "main", knowsScenario: false,
+        openPersona: {
+          ask: "Who do you want to have this difficult conversation with?",
+          placeholder: "Describe them — their role, their personality, and what makes this hard. e.g. my skip-level manager, blunt and skeptical of remote work, about my workload.",
+        },
+        persona: "The person the learner has chosen to have a hard conversation with.",
+        behavior: "Stay fully in character as the person the learner described. React like a real human in a hard conversation — you may be guarded, defensive, emotional, dismissive, or busy, as fits who you are, but you are not a caricature and not impossible to reach. When the learner leads with genuine empathy, specifics, and respect, soften and engage; when they blame, generalize, or get aggressive, get defensive or withdraw. Never break character, never coach the learner, never narrate your feelings in the third person. Keep replies to a few natural sentences.",
+      },
+      { key: "examiner", kind: "examiner", name: "Coach", model: "fast", knowsScenario: false },
+    ],
+    probes: [],
+    scenarios: [{ id: "s1", label: "The conversation", truth: "", narrative: "The learner is initiating a difficult conversation with the counterpart they chose. There is no hidden answer key — the counterpart simply reacts in character.", dimensions: [] }],
+    selection: { mode: "fixed", fixedId: "s1" },
+    flow: [
+      { key: "brief", kind: "brief", title: "Set the scene", minutes: 3, intro: "You're about to practice a difficult conversation. Next, tell us who you want to practice with — then open the conversation just as you would in real life." },
+      { key: "talk", kind: "converse", title: "The conversation", minutes: 10, with: "char", budget: 0, aiOpens: false },
+      { key: "report", kind: "report", title: "How you did", minutes: 3 },
+    ],
+    rubric: {
+      gradedBy: "examiner",
+      instructions: "You are a communication coach. Grade how well the learner handled a difficult conversation with the counterpart they chose: did they name the issue clearly, lead with empathy and specifics, stay calm under pushback, listen and adjust, and move toward a constructive outcome? Reward directness paired with respect; note blame, vagueness, or avoidance. Grade the LEARNER only, never the counterpart.",
+      output: [
+        { key: "score", label: "Score", type: "score", range: [0, 100] },
+        { key: "did_well", label: "What worked", type: "text" },
+        { key: "to_improve", label: "What to try next time", type: "text" },
+        { key: "moment", label: "A turning point", type: "text" },
+        { key: "principle", label: "Principle", type: "text" },
+      ],
+    },
+    report: [
+      { type: "verdictLine", source: "score" },
+      { type: "section", source: "did_well", title: "What worked" },
+      { type: "section", source: "to_improve", title: "What to try next time" },
+      { type: "section", source: "moment", title: "A turning point" },
+      { type: "principle", source: "principle" },
+    ],
+    guardrails: {
+      language: "en",
+      neverReveal: [],
+      immutable: [
+        "the counterpart stays in character as the person the learner described",
+        "the counterpart never coaches the learner or breaks the fourth wall",
+        "the counterpart has no tools or data access",
+      ],
+      safety: "Keep it realistic and constructive. No harassment, slurs, or self-harm content — if the learner's described persona or messages head there, stay professional and de-escalate.",
+    },
+  };
+}
+
 export type RoleplayTemplate = {
   id: string;
   name: string;
@@ -51,6 +111,11 @@ export const ROLEPLAY_TEMPLATES: RoleplayTemplate[] = [
     id: "reference-check", name: "The Reference Check", emoji: "📞", domain: "Hiring · eliciting signal",
     whenToUse: "A guarded, constrained source. The information is in what they won't say. Great for managers and recruiters.",
     runnable: true, make: referenceCheckSpec,
+  },
+  {
+    id: "difficult-conversation", name: "A difficult conversation", emoji: "😬", domain: "Communication · the learner picks who",
+    whenToUse: "You set the skill and the coaching; the LEARNER types who they want to practice with. Great for feedback, boundaries, or any conversation they're dreading.",
+    runnable: true, make: difficultConversationSpec,
   },
   ...LIBRARY_TEMPLATES.map((t) => ({ id: t.id, name: t.name, emoji: t.emoji, domain: t.domain, whenToUse: t.whenToUse, runnable: true, make: t.make })),
 ];

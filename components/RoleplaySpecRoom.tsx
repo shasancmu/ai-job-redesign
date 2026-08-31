@@ -18,9 +18,13 @@ export default function RoleplaySpecRoom({ spec, cohort }: { spec: any; cohort?:
   const [report, setReport] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [persona, setPersona] = useState("");
+  const [personaSet, setPersonaSet] = useState(false);
 
   const flow = (spec.flow || []) as any[];
   const step = flow[phase] || flow[0] || { kind: "brief", title: "" };
+  // A character role whose persona the LEARNER chooses at run time.
+  const openRole = (spec.roles || []).find((r: any) => r.kind === "character" && r.openPersona);
 
   // Drop-off funnel: log which phase this run reaches (and when it grades).
   function logEvent(phaseKey: string) {
@@ -28,19 +32,20 @@ export default function RoleplaySpecRoom({ spec, cohort }: { spec: any; cohort?:
   }
   useEffect(() => { logEvent(flow[phase]?.key || `step${phase}`); /* eslint-disable-next-line */ }, [phase]);
   useEffect(() => { if (report) logEvent("graded"); /* eslint-disable-next-line */ }, [report]);
-  const character = spec.character?.name || "the character";
+  const character = spec.character?.name || (spec.roles || []).find((r: any) => r.kind === "character" || r.kind === "interviewer")?.name || "the character";
   const conv = flow.find((f) => f.kind === "converse");
   const budget = conv?.budget || 0;
   const asked = chat.filter((m) => m.role === "user").length;
   const left = budget ? Math.max(0, budget - asked) : Infinity;
 
   async function onCall(history: Msg[], onChunk?: (d: string) => void) {
-    return streamPost("/api/mechanics/roleplay/reply", { slug: spec.slug, code, messages: history }, onChunk || (() => {}));
+    return streamPost("/api/mechanics/roleplay/reply", { slug: spec.slug, code, messages: history, persona: openRole ? persona : undefined }, onChunk || (() => {}));
   }
   async function grade() {
     setBusy(true); setErr("");
     try {
-      const transcript = chat.map((m) => `${m.role === "user" ? "LEARNER" : character.toUpperCase()}: ${m.content}`).join("\n");
+      const pre = openRole && persona.trim() ? `COUNTERPART (chosen by the learner): ${persona.trim()}\n\n` : "";
+      const transcript = pre + chat.map((m) => `${m.role === "user" ? "LEARNER" : character.toUpperCase()}: ${m.content}`).join("\n");
       const res = await fetch("/api/mechanics/roleplay/report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug: spec.slug, code, transcript, verdict, cohort }) });
       const d = await res.json().catch(() => ({}));
       if (!res.ok || !d.report) throw new Error(d.error || "Couldn't grade.");
@@ -75,8 +80,23 @@ export default function RoleplaySpecRoom({ spec, cohort }: { spec: any; cohort?:
           </div>
         )}
 
-        {step.kind === "converse" && (
+        {step.kind === "converse" && openRole && !personaSet && (
+          <div className="card p-5">
+            <div className="text-sm font-semibold text-ink">{openRole.openPersona.ask}</div>
+            <textarea className="field mt-3 min-h-[90px]" value={persona} onChange={(e) => setPersona(e.target.value)} placeholder={openRole.openPersona.placeholder || "Describe who you want to practice with…"} />
+            <button onClick={() => setPersonaSet(true)} disabled={persona.trim().length < 3} className="btn-primary mt-3 disabled:opacity-40">Begin the conversation →</button>
+            <p className="mt-2 text-xs text-slate-400">They'll stay in character as whoever you describe. You open the conversation.</p>
+          </div>
+        )}
+
+        {step.kind === "converse" && (!openRole || personaSet) && (
           <div className="space-y-3">
+            {openRole && (
+              <div className="flex items-center justify-between gap-2 rounded-xl bg-mist px-4 py-2.5 text-sm">
+                <span className="min-w-0 truncate text-slate-600"><span className="font-semibold text-ink">With:</span> {persona}</span>
+                <button onClick={() => { setPersonaSet(false); setChat([]); }} className="shrink-0 text-xs font-semibold text-sky hover:underline">Change</button>
+              </div>
+            )}
             {budget ? (
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-mist px-4 py-2.5 text-sm">
                 <span className="text-slate-600">Ask what reveals the most. You don't know the truth going in.</span>
