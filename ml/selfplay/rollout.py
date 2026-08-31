@@ -123,7 +123,9 @@ async def score(client: httpx.AsyncClient, cfg: Cfg, abstract: str) -> float:
         data = await _post(client, url, {"Authorization": f"Bearer {cfg.sci_key}"}, {"abstract": abstract[:5000]})
         if not data:
             return -1.0
-        pred = data.get("predictions") or {}
+        # Scientifiq wraps the result: { status, message, data: { predictions: {...} } }
+        env = data.get("data") if isinstance(data.get("data"), dict) else data
+        pred = (env or {}).get("predictions") or {}
         cap = cfg.target.capitalize()
         v = pred.get(f"raw{cap}")
         return float(v) if isinstance(v, (int, float)) else -1.0
