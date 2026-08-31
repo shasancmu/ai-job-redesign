@@ -14,13 +14,16 @@ export default function Logo({
   wordmark = true,
   className = "",
   href,
+  plain = false,
 }: {
   size?: number;
   wordmark?: boolean;
   className?: string;
   href?: string;
+  plain?: boolean; // force the Superadditive mark, ignoring org branding (marketing pages)
 }) {
-  const tenant = useTenant();
+  const activeTenant = useTenant();
+  const tenant = plain ? null : activeTenant;
   const name = tenant?.name || BRAND.name;
   // A tenant's uploaded logo almost always already contains its name, so the
   // wordmark text beside it would just repeat it. Show the mark alone, a touch

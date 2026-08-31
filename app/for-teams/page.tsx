@@ -51,7 +51,7 @@ export default function ForTeams() {
         <div className="ribbon-2" />
         <div className="relative mx-auto max-w-6xl px-6">
           <nav className="relative z-10 flex items-center justify-between py-5">
-            <Logo />
+            <Logo plain />
             <div className="flex items-center gap-2">
               <Link href="/login" className="hidden text-sm font-semibold text-ink/80 hover:text-ink sm:inline">Sign in</Link>
               <a href={CONTACT} className="btn-dark">Talk to us</a>

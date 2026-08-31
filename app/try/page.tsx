@@ -11,7 +11,7 @@ export default function TryPage() {
   return (
     <main className="mx-auto flex min-h-[100dvh] max-w-2xl flex-col px-6 py-8">
       <header className="flex items-center justify-between">
-        <Link href="/"><Logo /></Link>
+        <Link href="/"><Logo plain /></Link>
         <Link href="/login" className="text-sm font-semibold text-ink/80 hover:text-ink">Sign in</Link>
       </header>
       <div className="flex flex-1 items-center">
