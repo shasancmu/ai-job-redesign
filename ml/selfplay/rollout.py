@@ -75,6 +75,10 @@ class Cfg:
     scorer: str
     concurrency: int
     model_dir: str
+    critic_base: str
+    critic_key: str
+    critic_model: str
+    legit_discount: bool
 
 
 def load_cfg(args) -> Cfg:
@@ -94,6 +98,12 @@ def load_cfg(args) -> Cfg:
         scorer=args.scorer,
         concurrency=args.concurrency,
         model_dir=args.model_dir,
+        # the legitimacy critic can run on a separate/local model (free) while the
+        # proposer stays on a strong one; defaults to the proposer's config.
+        critic_base=(os.environ.get("CRITIC_BASE_URL") or os.environ.get("AI_BASE_URL") or "https://api.anthropic.com").rstrip("/"),
+        critic_key=os.environ.get("CRITIC_API_KEY") or os.environ.get("AI_API_KEY") or os.environ.get("ANTHROPIC_API_KEY") or "",
+        critic_model=os.environ.get("CRITIC_MODEL") or os.environ.get("PROPOSER_MODEL") or "claude-haiku-4-5-20251001",
+        legit_discount=args.legit_discount,
     )
 
 
@@ -254,41 +264,35 @@ def _extract_json(text: str) -> Optional[dict]:
             return None
 
 
+# One JSON chat call, either Anthropic-native or OpenAI-compatible (by base URL).
+async def _chat_json(client: httpx.AsyncClient, base: str, key: str, model: str, system: str, user: str, max_tokens: int, temperature: float) -> Optional[dict]:
+    if "anthropic.com" in base:
+        url = f"{base}/v1/messages"
+        headers = {"x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json"}
+        payload = {"model": model, "max_tokens": max_tokens, "temperature": temperature, "system": system,
+                   "messages": [{"role": "user", "content": user}, {"role": "assistant", "content": "{"}]}
+        data = await _post(client, url, headers, payload)
+        if not data:
+            return None
+        parts = data.get("content") or []
+        text = "{" + "".join(p.get("text", "") for p in parts if p.get("type") == "text")
+    else:
+        url = f"{base}/chat/completions"
+        headers = {"Authorization": f"Bearer {key}", "content-type": "application/json"}
+        payload = {"model": model, "max_tokens": max_tokens, "temperature": temperature,
+                   "response_format": {"type": "json_object"},
+                   "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
+        data = await _post(client, url, headers, payload)
+        if not data:
+            return None
+        text = (((data.get("choices") or [{}])[0]).get("message") or {}).get("content", "")
+    return _extract_json(text)
+
+
 async def propose(client: httpx.AsyncClient, cfg: Cfg, abstract: str, n: int, current: float, goal: float) -> list[dict]:
     system = _proposer_system(cfg, n, current, goal)
     user = f"ORIGINAL ABSTRACT:\n{abstract[:5000]}"
-    is_anthropic = "anthropic.com" in cfg.ai_base
-    if is_anthropic:
-        url = f"{cfg.ai_base}/v1/messages"
-        headers = {"x-api-key": cfg.ai_key, "anthropic-version": "2023-06-01", "content-type": "application/json"}
-        payload = {
-            "model": cfg.proposer_model,
-            "max_tokens": 3200,
-            "temperature": 0.75,
-            "system": system,
-            "messages": [{"role": "user", "content": user}, {"role": "assistant", "content": "{"}],
-        }
-        data = await _post(client, url, headers, payload)
-        if not data:
-            return []
-        parts = data.get("content") or []
-        text = "".join(p.get("text", "") for p in parts if p.get("type") == "text")
-        text = "{" + text  # undo the prefill
-    else:  # OpenAI-compatible
-        url = f"{cfg.ai_base}/chat/completions"
-        headers = {"Authorization": f"Bearer {cfg.ai_key}", "content-type": "application/json"}
-        payload = {
-            "model": cfg.proposer_model,
-            "max_tokens": 3200,
-            "temperature": 0.75,
-            "response_format": {"type": "json_object"},
-            "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
-        }
-        data = await _post(client, url, headers, payload)
-        if not data:
-            return []
-        text = (((data.get("choices") or [{}])[0]).get("message") or {}).get("content", "")
-    parsed = _extract_json(text)
+    parsed = await _chat_json(client, cfg.ai_base, cfg.ai_key, cfg.proposer_model, system, user, 3200, 0.75)
     exts = (parsed or {}).get("extensions")
     if not isinstance(exts, list):
         return []
@@ -297,6 +301,34 @@ async def propose(client: httpx.AsyncClient, cfg: Cfg, abstract: str, n: int, cu
         gap, ab = str(e.get("gap", "")).strip(), str(e.get("abstract", "")).strip()
         if len(ab) >= 60:
             out.append({"gap": gap[:300], "abstract": ab})
+    return out
+
+
+# Legitimacy critic (v2 reward): rate 0-1 how much each extension adds REAL scientific
+# capability vs. impact-sounding language. One call per batch; fails soft to 0.5.
+async def legit_scores(client: httpx.AsyncClient, cfg: Cfg, gaps: list[str]) -> list[float]:
+    if not gaps:
+        return []
+    numbered = "\n".join(f"{i + 1}. {g}" for i, g in enumerate(gaps))
+    system = (
+        "You are a skeptical research reviewer. For EACH proposed research extension, rate from 0.0 to 1.0 how much it "
+        "adds REAL new scientific capability — a concrete experiment, mechanism, dataset, method, or validation — versus "
+        "mainly adding IMPACT-SOUNDING LANGUAGE (scale, industrial, clinical, deployed, market, commercial, 'at scale') "
+        "without new science. 1.0 = a substantive, credible scientific advance; 0.0 = pure hype or reframing that adds no "
+        "capability. Be strict — most extensions that just assert scale or a market are 0.2-0.4.\n\n"
+        'Return STRICT JSON only, one number per extension IN ORDER: {"scores":[...]}'
+    )
+    parsed = await _chat_json(client, cfg.critic_base, cfg.critic_key, cfg.critic_model, system, "EXTENSIONS:\n" + numbered, 500, 0.2)
+    arr = (parsed or {}).get("scores")
+    out = []
+    for i in range(len(gaps)):
+        v = 0.5
+        if isinstance(arr, list) and i < len(arr):
+            try:
+                v = min(1.0, max(0.0, float(arr[i])))
+            except (TypeError, ValueError):
+                v = 0.5
+        out.append(v)
     return out
 
 
@@ -311,9 +343,11 @@ class Chain:
 async def rollout_root(client: httpx.AsyncClient, cfg: Cfg, root: str) -> dict[str, float]:
     """Beam self-play from `root`. Returns {abstract: value_to_go} for every state
     visited on a retained chain. value_to_go = best score reachable from that state."""
-    base = (await score_many(client, cfg, [root]))[0]
-    if base < 0:
+    clamp = lambda v: min(1.0, max(0.0, v))
+    raw_base = (await score_many(client, cfg, [root]))[0]
+    if raw_base < 0:
         return {}
+    base = clamp(raw_base)
     # the return-to-go goal the proposer conditions on (matches the app's default stretch)
     goal = min(0.92, max(base + 0.05, min(0.90, base + 0.25)))
     chains = [Chain(scores=[base], abstracts=[root])]
@@ -322,17 +356,22 @@ async def rollout_root(client: httpx.AsyncClient, cfg: Cfg, root: str) -> dict[s
         # expand every chain
         proposals = await asyncio.gather(*[propose(client, cfg, c.abstracts[-1], cfg.k, c.scores[-1], goal) for c in chains])
         cand: list[Chain] = []
-        meta = []  # (parent_chain, child_abstract)
+        meta = []  # (parent_chain, gap, child_abstract)
         for parent, exts in zip(chains, proposals):
             for e in exts:
-                meta.append((parent, e["abstract"]))
+                meta.append((parent, e["gap"], e["abstract"]))
         if not meta:
             break
-        child_scores = await score_many(client, cfg, [a for _, a in meta])
-        for (parent, child_abs), sc in zip(meta, child_scores):
+        child_scores = await score_many(client, cfg, [a for _, _, a in meta])
+        # v2 reward: discount each step's GAIN by how legitimate the move is, so
+        # buzzword-gaming earns no credit. legit=1 → full gain; legit=0 → no gain.
+        legit = await legit_scores(client, cfg, [g for _, g, _ in meta]) if cfg.legit_discount else [1.0] * len(meta)
+        for (parent, _gap, child_abs), sc, lg in zip(meta, child_scores, legit):
             if sc < 0:
                 continue
-            cand.append(Chain(scores=parent.scores + [sc], abstracts=parent.abstracts + [child_abs]))
+            prev = parent.scores[-1]
+            eff = clamp(prev + (clamp(sc) - prev) * lg)
+            cand.append(Chain(scores=parent.scores + [eff], abstracts=parent.abstracts + [child_abs]))
         if not cand:
             break
         # keep the top BEAM by latest score, deduped by abstract
@@ -405,12 +444,15 @@ async def main_async(args):
         raise SystemExit("Set AI_API_KEY (or ANTHROPIC_API_KEY) for the proposer.")
     if cfg.scorer == "scientifiq" and not cfg.sci_key:
         raise SystemExit("Set SCIENTIFIQ_API_KEY for the scorer (or use --scorer sciscore).")
+    if cfg.legit_discount and not cfg.critic_key:
+        raise SystemExit("--legit-discount needs a critic key (CRITIC_API_KEY, or AI_API_KEY as fallback).")
 
     abstracts = load_abstracts(args.abstracts)
     if args.limit:
         abstracts = abstracts[: args.limit]
+    crit = f" critic={cfg.critic_model}@{cfg.critic_base.split('//')[-1].split('/')[0]}" if cfg.legit_discount else ""
     print(f"Loaded {len(abstracts)} root abstracts. target={cfg.target} depth={cfg.depth} beam={cfg.beam} k={cfg.k} "
-          f"model={cfg.proposer_model} scorer={cfg.scorer}", file=sys.stderr)
+          f"model={cfg.proposer_model} scorer={cfg.scorer} legit_discount={cfg.legit_discount}{crit}", file=sys.stderr)
 
     os.makedirs(os.path.dirname(os.path.abspath(args.out)) or ".", exist_ok=True)
     new_file = not os.path.exists(args.out)
@@ -461,6 +503,7 @@ def main():
     p.add_argument("--model-dir", default="ml/models", help="dir of local sciscore models (for --scorer local)")
     p.add_argument("--concurrency", type=int, default=6, help="concurrent roots")
     p.add_argument("--score-concurrency", type=int, default=16, help="global cap on concurrent scorer calls (low for the Scientifiq sandbox; high is fine for local)")
+    p.add_argument("--legit-discount", action="store_true", help="v2 reward: discount each step's gain by a legitimacy critic (set CRITIC_BASE_URL/CRITIC_MODEL/CRITIC_API_KEY to run it on a separate/local model)")
     args = p.parse_args()
     asyncio.run(main_async(args))
 

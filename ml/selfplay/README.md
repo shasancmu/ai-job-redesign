@@ -107,6 +107,24 @@ Once deployed:
 rollouts get better → regenerate data → train `v2`. Policy and value bootstrap each
 other, AlphaZero-style. One iteration already helps.
 
+## v2 reward — anti-gaming (`--legit-discount`)
+v1's value signal saturated: the proposer can add "scale / clinical / deployed"
+language to almost any applied abstract, and the surrogate rewards it, so nearly
+everything reaches the ceiling. The `--legit-discount` reward fixes this — each step's
+GAIN is multiplied by a **legitimacy** score (0-1) from a skeptical critic that rates
+whether the extension adds *real* scientific capability vs. impact-language. Gamed
+moves earn no credit, so value-to-go reflects the *legitimately* reachable ceiling.
+Scores are also clamped to [0,1].
+
+The critic can run on a **separate/local** model (free) while the proposer stays
+strong — set `CRITIC_BASE_URL` / `CRITIC_MODEL` / `CRITIC_API_KEY` (they default to the
+proposer's). Fully-local v2 (proposer + critic on Ollama, scorer local) costs nothing:
+```bash
+export AI_BASE_URL=http://localhost:11434/v1 PROPOSER_MODEL=qwen2.5:7b AI_API_KEY=ollama
+python -m ml.selfplay.rollout --abstracts ml/selfplay/data/abstracts.csv \
+  --out ml/selfplay/data/valuetogo_commercial_v2.csv --scorer local --legit-discount --limit 1500
+```
+
 ## Honest caveats
 - **Per-target.** Reachability differs by dimension — start with `commercial`, prove
   it, then run the same loop with `--target scientific`, etc. (add a matching
