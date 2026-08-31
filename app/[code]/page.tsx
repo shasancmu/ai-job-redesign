@@ -188,6 +188,17 @@ export default async function CodeOrOrgPage({ params }: { params: { code: string
 }
 
 // ---- White-label org landing (superadditive.app/{slug}) --------------------
+// The Scientifiq deep-tech suite; if an org grants any of these, its landing page
+// also surfaces the research-intelligence tools (agent, batch, defense, explorer)
+// that live as standalone pages rather than catalog modules.
+const SCITOOLS = new Set(["domain-brief", "score-my-invention", "find-collaborators", "licensing-brief", "diligence-the-science", "defense-impact", "rank-disclosures", "find-a-cofounder", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "position-my-research", "deeptech-canvas"]);
+const RESEARCH_TOOLS: { emoji: string; name: string; href: string; desc: string; note?: string }[] = [
+  { emoji: "🧭", name: "Research Agent", href: "/agent", desc: "Ask in plain language — find collaborators, score an idea's potential, or map where a field is heading. Grounded in real data, never made up." },
+  { emoji: "📊", name: "Batch scorer", href: "/batch", desc: "Upload a portfolio of abstracts and get every paper's six-dimensional impact fingerprint at once, downloadable as CSV.", note: "Directors" },
+  { emoji: "🛰️", name: "Defense Impact", href: "/start/defense-impact", desc: "Estimate a paper's defense / national-security relevance, grounded in the defense-assigned patents that already cite it.", note: "Superadmin" },
+  { emoji: "🕸️", name: "Ecosystem Explorer", href: "/start/domain-brief", desc: "Map a field's collaboration network — the experts, the structural-hole bridges to build, and where potential concentrates.", note: "Inside Domain Brief" },
+];
+
 async function OrgLandingView({ org }: { org: Org }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -240,7 +251,8 @@ async function OrgLandingView({ org }: { org: Org }) {
     ? org.modules
     : ["reimagine-job", "workflow-solo", "career-x-ray", "jd-x-ray", "benchmark", "reimagine-workflow"];
   const picked = featuredSlugs.map((s) => moduleBySlug(s)).filter(Boolean) as NonNullable<ReturnType<typeof moduleBySlug>>[];
-  const mods = (picked.length >= 3 ? picked : MODULES.filter((m) => !m.hidden && m.forSale !== false)).slice(0, 6);
+  const mods = (picked.length >= 3 ? picked : MODULES.filter((m) => !m.hidden && m.forSale !== false)).slice(0, picked.length >= 3 ? 12 : 6);
+  const isDeepTech = (org.modules || []).some((s) => SCITOOLS.has(s));
 
   return (
     <main className="relative min-h-screen">
@@ -319,6 +331,27 @@ async function OrgLandingView({ org }: { org: Org }) {
           ))}
         </div>
       </section>
+
+      {/* Research intelligence — the Scientifiq tools, for deep-tech orgs */}
+      {isDeepTech && (
+        <section className="mx-auto max-w-5xl px-6 pb-16">
+          <span className="eyebrow">Research intelligence</span>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink sm:text-3xl">Powered by Scientifiq.AI</h2>
+          <p className="mt-2 max-w-2xl text-slate2">
+            Ask the ecosystem in plain language, score a whole portfolio across every dimension of potential, and map cross-disciplinary collaboration — built on millions of papers, patents, and researchers.
+          </p>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {RESEARCH_TOOLS.map((t) => (
+              <Link key={t.href} href={t.href} className="card flex flex-col p-5 transition hover:shadow-sm">
+                <div className="text-2xl" aria-hidden>{t.emoji}</div>
+                <h3 className="mt-2 font-semibold text-ink">{t.name}</h3>
+                <p className="mt-1 flex-1 text-sm leading-relaxed text-slate2">{t.desc}</p>
+                {t.note && <div className="mt-3 text-xs text-slate-400">{t.note}</div>}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Key faculty */}
       <section className="mx-auto max-w-5xl px-6 pb-20">
