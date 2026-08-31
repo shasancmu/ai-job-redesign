@@ -195,6 +195,11 @@ export default function ImpactOptimizerReport({ result }: { result: Result }) {
   const baseT = base[target] ?? 0;
   const bets = toBets(r);
   const best = bets.length ? Math.max(...bets.map((b) => b.finalScore)) : baseT;
+  // for the near-ceiling (0-bet) case: where the work stands on every measure, and
+  // the other measure with the most headroom to redirect to.
+  const allDims = Object.keys(base);
+  const others = allDims.filter((d) => d !== target && typeof base[d] === "number");
+  const roomiest = others.slice().sort((a, b) => (base[a] as number) - (base[b] as number))[0];
 
   return (
     <div className="space-y-5">
@@ -208,10 +213,12 @@ export default function ImpactOptimizerReport({ result }: { result: Result }) {
           )}
         </div>
         <p className="mt-1 text-lg font-bold leading-snug text-ink">
-          {bets.length} distinct research bet{bets.length === 1 ? "" : "s"} <span className="text-sm font-medium text-slate-400">— from {LABEL[target] || target} {baseT} to as high as {best}</span>
+          {bets.length > 0
+            ? <>{bets.length} distinct research bet{bets.length === 1 ? "" : "s"} <span className="text-sm font-medium text-slate-400">— from {LABEL[target] || target} {baseT} to as high as {best}</span></>
+            : <>Already near the ceiling <span className="text-sm font-medium text-slate-400">— {LABEL[target] || target} {baseT}/100</span></>}
         </p>
         <div className="mt-1 text-sm text-slate-500">{STOP_NOTE[r.stop] || ""}</div>
-        <p className="mt-2 text-xs text-slate2">A portfolio, not one path: each bet reaches the target through <span className="font-medium text-ink">genuinely different science</span>, with its own trade-offs. Diversify the wager.</p>
+        {bets.length > 0 && <p className="mt-2 text-xs text-slate2">A portfolio, not one path: each bet reaches the target through <span className="font-medium text-ink">genuinely different science</span>, with its own trade-offs. Diversify the wager.</p>}
 
         {/* AlphaZero value-to-go: the model's predicted reachable ceiling for this abstract */}
         {r.headroom && r.headroom.ceiling > r.headroom.current && (
@@ -230,10 +237,28 @@ export default function ImpactOptimizerReport({ result }: { result: Result }) {
           {bets.map((b, i) => <BetCard key={b.id} bet={b} target={target} baseT={baseT} goal={r.goal} rank={i + 1} defaultOpen={i === 0} />)}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-line bg-white p-6 text-center text-sm text-slate2">No meaningful next step raised the target — the work already scores near the ceiling here.</div>
+        <div className="rounded-2xl border border-line bg-white p-5">
+          <div className="text-sm font-semibold text-ink">No added science moved {LABEL[target] || target} by more than +2.</div>
+          <p className="mt-1 text-sm text-slate2">That's a finding, not a failure: on this measure the work is close to maxed, so there's little headroom to optimize. A very short abstract can also read as near-ceiling — a fuller one gives the search more to work with.</p>
+          {others.length > 0 && (
+            <>
+              <div className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Where it stands — pick a measure with more room</div>
+              <div className="mt-2 space-y-1.5">
+                {allDims.slice().sort((a, b) => (base[a] as number) - (base[b] as number)).map((d) => (
+                  <div key={d} className="flex items-center gap-3">
+                    <div className={"w-32 shrink-0 text-xs " + (d === target ? "font-semibold text-ink" : "text-slate2")}>{LABEL[d] || d}{d === target ? " ◄ maxed" : ""}</div>
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-mist"><div className={"h-full rounded-full " + (d === target ? "bg-slate-300" : "bg-sage")} style={{ width: `${Math.max(2, Math.min(100, base[d] as number))}%` }} /></div>
+                    <div className="w-8 text-right text-xs font-semibold tabular-nums text-slate-500">{base[d]}</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          {roomiest && <p className="mt-3 text-sm text-slate2">Try optimizing <b className="text-ink">{LABEL[roomiest] || roomiest}</b> ({base[roomiest]}/100 — more room to climb), give a fuller abstract, or aim for a lower target.</p>}
+        </div>
       )}
 
-      <p className="text-xs text-slate-400">Predicted scores assume each step succeeds. The added science is hypothetical — a prioritization aid for where to take the work, not a promise. Watch each bet's "also moves" chips for the dimensions a path would cost you.</p>
+      {bets.length > 0 && <p className="text-xs text-slate-400">Predicted scores assume each step succeeds. The added science is hypothetical — a prioritization aid for where to take the work, not a promise. Watch each bet's "also moves" chips for the dimensions a path would cost you.</p>}
     </div>
   );
 }
