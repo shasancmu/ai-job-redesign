@@ -258,3 +258,12 @@ export async function scoreAbstract(abstract: string): Promise<AbstractScores> {
   const [c, s, so] = await Promise.all([one("commercial"), one("scientific"), one("social")]);
   return { commercial: c.p, scientific: s.p, social: so.p, field: c.field };
 }
+
+// Score a single dimension — one sandbox call instead of three. Used by the
+// optimizer, which scores many variants and needs to keep the request rate down.
+export async function scoreAbstractDimension(abstract: string, kind: "commercial" | "scientific" | "social"): Promise<PotentialScore> {
+  const data = await sciRequest("POST", `/sandbox/${kind}`, { body: { abstract } });
+  const pred = data?.predictions || {};
+  const cap = kind[0].toUpperCase() + kind.slice(1);
+  return { raw: Number(pred[`raw${cap}`] ?? 0), stars: Number(pred[`stars${cap}`] ?? 0) };
+}
