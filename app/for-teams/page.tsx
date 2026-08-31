@@ -3,6 +3,7 @@ import Logo from "@/components/Logo";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import { MODULES } from "@/lib/modules";
+import { AUTHOR_FORMAT_COUNT } from "@/lib/authorFormats";
 
 export const metadata = {
   title: "Superadditive for L&D, exec ed & in-house academies",
@@ -85,7 +86,7 @@ export default function ForTeams() {
           <div className="grid gap-6 rounded-2xl border border-line bg-white p-8 text-center shadow-soft sm:grid-cols-3">
             {[
               [LIBRARY_STAT, "interactive modules ready to run today"],
-              ["8", "formats you can author your own in"],
+              [`${AUTHOR_FORMAT_COUNT}`, "formats you can author your own in"],
               ["Minutes", "from a deck to a live module"],
             ].map(([n, l]) => (
               <div key={l}>

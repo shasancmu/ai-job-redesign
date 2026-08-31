@@ -12,17 +12,11 @@ import RedesignEditor from "@/components/RedesignEditor";
 import ExplainerEditor from "@/components/ExplainerEditor";
 import NewsFrameEditor from "@/components/NewsFrameEditor";
 import AuthoringInterview from "@/components/AuthoringInterview";
+import { AUTHOR_FORMATS } from "@/lib/authorFormats";
 
-const KINDS: Record<string, { label: string; emoji: string; endpoint: string; table?: string; editBase: string }> = {
-  explainer: { label: "Explainer", emoji: "📖", endpoint: "/api/mechanics/explainer-copilot", table: "explainer_specs", editBase: "/studio/explainer/" },
-  roleplay: { label: "Role-play", emoji: "🎭", endpoint: "/api/mechanics/copilot", table: "module_specs", editBase: "/studio/roleplay/" },
-  interview: { label: "Guided interview", emoji: "🗂️", endpoint: "/api/mechanics/interview-copilot", editBase: "/build/" },
-  negotiation: { label: "Negotiation", emoji: "🤝", endpoint: "/api/mechanics/negotiation-copilot", table: "negotiation_specs", editBase: "/studio/negotiation/" },
-  benchmark: { label: "Timed quiz", emoji: "⏱️", endpoint: "/api/mechanics/benchmark-copilot", table: "benchmark_specs", editBase: "/studio/benchmark/" },
-  analytical: { label: "Analytical instrument", emoji: "📊", endpoint: "/api/mechanics/analytical-copilot", table: "analytical_specs", editBase: "/studio/analytical/" },
-  redesign: { label: "Paired redesign", emoji: "🤝", endpoint: "/api/mechanics/redesign-copilot", table: "redesign_specs", editBase: "/studio/redesign/" },
-  newsframe: { label: "In the News", emoji: "🗞️", endpoint: "/api/mechanics/newsframe-copilot", table: "newsframe_specs", editBase: "/studio/news/" },
-};
+// Keyed lookup derived from the single source of truth (lib/authorFormats).
+const KINDS: Record<string, { label: string; emoji: string; endpoint: string; table?: string; editBase: string }> =
+  Object.fromEntries(AUTHOR_FORMATS.map(({ id, ...rest }) => [id, rest]));
 const LOADING = ["Reading your materials…", "Finding the interactive core…", "Drafting your modules…"];
 
 export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: string; canGlobal: boolean; orgName: string | null; startMode?: string }) {
