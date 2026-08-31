@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import ImpactOptimizerReport from "@/components/ImpactOptimizerReport";
@@ -28,6 +28,9 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
   const [diversity, setDiversity] = useState<number>(saved.diversity ?? 0.55);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [phase, setPhase] = useState("");
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const report = state.result ? state.result : null;
 
@@ -45,19 +48,44 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
     await supabase.from("sessions").update({ status: "done" }).eq("id", session.id);
   }, [supabase, ws.id, session.id]);
 
+  const stopTimer = () => { if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; } };
+  useEffect(() => stopTimer, []); // clear on unmount
+
+  // The API is one long call, so we estimate progress from elapsed time against the
+  // chosen effort, and label the phase by which band we're in. It maps to the real
+  // pipeline (score → explore by depth → vet each bet); it completes when the
+  // response lands. Honest about the work, not a fake crawl.
+  function phaseLabel(pct: number): string {
+    if (pct < 10) return "Scoring the abstract…";
+    if (pct < 55) { const r = Math.min(rounds, Math.floor((pct - 10) / (45 / rounds)) + 1); return `Exploring the missing science — depth ${r} of ${rounds}…`; }
+    if (pct < 93) { const b = Math.min(bets, Math.floor((pct - 55) / (38 / bets)) + 1); return `Vetting bet ${b} of ${bets} — literature & trade-offs…`; }
+    return "Assembling the portfolio…";
+  }
+
   async function run() {
     const a = abstract.trim();
     if (a.length < 80) { setErr("Paste the research as an abstract (a few sentences)."); return; }
     setBusy(true); setErr(null);
+    setProgress(3); setPhase(phaseLabel(3));
+    const started = Date.now();
+    const estMs = (6 + rounds * 10 + bets * 8) * 1000; // rough, scales with the effort
+    stopTimer();
+    timerRef.current = setInterval(() => {
+      const raw = ((Date.now() - started) / estMs) * 100;
+      const p = Math.min(93, Math.max(3, raw));
+      setProgress(p); setPhase(phaseLabel(p));
+    }, 400);
     try {
       const res = await fetch("/api/scientifiq/optimize", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ abstract: a, target, targetLevel: targetLevel ?? undefined, rounds, bets, diversity }),
       });
-      const j = await res.json();
-      if (!res.ok) { setErr(j.error || "Couldn't optimize it."); setBusy(false); return; }
+      const j = await res.json().catch(() => ({}));
+      stopTimer();
+      if (!res.ok) { setProgress(0); setErr(j?.error || "Couldn't optimize it — try again, or lower the depth."); setBusy(false); return; }
+      setProgress(100); setPhase("Done");
       await persist({ ...state, input: { abstract: a, target, targetLevel, rounds, bets, diversity }, result: j });
-    } catch { setErr("Couldn't reach the service."); }
+    } catch { stopTimer(); setProgress(0); setErr("Couldn't reach the service. Check your connection and try again."); }
     setBusy(false);
   }
 
@@ -91,45 +119,49 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
 
           {/* Aim for — return-to-go target */}
           <div>
-            <div className="mb-1.5 text-sm font-medium text-ink">Aim for <span className="font-normal text-slate-400">— the score to reach; the path is generated to hit it</span></div>
+            <div className="mb-1.5 text-sm font-medium text-ink">Aim for <span className="font-normal text-slate-400">— the target score</span></div>
             <div className="flex flex-wrap gap-2">
               {([[null, "Auto stretch"], [75, "75"], [85, "85"], [92, "92"]] as [number | null, string][]).map(([lvl, lbl]) => (
                 <button key={lbl} onClick={() => setTargetLevel(lvl)} className={chipCls(targetLevel === lvl)}>{lbl}{lvl == null ? "" : "/100"}</button>
               ))}
             </div>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400">Higher is more ambitious. The search works backward to find the science that reaches it, and stops as soon as a path gets there. <span className="text-slate2">Auto stretch</span> picks a bold-but-credible goal above the current score.</p>
           </div>
 
           {/* Depth — how many compounding steps */}
           <div>
-            <div className="mb-1.5 text-sm font-medium text-ink">Depth <span className="font-normal text-slate-400">— compounding steps to explore</span></div>
+            <div className="mb-1.5 text-sm font-medium text-ink">Depth <span className="font-normal text-slate-400">— how many steps to stack</span></div>
             <div className="flex flex-wrap gap-2">
               {[1, 2, 3, 4].map((n) => (
                 <button key={n} onClick={() => setRounds(n)} className={chipCls(rounds === n)}>{n} step{n === 1 ? "" : "s"}</button>
               ))}
             </div>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400">Each step builds on the one before, so gains compound. More depth = a longer research program, and a heavier run.</p>
           </div>
 
           {/* Bets — how many distinct paths to return */}
           <div>
-            <div className="mb-1.5 text-sm font-medium text-ink">Bets <span className="font-normal text-slate-400">— distinct research paths to return</span></div>
+            <div className="mb-1.5 text-sm font-medium text-ink">Bets <span className="font-normal text-slate-400">— how many routes to bring back</span></div>
             <div className="flex flex-wrap gap-2">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button key={n} onClick={() => setBets(n)} className={chipCls(bets === n)}>{n}</button>
               ))}
             </div>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400">The report comes back as a portfolio of this many <em>different</em> research paths to the goal — more bets, a wider set to choose from.</p>
           </div>
 
           {/* Diversity — MMR lambda */}
           <div>
-            <div className="mb-1.5 text-sm font-medium text-ink">Diversity <span className="font-normal text-slate-400">— chase the single best, or spread the bets</span></div>
+            <div className="mb-1.5 text-sm font-medium text-ink">Diversity <span className="font-normal text-slate-400">— one best route, or spread out</span></div>
             <div className="flex flex-wrap gap-2">
               {([[0.2, "Focused"], [0.55, "Balanced"], [0.85, "Diverse"]] as [number, string][]).map(([v, lbl]) => (
                 <button key={lbl} onClick={() => setDiversity(v)} className={chipCls(Math.abs(diversity - v) < 0.01)}>{lbl}</button>
               ))}
             </div>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400"><span className="text-slate2">Focused</span> hunts the single strongest route. <span className="text-slate2">Diverse</span> spreads across very different scientific directions — a guard against betting everything on one over-fit path.</p>
           </div>
 
-          <p className="text-[11px] text-slate-400">Deeper search and more bets explore harder but cost more time and tokens — the badge above tracks the load.</p>
+          <p className="border-t border-line-soft pt-3 text-[11px] text-slate-400">The badge above estimates the load: deeper search and more bets explore harder but take longer and cost more tokens.</p>
         </div>
         <div>
           <label className="lbl">Abstract</label>
@@ -138,11 +170,25 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
 
         {err && <p className="text-sm text-clay">{err}</p>}
         <div className="flex items-center gap-3">
-          <button onClick={run} disabled={busy || abstract.trim().length < 80} className="btn-primary disabled:opacity-40">{busy ? "Working… (~1 min)" : report ? "Re-run" : "Find the missing science →"}</button>
-          {report && <Link href={`/optimize/${session.code}`} className="text-sm font-semibold text-ai hover:underline">Open full report →</Link>}
+          <button onClick={run} disabled={busy || abstract.trim().length < 80} className="btn-primary disabled:opacity-40">{busy ? "Working…" : report ? "Re-run" : "Find the missing science →"}</button>
+          {!busy && report && <Link href={`/optimize/${session.code}`} className="text-sm font-semibold text-ai hover:underline">Open full report →</Link>}
         </div>
 
-        {report && <div className="pt-2"><ImpactOptimizerReport result={report} /></div>}
+        {/* Live progress — estimated from elapsed time against the chosen effort */}
+        {busy && (
+          <div className="rounded-2xl border border-line bg-white p-4">
+            <div className="flex items-center justify-between gap-3 text-sm">
+              <span className="min-w-0 flex-1 truncate font-medium text-ink">{phase || "Working…"}</span>
+              <span className="shrink-0 tabular-nums text-slate-400">{Math.round(progress)}%</span>
+            </div>
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-mist">
+              <div className="h-full rounded-full bg-ai transition-all duration-500 ease-out" style={{ width: `${Math.max(3, progress)}%` }} />
+            </div>
+            <p className="mt-2 text-[11px] text-slate-400">A {effortLabel.toLowerCase()} — this can take up to a couple of minutes. You can leave this open.</p>
+          </div>
+        )}
+
+        {!busy && report && <div className="pt-2"><ImpactOptimizerReport result={report} /></div>}
       </div>
     </main>
   );

@@ -150,8 +150,8 @@ export async function optimizeImpact(abstract: string, target: Target, opts: Sea
   for (let round = 1; round <= rounds; round++) {
     const expansions: Cand[] = [];
     for (const beam of beams) {
-      const gen = await proposeExtensionsAI(beam.abstract, target, K, { current: Math.round(beam.tScore), target: goal });
-      const cands: { gap: string; abstract: string }[] = Array.isArray(gen?.extensions) ? gen.extensions.slice(0, K) : [];
+      const gen = await proposeExtensionsAI(beam.abstract, target, K, { current: Math.round(beam.tScore), target: goal }).catch(() => null);
+      const cands: { gap: string; abstract: string }[] = Array.isArray((gen as any)?.extensions) ? (gen as any).extensions.slice(0, K) : [];
       const scored = await mapLimited(cands, 3, async (e) => ({
         gap: String(e?.gap || "").slice(0, 300),
         abstract: String(e?.abstract || ""),
