@@ -2989,6 +2989,32 @@ Return STRICT JSON only, plain text values (no markdown):
   ], { temperature: 0.4, maxTokens: 1500 });
 }
 
+// ---- Research Agent (Scientifiq, unified NL entry) ------------------------
+// Two-step: classify the question + extract params, then synthesize an answer
+// grounded ONLY in the evidence the route retrieved from the platform.
+export async function agentClassifyAI(question: string): Promise<any> {
+  const system = `You route a question to one capability of a science-intelligence platform (Scientifiq) and extract its parameters. Return STRICT JSON only:
+{
+  "intent": "experts" | "impact" | "landscape" | "other",
+  "topic": "the core technology, field, or topic, in a few words (or '')",
+  "scope": "an institution or region named in the question, else '' for global",
+  "abstract": "if the user pasted a paper/idea/abstract to evaluate, put its text here, else ''",
+  "restate": "one plain-language sentence restating what they want"
+}
+Intents:
+- experts: who works on X / who should I collaborate with / find people / who leads.
+- impact: score THIS idea or paper's potential (they pasted or described a specific piece of work).
+- landscape: map a field / where is X heading / what companies are active / the state of an area.
+- other: anything else.`;
+  return completeJson([{ role: "system", content: system }, { role: "user", content: question.slice(0, 4000) }], { temperature: 0.1, maxTokens: 500 });
+}
+
+export async function agentAnswerAI(question: string, restate: string, evidenceText: string): Promise<string> {
+  const system = `You are a research-intelligence analyst for the Scientifiq platform. Answer the user's question using ONLY the evidence provided (real results from the platform's data + models). Be specific, concise, and honest; cite the names and numbers from the evidence. Do not invent people, papers, or scores. If the evidence is thin, say so. Plain text — a few short paragraphs or a tight list.`;
+  const user = `QUESTION: ${question}\n\nWHAT THEY WANT: ${restate}\n\nEVIDENCE (from the platform):\n${evidenceText}`;
+  return complete([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens: 900 });
+}
+
 // ---- Licensing Brief (Scientifiq scouting) --------------------------------
 export async function licensingBriefAI(input: {
   abstract: string;
