@@ -9,7 +9,8 @@ type Bet = { id: number; headline: string; finalScore: number; gain: number; ste
 type Twin = { title: string; year?: number; score: number };
 type Lever = { term: string; lift: number; examples: string[] };
 type Grounding = { target: string; n: number; highMean: number; lowMean: number; levers: Lever[]; synthesis: { name: string; why: string }[]; topTwins: Twin[] };
-type Result = { target: string; goal?: number; baseline: Fingerprint; bets?: Bet[]; steps?: Step[]; grounding?: Grounding | null; stop: string };
+type Headroom = { current: number; ceiling: number };
+type Result = { target: string; goal?: number; baseline: Fingerprint; bets?: Bet[]; steps?: Step[]; grounding?: Grounding | null; headroom?: Headroom | null; stop: string };
 
 const LABEL: Record<string, string> = {
   commercial: "Commercial", scientific: "Scientific", social: "Social",
@@ -211,6 +212,15 @@ export default function ImpactOptimizerReport({ result }: { result: Result }) {
         </p>
         <div className="mt-1 text-sm text-slate-500">{STOP_NOTE[r.stop] || ""}</div>
         <p className="mt-2 text-xs text-slate2">A portfolio, not one path: each bet reaches the target through <span className="font-medium text-ink">genuinely different science</span>, with its own trade-offs. Diversify the wager.</p>
+
+        {/* AlphaZero value-to-go: the model's predicted reachable ceiling for this abstract */}
+        {r.headroom && r.headroom.ceiling > r.headroom.current && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-mist px-3 py-2">
+            <span className="rounded-full bg-ink px-2 py-0.5 text-[11px] font-semibold text-white">Value-to-go</span>
+            <span className="text-sm text-slate-600">Reachable ceiling <span className="font-bold text-ink tabular-nums">~{r.headroom.ceiling}</span> · untapped headroom <span className="font-bold text-sage tabular-nums">+{r.headroom.ceiling - r.headroom.current}</span></span>
+            <span className="text-[11px] text-slate-400">— the model's estimate of how high this work can climb</span>
+          </div>
+        )}
       </div>
 
       {r.grounding && (r.grounding.levers?.length > 0 || r.grounding.synthesis?.length > 0) && <GroundingPanel g={r.grounding} target={target} />}

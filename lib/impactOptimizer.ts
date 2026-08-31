@@ -9,7 +9,7 @@
 // ============================================================================
 
 import { scoreAbstract, scoreAbstractDimension, searchPapers, type SciPaper } from "./scientifiq";
-import { scoreText } from "./sciscore";
+import { scoreText, scoreTextBatch } from "./sciscore";
 import { proposeExtensionsAI, critiqueChainAI, groundLeversAI } from "./ai";
 
 export const OPTIMIZE_TARGETS = ["commercial", "scientific", "social", "complex_invention", "interdisciplinary", "defense"] as const;
@@ -54,8 +54,11 @@ export type Bet = { id: number; headline: string; finalScore: number; gain: numb
 export type Twin = { title: string; year?: number; score: number };
 export type Lever = { term: string; lift: number; examples: string[] };
 export type Grounding = { target: Target; n: number; highMean: number; lowMean: number; levers: Lever[]; synthesis: { name: string; why: string }[]; topTwins: Twin[] };
+// AlphaZero value-to-go: the reachable ceiling for the pasted abstract (present only
+// when a value_to_go_<target> model is deployed).
+export type Headroom = { current: number; ceiling: number };
 export type OptimizeResult = {
-  target: Target; goal: number; baseline: Fingerprint; bets: Bet[]; grounding?: Grounding | null;
+  target: Target; goal: number; baseline: Fingerprint; bets: Bet[]; grounding?: Grounding | null; headroom?: Headroom | null;
   stop: "reached" | "plateau" | "ceiling" | "maxRounds" | "no-improvement";
 };
 
@@ -98,7 +101,24 @@ const CEILING = 92;     // model practical ceiling (fixed)
 const LAMBDA = 0.55;    // default diversity weight in MMR (0 = pure reward, 1 = pure novelty)
 
 type SearchStep = { gap: string; abstract: string };
-type Cand = { chain: SearchStep[]; abstract: string; tScore: number; tokens: Set<string> };
+// tScore = actual current target score (drives goal/stop logic). rank = the score
+// used to CHOOSE which expansions to keep — the value-to-go-blended score when a
+// value model is deployed, else just tScore.
+type Cand = { chain: SearchStep[]; abstract: string; tScore: number; rank?: number; tokens: Set<string> };
+
+// AlphaZero value-to-go: batch-score the reachable ceiling for many abstracts in one
+// request. Returns null per item when no value_to_go_<target> model is deployed, so
+// the optimizer silently falls back to current-score ranking.
+const VALUE_WEIGHT = 0.65; // how much reachable-ceiling outweighs present score in ranking
+async function valueGuide(abstracts: string[], target: Target): Promise<(number | null)[]> {
+  if (!abstracts.length) return [];
+  try {
+    const res = await scoreTextBatch(`value_to_go_${target}`, abstracts);
+    return res.map((r) => (r ? Math.round(r.score * 100) : null));
+  } catch {
+    return abstracts.map(() => null);
+  }
+}
 
 const STOP_WORDS = new Set(("the and for with that this from have been were which their into more than then them your also such using used based show shows able many both each other over under most some less will would could here does about across while when where these those into onto within toward high higher raise raising improve improving increase increasing add adding new work study paper method approach result results data model models").split(/\s+/));
 function contentTokens(s: string): Set<string> {
@@ -115,7 +135,8 @@ function jaccard(a: Set<string>, b: Set<string>): number {
 // Maximal Marginal Relevance: top reward first, then greedily add whichever
 // remaining candidate maximizes reward − lambda·(max similarity to those chosen).
 function mmrSelect(cands: Cand[], n: number, lambda: number): Cand[] {
-  const pool = [...cands].sort((a, b) => b.tScore - a.tScore);
+  const reward = (c: Cand) => (c.rank ?? c.tScore) / 100; // value-to-go-blended when present
+  const pool = [...cands].sort((a, b) => reward(b) - reward(a));
   if (pool.length <= n) return pool;
   const selected: Cand[] = [pool.shift()!];
   while (selected.length < n && pool.length) {
@@ -123,7 +144,7 @@ function mmrSelect(cands: Cand[], n: number, lambda: number): Cand[] {
     for (let i = 0; i < pool.length; i++) {
       let maxSim = 0;
       for (const s of selected) maxSim = Math.max(maxSim, jaccard(pool[i].tokens, s.tokens));
-      const val = pool[i].tScore / 100 - lambda * maxSim;
+      const val = reward(pool[i]) - lambda * maxSim;
       if (val > bv) { bv = val; bi = i; }
     }
     selected.push(pool.splice(bi, 1)[0]);
@@ -237,6 +258,9 @@ export async function optimizeImpact(abstract: string, target: Target, opts: Sea
   // Decision-Transformer framing: set a return-to-go goal and generate the path to
   // it. Default to an ambitious-but-credible stretch above the baseline.
   const goal = Math.max(baseTarget + 5, Math.min(CEILING, Math.round(opts.targetLevel ?? Math.min(90, baseTarget + 25))));
+  // Value-to-go headroom for the pasted abstract (null unless the value model is live).
+  const rootV = (await valueGuide([abstract], target))[0];
+  const headroom: Headroom | null = rootV != null ? { current: baseTarget, ceiling: Math.max(rootV, baseTarget) } : null;
   let beams: Cand[] = [{ chain: [], abstract, tScore: baseTarget, tokens: new Set() }];
   let bestSoFar = baseTarget;
   let stop: OptimizeResult["stop"] = "maxRounds";
@@ -263,6 +287,10 @@ export async function optimizeImpact(abstract: string, target: Target, opts: Sea
     const uniq = expansions.filter((e) => { const k = e.abstract.slice(0, 200); if (seen.has(k)) return false; seen.add(k); return true; });
     const best = Math.max(...uniq.map((e) => e.tScore));
     if (best - bestSoFar < EPSILON) { stop = "plateau"; break; } // frontier stalled
+    // Value-to-go guidance: keep expansions by reachable ceiling, not just present
+    // score, so a low-now/high-ceiling path survives. No-op until the model is live.
+    const vs = await valueGuide(uniq.map((e) => e.abstract), target);
+    if (vs.some((v) => v != null)) uniq.forEach((e, i) => { e.rank = vs[i] != null ? Math.round((1 - VALUE_WEIGHT) * e.tScore + VALUE_WEIGHT * (vs[i] as number)) : e.tScore; });
     beams = mmrSelect(uniq, beamWide, lambda);
     bestSoFar = best;
     if (best >= goal) { stop = "reached"; break; }
@@ -310,5 +338,5 @@ export async function optimizeImpact(abstract: string, target: Target, opts: Sea
   const grounding = await groundingP;
   if (grounding?.levers?.length) for (const b of bets) b.grounded = betGrounding(b, grounding.levers);
 
-  return { target, goal, baseline, bets, stop, grounding };
+  return { target, goal, baseline, bets, stop, grounding, headroom };
 }

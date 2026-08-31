@@ -1,0 +1,15 @@
+name: value_to_go_commercial
+kind: regression
+encoder: scibert
+text_col: text
+label_col: label
+sample_size: 12000
+max_length: 256
+C: 1.0
+description: >
+  AlphaZero-style value-to-go for commercial potential. Predicts the BEST
+  commercial-potential score (0-1) an abstract can REACH after a few scientific
+  extensions — its achievable ceiling, not its current score. Trained on self-play
+  rollouts of the Impact Optimizer (ml/selfplay). Used to guide the optimizer's beam
+  by reachable ceiling instead of present value, and as a standalone "commercial
+  headroom" signal (headroom = value_to_go - current).
