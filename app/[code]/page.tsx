@@ -7,7 +7,7 @@ import { titleCaseName } from "@/lib/name";
 import { isAdmin } from "@/lib/admin";
 import { moduleBySlug, MODULES } from "@/lib/modules";
 import { SCITOOLS, RESEARCH_TOOLS } from "@/lib/researchTools";
-import { getOrgBySlug, type Org, type OrgHighlight, type OrgFaculty } from "@/lib/orgs";
+import { getOrgBySlug, canEditOrgBranding, type Org, type OrgHighlight, type OrgFaculty } from "@/lib/orgs";
 import { enterOrg } from "./actions";
 import Catalog from "@/components/Catalog";
 import Logo from "@/components/Logo";
@@ -210,6 +210,9 @@ async function OrgLandingView({ org }: { org: Org }) {
     } catch { /* service role not set */ }
   }
 
+  // Superadmin, or a director of THIS org, gets an inline "edit page" affordance.
+  const canEdit = user ? await canEditOrgBranding(user, org.id) : false;
+
   const accent = org.primary_color || "#3f7a52";
 
   // Everything below the hero is optional. Until a facilitator fills it in from
@@ -247,6 +250,11 @@ async function OrgLandingView({ org }: { org: Org }) {
   return (
     <main className="relative min-h-screen">
       {org.primary_color && <style dangerouslySetInnerHTML={{ __html: `:root{--brand:${org.primary_color};}` }} />}
+      {canEdit && (
+        <Link href="/org/settings" className="fixed right-4 top-4 z-50 inline-flex items-center gap-1.5 rounded-full border border-line bg-white/90 px-3 py-1.5 text-sm font-semibold text-ink shadow-soft backdrop-blur transition hover:shadow-lift no-print">
+          <span aria-hidden>✎</span> Edit this page
+        </Link>
+      )}
 
       {/* Hero — the image dissolves into the page below instead of a hard edge. */}
       <div className="relative overflow-hidden" style={{ background: org.hero_image_url ? `center/cover no-repeat url(${org.hero_image_url})` : `linear-gradient(135deg, color-mix(in srgb, ${accent} 12%, white), white)` }}>
