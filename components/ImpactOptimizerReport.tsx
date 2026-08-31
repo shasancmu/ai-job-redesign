@@ -3,7 +3,8 @@
 import { useState } from "react";
 
 type Fingerprint = Record<string, number>;
-type Step = { round: number; gap: string; abstract: string; gain: number; fingerprint: Fingerprint };
+type Precedent = { title: string; year?: number };
+type Step = { round: number; gap: string; abstract: string; gain: number; fingerprint: Fingerprint; legit?: boolean; concern?: string; precedent?: Precedent[] };
 type Result = { target: string; baseline: Fingerprint; steps: Step[]; stop: string };
 
 const LABEL: Record<string, string> = {
@@ -108,6 +109,14 @@ export default function ImpactOptimizerReport({ result }: { result: Result }) {
                   <div className="text-lg font-bold tabular-nums text-ink">{s.fingerprint[target] ?? "—"}<span className="text-xs text-slate-400">/100</span></div>
                   <div className="text-xs font-semibold text-sage">+{s.gain}</div>
                 </div>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2 pl-9">
+                {s.legit === false
+                  ? <span className="rounded-full bg-clay-soft px-2 py-0.5 text-[11px] font-semibold text-clay">⚠ Check: {s.concern || "may inflate framing over substance"}</span>
+                  : <span className="rounded-full bg-sage/10 px-2 py-0.5 text-[11px] font-semibold text-sage">✓ Plausible science</span>}
+                {s.precedent && s.precedent.length > 0
+                  ? <span className="text-[11px] text-slate-400"><span className="font-semibold text-slate2">Precedent:</span> {s.precedent.slice(0, 2).map((p) => p.title).join(" · ")}</span>
+                  : <span className="text-[11px] text-slate-400">No direct precedent found — novel, or worth checking</span>}
               </div>
               <button onClick={() => setOpen(open === i ? null : i)} className="mt-2 pl-9 text-xs font-medium text-sky hover:underline">{open === i ? "Hide" : "See the abstract at this step →"}</button>
               {open === i && <p className="mt-2 rounded-lg bg-mist p-3 text-sm leading-relaxed text-slate-700">{s.abstract}</p>}

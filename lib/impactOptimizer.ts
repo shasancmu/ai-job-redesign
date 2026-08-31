@@ -8,9 +8,9 @@
 // the target, rather than guessing. Server-only.
 // ============================================================================
 
-import { scoreAbstract, scoreAbstractDimension } from "./scientifiq";
+import { scoreAbstract, scoreAbstractDimension, searchPapers } from "./scientifiq";
 import { scoreText } from "./sciscore";
-import { proposeExtensionsAI } from "./ai";
+import { proposeExtensionsAI, critiqueChainAI } from "./ai";
 
 export const OPTIMIZE_TARGETS = ["commercial", "scientific", "social", "complex_invention", "interdisciplinary", "defense"] as const;
 export type Target = (typeof OPTIMIZE_TARGETS)[number];
@@ -42,7 +42,8 @@ async function mapLimited<T, R>(items: T[], concurrency: number, fn: (x: T) => P
 }
 
 export type Fingerprint = Record<string, number>; // dim -> 0..100 (defense only for directors)
-export type Step = { round: number; gap: string; abstract: string; gain: number; fingerprint: Fingerprint };
+export type Precedent = { title: string; year?: number };
+export type Step = { round: number; gap: string; abstract: string; gain: number; fingerprint: Fingerprint; legit?: boolean; concern?: string; precedent?: Precedent[] };
 export type OptimizeResult = {
   target: Target; baseline: Fingerprint; steps: Step[];
   stop: "plateau" | "ceiling" | "maxRounds" | "no-improvement";
@@ -66,42 +67,73 @@ async function fingerprint(abstract: string, includeDefense: boolean): Promise<F
   return fp;
 }
 
-// Iterative, compounding self-play: each round the AI proposes K next scientific
-// steps that build ON the current best; the (free) model-scorer picks the winner
-// on the TARGET; we fingerprint the winner on all dimensions, compound, and repeat.
-// Stops on diminishing returns, a ceiling, or a round cap. LLM cost is bounded to
-// ~one generation call per round.
-const MAX_ROUNDS = 4;
+// Beam self-play (tier 2): each round expand every beam with K proposals, keep the
+// top BEAM chains by target score — so a modest-gain step that unlocks a big
+// follow-on isn't pruned greedily. Search uses only the cheap target score; the
+// winning chain is then richly annotated: every step fingerprinted on all
+// dimensions (trade-offs), grounded in real literature (precedent), and reviewed
+// by a skeptical critic (tier 3, gaming check). Stops on diminishing returns,
+// a ceiling, or a round cap.
+const MAX_ROUNDS = 3;
 const K = 3;
+const BEAM = 2;
 const EPSILON = 2;
 const CEILING = 92;
 
+type SearchStep = { gap: string; abstract: string };
+type BeamState = { abstract: string; tScore: number; chain: SearchStep[] };
+
 export async function optimizeImpact(abstract: string, target: Target, opts: { includeDefense?: boolean } = {}): Promise<OptimizeResult> {
   const includeDefense = !!opts.includeDefense;
-  const baseline = await fingerprint(abstract, includeDefense);
-  let current = abstract;
-  let prev = baseline[target] ?? 0;
-  const steps: Step[] = [];
+  const baseTarget = Math.max(0, await scoreTarget(abstract, target));
+  let beams: BeamState[] = [{ abstract, tScore: baseTarget, chain: [] }];
+  let bestSoFar = baseTarget;
   let stop: OptimizeResult["stop"] = "maxRounds";
 
   for (let round = 1; round <= MAX_ROUNDS; round++) {
-    const gen = await proposeExtensionsAI(current, target, K);
-    const cands: { gap: string; abstract: string }[] = Array.isArray(gen?.extensions) ? gen.extensions.slice(0, K) : [];
-    const scored = await mapLimited(cands, 3, async (e) => ({
-      gap: String(e?.gap || "").slice(0, 300),
-      abstract: String(e?.abstract || ""),
-      score: e?.abstract && e.abstract.length >= 60 ? await scoreTarget(e.abstract, target) : -1,
-    }));
-    const valid = scored.filter((e) => e.score >= 0);
-    if (!valid.length) { stop = "no-improvement"; break; }
-    const best = valid.reduce((a, b) => (b.score > a.score ? b : a));
-    if (best.score - prev < EPSILON) { stop = "plateau"; break; } // diminishing returns
-    const fp = await fingerprint(best.abstract, includeDefense);
-    const tScore = fp[target] ?? best.score;
-    steps.push({ round, gap: best.gap, abstract: best.abstract, gain: tScore - prev, fingerprint: fp });
-    current = best.abstract;
+    const expansions: { parent: BeamState; gap: string; abstract: string; score: number }[] = [];
+    for (const beam of beams) {
+      const gen = await proposeExtensionsAI(beam.abstract, target, K);
+      const cands: { gap: string; abstract: string }[] = Array.isArray(gen?.extensions) ? gen.extensions.slice(0, K) : [];
+      const scored = await mapLimited(cands, 3, async (e) => ({
+        gap: String(e?.gap || "").slice(0, 300),
+        abstract: String(e?.abstract || ""),
+        score: e?.abstract && e.abstract.length >= 60 ? await scoreTarget(e.abstract, target) : -1,
+      }));
+      for (const s of scored) if (s.score >= 0) expansions.push({ parent: beam, gap: s.gap, abstract: s.abstract, score: s.score });
+    }
+    if (!expansions.length) { stop = "no-improvement"; break; }
+    expansions.sort((a, b) => b.score - a.score);
+    // keep the top BEAM, deduped by abstract
+    const top: typeof expansions = [];
+    const seen = new Set<string>();
+    for (const e of expansions) { const k = e.abstract.slice(0, 200); if (seen.has(k)) continue; seen.add(k); top.push(e); if (top.length >= BEAM) break; }
+    if (top[0].score - bestSoFar < EPSILON) { stop = "plateau"; break; }
+    bestSoFar = Math.max(bestSoFar, top[0].score);
+    beams = top.map((e) => ({ abstract: e.abstract, tScore: e.score, chain: [...e.parent.chain, { gap: e.gap, abstract: e.abstract }] }));
+    if (top[0].score >= CEILING) { stop = "ceiling"; break; }
+  }
+
+  const bestBeam = beams.reduce((a, b) => (b.tScore > a.tScore ? b : a));
+  const chain = bestBeam.chain;
+
+  // Annotate the winning chain: baseline + per-step fingerprint, literature
+  // precedent, and the skeptical critic's verdict.
+  const baseline = await fingerprint(abstract, includeDefense);
+  const critique = chain.length ? await critiqueChainAI({ original: abstract, target, gaps: chain.map((c) => c.gap) }).catch(() => null) : null;
+  const verdicts: any[] = Array.isArray(critique?.verdicts) ? critique.verdicts : [];
+
+  const steps: Step[] = [];
+  let prev = baseline[target] ?? baseTarget;
+  for (let i = 0; i < chain.length; i++) {
+    const c = chain[i];
+    const [fp, precedent] = await Promise.all([
+      fingerprint(c.abstract, includeDefense),
+      searchPapers({ search: c.gap, order: "commPot", limit: 3 }).then((r) => (r.papers || []).slice(0, 3).map((p) => ({ title: p.title, year: p.year }))).catch(() => [] as Precedent[]),
+    ]);
+    const tScore = fp[target] ?? 0;
+    steps.push({ round: i + 1, gap: c.gap, abstract: c.abstract, gain: tScore - prev, fingerprint: fp, legit: verdicts[i]?.legit !== false, concern: verdicts[i]?.concern || "", precedent });
     prev = tScore;
-    if (tScore >= CEILING) { stop = "ceiling"; break; }
   }
 
   return { target, baseline, steps, stop };

@@ -3085,6 +3085,20 @@ Return STRICT JSON only, plain text:
   ], { temperature: 0.4, maxTokens: 1400 });
 }
 
+// A skeptical reviewer that flags impact-inflation vs. real science.
+export async function critiqueChainAI(input: { original: string; target: string; gaps: string[] }): Promise<any> {
+  const label = TARGET_LABEL[input.target] || input.target;
+  const list = input.gaps.map((g, i) => `${i + 1}. ${g}`).join("\n");
+  const system = `You are a strict, skeptical domain reviewer. You are given an original abstract and a sequence of proposed scientific extensions meant to raise its ${label}. For EACH extension, judge honestly: is it (a) a legitimate, plausible next piece of science a competent group could actually do, that would genuinely raise real-world impact — or (b) does it mostly ADD IMPACT-SOUNDING LANGUAGE (scale, economics, "industrial", "at scale") without adding real scientific capability, i.e. gaming the score? Mark legit=false if it is vague, hand-wavy, unfalsifiable, or inflates framing more than substance.
+
+Return STRICT JSON only, one verdict per extension IN ORDER:
+{ "verdicts": [ { "legit": true, "concern": "one line, empty if legit" } ] }`;
+  return completeJson([
+    { role: "system", content: system },
+    { role: "user", content: `ORIGINAL:\n${input.original.slice(0, 2500)}\n\nPROPOSED EXTENSIONS:\n${list}` },
+  ], { temperature: 0.2, maxTokens: 1000 });
+}
+
 // ---- Licensing Brief (Scientifiq scouting) --------------------------------
 export async function licensingBriefAI(input: {
   abstract: string;
