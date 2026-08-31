@@ -66,6 +66,7 @@ export type ModuleDef = {
     | "licensing-brief"
     | "score-invention"
     | "defense-impact"
+    | "explain"
     | "position-research"
     | "rank-disclosures"
     | "find-cofounder"
@@ -728,6 +729,22 @@ export const MODULES: ModuleDef[] = [
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_LICENSING",
     hidden: true,
+    forSale: false,
+  },
+  {
+    slug: "explain-ai",
+    exercise: "explain",
+    name: "ExplainAI",
+    tagline: "Paste a paper's abstract and get it translated into plain language, framed for a policymaker, an investor, a researcher in another field, and the public — plus the jargon, translated.",
+    description:
+      "Bridges the gap between a discovery and the people who can use it, built on Scientifiq.AI. Paste an abstract and ExplainAI writes a jargon-free gist, then reframes the work for four audiences — a policymaker (the problem it speaks to and the public stake), an investor or industry R&D team (what could be built, and what's still unproven), a researcher in another field (the transferable idea or method they could borrow), and the public (what it means for everyday life) — and translates the key technical terms. Turns complex research into something anyone can act on.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 2,
+    ai: true,
+    emoji: "💬",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_LICENSING",
     forSale: false,
   },
   {
@@ -1469,6 +1486,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "licensing-brief": "commercialize",
   "score-my-invention": "commercialize",
   "defense-impact": "commercialize",
+  "explain-ai": "commercialize",
   "position-my-research": "research",
   "rank-disclosures": "commercialize",
   "find-a-cofounder": "commercialize",

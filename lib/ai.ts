@@ -3015,6 +3015,29 @@ export async function agentAnswerAI(question: string, restate: string, evidenceT
   return complete([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens: 900 });
 }
 
+// ---- ExplainAI (Scientifiq, plain-language translation) -------------------
+// One paper -> plain-language framings for distinct audiences. The proposal's
+// "translate complex research into plain language" deliverable.
+export async function explainAI(input: { abstract: string; title?: string }): Promise<any> {
+  const system = `You translate a piece of research into plain language for several audiences. You are given an abstract. Be accurate and concrete; never overclaim or invent findings. Keep the plain-language parts jargon-free — if a technical term is unavoidable, translate it.
+
+Return STRICT JSON only, plain text values (no markdown):
+{
+  "gist": "one plain sentence: what this work is and why it might matter, no jargon",
+  "audiences": [
+    { "who": "Policymaker", "care": "one line on why they'd care", "plain": "2-3 plain sentences: the real-world problem it speaks to and the potential public benefit or risk" },
+    { "who": "Investor or industry R&D", "care": "one line", "plain": "the commercial angle — what could be built, for whom, and what is still unproven" },
+    { "who": "A researcher in another field", "care": "one line", "plain": "the transferable idea or method they could borrow, and how it connects to their work" },
+    { "who": "The public", "care": "one line", "plain": "what it means for everyday life, in concrete terms a curious non-expert would follow" }
+  ],
+  "jargon": [ { "term": "a key technical term from the abstract", "plain": "its plain-language meaning" } ]
+}`;
+  return completeJson([
+    { role: "system", content: system },
+    { role: "user", content: `RESEARCH${input.title ? ` — ${input.title}` : ""}:\n${input.abstract.slice(0, 5000)}` },
+  ], { temperature: 0.5, maxTokens: 1700 });
+}
+
 // ---- Licensing Brief (Scientifiq scouting) --------------------------------
 export async function licensingBriefAI(input: {
   abstract: string;

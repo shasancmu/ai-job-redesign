@@ -34,6 +34,7 @@ import FindCollaboratorsRoom from "@/components/FindCollaboratorsRoom";
 import LicensingBriefRoom from "@/components/LicensingBriefRoom";
 import ScoreInventionRoom from "@/components/ScoreInventionRoom";
 import DefenseImpactRoom from "@/components/DefenseImpactRoom";
+import ExplainRoom from "@/components/ExplainRoom";
 import PositionResearchRoom from "@/components/PositionResearchRoom";
 import RankDisclosuresRoom from "@/components/RankDisclosuresRoom";
 import FindCofounderRoom from "@/components/FindCofounderRoom";
@@ -252,15 +253,16 @@ export default async function RoomPage({
       : <LicensingBriefRoom session={session} initialWorkspace={iw} />;
   }
 
-  // Scientifiq abstract-scoring family (score/defense/position/rank). Host only.
-  if (["score-invention", "defense-impact", "position-research", "rank-disclosures"].includes(session.exercise || "")) {
+  // Scientifiq abstract-scoring family (score/defense/explain/position/rank). Host only.
+  if (["score-invention", "defense-impact", "explain", "position-research", "rank-disclosures"].includes(session.exercise || "")) {
     if (!amHost) redirect("/dashboard");
-    // Defense Impact is superadmin-only.
+    // Defense Impact is director-only.
     if (session.exercise === "defense-impact" && !(await isDirectorOrAdmin(user))) redirect("/dashboard");
     await supabase.from("workspaces").upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
     const { data: workspace } = await supabase.from("workspaces").select("*").eq("session_id", session.id).eq("author_id", user.id).maybeSingle();
     const iw = workspace || { session_id: session.id, author_id: user.id };
     if (session.exercise === "defense-impact") return <DefenseImpactRoom session={session} initialWorkspace={iw} />;
+    if (session.exercise === "explain") return <ExplainRoom session={session} initialWorkspace={iw} />;
     if (session.exercise === "position-research") return <PositionResearchRoom session={session} initialWorkspace={iw} />;
     if (session.exercise === "rank-disclosures") return <RankDisclosuresRoom session={session} initialWorkspace={iw} />;
     return <ScoreInventionRoom session={session} initialWorkspace={iw} />;

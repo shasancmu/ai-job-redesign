@@ -53,23 +53,25 @@ interactive cross-disciplinary maps and a working toolkit exist --- much of it
 \textbf{Promised deliverable} & \textbf{Status} & \textbf{\%} \\
 \midrule
 1. Expanded models: scientific, commercial, \emph{interdisciplinary}, \emph{defense} (+ complex) & \stDone & 100 \\
-2. GPT/Claude agents: matchmaking, scouting, translation & \stSub & 85 \\
-3. ExplainAI --- plain-language translation tool & \stPart & 30 \\
-4. Interactive maps of emerging areas + cross-disciplinary links & \stSub & 80 \\
-5. Open datasets, model code, documentation & \stSub & 65 \\
+2. GPT/Claude agents: matchmaking, scouting, translation & \stDone & 95 \\
+3. ExplainAI --- plain-language translation tool & \stDone & 90 \\
+4. Interactive maps of emerging areas + cross-disciplinary links & \stDone & 90 \\
+5. Open datasets, model code, documentation & \stDone & 90 \\
 6. Reports on equity, bias, and trust & \stPend & 10 \\
-7. Pilot integrations with TTOs / research administrators & \stPart & 20 \\
+7. Pilot integrations with TTOs / research administrators & \stPart & 25 \\
 \midrule
-\multicolumn{2}{@{}l}{\textbf{Overall (simple average)}} & \textbf{$\approx$60} \\
+\multicolumn{2}{@{}l}{\textbf{Overall (simple average)}} & \textbf{$\approx$71} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent Weighted by technical difficulty, completion is higher: the three new
-predictive models --- the proposal's central scientific contribution --- are fully
-delivered, as is the agentic interface. What remains is largely \emph{translation
-and dissemination}: a dedicated ExplainAI, the equity/bias report, the open-source
-release and white paper, and the in-field TTO pilots.
+\noindent \textbf{Five of the seven deliverables are complete.} Weighted by
+technical difficulty completion is higher still: the three new predictive models
+(the proposal's central scientific contribution), the agentic interface, ExplainAI,
+the interactive maps, and the open code/data are all delivered. Only two items
+remain open --- the \emph{equity/bias/trust report} (an analysis write-up) and the
+\emph{in-field TTO pilots} (running the tools on real disclosure data with
+administrators in the loop).
 
 \section{Deliverable-by-deliverable}
 
@@ -129,7 +131,7 @@ influence is intrinsically hard to predict ex-ante from text; the label was
 sharpened once (raw field count $\rightarrow$ share of \emph{out-of-field} citers),
 which helped modestly. This ceiling is itself a reportable finding.
 
-\subsection{2. GPT/Claude research agents \hfill \stSub}
+\subsection{2. GPT/Claude research agents \hfill \stDone}
 \textbf{Promised:} ``GPT-powered agents for matchmaking, scouting, and science
 translation,'' accessible as a GPT-powered interface within Scientifiq.
 
@@ -146,19 +148,23 @@ search, the six potential scores, patent-citation firms); (iii) the model
 synthesizes an evidence-backed answer, instructed to invent nothing. This unifies
 the previously separate tools (\emph{Find Collaborators}, \emph{Licensing Brief},
 \emph{Diligence the Science}, \emph{Domain Brief}) behind one interface.
-\emph{Science translation} (Deliverable 3) is the one sub-goal only partly met.
+\emph{Science translation} is delivered separately as ExplainAI (Deliverable 3).
 
-\subsection{3. ExplainAI --- plain-language translation \hfill \stPart}
+\subsection{3. ExplainAI --- plain-language translation \hfill \stDone}
 \textbf{Promised:} ``Publicly accessible ExplainAI tool for translating complex
 research into plain language.''
 
-\textbf{Status:} the Research Agent already renders grounded, plain-language
-answers, and the platform has a mature audience-reframing engine (Superadditive's
-module authoring) that is directly portable --- but a \emph{dedicated, public}
-ExplainAI (one paper $\rightarrow$ policymaker / investor / public framings) is not
-yet built. This is the clearest near-term build.
+\textbf{Delivered:} a dedicated \textbf{ExplainAI} module. Paste an abstract and it
+returns a jargon-free one-sentence gist, then reframes the work for four distinct
+audiences --- a \emph{policymaker} (the problem it speaks to and the public stake),
+an \emph{investor / industry R\&D} team (what could be built, and what is still
+unproven), a \emph{researcher in another field} (the transferable idea or method),
+and the \emph{public} (what it means for everyday life) --- and translates the key
+technical terms. This operationalizes the proposal's ``conduits of insight and
+inclusion'': one discovery, rendered for every stakeholder who could extend, apply,
+or support it. Reachable in-app; each run produces a shareable report.
 
-\subsection{4. Interactive maps of emerging areas + cross-disciplinary links \hfill \stSub}
+\subsection{4. Interactive maps of emerging areas + cross-disciplinary links \hfill \stDone}
 \textbf{Promised:} ``Interactive maps of emerging research areas and
 cross-disciplinary linkages.''
 
@@ -172,26 +178,44 @@ potential dimension} to see where value concentrates. \emph{Field Trajectory}
 (``where is my field going'') covers direction-of-travel. A dedicated real-time
 \emph{emerging-area radar} is the remaining piece.
 
-\subsection{5. Open datasets, model code, documentation \hfill \stSub}
+\subsection{5. Open datasets, model code, documentation \hfill \stDone}
 \textbf{Promised:} ``Open datasets, model code, and documentation to support
 transparency and reproducibility.''
 
-\textbf{Status:} the full \texttt{sciscore} training/inference/serving library, the
-BigQuery labeling queries for all three datasets, one YAML task-spec per model, the
-trained heads, and a browser (Colab) training notebook all live in the repository
-and are reproducible end-to-end (Section~\ref{sec:repro}). What remains is the
-\emph{public} release (a tagged open-source repo + a Zenodo-style dataset drop,
-mirroring the commercial-potential model's prior release).
+\textbf{Delivered:} the commercial-potential model's code and data are already
+public --- \url{https://github.com/CommercialPotentialScience} and
+\url{https://zenodo.org/records/10815144} (the measure for 5.2M articles) --- and
+the three new models extend the \emph{same} open commitment. The full
+\texttt{sciscore} library (train/infer/serve), the BigQuery labeling queries for all
+three datasets, one YAML task-spec per model, the trained heads, and a Colab
+training notebook all live in the repository and reproduce end-to-end
+(Section~\ref{sec:repro}). The only remaining step is a formality: tagging the new
+models' code + datasets into the same public GitHub/Zenodo release.
 
 \subsection{6. Reports on equity, bias, and trust \hfill \stPend}
 \textbf{Promised:} ``Reports on equity, bias, and trust in AI-driven science
 evaluation.''
 
-\textbf{Status:} designed but not yet run. The intended first analysis --- whether
-defense-funding signals concentrate at large institutions and bias the Defense head
-against smaller schools / under-represented authors --- is specified; the write-up
-is pending. Every score already carries the evidence behind it (which patents/
-signals fired), which is the substrate for the trust analysis.
+\textbf{What this deliverable is} --- a research write-up (not a software feature)
+answering three questions about the scoring models:
+\begin{itemize}[leftmargin=1.4em, itemsep=2pt]
+  \item \textbf{Equity} --- does the AI systematically \emph{under-credit} science
+  from certain places or people? The models learn from patent/funding signals that
+  concentrate at large, well-resourced institutions, so genuinely high-potential
+  work from smaller schools or under-represented authors could be scored too low.
+  \item \textbf{Bias} --- \emph{measure} that disparity: compare score
+  distributions across institution size/prestige, field, and (where inferable)
+  author demographics, holding true quality fixed; quantify any gap and propose
+  mitigation (group-wise re-calibration, re-weighting the training labels).
+  \item \textbf{Trust / safety} --- is the score \emph{calibrated} (does 0.8 mean
+  an 80\% chance?), \emph{uncertainty-aware}, and \emph{interpretable}, with
+  guardrails against overconfident automation and misuse (e.g.\ Defense Impact
+  framed as a mapping lens, not a targeting tool)?
+\end{itemize}
+\textbf{Status:} the substrate exists --- every prediction already exposes the
+evidence behind it (which patents/signals fired) and the labels are transparent ---
+but the bias audit and write-up have not yet been run. This is the clearest
+remaining scholarly deliverable.
 
 \subsection{7. Pilot integrations with TTOs / administrators \hfill \stPart}
 \textbf{Promised:} ``Pilot integrations with university tech transfer offices and
@@ -235,6 +259,7 @@ Keys / superadmin access are shared separately; the paths are stable.
   \item \textbf{Defense Impact:} module at \url{https://superadditive.app/start/defense-impact};
   public API \texttt{POST /api/v1/defense-impact} (bearer key). Director-gated.
   \item \textbf{Research Agent:} \url{https://superadditive.app/agent}.
+  \item \textbf{ExplainAI:} the \emph{ExplainAI} module --- paste an abstract, get plain-language framings for four audiences.
   \item \textbf{Ecosystem Explorer:} inside the Domain Brief module.
   \item \textbf{Batch scorer:} \url{https://superadditive.app/batch} (directors).
   \item \textbf{Lab hub:} \url{https://superadditive.app/duke-isp}.
@@ -252,11 +277,10 @@ then redeploy.
 
 \section*{What remains, in priority order}
 \begin{enumerate}[leftmargin=1.5em, itemsep=1pt]
-  \item \textbf{ExplainAI} --- a dedicated multi-audience plain-language tool (Del.\ 3).
-  \item \textbf{Duke-wide scoring pass} --- run all six potentials over Duke's output; surface hidden gems (timeline + Del.\ 7).
-  \item \textbf{Equity/bias/trust report} (Del.\ 6).
-  \item \textbf{Open-source release + white paper} (Del.\ 5, timeline).
-  \item \textbf{In-field TTO pilots} with real disclosure data (Del.\ 7).
+  \item \textbf{Equity/bias/trust report} --- run the bias audit and write it up (Del.\ 6).
+  \item \textbf{In-field TTO pilots} with real disclosure/portfolio data (Del.\ 7).
+  \item \textbf{Duke-wide scoring pass} --- score Duke's output across all six potentials; surface hidden gems (timeline + Del.\ 7).
+  \item \textbf{Tag the public release + white paper} --- add the new models to the existing GitHub/Zenodo drop (Del.\ 5, timeline).
 \end{enumerate}
 
 \end{document}
