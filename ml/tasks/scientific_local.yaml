@@ -1,0 +1,13 @@
+name: scientific_local
+kind: regression
+encoder: scibert
+text_col: text
+label_col: scientific
+sample_size: 12000
+max_length: 256
+C: 1.0
+description: >
+  Local surrogate of Scientifiq scientific potential. A frozen-SciBERT regression
+  head trained on real (abstract, pub_scipot/100) pairs from BigQuery — a fast,
+  in-process, rate-limit-free scorer that stands in for the /sandbox/scientific
+  endpoint during bulk self-play (and as an app fallback). Predicts pub_scipot in 0-1.

@@ -30,26 +30,54 @@ bq query --use_legacy_sql=false --max_rows=2000 --format=csv \
 ```
 Any CSV with an `abstract`/`text` column (or JSONL with that field) works.
 
-### 2. Self-play → dataset (the one-time token spend)
+### 1b. Train the local surrogate scorers (removes the Scientifiq bottleneck)
+Scientifiq's `/sandbox` is an interactive ~3s endpoint that 502s under bulk load — no
+good for self-play. Instead, **distill a local scorer** from the corpus: the `pubs`
+table carries `pub_compot`/`pub_scipot` (Scientifiq's own potential scores) for every
+paper, so we train a frozen-SciBERT regression head to reproduce them. Fast, free, no
+rate limit. Already trained and committed as `commercial_local` / `scientific_local`
+(R² ≈ 0.49 / 0.39 — on par with the sandbox's own fit to `pub_compot`). To retrain:
+```bash
+# pull labels (bq): pub_abstract AS text, pub_compot/100 AS commercial, pub_scipot/100 AS scientific
+python -m ml.sciscore.cli train --task ml/tasks/commercial_local.yaml \
+  --data ml/selfplay/data/potential_train.csv --out ml/models/commercial_local
+```
+
+### 2. Self-play → dataset
 ```bash
 cd "$(git rev-parse --show-toplevel)"
 source ml/.venv/bin/activate
-set -a; . ml/selfplay/.env; set +a          # AI_API_KEY, SCIENTIFIQ_API_KEY, …
+export AI_API_KEY=…            # Anthropic key (proposer); this is the only cost
 
-# smoke test first — 3 roots, ~seconds, ~pennies:
+# smoke test first — 3 roots:
 python -m ml.selfplay.rollout --abstracts ml/selfplay/data/abstracts.csv \
-  --out /tmp/vtg_smoke.csv --limit 3
+  --out /tmp/vtg_smoke.csv --scorer local --limit 3
 
-# full run — commercial, depth 3, beam 3, 4 proposals/step, 1500 roots:
+# full run — commercial, depth 3, beam 3, 4 proposals/step, 1500 roots, LOCAL scorer:
 python -m ml.selfplay.rollout --abstracts ml/selfplay/data/abstracts.csv \
   --out ml/selfplay/data/valuetogo_commercial.csv \
-  --target commercial --depth 3 --beam 3 --k 4 --limit 1500 --concurrency 8
+  --target commercial --scorer local --depth 3 --beam 3 --k 4 --limit 1500 --concurrency 6
 ```
-Output is a `text,label` CSV (label = value-to-go in 0–1). Writes incrementally and
-appends, so it's crash-safe and resumable. Proposer = **Haiku** (cheap); scoring is
-free. Rough spend: ~`1 + beam·(depth−1)` proposer calls per root (≈7 at the defaults)
-→ ~1500 roots ≈ 10k Haiku calls, one time. ~1500 roots yields ~8–12k labeled states —
-the volume the other heads trained on.
+`--scorer local` (the default) scores in-process against the surrogate — no network,
+no rate limit. `--scorer scientifiq` uses the real sandbox (keep `--score-concurrency`
+low, ≤6, or it 502s). Output is a `text,label` CSV (label = value-to-go in 0–1),
+written incrementally (crash-safe, resumable). ~1500 roots ≈ 10k proposer calls →
+~8–12k labeled states.
+
+**Fully local & free (proposer too).** The only remaining cost is the LLM proposer.
+Point it at a local server — the harness's OpenAI-compatible path already supports it,
+no code change:
+```bash
+# e.g. Ollama:  ollama serve && ollama pull llama3.1
+export AI_BASE_URL=http://localhost:11434/v1
+export PROPOSER_MODEL=llama3.1
+export AI_API_KEY=ollama        # any non-empty string
+python -m ml.selfplay.rollout --abstracts ml/selfplay/data/abstracts.csv \
+  --out ml/selfplay/data/valuetogo_commercial.csv --scorer local --limit 1500
+```
+Now the whole loop — proposer + scorer — runs on your M5: zero API cost, zero rate
+limits, generate as much data as you want. (Match the proposer to whatever the app
+uses in production for the closest on-distribution training; Haiku is the app default.)
 
 ### 3. Train the head (M5, minutes)
 ```bash

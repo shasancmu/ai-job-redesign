@@ -1,0 +1,13 @@
+name: commercial_local
+kind: regression
+encoder: scibert
+text_col: text
+label_col: commercial
+sample_size: 12000
+max_length: 256
+C: 1.0
+description: >
+  Local surrogate of Scientifiq commercial potential. A frozen-SciBERT regression
+  head trained on real (abstract, pub_compot/100) pairs from BigQuery — a fast,
+  in-process, rate-limit-free scorer that stands in for the /sandbox/commercial
+  endpoint during bulk self-play (and as an app fallback). Predicts pub_compot in 0-1.

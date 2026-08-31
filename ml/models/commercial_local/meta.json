@@ -1,0 +1,11 @@
+{
+  "task": "commercial_local",
+  "kind": "regression",
+  "encoder": "scibert",
+  "max_length": 256,
+  "dim": 768,
+  "n_train": 10200,
+  "n_val": 1800,
+  "description": "Local surrogate of Scientifiq commercial potential. A frozen-SciBERT regression head trained on real (abstract, pub_compot/100) pairs from BigQuery \u2014 a fast, in-process, rate-limit-free scorer that stands in for the /sandbox/commercial endpoint during bulk self-play (and as an app fallback). Predicts pub_compot in 0-1.\n",
+  "val_r2": 0.4878498911857605
+}

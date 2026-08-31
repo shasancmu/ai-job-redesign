@@ -54,6 +54,9 @@ TARGET_LABEL = {
 }
 NATIVE = {"commercial", "scientific", "social"}  # scored by Scientifiq sandbox
 SCISCORE_TASK = {"defense": "defense_impact", "complex_invention": "complex_invention", "interdisciplinary": "interdisciplinary"}
+# local surrogate models (ml/tasks/*_local.yaml, trained on pub_compot/pub_scipot):
+# a fast, free, in-process stand-in for the Scientifiq sandbox during bulk self-play.
+LOCAL_TASK = {"commercial": "commercial_local", "scientific": "scientific_local", "social": "social_local"}
 
 
 @dataclass
@@ -71,6 +74,7 @@ class Cfg:
     k: int
     scorer: str
     concurrency: int
+    model_dir: str
 
 
 def load_cfg(args) -> Cfg:
@@ -89,6 +93,7 @@ def load_cfg(args) -> Cfg:
         k=args.k,
         scorer=args.scorer,
         concurrency=args.concurrency,
+        model_dir=args.model_dir,
     )
 
 
@@ -125,6 +130,52 @@ async def score(client: httpx.AsyncClient, cfg: Cfg, abstract: str) -> float:
         async with _score_sem:
             return await _score(client, cfg, abstract)
     return await _score(client, cfg, abstract)
+
+
+# in-process local surrogate predictors (loaded once per task)
+_predictors: dict = {}
+
+
+def _local_task(target: str) -> str:
+    return LOCAL_TASK.get(target) or SCISCORE_TASK.get(target, target)
+
+
+def _get_predictor(task: str, model_dir: str):
+    if task not in _predictors:
+        import os as _os
+        from ml.sciscore.infer import Predictor
+        path = _os.path.join(model_dir, task)
+        if not _os.path.isdir(path):
+            raise SystemExit(f"No local model at {path}. Train it first (see ml/selfplay/README.md).")
+        _predictors[task] = Predictor(path)
+    return _predictors[task]
+
+
+async def score_many(client: httpx.AsyncClient, cfg: Cfg, abstracts: list[str]) -> list[float]:
+    """Score a batch. Local: one batched SciBERT forward pass off the event loop
+    (fast, free). Remote: individual throttled calls."""
+    if not abstracts:
+        return []
+    if cfg.scorer == "local":
+        task = _local_task(cfg.target)
+        pred = _get_predictor(task, cfg.model_dir)
+
+        # Synchronous batched forward pass. torch inference off the main thread
+        # segfaults on macOS, so we score inline; a batch is fast (~100ms) and the
+        # brief block is fine since scoring, not the event loop, is the bottleneck.
+        valid = [(i, a) for i, a in enumerate(abstracts) if len(a.strip()) >= 40]
+        out = [-1.0] * len(abstracts)
+        if not valid:
+            return out
+        try:
+            res = pred.score([a[:5000] for _, a in valid])
+            for (i, _), r in zip(valid, res):
+                v = r.get("score")
+                out[i] = float(v) if isinstance(v, (int, float)) else -1.0
+        except Exception:  # noqa: BLE001
+            pass
+        return out
+    return await asyncio.gather(*[score(client, cfg, a) for a in abstracts])
 
 
 async def _score(client: httpx.AsyncClient, cfg: Cfg, abstract: str) -> float:
@@ -260,7 +311,7 @@ class Chain:
 async def rollout_root(client: httpx.AsyncClient, cfg: Cfg, root: str) -> dict[str, float]:
     """Beam self-play from `root`. Returns {abstract: value_to_go} for every state
     visited on a retained chain. value_to_go = best score reachable from that state."""
-    base = await score(client, cfg, root)
+    base = (await score_many(client, cfg, [root]))[0]
     if base < 0:
         return {}
     # the return-to-go goal the proposer conditions on (matches the app's default stretch)
@@ -271,15 +322,13 @@ async def rollout_root(client: httpx.AsyncClient, cfg: Cfg, root: str) -> dict[s
         # expand every chain
         proposals = await asyncio.gather(*[propose(client, cfg, c.abstracts[-1], cfg.k, c.scores[-1], goal) for c in chains])
         cand: list[Chain] = []
-        score_jobs = []
-        meta = []  # (parent_chain, gap, child_abstract)
+        meta = []  # (parent_chain, child_abstract)
         for parent, exts in zip(chains, proposals):
             for e in exts:
-                score_jobs.append(score(client, cfg, e["abstract"]))
                 meta.append((parent, e["abstract"]))
-        if not score_jobs:
+        if not meta:
             break
-        child_scores = await asyncio.gather(*score_jobs)
+        child_scores = await score_many(client, cfg, [a for _, a in meta])
         for (parent, child_abs), sc in zip(meta, child_scores):
             if sc < 0:
                 continue
@@ -349,6 +398,9 @@ async def main_async(args):
     global _score_sem
     cfg = load_cfg(args)
     _score_sem = asyncio.Semaphore(args.score_concurrency)
+    if cfg.scorer == "local":  # load SciBERT once, before any worker races on it
+        print(f"Loading local scorer '{_local_task(cfg.target)}' from {cfg.model_dir}…", file=sys.stderr)
+        _get_predictor(_local_task(cfg.target), cfg.model_dir)
     if not cfg.ai_key:
         raise SystemExit("Set AI_API_KEY (or ANTHROPIC_API_KEY) for the proposer.")
     if cfg.scorer == "scientifiq" and not cfg.sci_key:
@@ -404,9 +456,11 @@ def main():
     p.add_argument("--beam", type=int, default=3, help="beam width (retained chains per step)")
     p.add_argument("--k", type=int, default=4, help="proposals per state per step")
     p.add_argument("--limit", type=int, default=0, help="cap number of root abstracts (0 = all)")
-    p.add_argument("--scorer", default="scientifiq", choices=["scientifiq", "sciscore"])
+    p.add_argument("--scorer", default="local", choices=["local", "scientifiq", "sciscore"],
+                   help="local = in-process surrogate (fast/free, default); scientifiq = /sandbox (rate-limited); sciscore = your Cloud Run service")
+    p.add_argument("--model-dir", default="ml/models", help="dir of local sciscore models (for --scorer local)")
     p.add_argument("--concurrency", type=int, default=6, help="concurrent roots")
-    p.add_argument("--score-concurrency", type=int, default=6, help="global cap on concurrent scorer calls (keep low for the Scientifiq sandbox; raise for your own sciscore service)")
+    p.add_argument("--score-concurrency", type=int, default=16, help="global cap on concurrent scorer calls (low for the Scientifiq sandbox; high is fine for local)")
     args = p.parse_args()
     asyncio.run(main_async(args))
 
