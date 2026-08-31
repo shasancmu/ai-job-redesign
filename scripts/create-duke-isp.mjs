@@ -17,7 +17,7 @@ const MODULES = [
   "domain-brief", "find-collaborators", "licensing-brief", "score-my-invention",
   "position-my-research", "rank-disclosures", "find-a-cofounder", "diligence-the-science",
   "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard",
-  "field-trajectory", "deeptech-canvas",
+  "field-trajectory", "deeptech-canvas", "explain-ai", "impact-optimizer",
 ];
 
 const env = {};
