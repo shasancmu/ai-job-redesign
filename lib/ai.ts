@@ -3038,6 +3038,53 @@ Return STRICT JSON only, plain text values (no markdown):
   ], { temperature: 0.5, maxTokens: 1700 });
 }
 
+// ---- Impact Optimizer (Scientifiq, missing-science discovery) --------------
+// What SCIENCE is missing so a paper reaches a target potential? The AI proposes
+// concrete scientific extensions (not rewordings), writes each as the abstract it
+// would become IF that work were done, the models score them, and we rank the
+// missing pieces by predicted gain. A research-direction prioritizer.
+const TARGET_LABEL: Record<string, string> = {
+  commercial: "commercial potential (how likely industry is to build on this work)",
+  scientific: "scientific potential (how likely it is to attract academic citations)",
+  social: "social-impact potential",
+  defense: "defense / national-security relevance",
+  complex_invention: "complex-invention potential (feeding complex, multi-disciplinary technology)",
+  interdisciplinary: "interdisciplinary potential (influence beyond its own field)",
+};
+
+export async function proposeExtensionsAI(abstract: string, target: string, n: number): Promise<any> {
+  const label = TARGET_LABEL[target] || target;
+  const system = `You are a research strategist. Given an abstract, propose ${n} concrete SCIENTIFIC EXTENSIONS — pieces of work the authors could actually DO next — that would most raise this work's ${label}.
+
+These are additions to the SCIENCE, not rewordings. Examples of moves: demonstrate the method on real / at-scale / clinical data; extend it to a new application or domain; add a missing experiment, mechanism, or causal result; integrate it with another technology to enable a concrete product; validate against a real benchmark or against incumbents; show generality across cases.
+
+For EACH extension, write the abstract AS IT WOULD READ if that work were completed — a plausible near-future version of the paper that includes the new science — so its potential can be measured. Be realistic and specific to THIS work; do not fabricate implausible breakthroughs, and keep the original findings intact.
+
+Return STRICT JSON only:
+{ "extensions": [ { "gap": "the specific missing science — what to DO, one line", "abstract": "the abstract as it would read once that work is done" } ] }`;
+  return completeJson([
+    { role: "system", content: system },
+    { role: "user", content: `ORIGINAL ABSTRACT:\n${abstract.slice(0, 5000)}` },
+  ], { temperature: 0.75, maxTokens: 3200 });
+}
+
+export async function researchRoadmapAI(input: { abstract: string; target: string; baseline: number; ranked: { gap: string; score: number; delta: number }[] }): Promise<any> {
+  const label = TARGET_LABEL[input.target] || input.target;
+  const rows = input.ranked.map((r, i) => `${i + 1}. (${input.baseline}→${r.score}, +${r.delta}) ${r.gap}`).join("\n");
+  const system = `You advise a research team on what to work on next to raise their work's ${label}. You are given the current abstract and a list of proposed scientific extensions, each with the potential score the model predicts the paper WOULD reach if that work were done (baseline is ${input.baseline}/100). Write a short, honest research roadmap: which missing science is highest-leverage and why, in order.
+
+Return STRICT JSON only, plain text:
+{
+  "headline": "one sentence: the single most valuable missing piece of science",
+  "priority": [ { "step": "the scientific work to do", "why": "why it moves the target, and how hard it is" } ],
+  "caution": "one line: predicted gains assume the work succeeds; the added science is hypothetical, a prioritization aid not a promise"
+}`;
+  return completeJson([
+    { role: "system", content: system },
+    { role: "user", content: `CURRENT ABSTRACT:\n${input.abstract.slice(0, 3000)}\n\nPROPOSED EXTENSIONS (predicted score if done):\n${rows}` },
+  ], { temperature: 0.4, maxTokens: 1400 });
+}
+
 // ---- Licensing Brief (Scientifiq scouting) --------------------------------
 export async function licensingBriefAI(input: {
   abstract: string;

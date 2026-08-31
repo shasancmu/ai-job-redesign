@@ -67,6 +67,7 @@ export type ModuleDef = {
     | "score-invention"
     | "defense-impact"
     | "explain"
+    | "optimize"
     | "position-research"
     | "rank-disclosures"
     | "find-cofounder"
@@ -729,6 +730,22 @@ export const MODULES: ModuleDef[] = [
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_LICENSING",
     hidden: true,
+    forSale: false,
+  },
+  {
+    slug: "impact-optimizer",
+    exercise: "optimize",
+    name: "Impact Optimizer",
+    tagline: "Paste an abstract and pick a target — commercial, scientific, defense, and more — and find the missing science: the concrete experiments and extensions that would raise that potential most, each scored by the models.",
+    description:
+      "A research-direction prioritizer built on Scientifiq.AI. Paste an abstract and choose which potential to raise. Instead of rewording it, the AI proposes concrete scientific extensions — a real-data demonstration, a new application, a missing experiment or causal result, an integration that enables a product — and writes each as the abstract the paper would become if that work were done. The models then score every version, so you see exactly which next steps move the target and by how much, ranked, with an honest research roadmap. Turns the potential score from a verdict into a map of where to take the science.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 3,
+    ai: true,
+    emoji: "📈",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_LICENSING",
     forSale: false,
   },
   {
@@ -1486,6 +1503,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "licensing-brief": "commercialize",
   "score-my-invention": "commercialize",
   "defense-impact": "commercialize",
+  "impact-optimizer": "commercialize",
   "explain-ai": "commercialize",
   "position-my-research": "research",
   "rank-disclosures": "commercialize",
