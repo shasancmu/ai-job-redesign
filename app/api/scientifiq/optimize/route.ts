@@ -27,13 +27,17 @@ export async function POST(request: Request) {
   const target = String(body.target || "commercial") as Target;
   const rawLevel = Number(body.targetLevel);
   const targetLevel = Number.isFinite(rawLevel) && rawLevel > 0 ? Math.max(1, Math.min(100, Math.round(rawLevel))) : undefined;
+  // user-tunable search controls (all optional; the optimizer clamps to safe ranges)
+  const rounds = Number.isFinite(Number(body.rounds)) ? Number(body.rounds) : undefined;
+  const bets = Number.isFinite(Number(body.bets)) ? Number(body.bets) : undefined;
+  const diversity = Number.isFinite(Number(body.diversity)) ? Number(body.diversity) : undefined;
   if (abstract.length < 80) return Response.json({ error: "Paste the research as an abstract (a few sentences)." }, { status: 400 });
   if (!OPTIMIZE_TARGETS.includes(target)) return Response.json({ error: "Unknown target." }, { status: 400 });
   const canDefense = await isDirectorOrAdmin(user);
   if (target === "defense" && !canDefense) return Response.json({ error: "Defense target is for directors." }, { status: 403 });
 
   try {
-    const result = await optimizeImpact(abstract, target, { includeDefense: canDefense, targetLevel });
+    const result = await optimizeImpact(abstract, target, { includeDefense: canDefense, targetLevel, rounds, bets, diversity });
     if (!result.bets.length && !Object.keys(result.baseline).length) return Response.json({ error: "Couldn't score the abstract. Try again." }, { status: 502 });
     return Response.json(result);
   } catch (e: any) {

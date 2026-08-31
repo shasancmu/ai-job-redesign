@@ -23,10 +23,21 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
   const [abstract, setAbstract] = useState<string>(saved.abstract || "");
   const [target, setTarget] = useState<string>(saved.target || "commercial");
   const [targetLevel, setTargetLevel] = useState<number | null>(saved.targetLevel ?? null);
+  const [rounds, setRounds] = useState<number>(saved.rounds ?? 3);
+  const [bets, setBets] = useState<number>(saved.bets ?? 3);
+  const [diversity, setDiversity] = useState<number>(saved.diversity ?? 0.55);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   const report = state.result ? state.result : null;
+
+  // Rough effort estimate (proposer calls ≈ 1 + (depth−1)·frontier width), to warn
+  // that deeper/broader runs cost more time and tokens.
+  const beamWide = Math.max(3, Math.min(6, bets + 1));
+  const effort = 1 + (rounds - 1) * beamWide;
+  const effortLabel = effort <= 9 ? "Light run" : effort <= 15 ? "Moderate run" : "Heavy run";
+  const effortTone = effort <= 9 ? "bg-sage/10 text-sage" : effort <= 15 ? "bg-mist text-slate2" : "bg-clay-soft text-clay";
+  const chipCls = (active: boolean) => "rounded-full border px-3 py-1.5 text-sm " + (active ? "border-ai bg-ai/10 font-semibold text-ink" : "border-line text-slate2 hover:bg-white");
 
   const persist = useCallback(async (canvas: any) => {
     setWs((w: any) => ({ ...w, canvas }));
@@ -41,11 +52,11 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
     try {
       const res = await fetch("/api/scientifiq/optimize", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ abstract: a, target, targetLevel: targetLevel ?? undefined }),
+        body: JSON.stringify({ abstract: a, target, targetLevel: targetLevel ?? undefined, rounds, bets, diversity }),
       });
       const j = await res.json();
       if (!res.ok) { setErr(j.error || "Couldn't optimize it."); setBusy(false); return; }
-      await persist({ ...state, input: { abstract: a, target, targetLevel }, result: j });
+      await persist({ ...state, input: { abstract: a, target, targetLevel, rounds, bets, diversity }, result: j });
     } catch { setErr("Couldn't reach the service."); }
     setBusy(false);
   }
@@ -72,13 +83,53 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
             ))}
           </div>
         </div>
-        <div>
-          <label className="lbl">Aim for <span className="font-normal text-slate-400">— the score to reach (return-to-go). The AI generates the research path to hit it.</span></label>
-          <div className="flex flex-wrap gap-2">
-            {([[null, "Auto stretch"], [75, "75"], [85, "85"], [92, "92"]] as [number | null, string][]).map(([lvl, lbl]) => (
-              <button key={lbl} onClick={() => setTargetLevel(lvl)} className={"rounded-full border px-3 py-1.5 text-sm " + (targetLevel === lvl ? "border-ai bg-ai/10 font-semibold text-ink" : "border-line text-slate2 hover:bg-white")}>{lbl}{lvl == null ? "" : "/100"}</button>
-            ))}
+        <div className="space-y-3.5 rounded-2xl border border-line bg-white p-4">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">How the search runs</div>
+            <span className={"rounded-full px-2 py-0.5 text-[11px] font-semibold " + effortTone}>{effortLabel}</span>
           </div>
+
+          {/* Aim for — return-to-go target */}
+          <div>
+            <div className="mb-1.5 text-sm font-medium text-ink">Aim for <span className="font-normal text-slate-400">— the score to reach; the path is generated to hit it</span></div>
+            <div className="flex flex-wrap gap-2">
+              {([[null, "Auto stretch"], [75, "75"], [85, "85"], [92, "92"]] as [number | null, string][]).map(([lvl, lbl]) => (
+                <button key={lbl} onClick={() => setTargetLevel(lvl)} className={chipCls(targetLevel === lvl)}>{lbl}{lvl == null ? "" : "/100"}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Depth — how many compounding steps */}
+          <div>
+            <div className="mb-1.5 text-sm font-medium text-ink">Depth <span className="font-normal text-slate-400">— compounding steps to explore</span></div>
+            <div className="flex flex-wrap gap-2">
+              {[1, 2, 3, 4].map((n) => (
+                <button key={n} onClick={() => setRounds(n)} className={chipCls(rounds === n)}>{n} step{n === 1 ? "" : "s"}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Bets — how many distinct paths to return */}
+          <div>
+            <div className="mb-1.5 text-sm font-medium text-ink">Bets <span className="font-normal text-slate-400">— distinct research paths to return</span></div>
+            <div className="flex flex-wrap gap-2">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button key={n} onClick={() => setBets(n)} className={chipCls(bets === n)}>{n}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Diversity — MMR lambda */}
+          <div>
+            <div className="mb-1.5 text-sm font-medium text-ink">Diversity <span className="font-normal text-slate-400">— chase the single best, or spread the bets</span></div>
+            <div className="flex flex-wrap gap-2">
+              {([[0.2, "Focused"], [0.55, "Balanced"], [0.85, "Diverse"]] as [number, string][]).map(([v, lbl]) => (
+                <button key={lbl} onClick={() => setDiversity(v)} className={chipCls(Math.abs(diversity - v) < 0.01)}>{lbl}</button>
+              ))}
+            </div>
+          </div>
+
+          <p className="text-[11px] text-slate-400">Deeper search and more bets explore harder but cost more time and tokens — the badge above tracks the load.</p>
         </div>
         <div>
           <label className="lbl">Abstract</label>

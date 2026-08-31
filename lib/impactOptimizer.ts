@@ -83,13 +83,13 @@ async function fingerprint(abstract: string, includeDefense: boolean): Promise<F
 // always included, the rest chosen for diversity), each richly annotated: every step
 // fingerprinted on all dimensions (trade-off signature), grounded in real literature
 // (precedent), and reviewed by a skeptical critic (gaming check).
-const MAX_ROUNDS = 3;
-const K = 3;            // proposals per beam per round
-const BEAM_WIDE = 4;    // diverse chains carried forward each round
-const PORTFOLIO_N = 3;  // distinct bets returned
-const EPSILON = 2;
-const CEILING = 92;
-const LAMBDA = 0.55;    // diversity weight in MMR (0 = pure reward, 1 = pure novelty)
+// Defaults for the user-tunable controls; frontier width derives from `bets`.
+const MAX_ROUNDS = 3;   // default search depth
+const K = 3;            // proposals per beam per round (fixed)
+const PORTFOLIO_N = 3;  // default distinct bets returned
+const EPSILON = 2;      // plateau threshold (fixed)
+const CEILING = 92;     // model practical ceiling (fixed)
+const LAMBDA = 0.55;    // default diversity weight in MMR (0 = pure reward, 1 = pure novelty)
 
 type SearchStep = { gap: string; abstract: string };
 type Cand = { chain: SearchStep[]; abstract: string; tScore: number; tokens: Set<string> };
@@ -107,8 +107,8 @@ function jaccard(a: Set<string>, b: Set<string>): number {
   return inter / (a.size + b.size - inter);
 }
 // Maximal Marginal Relevance: top reward first, then greedily add whichever
-// remaining candidate maximizes reward − LAMBDA·(max similarity to those chosen).
-function mmrSelect(cands: Cand[], n: number): Cand[] {
+// remaining candidate maximizes reward − lambda·(max similarity to those chosen).
+function mmrSelect(cands: Cand[], n: number, lambda: number): Cand[] {
   const pool = [...cands].sort((a, b) => b.tScore - a.tScore);
   if (pool.length <= n) return pool;
   const selected: Cand[] = [pool.shift()!];
@@ -117,7 +117,7 @@ function mmrSelect(cands: Cand[], n: number): Cand[] {
     for (let i = 0; i < pool.length; i++) {
       let maxSim = 0;
       for (const s of selected) maxSim = Math.max(maxSim, jaccard(pool[i].tokens, s.tokens));
-      const val = pool[i].tScore / 100 - LAMBDA * maxSim;
+      const val = pool[i].tScore / 100 - lambda * maxSim;
       if (val > bv) { bv = val; bi = i; }
     }
     selected.push(pool.splice(bi, 1)[0]);
@@ -125,8 +125,20 @@ function mmrSelect(cands: Cand[], n: number): Cand[] {
   return selected;
 }
 
-export async function optimizeImpact(abstract: string, target: Target, opts: { includeDefense?: boolean; targetLevel?: number } = {}): Promise<OptimizeResult> {
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+// User-tunable search controls (all optional; defaults above). rounds = search depth
+// (compounding steps), bets = distinct paths returned, diversity = MMR lambda
+// (0 = chase the single best, 1 = maximize distinctness). Frontier width is derived
+// so it always has headroom to pick a diverse portfolio from.
+export type SearchControls = { includeDefense?: boolean; targetLevel?: number; rounds?: number; bets?: number; diversity?: number };
+
+export async function optimizeImpact(abstract: string, target: Target, opts: SearchControls = {}): Promise<OptimizeResult> {
   const includeDefense = !!opts.includeDefense;
+  const rounds = clamp(Math.round(opts.rounds ?? MAX_ROUNDS), 1, 4);
+  const portfolioN = clamp(Math.round(opts.bets ?? PORTFOLIO_N), 1, 5);
+  const lambda = clamp(opts.diversity ?? LAMBDA, 0, 1);
+  const beamWide = clamp(portfolioN + 1, 3, 6);
   const baseTarget = Math.max(0, await scoreTarget(abstract, target));
   // Decision-Transformer framing: set a return-to-go goal and generate the path to
   // it. Default to an ambitious-but-credible stretch above the baseline.
@@ -135,7 +147,7 @@ export async function optimizeImpact(abstract: string, target: Target, opts: { i
   let bestSoFar = baseTarget;
   let stop: OptimizeResult["stop"] = "maxRounds";
 
-  for (let round = 1; round <= MAX_ROUNDS; round++) {
+  for (let round = 1; round <= rounds; round++) {
     const expansions: Cand[] = [];
     for (const beam of beams) {
       const gen = await proposeExtensionsAI(beam.abstract, target, K, { current: Math.round(beam.tScore), target: goal });
@@ -157,7 +169,7 @@ export async function optimizeImpact(abstract: string, target: Target, opts: { i
     const uniq = expansions.filter((e) => { const k = e.abstract.slice(0, 200); if (seen.has(k)) return false; seen.add(k); return true; });
     const best = Math.max(...uniq.map((e) => e.tScore));
     if (best - bestSoFar < EPSILON) { stop = "plateau"; break; } // frontier stalled
-    beams = mmrSelect(uniq, BEAM_WIDE);
+    beams = mmrSelect(uniq, beamWide, lambda);
     bestSoFar = best;
     if (best >= goal) { stop = "reached"; break; }
     if (best >= CEILING) { stop = "ceiling"; break; }
@@ -166,7 +178,7 @@ export async function optimizeImpact(abstract: string, target: Target, opts: { i
   const baseline = await fingerprint(abstract, includeDefense);
 
   // Choose the portfolio: the top performer plus the most distinct alternatives.
-  const finalists = mmrSelect(beams.filter((b) => b.chain.length > 0), PORTFOLIO_N);
+  const finalists = mmrSelect(beams.filter((b) => b.chain.length > 0), portfolioN, lambda);
 
   // Annotate each bet (sequential across bets to bound API burst; cheap scoring
   // inside each step runs concurrently).
