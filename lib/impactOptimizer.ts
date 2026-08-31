@@ -44,8 +44,12 @@ async function mapLimited<T, R>(items: T[], concurrency: number, fn: (x: T) => P
 export type Fingerprint = Record<string, number>; // dim -> 0..100 (defense only for directors)
 export type Precedent = { title: string; year?: number };
 export type Step = { round: number; gap: string; abstract: string; gain: number; fingerprint: Fingerprint; legit?: boolean; concern?: string; precedent?: Precedent[] };
+// A Bet is one distinct research path to the goal: its defining move, the sequence
+// of missing science, the final target score, and its net effect on EVERY potential
+// (its trade-off signature — what else it lifts or costs).
+export type Bet = { id: number; headline: string; finalScore: number; gain: number; steps: Step[]; signature: Fingerprint };
 export type OptimizeResult = {
-  target: Target; goal: number; baseline: Fingerprint; steps: Step[];
+  target: Target; goal: number; baseline: Fingerprint; bets: Bet[];
   stop: "reached" | "plateau" | "ceiling" | "maxRounds" | "no-improvement";
 };
 
@@ -67,21 +71,59 @@ async function fingerprint(abstract: string, includeDefense: boolean): Promise<F
   return fp;
 }
 
-// Beam self-play (tier 2): each round expand every beam with K proposals, keep the
-// top BEAM chains by target score — so a modest-gain step that unlocks a big
-// follow-on isn't pruned greedily. Search uses only the cheap target score; the
-// winning chain is then richly annotated: every step fingerprinted on all
-// dimensions (trade-offs), grounded in real literature (precedent), and reviewed
-// by a skeptical critic (tier 3, gaming check). Stops on diminishing returns,
-// a ceiling, or a round cap.
+// GFlowNet-style portfolio over a Decision-Transformer-conditioned search.
+//
+// Each round, expand every beam with K return-to-go-conditioned proposals and score
+// them (cheap target score only). Then, instead of collapsing to the top-scoring
+// chains, carry forward a WIDE, DIVERSE frontier: MMR selection trades reward off
+// against distance from the already-chosen paths, so the search doesn't mode-collapse
+// onto one high-scoring template (the "everything clusters at 90" failure). Diversity
+// is measured for free — lexical distance over the gap descriptions — no embedding
+// call. At the end we return a PORTFOLIO of distinct research bets (top performer
+// always included, the rest chosen for diversity), each richly annotated: every step
+// fingerprinted on all dimensions (trade-off signature), grounded in real literature
+// (precedent), and reviewed by a skeptical critic (gaming check).
 const MAX_ROUNDS = 3;
-const K = 3;
-const BEAM = 2;
+const K = 3;            // proposals per beam per round
+const BEAM_WIDE = 4;    // diverse chains carried forward each round
+const PORTFOLIO_N = 3;  // distinct bets returned
 const EPSILON = 2;
 const CEILING = 92;
+const LAMBDA = 0.55;    // diversity weight in MMR (0 = pure reward, 1 = pure novelty)
 
 type SearchStep = { gap: string; abstract: string };
-type BeamState = { abstract: string; tScore: number; chain: SearchStep[] };
+type Cand = { chain: SearchStep[]; abstract: string; tScore: number; tokens: Set<string> };
+
+const STOP_WORDS = new Set(("the and for with that this from have been were which their into more than then them your also such using used based show shows able many both each other over under most some less will would could here does about across while when where these those into onto within toward high higher raise raising improve improving increase increasing add adding new work study paper method approach result results data model models").split(/\s+/));
+function contentTokens(s: string): Set<string> {
+  const out = new Set<string>();
+  for (const m of s.toLowerCase().match(/[a-z][a-z-]{3,}/g) || []) if (!STOP_WORDS.has(m)) out.add(m);
+  return out;
+}
+function jaccard(a: Set<string>, b: Set<string>): number {
+  if (!a.size || !b.size) return 0;
+  let inter = 0;
+  for (const x of a) if (b.has(x)) inter++;
+  return inter / (a.size + b.size - inter);
+}
+// Maximal Marginal Relevance: top reward first, then greedily add whichever
+// remaining candidate maximizes reward − LAMBDA·(max similarity to those chosen).
+function mmrSelect(cands: Cand[], n: number): Cand[] {
+  const pool = [...cands].sort((a, b) => b.tScore - a.tScore);
+  if (pool.length <= n) return pool;
+  const selected: Cand[] = [pool.shift()!];
+  while (selected.length < n && pool.length) {
+    let bi = 0, bv = -Infinity;
+    for (let i = 0; i < pool.length; i++) {
+      let maxSim = 0;
+      for (const s of selected) maxSim = Math.max(maxSim, jaccard(pool[i].tokens, s.tokens));
+      const val = pool[i].tScore / 100 - LAMBDA * maxSim;
+      if (val > bv) { bv = val; bi = i; }
+    }
+    selected.push(pool.splice(bi, 1)[0]);
+  }
+  return selected;
+}
 
 export async function optimizeImpact(abstract: string, target: Target, opts: { includeDefense?: boolean; targetLevel?: number } = {}): Promise<OptimizeResult> {
   const includeDefense = !!opts.includeDefense;
@@ -89,12 +131,12 @@ export async function optimizeImpact(abstract: string, target: Target, opts: { i
   // Decision-Transformer framing: set a return-to-go goal and generate the path to
   // it. Default to an ambitious-but-credible stretch above the baseline.
   const goal = Math.max(baseTarget + 5, Math.min(CEILING, Math.round(opts.targetLevel ?? Math.min(90, baseTarget + 25))));
-  let beams: BeamState[] = [{ abstract, tScore: baseTarget, chain: [] }];
+  let beams: Cand[] = [{ chain: [], abstract, tScore: baseTarget, tokens: new Set() }];
   let bestSoFar = baseTarget;
   let stop: OptimizeResult["stop"] = "maxRounds";
 
   for (let round = 1; round <= MAX_ROUNDS; round++) {
-    const expansions: { parent: BeamState; gap: string; abstract: string; score: number }[] = [];
+    const expansions: Cand[] = [];
     for (const beam of beams) {
       const gen = await proposeExtensionsAI(beam.abstract, target, K, { current: Math.round(beam.tScore), target: goal });
       const cands: { gap: string; abstract: string }[] = Array.isArray(gen?.extensions) ? gen.extensions.slice(0, K) : [];
@@ -103,42 +145,57 @@ export async function optimizeImpact(abstract: string, target: Target, opts: { i
         abstract: String(e?.abstract || ""),
         score: e?.abstract && e.abstract.length >= 60 ? await scoreTarget(e.abstract, target) : -1,
       }));
-      for (const s of scored) if (s.score >= 0) expansions.push({ parent: beam, gap: s.gap, abstract: s.abstract, score: s.score });
+      for (const s of scored) {
+        if (s.score < 0) continue;
+        const chain = [...beam.chain, { gap: s.gap, abstract: s.abstract }];
+        expansions.push({ chain, abstract: s.abstract, tScore: s.score, tokens: contentTokens(chain.map((c) => c.gap).join(" ")) });
+      }
     }
-    if (!expansions.length) { stop = "no-improvement"; break; }
-    expansions.sort((a, b) => b.score - a.score);
-    // keep the top BEAM, deduped by abstract
-    const top: typeof expansions = [];
+    if (!expansions.length) { stop = round === 1 ? "no-improvement" : "maxRounds"; break; }
+    // dedup near-identical abstracts, then carry a wide DIVERSE frontier
     const seen = new Set<string>();
-    for (const e of expansions) { const k = e.abstract.slice(0, 200); if (seen.has(k)) continue; seen.add(k); top.push(e); if (top.length >= BEAM) break; }
-    if (top[0].score - bestSoFar < EPSILON) { stop = "plateau"; break; }
-    bestSoFar = Math.max(bestSoFar, top[0].score);
-    beams = top.map((e) => ({ abstract: e.abstract, tScore: e.score, chain: [...e.parent.chain, { gap: e.gap, abstract: e.abstract }] }));
-    if (top[0].score >= goal) { stop = "reached"; break; } // return-to-go closed
-    if (top[0].score >= CEILING) { stop = "ceiling"; break; }
+    const uniq = expansions.filter((e) => { const k = e.abstract.slice(0, 200); if (seen.has(k)) return false; seen.add(k); return true; });
+    const best = Math.max(...uniq.map((e) => e.tScore));
+    if (best - bestSoFar < EPSILON) { stop = "plateau"; break; } // frontier stalled
+    beams = mmrSelect(uniq, BEAM_WIDE);
+    bestSoFar = best;
+    if (best >= goal) { stop = "reached"; break; }
+    if (best >= CEILING) { stop = "ceiling"; break; }
   }
 
-  const bestBeam = beams.reduce((a, b) => (b.tScore > a.tScore ? b : a));
-  const chain = bestBeam.chain;
-
-  // Annotate the winning chain: baseline + per-step fingerprint, literature
-  // precedent, and the skeptical critic's verdict.
   const baseline = await fingerprint(abstract, includeDefense);
-  const critique = chain.length ? await critiqueChainAI({ original: abstract, target, gaps: chain.map((c) => c.gap) }).catch(() => null) : null;
-  const verdicts: any[] = Array.isArray(critique?.verdicts) ? critique.verdicts : [];
 
-  const steps: Step[] = [];
-  let prev = baseline[target] ?? baseTarget;
-  for (let i = 0; i < chain.length; i++) {
-    const c = chain[i];
-    const [fp, precedent] = await Promise.all([
-      fingerprint(c.abstract, includeDefense),
-      searchPapers({ search: c.gap, order: "commPot", limit: 3 }).then((r) => (r.papers || []).slice(0, 3).map((p) => ({ title: p.title, year: p.year }))).catch(() => [] as Precedent[]),
-    ]);
-    const tScore = fp[target] ?? 0;
-    steps.push({ round: i + 1, gap: c.gap, abstract: c.abstract, gain: tScore - prev, fingerprint: fp, legit: verdicts[i]?.legit !== false, concern: verdicts[i]?.concern || "", precedent });
-    prev = tScore;
+  // Choose the portfolio: the top performer plus the most distinct alternatives.
+  const finalists = mmrSelect(beams.filter((b) => b.chain.length > 0), PORTFOLIO_N);
+
+  // Annotate each bet (sequential across bets to bound API burst; cheap scoring
+  // inside each step runs concurrently).
+  const bets: Bet[] = [];
+  let id = 1;
+  for (const f of finalists) {
+    const chain = f.chain;
+    const critique = await critiqueChainAI({ original: abstract, target, gaps: chain.map((c) => c.gap) }).catch(() => null);
+    const verdicts: any[] = Array.isArray(critique?.verdicts) ? critique.verdicts : [];
+    const steps: Step[] = [];
+    let prev = baseline[target] ?? baseTarget;
+    for (let i = 0; i < chain.length; i++) {
+      const c = chain[i];
+      const [fp, precedent] = await Promise.all([
+        fingerprint(c.abstract, includeDefense),
+        searchPapers({ search: c.gap, order: "commPot", limit: 3 }).then((r) => (r.papers || []).slice(0, 3).map((p) => ({ title: p.title, year: p.year }))).catch(() => [] as Precedent[]),
+      ]);
+      const tScore = fp[target] ?? 0;
+      steps.push({ round: i + 1, gap: c.gap, abstract: c.abstract, gain: tScore - prev, fingerprint: fp, legit: verdicts[i]?.legit !== false, concern: verdicts[i]?.concern || "", precedent });
+      prev = tScore;
+    }
+    const finalFp = steps.length ? steps[steps.length - 1].fingerprint : baseline;
+    const finalScore = finalFp[target] ?? baseTarget;
+    const signature: Fingerprint = {};
+    for (const d of Object.keys(baseline)) signature[d] = (finalFp[d] ?? baseline[d]) - baseline[d];
+    const headline = steps.length ? steps.reduce((a, b) => (b.gain > a.gain ? b : a)).gap : "";
+    bets.push({ id: id++, headline, finalScore, gain: finalScore - baseTarget, steps, signature });
   }
+  bets.sort((a, b) => b.finalScore - a.finalScore);
 
-  return { target, goal, baseline, steps, stop };
+  return { target, goal, baseline, bets, stop };
 }

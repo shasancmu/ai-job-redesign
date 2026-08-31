@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
   try {
     const result = await optimizeImpact(abstract, target, { includeDefense: canDefense, targetLevel });
-    if (!result.steps.length && !Object.keys(result.baseline).length) return Response.json({ error: "Couldn't score the abstract. Try again." }, { status: 502 });
+    if (!result.bets.length && !Object.keys(result.baseline).length) return Response.json({ error: "Couldn't score the abstract. Try again." }, { status: 502 });
     return Response.json(result);
   } catch (e: any) {
     if (e instanceof ScientifiqError) return Response.json({ error: e.message }, { status: e.status < 600 ? e.status : 502 });
