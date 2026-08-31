@@ -5,16 +5,17 @@ import { useState } from "react";
 type Fingerprint = Record<string, number>;
 type Precedent = { title: string; year?: number };
 type Step = { round: number; gap: string; abstract: string; gain: number; fingerprint: Fingerprint; legit?: boolean; concern?: string; precedent?: Precedent[] };
-type Result = { target: string; baseline: Fingerprint; steps: Step[]; stop: string };
+type Result = { target: string; goal?: number; baseline: Fingerprint; steps: Step[]; stop: string };
 
 const LABEL: Record<string, string> = {
   commercial: "Commercial", scientific: "Scientific", social: "Social",
   complex_invention: "Complex", interdisciplinary: "Interdisc", defense: "Defense",
 };
 const STOP_NOTE: Record<string, string> = {
-  plateau: "Stopped: the next step added less than +2 — diminishing returns.",
+  reached: "Goal reached: the return-to-go closed — the generated path hit the target level.",
+  plateau: "Stopped short of the goal: the next step added less than +2 — diminishing returns.",
   ceiling: "Stopped: the target hit the model's practical ceiling.",
-  maxRounds: "Stopped: reached the round cap.",
+  maxRounds: "Stopped: reached the round cap before the goal.",
   "no-improvement": "Stopped: no scorable next step was found.",
 };
 
@@ -48,12 +49,26 @@ export default function ImpactOptimizerReport({ result }: { result: Result }) {
   return (
     <div className="space-y-5">
       <div className="rounded-2xl border border-line bg-white p-5">
-        <div className="text-xs font-semibold uppercase tracking-wide text-sage">Target: {LABEL[target] || target} potential</div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="text-xs font-semibold uppercase tracking-wide text-sage">Target: {LABEL[target] || target} potential</div>
+          {typeof r.goal === "number" && (
+            <span className={"rounded-full px-2 py-0.5 text-[11px] font-semibold " + (r.stop === "reached" ? "bg-sage/10 text-sage" : "bg-mist text-slate2")}>
+              {r.stop === "reached" ? "✓ " : ""}Goal {r.goal}/100{r.stop === "reached" ? " reached" : " (aimed)"}
+            </span>
+          )}
+        </div>
         <p className="mt-1 text-lg font-bold leading-snug text-ink">
           {LABEL[target] || target}: {baseT} → {finalT} <span className={finalT > baseT ? "text-sage" : "text-slate-400"}>({finalT - baseT >= 0 ? "+" : ""}{finalT - baseT})</span>
+          {typeof r.goal === "number" && <span className="text-sm font-medium text-slate-400"> toward {r.goal}</span>}
           <span className="text-sm font-medium text-slate-400"> over {steps.length} step{steps.length === 1 ? "" : "s"}</span>
         </p>
-        <div className="mt-1 text-sm text-slate-500">{STOP_NOTE[r.stop] || ""}</div>
+        {/* return-to-go progress: how much of the baseline→goal gap the path closed */}
+        {typeof r.goal === "number" && r.goal > baseT && (
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-mist">
+            <div className="h-full rounded-full bg-sage" style={{ width: `${Math.max(0, Math.min(100, ((finalT - baseT) / (r.goal - baseT)) * 100))}%` }} />
+          </div>
+        )}
+        <div className="mt-1.5 text-sm text-slate-500">{STOP_NOTE[r.stop] || ""}</div>
       </div>
 
       {/* Trajectory across every dimension — the trade-off tracker */}

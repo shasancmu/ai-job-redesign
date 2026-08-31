@@ -3052,9 +3052,12 @@ const TARGET_LABEL: Record<string, string> = {
   interdisciplinary: "interdisciplinary potential (influence beyond its own field)",
 };
 
-export async function proposeExtensionsAI(abstract: string, target: string, n: number): Promise<any> {
+export async function proposeExtensionsAI(abstract: string, target: string, n: number, goal?: { current: number; target: number }): Promise<any> {
   const label = TARGET_LABEL[target] || target;
-  const system = `You are a research strategist. Given an abstract, propose ${n} concrete SCIENTIFIC EXTENSIONS — pieces of work the authors could actually DO next — that would most raise this work's ${label}.
+  const goalLine = goal
+    ? `\nGOAL (return-to-go): the current ${label} score is ${goal.current}/100; aim to reach ${goal.target}/100 — ${Math.max(0, goal.target - goal.current)} points to close. Favor the extensions most likely to make the biggest CREDIBLE jump toward that goal, not incremental polish.`
+    : "";
+  const system = `You are a research strategist. Given an abstract, propose ${n} concrete SCIENTIFIC EXTENSIONS — pieces of work the authors could actually DO next — that would most raise this work's ${label}.${goalLine}
 
 These are additions to the SCIENCE, not rewordings. Examples of moves: demonstrate the method on real / at-scale / clinical data; extend it to a new application or domain; add a missing experiment, mechanism, or causal result; integrate it with another technology to enable a concrete product; validate against a real benchmark or against incumbents; show generality across cases.
 

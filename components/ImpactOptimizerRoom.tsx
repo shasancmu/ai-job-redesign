@@ -22,6 +22,7 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
 
   const [abstract, setAbstract] = useState<string>(saved.abstract || "");
   const [target, setTarget] = useState<string>(saved.target || "commercial");
+  const [targetLevel, setTargetLevel] = useState<number | null>(saved.targetLevel ?? null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -40,11 +41,11 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
     try {
       const res = await fetch("/api/scientifiq/optimize", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ abstract: a, target }),
+        body: JSON.stringify({ abstract: a, target, targetLevel: targetLevel ?? undefined }),
       });
       const j = await res.json();
       if (!res.ok) { setErr(j.error || "Couldn't optimize it."); setBusy(false); return; }
-      await persist({ ...state, input: { abstract: a, target }, result: j });
+      await persist({ ...state, input: { abstract: a, target, targetLevel }, result: j });
     } catch { setErr("Couldn't reach the service."); }
     setBusy(false);
   }
@@ -68,6 +69,14 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
           <div className="flex flex-wrap gap-2">
             {TARGETS.filter((t) => !t.director || canDefense).map((t) => (
               <button key={t.key} onClick={() => setTarget(t.key)} className={"rounded-full border px-3 py-1.5 text-sm " + (target === t.key ? "border-ai bg-ai/10 font-semibold text-ink" : "border-line text-slate2 hover:bg-white")}>{t.label}</button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="lbl">Aim for <span className="font-normal text-slate-400">— the score to reach (return-to-go). The AI generates the research path to hit it.</span></label>
+          <div className="flex flex-wrap gap-2">
+            {([[null, "Auto stretch"], [75, "75"], [85, "85"], [92, "92"]] as [number | null, string][]).map(([lvl, lbl]) => (
+              <button key={lbl} onClick={() => setTargetLevel(lvl)} className={"rounded-full border px-3 py-1.5 text-sm " + (targetLevel === lvl ? "border-ai bg-ai/10 font-semibold text-ink" : "border-line text-slate2 hover:bg-white")}>{lbl}{lvl == null ? "" : "/100"}</button>
             ))}
           </div>
         </div>

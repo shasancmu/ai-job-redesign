@@ -45,8 +45,8 @@ export type Fingerprint = Record<string, number>; // dim -> 0..100 (defense only
 export type Precedent = { title: string; year?: number };
 export type Step = { round: number; gap: string; abstract: string; gain: number; fingerprint: Fingerprint; legit?: boolean; concern?: string; precedent?: Precedent[] };
 export type OptimizeResult = {
-  target: Target; baseline: Fingerprint; steps: Step[];
-  stop: "plateau" | "ceiling" | "maxRounds" | "no-improvement";
+  target: Target; goal: number; baseline: Fingerprint; steps: Step[];
+  stop: "reached" | "plateau" | "ceiling" | "maxRounds" | "no-improvement";
 };
 
 // Score an abstract on EVERY potential (the full fingerprint) so we can track
@@ -83,9 +83,12 @@ const CEILING = 92;
 type SearchStep = { gap: string; abstract: string };
 type BeamState = { abstract: string; tScore: number; chain: SearchStep[] };
 
-export async function optimizeImpact(abstract: string, target: Target, opts: { includeDefense?: boolean } = {}): Promise<OptimizeResult> {
+export async function optimizeImpact(abstract: string, target: Target, opts: { includeDefense?: boolean; targetLevel?: number } = {}): Promise<OptimizeResult> {
   const includeDefense = !!opts.includeDefense;
   const baseTarget = Math.max(0, await scoreTarget(abstract, target));
+  // Decision-Transformer framing: set a return-to-go goal and generate the path to
+  // it. Default to an ambitious-but-credible stretch above the baseline.
+  const goal = Math.max(baseTarget + 5, Math.min(CEILING, Math.round(opts.targetLevel ?? Math.min(90, baseTarget + 25))));
   let beams: BeamState[] = [{ abstract, tScore: baseTarget, chain: [] }];
   let bestSoFar = baseTarget;
   let stop: OptimizeResult["stop"] = "maxRounds";
@@ -93,7 +96,7 @@ export async function optimizeImpact(abstract: string, target: Target, opts: { i
   for (let round = 1; round <= MAX_ROUNDS; round++) {
     const expansions: { parent: BeamState; gap: string; abstract: string; score: number }[] = [];
     for (const beam of beams) {
-      const gen = await proposeExtensionsAI(beam.abstract, target, K);
+      const gen = await proposeExtensionsAI(beam.abstract, target, K, { current: Math.round(beam.tScore), target: goal });
       const cands: { gap: string; abstract: string }[] = Array.isArray(gen?.extensions) ? gen.extensions.slice(0, K) : [];
       const scored = await mapLimited(cands, 3, async (e) => ({
         gap: String(e?.gap || "").slice(0, 300),
@@ -111,6 +114,7 @@ export async function optimizeImpact(abstract: string, target: Target, opts: { i
     if (top[0].score - bestSoFar < EPSILON) { stop = "plateau"; break; }
     bestSoFar = Math.max(bestSoFar, top[0].score);
     beams = top.map((e) => ({ abstract: e.abstract, tScore: e.score, chain: [...e.parent.chain, { gap: e.gap, abstract: e.abstract }] }));
+    if (top[0].score >= goal) { stop = "reached"; break; } // return-to-go closed
     if (top[0].score >= CEILING) { stop = "ceiling"; break; }
   }
 
@@ -136,5 +140,5 @@ export async function optimizeImpact(abstract: string, target: Target, opts: { i
     prev = tScore;
   }
 
-  return { target, baseline, steps, stop };
+  return { target, goal, baseline, steps, stop };
 }
