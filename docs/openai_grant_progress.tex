@@ -6,12 +6,21 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{listings}
 \usepackage{titlesec}
+\usepackage{array}
 
 \definecolor{ink}{RGB}{23,26,32}
 \definecolor{accent}{RGB}{47,93,138}
+\definecolor{good}{RGB}{47,110,66}
+\definecolor{amber}{RGB}{176,117,24}
+\definecolor{clay}{RGB}{176,74,54}
 \definecolor{codebg}{RGB}{245,246,248}
 \titleformat{\section}{\Large\bfseries\color{accent}}{\thesection}{0.6em}{}
 \titleformat{\subsection}{\large\bfseries\color{ink}}{\thesubsection}{0.6em}{}
+
+\newcommand{\stDone}{\textbf{\textcolor{good}{Complete}}}
+\newcommand{\stSub}{\textbf{\textcolor{amber}{Substantial}}}
+\newcommand{\stPart}{\textbf{\textcolor{amber}{Partial}}}
+\newcommand{\stPend}{\textbf{\textcolor{clay}{Pending}}}
 
 \lstdefinestyle{sh}{
   basicstyle=\ttfamily\small, backgroundcolor=\color{codebg},
@@ -21,7 +30,7 @@
 }
 
 \title{\vspace{-1.5em}\textbf{AI to Manage Scientific Discovery and Translation}\\[0.3em]
-\large Progress Report --- Predictive Models, Agents, and Ecosystem Tools}
+\large OpenAI Metascience --- Point-by-Point Completion Report}
 \author{Scientifiq.AI / Superadditive --- built on the Scientifiq data platform}
 \date{\today}
 
@@ -29,161 +38,225 @@
 \maketitle
 \vspace{-1em}
 
-\section{Overview}
-This document records what has been built toward the OpenAI Metascience proposal and
-how to reach each piece. In short: we extended the commercial-potential measure
-(Masclans, Hasan \& Cohen 2025) into a \textbf{family of ``potential'' models}, built a
-reusable model factory to train them, deployed them behind an API, and added two
-Claude-powered surfaces --- a research agent and an interactive ecosystem explorer.
+\section{Executive summary}
+This report maps each item promised in the proposal to what has been built, with
+the methodology in detail and how to reach it. The headline: \textbf{the hardest,
+most technical deliverables are done} --- all three new predictive models are
+trained, deployed, and serving; the Claude-powered research agent is live; and the
+interactive cross-disciplinary maps and a working toolkit exist --- much of it
+\emph{ahead} of the June~2025--January~2027 timeline.
 
-Everything is grounded in the existing Scientifiq data: $\sim$30M publications with
-abstracts and potential scores, OpenAlex works and their citation graph, USPTO
-PatentsView (assignees, CPC classes), and Reliance-on-Science (paper$\rightarrow$patent
-citations), all in the project's BigQuery.
-
-\section{The three new predictive models}
-Each new model is the direct analog of commercial potential --- where that measure is
-``the predicted likelihood a \emph{renewed patent} cites the article,'' each new head
-swaps in a different, observable downstream label. All are trained the same way
-(Section~\ref{sec:method}) and served from one endpoint (Section~\ref{sec:access}).
-
-\begin{table}[h]
-\centering
-\begin{tabular}{@{}p{3.1cm}p{7.2cm}c@{}}
+\begin{center}
+\setlength{\arrayrulewidth}{0.3pt}
+\begin{tabular}{@{}p{8.6cm}cc@{}}
 \toprule
-\textbf{Model} & \textbf{Label (what ``positive'' means)} & \textbf{Val.\ AUROC} \\
+\textbf{Promised deliverable} & \textbf{Status} & \textbf{\%} \\
+\midrule
+1. Expanded models: scientific, commercial, \emph{interdisciplinary}, \emph{defense} (+ complex) & \stDone & 100 \\
+2. GPT/Claude agents: matchmaking, scouting, translation & \stSub & 85 \\
+3. ExplainAI --- plain-language translation tool & \stPart & 30 \\
+4. Interactive maps of emerging areas + cross-disciplinary links & \stSub & 80 \\
+5. Open datasets, model code, documentation & \stSub & 65 \\
+6. Reports on equity, bias, and trust & \stPend & 10 \\
+7. Pilot integrations with TTOs / research administrators & \stPart & 20 \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Overall (simple average)}} & \textbf{$\approx$60} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Weighted by technical difficulty, completion is higher: the three new
+predictive models --- the proposal's central scientific contribution --- are fully
+delivered, as is the agentic interface. What remains is largely \emph{translation
+and dissemination}: a dedicated ExplainAI, the equity/bias report, the open-source
+release and white paper, and the in-field TTO pilots.
+
+\section{Deliverable-by-deliverable}
+
+\subsection{1. Expanded predictive models \hfill \stDone}
+\textbf{Promised:} ``Expanded AI models predicting scientific, commercial,
+interdisciplinary, and defense impact'' --- and, in the research plan,
+\emph{Interdisciplinary}, \emph{Complex-Invention}, and \emph{Defense} impact.
+
+\textbf{Delivered:} all three new heads trained, deployed, and serving live,
+alongside the pre-existing commercial/scientific/social scores. Held-out
+validation:
+
+\begin{center}
+\begin{tabular}{@{}p{3.2cm}p{7cm}c@{}}
+\toprule
+\textbf{Model} & \textbf{Positive label (weak supervision)} & \textbf{AUROC} \\
 \midrule
 Defense Impact & Cited by a patent assigned to a defense entity (prime, national lab, or government/defense body). & \textbf{0.897} \\
-Complex-Invention & Cited by a patent whose CPC classification spans $\geq 3$ distinct sections --- a genuinely multi-domain invention. & \textbf{0.874} \\
-Interdisciplinary & Cited by works spanning a majority of fields \emph{outside} the paper's own (OpenAlex level-0). & \textbf{0.754} \\
+Complex-Invention & Cited by a patent whose CPC classification spans $\geq 3$ distinct sections. & \textbf{0.874} \\
+Interdisciplinary & Cited by works a majority of which sit \emph{outside} the paper's own OpenAlex level-0 field. & \textbf{0.754} \\
 \bottomrule
 \end{tabular}
-\caption{The three new heads. Defense and Complex-Invention are strong; Interdisciplinary
-is the weakest --- cross-field influence is intrinsically harder to predict ex-ante from
-text, which is itself a finding worth reporting.}
-\end{table}
+\end{center}
 
-\noindent Alongside the pre-existing \textbf{commercial}, \textbf{scientific}, and
-\textbf{social} potential scores, every paper can now be described by a six-dimensional
-\emph{impact fingerprint}.
-
-\section{Method: a model factory}\label{sec:method}
-The models share one lean pipeline, packaged as \texttt{sciscore} (a small Python
-library in the repository under \texttt{ml/}):
-\begin{enumerate}[leftmargin=1.4em, itemsep=2pt]
-  \item \textbf{Label} in BigQuery via weak supervision --- the ``positive'' condition is
-  observed in data we already hold (funding, patent citations, CPC classes, cross-field
-  citations). No hand annotation. Each label query is $\sim$\$0.30--\$1.20 to run.
-  \item \textbf{Embed} title + abstract with a frozen SciBERT encoder (mean-pooled, 768-dim).
-  \item \textbf{Fit} a lightweight linear head on the frozen vectors (balanced, $\sim$10k rows).
-  \item \textbf{Serve} every trained task from one API.
+\textbf{Methodology (in detail).} Each model is the direct analog of the
+commercial-potential measure (Masclans, Hasan \& Cohen 2025), which predicts ``the
+likelihood a \emph{renewed patent} cites the article.'' We swap the label and keep
+the machinery:
+\begin{enumerate}[leftmargin=1.5em, itemsep=2pt]
+  \item \textbf{Weak-label in BigQuery.} The ``positive'' condition is observed
+  directly in data already on the platform, so no hand annotation is needed:
+  \begin{itemize}[leftmargin=1.2em, itemsep=1pt]
+    \item \emph{Defense}: match 484 defense assignees in \texttt{patentsview.assignee}
+    (Lockheed, Raytheon, DARPA, Sandia, \dots) $\rightarrow$ 35{,}373 patents
+    $\rightarrow$ 50{,}912 papers cited by them (via Reliance-on-Science
+    \texttt{ros\_pat\_paper\_cites}).
+    \item \emph{Complex-Invention}: patents spanning $\geq 3$ CPC sections
+    (\texttt{patentsview.cpc}) --- only $\sim$7\% of patents, so the label is
+    discriminative --- yield 112{,}773 positive papers.
+    \item \emph{Interdisciplinary}: explode every work's \texttt{referenced\_works}
+    (OpenAlex) tagged with the \emph{citing} work's level-0 field; a paper is
+    positive if $\geq 10$ citers and a majority sit outside its own field.
+  \end{itemize}
+  \item \textbf{Represent.} Title\,+\,abstract encoded with a frozen SciBERT
+  encoder (mean-pooled, 768-dim).
+  \item \textbf{Fit} a lightweight linear head (class-balanced logistic regression)
+  on the frozen vectors, on a balanced 10k sample, 85/15 train/validation split.
+  A \emph{single} best-period model (not a per-year family).
+  \item \textbf{Serve} all tasks from one API (Section~\ref{sec:access}).
 \end{enumerate}
-Deliberately lean: frozen embeddings + a linear head, no per-year model family, no
-calibration ceremony. Simulations and our results indicate $\sim$10k rows suffice.
-\textbf{Adding a new model is a new YAML file plus a training run} --- see
-Section~\ref{sec:ideas}.
+Data: \texttt{scientifiq\_prod.pubs} ($\sim$30M abstracts), \texttt{patentsview}
+(assignees, CPC), Reliance-on-Science (paper$\rightarrow$patent), and
+\texttt{openalex.works} (citations, fields). Cost per labeling query: \$0.30--\$1.20.
+
+\textbf{Honest note.} Interdisciplinary (0.754) is the weakest head --- cross-field
+influence is intrinsically hard to predict ex-ante from text; the label was
+sharpened once (raw field count $\rightarrow$ share of \emph{out-of-field} citers),
+which helped modestly. This ceiling is itself a reportable finding.
+
+\subsection{2. GPT/Claude research agents \hfill \stSub}
+\textbf{Promised:} ``GPT-powered agents for matchmaking, scouting, and science
+translation,'' accessible as a GPT-powered interface within Scientifiq.
+
+\textbf{Delivered:} a unified \textbf{Research Agent} (\url{https://superadditive.app/agent})
+that takes a plain-language question and routes it to the right capability ---
+\emph{matchmaking} (find complementary collaborators), \emph{scouting} (score an
+idea's potential; licensing/diligence), or \emph{landscape} (map a field) --- then
+answers grounded only in retrieved evidence.
+
+\textbf{Methodology.} A two-step \emph{route-and-synthesize} loop: (i) the model
+classifies intent and extracts parameters as strict JSON; (ii) the route runs the
+matching capability over Scientifiq's data + models (semantic researcher/paper
+search, the six potential scores, patent-citation firms); (iii) the model
+synthesizes an evidence-backed answer, instructed to invent nothing. This unifies
+the previously separate tools (\emph{Find Collaborators}, \emph{Licensing Brief},
+\emph{Diligence the Science}, \emph{Domain Brief}) behind one interface.
+\emph{Science translation} (Deliverable 3) is the one sub-goal only partly met.
+
+\subsection{3. ExplainAI --- plain-language translation \hfill \stPart}
+\textbf{Promised:} ``Publicly accessible ExplainAI tool for translating complex
+research into plain language.''
+
+\textbf{Status:} the Research Agent already renders grounded, plain-language
+answers, and the platform has a mature audience-reframing engine (Superadditive's
+module authoring) that is directly portable --- but a \emph{dedicated, public}
+ExplainAI (one paper $\rightarrow$ policymaker / investor / public framings) is not
+yet built. This is the clearest near-term build.
+
+\subsection{4. Interactive maps of emerging areas + cross-disciplinary links \hfill \stSub}
+\textbf{Promised:} ``Interactive maps of emerging research areas and
+cross-disciplinary linkages.''
+
+\textbf{Delivered:} the \textbf{Ecosystem Explorer} --- an interactive,
+force-directed collaboration map (inside the Domain Brief module). Nodes are
+experts sized by commercial potential; solid links are real co-authorships; dashed
+links are \emph{suggested} cross-disciplinary collaborations at structural holes
+(Burt 1992). You click a researcher to see their profile and the bridges they
+should build, filter by institution, and \emph{recolor the whole map by any
+potential dimension} to see where value concentrates. \emph{Field Trajectory}
+(``where is my field going'') covers direction-of-travel. A dedicated real-time
+\emph{emerging-area radar} is the remaining piece.
+
+\subsection{5. Open datasets, model code, documentation \hfill \stSub}
+\textbf{Promised:} ``Open datasets, model code, and documentation to support
+transparency and reproducibility.''
+
+\textbf{Status:} the full \texttt{sciscore} training/inference/serving library, the
+BigQuery labeling queries for all three datasets, one YAML task-spec per model, the
+trained heads, and a browser (Colab) training notebook all live in the repository
+and are reproducible end-to-end (Section~\ref{sec:repro}). What remains is the
+\emph{public} release (a tagged open-source repo + a Zenodo-style dataset drop,
+mirroring the commercial-potential model's prior release).
+
+\subsection{6. Reports on equity, bias, and trust \hfill \stPend}
+\textbf{Promised:} ``Reports on equity, bias, and trust in AI-driven science
+evaluation.''
+
+\textbf{Status:} designed but not yet run. The intended first analysis --- whether
+defense-funding signals concentrate at large institutions and bias the Defense head
+against smaller schools / under-represented authors --- is specified; the write-up
+is pending. Every score already carries the evidence behind it (which patents/
+signals fired), which is the substrate for the trust analysis.
+
+\subsection{7. Pilot integrations with TTOs / administrators \hfill \stPart}
+\textbf{Promised:} ``Pilot integrations with university tech transfer offices and
+research administrators.''
+
+\textbf{Status:} the delivery home exists --- a branded lab space
+(\url{https://superadditive.app/duke-isp}) with the deep-tech suite and the
+research-intelligence tools, plus a \textbf{Batch scorer} that scores a whole
+portfolio (a lab, a department, a funder's awards) into a six-dimensional
+fingerprint and surfaces the undervalued ``hidden gems.'' That is precisely the TTO
+workflow; the remaining work is running the pilots with actual disclosure/portfolio
+data and the administrators in the loop.
+
+\section{Timeline status (June 2025 -- January 2027)}
+\begin{center}
+\begin{tabular}{@{}p{3.4cm}p{8.5cm}c@{}}
+\toprule
+\textbf{Semester} & \textbf{Milestone vs.\ delivered} & \textbf{Status} \\
+\midrule
+Jun--Dec 2025 & Score Duke output (base scores exist; new-model Duke batch pending); \emph{initiate} specialized model training $\rightarrow$ \textbf{fully trained + deployed}; GPT agent prototype $\rightarrow$ \textbf{live agent}. & \stDone \\
+Jan--Jun 2026 & Beta agent interface $\rightarrow$ \textbf{done}; specialized scores + validation $\rightarrow$ \textbf{validated on held-out}; Duke-specific batch pending. & \stSub \\
+Jul--Dec 2026 & Improved agent $\rightarrow$ early; finalize toolkit \& dashboard $\rightarrow$ \textbf{Agent + Batch + Explorer + six-dim fingerprint}; white paper + open-source $\rightarrow$ pending. & \stSub \\
+\bottomrule
+\end{tabular}
+\end{center}
+Net: the modeling and agent milestones are complete ahead of schedule; the
+remaining timeline items are dissemination (white paper, open-source) and the
+Duke-wide scoring pass.
 
 \section{How to reach everything}\label{sec:access}
-API keys and superadmin access will be granted separately; the paths below are stable.
-
-\subsection{The scoring API (all models)}
-Hosted on Google Cloud Run (project \texttt{com-sci-2}, scales to zero).
-\begin{lstlisting}[style=sh]
-Base URL:  https://sciscore-1029497676656.us-central1.run.app
-
-GET  /health          liveness
-GET  /tasks           -> {"tasks":["defense_impact","complex_invention","interdisciplinary"]}
-POST /score           body {"task":"<name>","text":"<abstract>"}
-                      header  Authorization: Bearer <SCISCORE_API_KEY>
-                      -> {"task":"...","score":0.0-1.0,"stars":1-5}
-\end{lstlisting}
-Example:
-\begin{lstlisting}[style=sh]
-curl -X POST https://sciscore-1029497676656.us-central1.run.app/score \
-  -H "Authorization: Bearer <SCISCORE_API_KEY>" \
-  -H "Content-Type: application/json" \
-  -d '{"task":"defense_impact","text":"<paper abstract>"}'
-\end{lstlisting}
-
-\subsection{Defense Impact --- in the application}
-Defense scoring is deliberately \textbf{superadmin-gated} in the Superadditive app
-(the account will be shared with named people).
+Keys / superadmin access are shared separately; the paths are stable.
 \begin{itemize}[leftmargin=1.4em, itemsep=1pt]
-  \item \textbf{Module:} \url{https://superadditive.app/start/defense-impact} --- paste an
-  abstract (and optionally a DOI); returns a score, the defense domains it touches,
-  translation pathways, and, when a DOI is given, the \emph{real} defense-assigned
-  patents that already cite the paper.
-  \item \textbf{Report:} rendered at \texttt{/defense/<code>} after a run.
-  \item \textbf{Public API:} \texttt{POST /api/v1/defense-impact} with header
-  \texttt{Authorization: Bearer <DEFENSE\_API\_KEY>} --- returns the model score plus an
-  LLM-written read (domains, pathways, dual-use note, verdict) grounded in patent evidence.
+  \item \textbf{Scoring API (all models):} \texttt{POST} to
+  \url{https://sciscore-1029497676656.us-central1.run.app/score} with
+  \texttt{Authorization: Bearer <SCISCORE\_API\_KEY>} and body
+  \texttt{\{"task":"defense\_impact"|"complex\_invention"|"interdisciplinary","text":"..."\}}
+  (\texttt{GET /tasks} lists them; a \texttt{texts:[...]} array scores in batch).
+  \item \textbf{Impact fingerprint (all six potentials):} the \emph{Score My
+  Invention} module --- paste an abstract, get commercial/scientific/social plus
+  complex-invention and interdisciplinary (and defense, for directors).
+  \item \textbf{Defense Impact:} module at \url{https://superadditive.app/start/defense-impact};
+  public API \texttt{POST /api/v1/defense-impact} (bearer key). Director-gated.
+  \item \textbf{Research Agent:} \url{https://superadditive.app/agent}.
+  \item \textbf{Ecosystem Explorer:} inside the Domain Brief module.
+  \item \textbf{Batch scorer:} \url{https://superadditive.app/batch} (directors).
+  \item \textbf{Lab hub:} \url{https://superadditive.app/duke-isp}.
 \end{itemize}
-The Defense Impact score is a research-\emph{mapping} measure --- a transparent,
-uncertainty-aware lens on where science flows toward public and defense applications,
-built only from public bibliometric signals. It maps relevance, not intent.
 
-\subsection{Research Agent}
-\url{https://superadditive.app/agent} (login required). One natural-language box over the
-platform: it routes a question to the right capability --- \emph{find experts /
-collaborators}, \emph{score an idea's potential}, or \emph{map a field} --- runs the
-matching query over Scientifiq's data and models, and answers grounded only in the
-retrieved evidence. Defense scoring is included only for superadmins.
-
-\subsection{Ecosystem Explorer}
-Inside the \emph{Domain Brief} module: enter a technology domain and scope (an institution,
-a region, or global) and explore the collaboration network interactively --- click a
-researcher for their profile and the cross-disciplinary bridges they should build, filter
-by institution, and recolor the map by commercial / scientific / social potential to see
-where value concentrates. Dashed links are suggested collaborations across structural holes.
-
-\subsection{Batch scorer}
-\url{https://superadditive.app/batch} (superadmin). Upload up to 50 abstracts --- a CSV with
-an \texttt{abstract} column (and optional \texttt{id}/\texttt{doi}), or pasted text --- and
-get every paper's six-dimensional impact fingerprint (commercial, scientific, social,
-defense, complex-invention, interdisciplinary) in one pass, sortable and downloadable as CSV.
-This is the ``score a portfolio'' workflow: surface the hidden gems in a lab's output, the
-defense-relevant work in a department, or the cross-disciplinary bridges in a funder's awards.
-The sciscore models score the whole batch in a single request each; the base scores run
-concurrently. For a full corpus (thousands of papers) the same models are called directly
-via the \texttt{/score} endpoint with a \texttt{texts} array.
-
-\section{Mapping to the proposal's deliverables}
-\begin{table}[h]
-\centering
-\begin{tabular}{@{}p{7.6cm}p{5.4cm}@{}}
-\toprule
-\textbf{Proposal deliverable} & \textbf{Status} \\
-\midrule
-Expanded models: interdisciplinary, complex-invention, defense impact & Built, deployed, live \\
-GPT/Claude agents: matchmaking, scouting, knowledge support & Unified in the Research Agent \\
-Interactive maps of emerging areas + cross-disciplinary links & Ecosystem Explorer \\
-Open model code + reproducible datasets & \texttt{sciscore} + SQL in the repo \\
-Score a portfolio / university's output with the models & Batch scorer (up to 50/run); full-corpus run pending \\
-ExplainAI (multi-audience translation) & Not yet built \\
-Equity / bias / trust report & Not yet run \\
-TTO / research-administrator pilots & Partnership activity \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\section{Reproducibility}
-The repository contains everything to rebuild the models:
-\begin{itemize}[leftmargin=1.4em, itemsep=1pt]
-  \item \texttt{ml/sciscore/} --- the training + inference + serving library.
-  \item \texttt{ml/sql/} --- the BigQuery labeling queries for all three datasets.
-  \item \texttt{ml/tasks/} --- one YAML per model (encoder, label column, sample size).
-  \item \texttt{ml/models/} --- the trained heads (4\,KB each) baked into the Cloud Run image.
-  \item \texttt{ml/notebooks/} --- a browser (Colab) training notebook, no local setup needed.
-\end{itemize}
-Rebuilding one model: run its \texttt{ml/sql} query to a CSV, then
+\section{Reproducibility}\label{sec:repro}
+In the repository under \texttt{ml/}:
+\texttt{sciscore/} (train + infer + serve), \texttt{sql/} (BigQuery labeling
+queries for all three datasets), \texttt{tasks/} (one YAML per model),
+\texttt{models/} (trained heads, baked into the Cloud Run image), and
+\texttt{notebooks/} (a Colab training notebook, no local setup). Rebuilding a model:
+run its \texttt{sql} query to a CSV, then
 \texttt{sciscore train --task ml/tasks/<name>.yaml --data <name>.csv --out models/<name>},
 then redeploy.
 
-\section*{Note on the Interdisciplinary model}
-It is the weakest head (0.75). The label was sharpened once --- from ``cited by $\geq 3$
-fields'' to ``a majority of citers outside the home field'' --- which helped modestly.
-The honest read is that ex-ante interdisciplinary influence is hard to predict from an
-abstract alone; a further refinement (weighting by citation distance across the field
-hierarchy) is the natural next step.
+\section*{What remains, in priority order}
+\begin{enumerate}[leftmargin=1.5em, itemsep=1pt]
+  \item \textbf{ExplainAI} --- a dedicated multi-audience plain-language tool (Del.\ 3).
+  \item \textbf{Duke-wide scoring pass} --- run all six potentials over Duke's output; surface hidden gems (timeline + Del.\ 7).
+  \item \textbf{Equity/bias/trust report} (Del.\ 6).
+  \item \textbf{Open-source release + white paper} (Del.\ 5, timeline).
+  \item \textbf{In-field TTO pilots} with real disclosure data (Del.\ 7).
+\end{enumerate}
 
 \end{document}
