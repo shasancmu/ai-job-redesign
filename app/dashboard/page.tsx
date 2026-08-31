@@ -494,10 +494,19 @@ export default async function Dashboard({
 
       {/* Staff authoring — demoted to a slim secondary link, not a hero card. */}
       {(facAccess.superadmin || facAccess.orgIds.length > 0) && (
-        <a href="/studio/upload" className="group mb-8 flex items-center gap-2 text-sm text-slate2 transition hover:text-ai">
+        <a href="/studio/upload" className="group mb-4 flex items-center gap-2 text-sm text-slate2 transition hover:text-ai">
           <span aria-hidden>📎</span>
           <span className="font-medium text-ink group-hover:text-ai">Turn your materials into a module</span>
           <span className="text-slate-400">· or open the Studio</span>
+          <span className="text-ai">→</span>
+        </a>
+      )}
+
+      {facAccess.orgIds.length > 0 && (
+        <a href="/org/settings" className="group mb-8 flex items-center gap-2 text-sm text-slate2 transition hover:text-ai">
+          <span aria-hidden>⚙️</span>
+          <span className="font-medium text-ink group-hover:text-ai">Organization settings</span>
+          <span className="text-slate-400">· logo, hero image, and text</span>
           <span className="text-ai">→</span>
         </a>
       )}

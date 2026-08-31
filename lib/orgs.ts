@@ -172,6 +172,15 @@ export async function isDirectorOrAdmin(user: { id: string; email?: string | nul
   return r.superadmin || r.directorOrgIds.length > 0;
 }
 
+// Can this user edit THIS org's branding (name, logo, hero, text)? Superadmin, or a
+// director of that specific org. Directors get branding only — not slug, module
+// entitlements, membership policy, or ownership (those stay superadmin).
+export async function canEditOrgBranding(user: { id: string; email?: string | null } | null, orgId: string): Promise<boolean> {
+  if (!orgId) return false;
+  const r = await roleFor(user);
+  return r.superadmin || r.directorOrgIds.includes(orgId);
+}
+
 // The single isolation resolver for the teaching console. Directors and
 // instructors are "staff"; superadmin sees all. `orgIds` are the orgs the user
 // runs org-wide (director) — the caller reads every cohort in them. Instructors

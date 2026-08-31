@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isSuperadmin, getOrgById, ensureMasterCohort, joinMasterCohort } from "@/lib/orgs";
+import { isSuperadmin, canEditOrgBranding, getOrgById, ensureMasterCohort, joinMasterCohort } from "@/lib/orgs";
 import { MODULES } from "@/lib/modules";
 
 const VALID_MODULES = new Set(MODULES.map((m) => m.slug));
@@ -34,49 +34,73 @@ function cleanFaculty(v: any): { name: string; title?: string; image_url?: strin
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Superadmin-only management of white-label orgs, their facilitators, and invites.
-// One route, several actions, so the console has a single endpoint.
+// Management of white-label orgs, their facilitators, and invites. Most actions are
+// superadmin-only; editing an existing org's BRANDING (name, colours, text, people)
+// is also open to that org's own directors — creation, module entitlements,
+// membership policy, and role/invite management stay superadmin.
 export async function POST(request: Request) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Sign in required." }, { status: 401 });
-  if (!(await isSuperadmin(user))) return Response.json({ error: "Superadmin only." }, { status: 403 });
 
   let body: any;
   try { body = await request.json(); } catch { return Response.json({ error: "bad request" }, { status: 400 }); }
   const action = String(body.action || "");
   const admin = createAdminClient();
+  const superadmin = await isSuperadmin(user);
 
   try {
     if (action === "save_org") {
-      const slug = String(body.slug || "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
       const name = String(body.name || "").trim();
-      if (!slug || !name) return Response.json({ error: "slug and name are required" }, { status: 400 });
-      const row: any = {
-        slug,
+      if (!name) return Response.json({ error: "A name is required." }, { status: 400 });
+      // Branding fields anyone with edit rights may set.
+      const branding: any = {
         name,
         tagline: body.tagline ? String(body.tagline).slice(0, 200) : null,
         primary_color: body.primary_color ? String(body.primary_color).slice(0, 16) : null,
-        invite_only: body.invite_only !== false,
-        modules: Array.isArray(body.modules) ? [...new Set(body.modules.map((s: any) => String(s)).filter((s: string) => VALID_MODULES.has(s)))] : null,
-        member_can_browse: body.member_can_browse === true,
         about: body.about ? String(body.about).slice(0, 1000) : null,
         highlights: cleanHighlights(body.highlights),
         faculty: cleanFaculty(body.faculty),
         updated_at: new Date().toISOString(),
       };
+
       if (body.id) {
-        const { data, error } = await admin.from("organizations").update(row).eq("id", body.id).select().single();
+        // Editing an existing org: superadmin, or a director of THIS org.
+        const editId = String(body.id);
+        if (!(await canEditOrgBranding(user, editId))) return Response.json({ error: "You can't edit this organization." }, { status: 403 });
+        const row: any = { ...branding };
+        // Only superadmins may change entitlements / policy (not the slug, which is fixed after creation).
+        if (superadmin) {
+          row.invite_only = body.invite_only !== false;
+          row.member_can_browse = body.member_can_browse === true;
+          if (Array.isArray(body.modules)) row.modules = [...new Set(body.modules.map((s: any) => String(s)).filter((s: string) => VALID_MODULES.has(s)))];
+        }
+        const { data, error } = await admin.from("organizations").update(row).eq("id", editId).select().single();
         if (error) return Response.json({ error: error.message }, { status: 400 });
         return Response.json({ org: data });
       }
-      row.owner_id = user.id;
+
+      // Creating a new org — superadmin only.
+      if (!superadmin) return Response.json({ error: "Only a superadmin can create an organization." }, { status: 403 });
+      const slug = String(body.slug || "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+      if (!slug) return Response.json({ error: "slug and name are required" }, { status: 400 });
+      const row: any = {
+        ...branding,
+        slug,
+        invite_only: body.invite_only !== false,
+        member_can_browse: body.member_can_browse === true,
+        modules: Array.isArray(body.modules) ? [...new Set(body.modules.map((s: any) => String(s)).filter((s: string) => VALID_MODULES.has(s)))] : null,
+        owner_id: user.id,
+      };
       const { data, error } = await admin.from("organizations").insert(row).select().single();
       if (error) return Response.json({ error: error.message.includes("duplicate") ? `The slug "${slug}" is taken.` : error.message }, { status: 400 });
       // Give the new org its master cohort (the default "everyone" group).
       if (data) await ensureMasterCohort(data as any);
       return Response.json({ org: data });
     }
+
+    // Everything below is superadmin-only.
+    if (!superadmin) return Response.json({ error: "Superadmin only." }, { status: 403 });
 
     if (action === "set_facilitator" || action === "set_director" || action === "set_instructor" || action === "add_invites") {
       const orgId = String(body.orgId || "");

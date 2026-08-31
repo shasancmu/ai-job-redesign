@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isSuperadmin } from "@/lib/orgs";
+import { canEditOrgBranding } from "@/lib/orgs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,7 +12,6 @@ export async function POST(request: Request) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Sign in required." }, { status: 401 });
-  if (!(await isSuperadmin(user))) return Response.json({ error: "Superadmin only." }, { status: 403 });
 
   let form: FormData;
   try { form = await request.formData(); } catch { return Response.json({ error: "bad request" }, { status: 400 }); }
@@ -21,6 +20,8 @@ export async function POST(request: Request) {
   const kind = rawKind === "hero" ? "hero" : rawKind === "faculty" ? "faculty" : "logo";
   const file = form.get("file") as File | null;
   if (!orgId || !file) return Response.json({ error: "orgId and file required" }, { status: 400 });
+  // Superadmin, or a director of this org.
+  if (!(await canEditOrgBranding(user, orgId))) return Response.json({ error: "You can't edit this organization." }, { status: 403 });
   if (file.size > 4 * 1024 * 1024) return Response.json({ error: "Image must be under 4MB." }, { status: 400 });
 
   const admin = createAdminClient();
