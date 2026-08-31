@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { moduleRunAccess } from "@/lib/access";
 import { isAdmin } from "@/lib/admin";
 import { moduleByExercise } from "@/lib/modules";
-import { isSuperadmin } from "@/lib/orgs";
+import { isDirectorOrAdmin } from "@/lib/orgs";
 import Room from "@/components/Room";
 import WorkflowRoom from "@/components/WorkflowRoom";
 import SoloRoom from "@/components/SoloRoom";
@@ -256,7 +256,7 @@ export default async function RoomPage({
   if (["score-invention", "defense-impact", "position-research", "rank-disclosures"].includes(session.exercise || "")) {
     if (!amHost) redirect("/dashboard");
     // Defense Impact is superadmin-only.
-    if (session.exercise === "defense-impact" && !(await isSuperadmin(user))) redirect("/dashboard");
+    if (session.exercise === "defense-impact" && !(await isDirectorOrAdmin(user))) redirect("/dashboard");
     await supabase.from("workspaces").upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
     const { data: workspace } = await supabase.from("workspaces").select("*").eq("session_id", session.id).eq("author_id", user.id).maybeSingle();
     const iw = workspace || { session_id: session.id, author_id: user.id };

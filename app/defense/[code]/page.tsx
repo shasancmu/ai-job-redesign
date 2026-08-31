@@ -3,14 +3,14 @@ import DefenseImpactReport from "@/components/DefenseImpactReport";
 import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
 import { createClient } from "@/lib/supabase/server";
-import { isSuperadmin } from "@/lib/orgs";
+import { isDirectorOrAdmin } from "@/lib/orgs";
 
 export const dynamic = "force-dynamic";
 
 export default async function DefenseView({ params }: { params: { code: string } }) {
   // Defense Impact is superadmin-only.
   const { data: { user } } = await createClient().auth.getUser();
-  if (!user || !(await isSuperadmin(user))) redirect("/dashboard");
+  if (!user || !(await isDirectorOrAdmin(user))) redirect("/dashboard");
   const { code, canvas } = await loadOwnerReport(params.code);
   const read = canvas.read;
   return (

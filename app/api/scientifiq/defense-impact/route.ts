@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED } from "@/lib/ai";
 import { SCIENTIFIQ_ENABLED, ScientifiqError } from "@/lib/scientifiq";
-import { isSuperadmin } from "@/lib/orgs";
+import { isDirectorOrAdmin } from "@/lib/orgs";
 import { runDefenseImpact } from "@/lib/defenseImpact";
 
 export const runtime = "nodejs";
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user || !(await isSuperadmin(user))) return Response.json({ error: "Superadmin only." }, { status: 403 });
+  if (!user || !(await isDirectorOrAdmin(user))) return Response.json({ error: "Directors only." }, { status: 403 });
 
   let body: any;
   try { body = await request.json(); } catch { return Response.json({ error: "bad request" }, { status: 400 }); }

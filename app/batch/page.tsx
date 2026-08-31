@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { isSuperadmin } from "@/lib/orgs";
+import { isDirectorOrAdmin } from "@/lib/orgs";
 import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
 import BatchScore from "@/components/BatchScore";
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function BatchPage() {
   const { data: { user } } = await createClient().auth.getUser();
   if (!user) redirect("/login?next=/batch");
-  if (!(await isSuperadmin(user))) redirect("/dashboard");
+  if (!(await isDirectorOrAdmin(user))) redirect("/dashboard");
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between">

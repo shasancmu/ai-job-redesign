@@ -20,5 +20,5 @@ export const RESEARCH_TOOLS: ResearchTool[] = [
   { emoji: "📊", name: "Batch scorer", href: "/batch",
     desc: "Upload a portfolio of abstracts and get every paper's six-dimensional impact fingerprint at once, downloadable as CSV.", note: "Directors", staffOnly: true },
   { emoji: "🛰️", name: "Defense Impact", href: "/start/defense-impact",
-    desc: "Estimate a paper's defense / national-security relevance, grounded in the defense-assigned patents that already cite it.", note: "Superadmin", staffOnly: true },
+    desc: "Estimate a paper's defense / national-security relevance, grounded in the defense-assigned patents that already cite it.", note: "Directors", staffOnly: true },
 ];

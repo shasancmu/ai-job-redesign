@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { moduleBySlug } from "@/lib/modules";
 import { loadRunnableBySlug } from "@/lib/customModules";
-import { getActiveOrg, ensureMasterCohort, isSuperadmin } from "@/lib/orgs";
+import { getActiveOrg, ensureMasterCohort, isDirectorOrAdmin } from "@/lib/orgs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,7 +30,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
 
   const mod = moduleBySlug(params.slug);
   // Superadmin-only modules (e.g. Defense Impact): non-superadmins can't launch.
-  if (mod && mod.slug === "defense-impact" && !(await isSuperadmin(user))) {
+  if (mod && mod.slug === "defense-impact" && !(await isDirectorOrAdmin(user))) {
     return NextResponse.redirect(`${origin}/dashboard`);
   }
   // Author-built module? Resolve its exercise key, visibility-checked for this user.

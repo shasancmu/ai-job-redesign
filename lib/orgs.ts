@@ -164,6 +164,14 @@ export async function isSuperadmin(user: { id: string; email?: string | null } |
   return (await roleFor(user)).superadmin;
 }
 
+// Director of any org, or superadmin. Gates the deep-tech power tools (Defense
+// Impact, Batch scorer) so an org's directors can run them under their own login,
+// without sharing one superadmin account.
+export async function isDirectorOrAdmin(user: { id: string; email?: string | null } | null): Promise<boolean> {
+  const r = await roleFor(user);
+  return r.superadmin || r.directorOrgIds.length > 0;
+}
+
 // The single isolation resolver for the teaching console. Directors and
 // instructors are "staff"; superadmin sees all. `orgIds` are the orgs the user
 // runs org-wide (director) — the caller reads every cohort in them. Instructors

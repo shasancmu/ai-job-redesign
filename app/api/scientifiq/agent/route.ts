@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED } from "@/lib/ai";
 import { SCIENTIFIQ_ENABLED, ScientifiqError } from "@/lib/scientifiq";
-import { isSuperadmin } from "@/lib/orgs";
+import { isDirectorOrAdmin } from "@/lib/orgs";
 import { runResearchAgent } from "@/lib/researchAgent";
 
 export const runtime = "nodejs";
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   if (question.length < 4) return Response.json({ error: "Ask a question." }, { status: 400 });
 
   try {
-    const res = await runResearchAgent(question, { includeDefense: await isSuperadmin(user) });
+    const res = await runResearchAgent(question, { includeDefense: await isDirectorOrAdmin(user) });
     return Response.json(res);
   } catch (e: any) {
     if (e instanceof ScientifiqError) return Response.json({ error: e.message }, { status: e.status < 600 ? e.status : 502 });

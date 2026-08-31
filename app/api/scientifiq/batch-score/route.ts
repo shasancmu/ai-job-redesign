@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { SCIENTIFIQ_ENABLED, ScientifiqError } from "@/lib/scientifiq";
 import { SCISCORE_ENABLED } from "@/lib/sciscore";
-import { isSuperadmin } from "@/lib/orgs";
+import { isDirectorOrAdmin } from "@/lib/orgs";
 import { batchScore } from "@/lib/batchScore";
 
 export const runtime = "nodejs";
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
   setFlow("batch-score");
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user || !(await isSuperadmin(user))) return Response.json({ error: "Superadmin only." }, { status: 403 });
+  if (!user || !(await isDirectorOrAdmin(user))) return Response.json({ error: "Directors only." }, { status: 403 });
   if (!SCISCORE_ENABLED) return Response.json({ error: "The scoring service (SCISCORE_URL) is not configured." }, { status: 503 });
 
   let body: any;
