@@ -1,0 +1,19 @@
+[project]
+name = "sciscore"
+version = "0.1.0"
+description = "Modular text -> target estimator on frozen BERT/SciBERT embeddings"
+requires-python = ">=3.10"
+dynamic = ["dependencies"]
+
+[project.scripts]
+sciscore = "sciscore.cli:main"
+
+[tool.setuptools]
+packages = ["sciscore"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

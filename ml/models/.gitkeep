@@ -1,0 +1,4 @@
+# Trained models live here, one dir per task: models/defense_impact/{head.joblib, meta.json}.
+# Produced by `sciscore train` or the Colab notebook. The Dockerfile bakes this dir
+# into the inference image. Kept in .gitkeep so `docker build` / Cloud Build never
+# fails on a missing directory.

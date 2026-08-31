@@ -1,0 +1,8 @@
+# Local Python env + generated data — not source.
+.venv/
+__pycache__/
+*.pyc
+.hf/
+# Training data is regenerable via sql/build_defense_impact.sql (and is large).
+defense.csv
+*.csv

@@ -65,6 +65,7 @@ export type ModuleDef = {
     | "collaborators"
     | "licensing-brief"
     | "score-invention"
+    | "defense-impact"
     | "position-research"
     | "rank-disclosures"
     | "find-cofounder"
@@ -710,6 +711,23 @@ export const MODULES: ModuleDef[] = [
     emoji: "⭐",
     priceCents: 0,
     priceEnv: "STRIPE_PRICE_LICENSING",
+    forSale: false,
+  },
+  {
+    slug: "defense-impact",
+    exercise: "defense-impact",
+    name: "Defense Impact",
+    tagline: "Paste a paper or research idea and estimate its defense and national-security relevance, the domains it touches, and, from the patents that cite it, whether it is already feeding defense technology.",
+    description:
+      "A research-mapping tool built on Scientifiq.AI, and a sibling of the commercial-potential model. Paste an abstract and it estimates the work's defense / national-security relevance (0-100 and stars, with a confidence): the domains it plausibly touches (aerospace, autonomy, sensing, advanced materials and energetics, cyber and secure communications, space, biodefense), the concrete translation pathways, and who would track work like this. Add the paper's DOI and it grounds the estimate in real evidence, the patents that cite the paper and whether any are assigned to defense primes or government bodies (Lockheed, Raytheon, DARPA, the national labs), so a strong score is backed by observed translation rather than speculation. A transparent, uncertainty-bounded lens on where science flows toward public and defense applications, in the same spirit as the commercial-potential score. It maps relevance, not intent.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 3,
+    ai: true,
+    emoji: "🛰️",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_LICENSING",
+    hidden: true,
     forSale: false,
   },
   {
@@ -1450,6 +1468,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "find-collaborators": "commercialize",
   "licensing-brief": "commercialize",
   "score-my-invention": "commercialize",
+  "defense-impact": "commercialize",
   "position-my-research": "research",
   "rank-disclosures": "commercialize",
   "find-a-cofounder": "commercialize",

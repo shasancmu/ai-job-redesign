@@ -1,0 +1,12 @@
+{
+  "task": "defense_impact",
+  "kind": "binary",
+  "encoder": "scibert",
+  "max_length": 256,
+  "dim": 768,
+  "n_train": 8500,
+  "n_val": 1500,
+  "description": "A research-mapping score: how likely this science is to feed defense-relevant technology, learned from patent-citation labels. Maps relevance, not intent.\n",
+  "val_auroc": 0.8971964444444444,
+  "val_auprc": 0.8810700184225727
+}

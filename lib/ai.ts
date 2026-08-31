@@ -2942,6 +2942,53 @@ Return STRICT JSON only, plain text values (no markdown):
   ], { temperature: 0.4, maxTokens: 1200 });
 }
 
+// ---- Defense Impact (Scientifiq, national-security relevance) --------------
+// The RFP's GPT-4 chain-of-thought scorer: estimate how likely a piece of
+// science is to influence government / defense-relevant technology, grounded in
+// real patent-citation evidence when a DOI is supplied. A research-MAPPING
+// score, not a targeting tool — the prompt is held to that framing.
+export async function defenseImpactAI(input: {
+  abstract: string;
+  title?: string;
+  scores: any;             // { commercial:{raw,stars}, scientific, social }
+  evidenceSummary: string; // from evidenceForPrompt() — hard patent signal or its absence
+  modelScore?: { score: number; stars: number } | null; // the SciBERT estimator's score, when available
+}): Promise<any> {
+  const s = input.scores || {};
+  const pct = (x: any) => Math.round((x?.raw ?? 0) * 100);
+  const scoreLine = `For context, Scientifiq's predictive potential for THIS abstract: commercial ${pct(s.commercial)}/100 (${s.commercial?.stars ?? "?"}★), scientific ${pct(s.scientific)}/100 (${s.scientific?.stars ?? "?"}★), social ${pct(s.social)}/100 (${s.social?.stars ?? "?"}★).`;
+  const modelLine = input.modelScore
+    ? `The trained SciBERT defense-impact model scored this ${Math.round(input.modelScore.score * 100)}/100. This is the AUTHORITATIVE score — set "scorePct" to exactly ${Math.round(input.modelScore.score * 100)} and write every part of your read (domains, pathways, confidence, verdict) consistent with it. Do NOT substitute your own number.`
+    : `No trained-model score is available; produce your own honest "scorePct" estimate from the abstract and evidence.`;
+
+  const system = `You estimate the DEFENSE IMPACT POTENTIAL of a piece of science: how likely this work is to influence technologies relevant to government, national-security, or defense applications (e.g. aerospace, autonomy/robotics, sensing & C4ISR, advanced materials & energetics, cyber & secure communications, directed energy, space, biodefense).
+
+Define it precisely, mirroring the commercial-potential measure (Masclans, Hasan & Cohen 2025), where commercial potential is the predicted likelihood that a RENEWED PATENT cites the article. Here, defense impact is the analogous likelihood that a patent assigned to a DEFENSE ENTITY (a defense prime, a national lab, or a government/defense body) — or work under defense-agency funding — builds on this article. Score in that spirit: an ex-ante, forward-looking signal read from the abstract, not proof.
+
+This is a research-MAPPING score, in the same spirit as the commercial-potential score — a transparent, uncertainty-bounded lens on where science flows. It is built from public bibliometric signals. Do NOT describe weaponization steps, operational use, or how to build anything; reason only about topical relevance and likely translation pathways at the level of published research.
+
+You are given the abstract, its Scientifiq potential scores (context), and any HARD EVIDENCE from patent-citation data. Ground your estimate: if real defense-linked patent citations exist, score higher with higher confidence; if the paper has commercial translation but no defense assignees, or no citations at all, keep the estimate and confidence honest. Be willing to say defense relevance is minimal.
+
+Return STRICT JSON only, plain text values (no markdown):
+{
+  "headline": "one honest sentence on this work's defense-impact potential",
+  "scorePct": 0-100 integer estimate of defense-impact potential,
+  "stars": 1-5 integer matching the score,
+  "confidence": "High | Moderate | Low — reflecting evidence strength and specificity",
+  "confidenceWhy": "one line on what drives the confidence (evidence present/absent, how specific the science is)",
+  "domains": [{ "name": "a defense/national-security domain it plausibly touches", "why": "one line on the connection" }],
+  "pathways": ["2-4 concrete, non-operational ways this science could feed a defense-relevant technology (translation pathways, not instructions)"],
+  "dualUse": "one honest paragraph on the dual-use character of this work — that it maps relevance, not intent, and where the civilian/defense line sits",
+  "whoCares": ["2-3 agencies, programs, or primes that would plausibly track work like this"],
+  "verdict": "one of: Strong defense relevance | Plausible dual-use | Minimal defense relevance, followed by one line why"
+}`;
+
+  return completeJson([
+    { role: "system", content: system },
+    { role: "user", content: `WORK${input.title ? ` — ${input.title}` : ""}:\n${input.abstract.slice(0, 5000)}\n\n${scoreLine}\n\nMODEL: ${modelLine}\n\nEVIDENCE: ${input.evidenceSummary}` },
+  ], { temperature: 0.4, maxTokens: 1500 });
+}
+
 // ---- Licensing Brief (Scientifiq scouting) --------------------------------
 export async function licensingBriefAI(input: {
   abstract: string;

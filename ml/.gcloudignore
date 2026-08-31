@@ -1,0 +1,11 @@
+# Keep the Cloud Build upload small: exclude the local venv, data, caches.
+.venv/
+__pycache__/
+*.pyc
+.hf/
+defense.csv
+*.csv
+notebooks/
+scripts/
+sql/
+.DS_Store

@@ -1,0 +1,16 @@
+# Defense Impact — the likelihood that a paper is cited by a patent assigned to a
+# defense entity. The direct analog of the commercial-potential measure
+# (Masclans, Hasan & Cohen 2025), which predicts citation by a RENEWED patent.
+#
+# Train:  sciscore train --task ml/tasks/defense_impact.yaml --data defense.csv --out models/defense_impact
+name: defense_impact
+kind: binary
+encoder: scibert          # allenai/scibert_scivocab_uncased
+text_col: abstract        # the paper's title + abstract
+label_col: defense_cited  # 1 if cited by a defense-assigned patent (or defense-funded), else 0
+sample_size: 10000        # simulations: ~10k frozen-embedding rows is sufficient
+max_length: 256
+C: 1.0
+description: >
+  A research-mapping score: how likely this science is to feed defense-relevant
+  technology, learned from patent-citation labels. Maps relevance, not intent.
