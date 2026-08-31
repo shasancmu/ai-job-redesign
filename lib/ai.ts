@@ -3102,6 +3102,22 @@ Return STRICT JSON only, one verdict per extension IN ORDER:
   ], { temperature: 0.2, maxTokens: 1000 });
 }
 
+// Twin-grounding (AlphaFold-style co-variation): given REAL papers from the same
+// research neighborhood, split by outcome, name the factors that empirically
+// separate the high-outcome group — grounded ONLY in what the titles/keywords show.
+export async function groundLeversAI(input: { target: string; high: { title: string; keywords?: string }[]; low: { title: string; keywords?: string }[] }): Promise<any> {
+  const label = TARGET_LABEL[input.target] || input.target;
+  const fmt = (arr: { title: string; keywords?: string }[]) => arr.slice(0, 8).map((p, i) => `${i + 1}. ${p.title}${p.keywords ? ` [${p.keywords}]` : ""}`).join("\n");
+  const system = `You are analyzing REAL papers from one tight research neighborhood. The HIGH group scored high on ${label}; the LOW group scored low. These are matched twins — same topic, different outcome. Name 2–4 concrete scientific FACTORS that distinguish the high-outcome group from the low one. Use ONLY what is visible in the titles and keywords — do not invent findings. Each factor must be an actionable research choice (e.g. "demonstrates a device/application", "reports quantitative performance", "targets a named end-use"), not a vague theme.
+
+Return STRICT JSON only:
+{ "levers": [ { "name": "short factor (≤6 words)", "why": "one line: what the high group shows that the low group doesn't" } ] }`;
+  return completeJson([
+    { role: "system", content: system },
+    { role: "user", content: `HIGH ${label} (real twins):\n${fmt(input.high)}\n\nLOW ${label} (real twins):\n${fmt(input.low)}` },
+  ], { temperature: 0.2, maxTokens: 700 });
+}
+
 // ---- Licensing Brief (Scientifiq scouting) --------------------------------
 export async function licensingBriefAI(input: {
   abstract: string;

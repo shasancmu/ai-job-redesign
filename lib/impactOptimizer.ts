@@ -8,9 +8,9 @@
 // the target, rather than guessing. Server-only.
 // ============================================================================
 
-import { scoreAbstract, scoreAbstractDimension, searchPapers } from "./scientifiq";
+import { scoreAbstract, scoreAbstractDimension, searchPapers, type SciPaper } from "./scientifiq";
 import { scoreText } from "./sciscore";
-import { proposeExtensionsAI, critiqueChainAI } from "./ai";
+import { proposeExtensionsAI, critiqueChainAI, groundLeversAI } from "./ai";
 
 export const OPTIMIZE_TARGETS = ["commercial", "scientific", "social", "complex_invention", "interdisciplinary", "defense"] as const;
 export type Target = (typeof OPTIMIZE_TARGETS)[number];
@@ -46,10 +46,16 @@ export type Precedent = { title: string; year?: number };
 export type Step = { round: number; gap: string; abstract: string; gain: number; fingerprint: Fingerprint; legit?: boolean; concern?: string; precedent?: Precedent[] };
 // A Bet is one distinct research path to the goal: its defining move, the sequence
 // of missing science, the final target score, and its net effect on EVERY potential
-// (its trade-off signature — what else it lifts or costs).
-export type Bet = { id: number; headline: string; finalScore: number; gain: number; steps: Step[]; signature: Fingerprint };
+// (its trade-off signature — what else it lifts or costs). `grounded` lists the
+// observed twin levers this bet's moves actually match.
+export type Bet = { id: number; headline: string; finalScore: number; gain: number; steps: Step[]; signature: Fingerprint; grounded?: string[] };
+// Twin grounding (AlphaFold-style): the paper's real semantic neighborhood, split by
+// outcome, and the factors that empirically separate the high-outcome twins.
+export type Twin = { title: string; year?: number; score: number };
+export type Lever = { term: string; lift: number; examples: string[] };
+export type Grounding = { target: Target; n: number; highMean: number; lowMean: number; levers: Lever[]; synthesis: { name: string; why: string }[]; topTwins: Twin[] };
 export type OptimizeResult = {
-  target: Target; goal: number; baseline: Fingerprint; bets: Bet[];
+  target: Target; goal: number; baseline: Fingerprint; bets: Bet[]; grounding?: Grounding | null;
   stop: "reached" | "plateau" | "ceiling" | "maxRounds" | "no-improvement";
 };
 
@@ -127,6 +133,94 @@ function mmrSelect(cands: Cand[], n: number, lambda: number): Cand[] {
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
+// ---- Twin grounding (AlphaFold-style co-variation) -------------------------
+// Retrieve the abstract's real semantic twins, split them by outcome, and read off
+// the factors that empirically separate the high-outcome group — evidence from
+// matched real papers, not model speculation. Native scores (compot/scipot/socpot)
+// come free on each paper; the other targets score a bounded sample.
+const NATIVE_FIELD: Partial<Record<Target, "compot" | "scipot" | "socpot">> = { commercial: "compot", scientific: "scipot", social: "socpot" };
+
+const normPct = (v: any): number => { const n = Number(v); if (!Number.isFinite(n)) return -1; return n <= 1 ? Math.round(n * 100) : Math.round(n); };
+const avg = (a: number[]): number => (a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0);
+function twinTerms(p: SciPaper): string[] {
+  const terms: string[] = [];
+  for (const kw of p.keywords || []) { const t = kw.toLowerCase().trim(); if (t.length >= 4) terms.push(t); }
+  for (const t of contentTokens(p.title || "")) terms.push(t);
+  return terms;
+}
+const kwString = (p: SciPaper): string => (p.keywords?.length ? p.keywords.slice(0, 8).join(", ") : (p.subfields || []).slice(0, 4).join(", "));
+
+// Terms over-represented in the high-outcome group vs the low — the observed levers.
+function enrichedLevers(high: { p: SciPaper }[], low: { p: SciPaper }[]): Lever[] {
+  const hi = new Map<string, { df: number; ex: string[] }>();
+  const lo = new Map<string, number>();
+  for (const x of high) for (const t of new Set(twinTerms(x.p))) { const e = hi.get(t) || { df: 0, ex: [] }; e.df++; if (e.ex.length < 2) e.ex.push(x.p.title); hi.set(t, e); }
+  for (const x of low) for (const t of new Set(twinTerms(x.p))) lo.set(t, (lo.get(t) || 0) + 1);
+  const H = high.length || 1, L = low.length || 1;
+  const out: Lever[] = [];
+  for (const [t, e] of hi) {
+    const lift = e.df / H - (lo.get(t) || 0) / L;
+    if (e.df >= 2 && lift >= 0.25) out.push({ term: t, lift: Math.round(lift * 100) / 100, examples: e.ex });
+  }
+  return out.sort((a, b) => b.lift - a.lift).slice(0, 6);
+}
+
+async function twinGrounding(abstract: string, target: Target, includeDefense: boolean): Promise<Grounding | null> {
+  try {
+    const res = await searchPapers({ search: abstract.slice(0, 2000), limit: 24 });
+    const twins = (res.papers || []).filter((p) => p && p.title);
+    if (twins.length < 8) return null;
+
+    const field = NATIVE_FIELD[target];
+    let scored: { p: SciPaper; score: number }[];
+    if (field) {
+      scored = twins.map((p) => ({ p, score: normPct((p as any)[field]) })).filter((x) => x.score >= 0);
+    } else if (target === "defense" && !includeDefense) {
+      return null; // no permission to score this dimension
+    } else {
+      const task = SCISCORE_TASK[target];
+      const sub = twins.slice(0, 14); // bound the scoring cost for non-native targets
+      const vals = await mapLimited(sub, 3, async (p) => {
+        const text = p.abstract && p.abstract.length > 60 ? p.abstract : p.title;
+        try { const s = await scoreText(task, text); return s ? Math.round(s.score * 100) : -1; } catch { return -1; }
+      });
+      scored = sub.map((p, i) => ({ p, score: vals[i] })).filter((x) => x.score >= 0);
+    }
+    if (scored.length < 8) return null;
+
+    scored.sort((a, b) => b.score - a.score);
+    const k = Math.max(3, Math.floor(scored.length / 3));
+    const high = scored.slice(0, k);
+    const low = scored.slice(-k);
+    const levers = enrichedLevers(high, low);
+
+    const synth = await groundLeversAI({
+      target,
+      high: high.map((x) => ({ title: x.p.title, keywords: kwString(x.p) })),
+      low: low.map((x) => ({ title: x.p.title, keywords: kwString(x.p) })),
+    }).catch(() => null);
+    const synthesis = Array.isArray(synth?.levers)
+      ? synth.levers.slice(0, 4).map((l: any) => ({ name: String(l?.name || "").slice(0, 80), why: String(l?.why || "").slice(0, 200) })).filter((l: any) => l.name)
+      : [];
+
+    return {
+      target, n: scored.length,
+      highMean: Math.round(avg(high.map((x) => x.score))),
+      lowMean: Math.round(avg(low.map((x) => x.score))),
+      levers, synthesis,
+      topTwins: high.slice(0, 5).map((x) => ({ title: x.p.title, year: x.p.year, score: x.score })),
+    };
+  } catch { return null; }
+}
+
+// Which observed twin levers does a bet's science actually match? (lexical)
+function betGrounding(bet: Bet, levers: Lever[]): string[] {
+  const hay = (bet.headline + " " + bet.steps.map((s) => s.gap).join(" ")).toLowerCase();
+  const hits: string[] = [];
+  for (const lv of levers) if (lv.term.length >= 4 && hay.includes(lv.term) && !hits.includes(lv.term)) hits.push(lv.term);
+  return hits.slice(0, 3);
+}
+
 // User-tunable search controls (all optional; defaults above). rounds = search depth
 // (compounding steps), bets = distinct paths returned, diversity = MMR lambda
 // (0 = chase the single best, 1 = maximize distinctness). Frontier width is derived
@@ -177,6 +271,9 @@ export async function optimizeImpact(abstract: string, target: Target, opts: Sea
 
   const baseline = await fingerprint(abstract, includeDefense);
 
+  // Twin grounding runs concurrently with bet annotation (both are API-bound).
+  const groundingP = twinGrounding(abstract, target, includeDefense).catch(() => null);
+
   // Choose the portfolio: the top performer plus the most distinct alternatives.
   const finalists = mmrSelect(beams.filter((b) => b.chain.length > 0), portfolioN, lambda);
 
@@ -209,5 +306,9 @@ export async function optimizeImpact(abstract: string, target: Target, opts: Sea
   }
   bets.sort((a, b) => b.finalScore - a.finalScore);
 
-  return { target, goal, baseline, bets, stop };
+  // Ground each bet: which of the observed high-outcome twin levers its moves match.
+  const grounding = await groundingP;
+  if (grounding?.levers?.length) for (const b of bets) b.grounded = betGrounding(b, grounding.levers);
+
+  return { target, goal, baseline, bets, stop, grounding };
 }

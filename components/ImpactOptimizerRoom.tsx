@@ -100,7 +100,7 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
 
       <div className="space-y-4">
         <div className="rounded-2xl border border-line bg-mist p-4 text-sm text-slate-600">
-          Paste an abstract, pick a target, and set the score to aim for. The AI proposes the <span className="font-medium text-ink">missing science</span> — concrete experiments, applications, and extensions — that would reach it, and returns a <span className="font-medium text-ink">portfolio of distinct research bets</span> (different paths to the goal), each scored on every potential so you see its trade-offs.
+          Paste an abstract, pick a target, and set the score to aim for. The AI proposes the <span className="font-medium text-ink">missing science</span> — concrete experiments, applications, and extensions — that would reach it, and returns a <span className="font-medium text-ink">portfolio of distinct research bets</span> (different paths to the goal), each scored on every potential — and <span className="font-medium text-ink">grounded in real matched papers</span> whose higher-outcome twins made the same moves.
         </div>
 
         <div>

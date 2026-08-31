@@ -5,8 +5,11 @@ import { useState } from "react";
 type Fingerprint = Record<string, number>;
 type Precedent = { title: string; year?: number };
 type Step = { round: number; gap: string; abstract: string; gain: number; fingerprint: Fingerprint; legit?: boolean; concern?: string; precedent?: Precedent[] };
-type Bet = { id: number; headline: string; finalScore: number; gain: number; steps: Step[]; signature: Fingerprint };
-type Result = { target: string; goal?: number; baseline: Fingerprint; bets?: Bet[]; steps?: Step[]; stop: string };
+type Bet = { id: number; headline: string; finalScore: number; gain: number; steps: Step[]; signature: Fingerprint; grounded?: string[] };
+type Twin = { title: string; year?: number; score: number };
+type Lever = { term: string; lift: number; examples: string[] };
+type Grounding = { target: string; n: number; highMean: number; lowMean: number; levers: Lever[]; synthesis: { name: string; why: string }[]; topTwins: Twin[] };
+type Result = { target: string; goal?: number; baseline: Fingerprint; bets?: Bet[]; steps?: Step[]; grounding?: Grounding | null; stop: string };
 
 const LABEL: Record<string, string> = {
   commercial: "Commercial", scientific: "Scientific", social: "Social",
@@ -74,6 +77,14 @@ function BetCard({ bet, target, baseT, goal, rank, defaultOpen }: { bet: Bet; ta
         </div>
       )}
 
+      {/* twin grounding — real matched papers that made a similar move scored higher */}
+      {bet.grounded && bet.grounded.length > 0 && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <span className="rounded-full bg-sky/10 px-2 py-0.5 text-[11px] font-semibold text-sky">◆ Twin-grounded</span>
+          <span className="text-[11px] text-slate-400">real higher-outcome twins share: <span className="font-medium text-slate2">{bet.grounded.join(", ")}</span></span>
+        </div>
+      )}
+
       <button onClick={() => setOpen(!open)} className="mt-2.5 text-xs font-semibold text-ai hover:underline">{open ? "Hide the path" : "See the missing science, in sequence →"}</button>
 
       {open && (
@@ -113,6 +124,69 @@ function StepRow({ step: s, target }: { step: Step; target: string }) {
   );
 }
 
+function GroundingPanel({ g, target }: { g: Grounding; target: string }) {
+  const [open, setOpen] = useState(false);
+  const label = LABEL[target] || target;
+  const levers = (g.levers || []).slice(0, 6);
+  const synthesis = (g.synthesis || []).slice(0, 4);
+  return (
+    <div className="rounded-2xl border border-sky/30 bg-sky/5 p-5">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-sky">◆ Twin evidence</span>
+        <span className="text-[11px] text-slate2">{g.n} real papers from this work's neighborhood</span>
+      </div>
+      <p className="mt-1.5 text-sm leading-relaxed text-ink">
+        Among the paper's closest real twins, the higher-{label.toLowerCase()} group averages <span className="font-bold text-sage tabular-nums">{g.highMean}</span> vs <span className="font-bold text-slate-400 tabular-nums">{g.lowMean}</span> for the lower group. What separates them — from the real papers, not the model:
+      </p>
+
+      {/* empirically-observed levers (what high-outcome twins share) */}
+      {(synthesis.length > 0 || levers.length > 0) && (
+        <div className="mt-3 space-y-2">
+          {synthesis.length > 0
+            ? synthesis.map((s, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="mt-0.5 text-sage">✓</span>
+                  <div className="text-sm text-ink"><span className="font-semibold">{s.name}</span>{s.why ? <span className="text-slate2"> — {s.why}</span> : null}</div>
+                </div>
+              ))
+            : (
+              <div className="flex flex-wrap gap-1.5">
+                {levers.map((lv) => <span key={lv.term} className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-slate-600 ring-1 ring-sky/20">{lv.term}</span>)}
+              </div>
+            )}
+        </div>
+      )}
+
+      <button onClick={() => setOpen(!open)} className="mt-3 text-xs font-semibold text-sky hover:underline">{open ? "Hide the twins" : "See the higher-outcome twins & signals →"}</button>
+      {open && (
+        <div className="mt-3 space-y-3 border-t border-sky/20 pt-3">
+          {g.topTwins?.length > 0 && (
+            <div>
+              <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Higher-outcome twins</div>
+              <ul className="space-y-1">
+                {g.topTwins.map((t, i) => (
+                  <li key={i} className="flex items-start justify-between gap-3 text-sm">
+                    <span className="min-w-0 flex-1 text-slate-700">{t.title}{t.year ? <span className="text-slate-400"> ({t.year})</span> : null}</span>
+                    <span className="shrink-0 font-semibold tabular-nums text-sage">{t.score}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {levers.length > 0 && synthesis.length > 0 && (
+            <div>
+              <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Distinguishing signals (data-driven)</div>
+              <div className="flex flex-wrap gap-1.5">
+                {levers.map((lv) => <span key={lv.term} className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-slate-600 ring-1 ring-sky/20" title={lv.examples.join(" · ")}>{lv.term}</span>)}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ImpactOptimizerReport({ result }: { result: Result }) {
   const r = result || ({} as Result);
   const target = r.target;
@@ -138,6 +212,8 @@ export default function ImpactOptimizerReport({ result }: { result: Result }) {
         <div className="mt-1 text-sm text-slate-500">{STOP_NOTE[r.stop] || ""}</div>
         <p className="mt-2 text-xs text-slate2">A portfolio, not one path: each bet reaches the target through <span className="font-medium text-ink">genuinely different science</span>, with its own trade-offs. Diversify the wager.</p>
       </div>
+
+      {r.grounding && (r.grounding.levers?.length > 0 || r.grounding.synthesis?.length > 0) && <GroundingPanel g={r.grounding} target={target} />}
 
       {bets.length > 0 ? (
         <div className="space-y-3">
