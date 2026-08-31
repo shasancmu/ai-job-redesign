@@ -6,6 +6,7 @@ import { interviewMetaBySlugs } from "@/lib/customModules";
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { isAdmin } from "@/lib/admin";
 import { claimInvites, getMyOrgs, getActiveOrg, facilitatorAccess, masterCohortCode } from "@/lib/orgs";
+import { SCITOOLS, RESEARCH_TOOLS } from "@/lib/researchTools";
 import OrgSwitcher from "@/components/OrgSwitcher";
 import AccountMenu from "@/components/AccountMenu";
 import FacilitatorWelcome from "@/components/FacilitatorWelcome";
@@ -294,6 +295,9 @@ export default async function Dashboard({
   const activeMembership = activeOrg ? myOrgs.find((m) => m.org.id === activeOrg.id) : null;
   const isStaffHere = facAccess.superadmin || activeMembership?.role === "instructor" || activeMembership?.role === "director";
   const isOrgLearner = !!activeOrg && !isStaffHere;
+  // Deep-tech org? Then surface the Scientifiq research-intelligence tools.
+  const isDeepTech = (activeOrg?.modules || []).some((s) => SCITOOLS.has(s));
+  const researchTools = RESEARCH_TOOLS.filter((t) => !t.staffOnly || isStaffHere);
   const showLibrary = !isOrgLearner || !!activeOrg?.member_can_browse;
 
   // The consumer (no org, not staff). A brand-new one gets a guided front door
@@ -538,6 +542,23 @@ export default async function Dashboard({
           </div>
           <span className="shrink-0 text-slate-300">→</span>
         </a>
+      )}
+
+      {isDeepTech && researchTools.length > 0 && (
+        <section className="mb-8">
+          <h2 className="eyebrow">Research intelligence</h2>
+          <p className="mb-4 mt-1 max-w-2xl text-sm text-slate2">Scientifiq.AI tools — ask the ecosystem, score a portfolio across every dimension of potential, and map cross-disciplinary collaboration.</p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {researchTools.map((t) => (
+              <a key={t.href} href={t.href} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+                <div className="text-2xl">{t.emoji}</div>
+                <div className="mt-2 text-sm font-bold text-ink group-hover:text-ai">{t.name}</div>
+                <div className="mt-0.5 line-clamp-3 flex-1 text-xs text-slate-400">{t.desc}</div>
+                {t.note && <div className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-slate-300">{t.note}</div>}
+              </a>
+            ))}
+          </div>
+        </section>
       )}
 
       {showLibrary && (isNewConsumer && startHere.length > 0 ? (

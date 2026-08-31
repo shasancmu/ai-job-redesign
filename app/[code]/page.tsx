@@ -6,6 +6,7 @@ import { normalizeCode } from "@/lib/classes";
 import { titleCaseName } from "@/lib/name";
 import { isAdmin } from "@/lib/admin";
 import { moduleBySlug, MODULES } from "@/lib/modules";
+import { SCITOOLS, RESEARCH_TOOLS } from "@/lib/researchTools";
 import { getOrgBySlug, type Org, type OrgHighlight, type OrgFaculty } from "@/lib/orgs";
 import { enterOrg } from "./actions";
 import Catalog from "@/components/Catalog";
@@ -188,17 +189,6 @@ export default async function CodeOrOrgPage({ params }: { params: { code: string
 }
 
 // ---- White-label org landing (superadditive.app/{slug}) --------------------
-// The Scientifiq deep-tech suite; if an org grants any of these, its landing page
-// also surfaces the research-intelligence tools (agent, batch, defense, explorer)
-// that live as standalone pages rather than catalog modules.
-const SCITOOLS = new Set(["domain-brief", "score-my-invention", "find-collaborators", "licensing-brief", "diligence-the-science", "defense-impact", "rank-disclosures", "find-a-cofounder", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "position-my-research", "deeptech-canvas"]);
-const RESEARCH_TOOLS: { emoji: string; name: string; href: string; desc: string; note?: string }[] = [
-  { emoji: "🧭", name: "Research Agent", href: "/agent", desc: "Ask in plain language — find collaborators, score an idea's potential, or map where a field is heading. Grounded in real data, never made up." },
-  { emoji: "📊", name: "Batch scorer", href: "/batch", desc: "Upload a portfolio of abstracts and get every paper's six-dimensional impact fingerprint at once, downloadable as CSV.", note: "Directors" },
-  { emoji: "🛰️", name: "Defense Impact", href: "/start/defense-impact", desc: "Estimate a paper's defense / national-security relevance, grounded in the defense-assigned patents that already cite it.", note: "Superadmin" },
-  { emoji: "🕸️", name: "Ecosystem Explorer", href: "/start/domain-brief", desc: "Map a field's collaboration network — the experts, the structural-hole bridges to build, and where potential concentrates.", note: "Inside Domain Brief" },
-];
-
 async function OrgLandingView({ org }: { org: Org }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
