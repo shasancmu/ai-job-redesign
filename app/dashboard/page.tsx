@@ -364,10 +364,6 @@ export default async function Dashboard({
       <EasterEgg />
       {isProxy && <ViewAsBanner email={proxy!.email} />}
 
-      {presence && (presence.reach || presence.needsRefresh) && (
-        <PresenceGreeting presenceName={presence.name} initialReach={presence.reach} needsRefresh={presence.needsRefresh} />
-      )}
-
       <PortraitInvite />
 
       {/* Celebration on return from a finished run (Fogg: emotion right after the
@@ -647,6 +643,12 @@ export default async function Dashboard({
         <h2 className="eyebrow mb-3">{t("dash.yourSessions")}</h2>
         <SessionsPanel sessions={sessions || []} me={user.id} />
       </section>
+
+      {presence && (presence.reach || presence.needsRefresh) && (
+        <div className="mt-12">
+          <PresenceGreeting presenceName={presence.name} initialReach={presence.reach} needsRefresh={presence.needsRefresh} />
+        </div>
+      )}
 
       <Footer />
       <Tour steps={DASHBOARD_TOUR} storageKey="tour-dash-1" welcomeTitle="Welcome to Superadditive" welcomeBody="AI-run exercises for your strategy, your career, and your business. Here's a 30-second tour so you know where everything is. You can replay it anytime from “Take a tour.”" />
