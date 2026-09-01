@@ -2,9 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveOrg } from "@/lib/orgs";
 import { MODULES } from "@/lib/modules";
-import { AI_ENABLED, presenceGreetingAI } from "@/lib/ai";
 import { fetchQuote } from "@/lib/quotes";
-import { setFlow } from "@/lib/aiflow";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,7 +12,6 @@ export const dynamic = "force-dynamic";
 // dashboard, so it never blocks the page. Grounded only in the learner's own
 // activity; the org supplies the name + voice.
 export async function POST() {
-  setFlow("presence");
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ ok: false }, { status: 401 });
@@ -48,35 +45,16 @@ export async function POST() {
   const stale = !cached || cached.n_sessions !== count || (Date.now() - new Date(cached.updated_at).getTime()) > 7 * 864e5;
   if (!stale) return Response.json({ ok: true, fresh: true });
 
-  const { data: profile } = await supabase.from("profiles").select("display_name, goal").eq("id", user.id).maybeSingle();
-  const learnerName = (profile as any)?.display_name || (user.email || "there").split("@")[0];
-  const firstSeen = rows.length ? new Date(rows[rows.length - 1].created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : undefined;
-  const lastAt = rows[0]?.created_at ? new Date(rows[0].created_at).getTime() : Date.now();
-  const returningAfterDays = Math.round((Date.now() - lastAt) / 864e5) || undefined;
-
   const presenceName = org.presence_name || org.name;
-  let out: any = null;
-  if (AI_ENABLED) {
-    try {
-      out = await presenceGreetingAI({
-        presenceName, voice: org.presence_voice || undefined, orgName: org.name, learnerName,
-        lastModule: doneNames[0], modulesDone: doneNames, goal: (profile as any)?.goal || undefined,
-        firstSeen, count, returningAfterDays: returningAfterDays && returningAfterDays > 10 ? returningAfterDays : undefined,
-      });
-    } catch { out = null; }
-  }
-  const greeting = String(out?.greeting || `You were last working on ${doneNames[0]}.`).slice(0, 500);
-  const remembers = Array.isArray(out?.remembers) ? out.remembers.map((r: any) => String(r).slice(0, 160)).slice(0, 6) : [];
-  const hook = out?.hook ? String(out.hook).slice(0, 300) : null;
 
-  // The top panel: a nice quote — live from the API, curated fallback.
+  // The panel is just a nice quote now — live from the API, curated fallback. No AI.
   const reach = await fetchQuote();
 
   await admin.from("learner_memory").upsert({
-    user_id: user.id, org_id: org.id, greeting, remembers, hook, reach, n_sessions: count, updated_at: new Date().toISOString(),
+    user_id: user.id, org_id: org.id, reach, n_sessions: count, updated_at: new Date().toISOString(),
   }, { onConflict: "user_id,org_id" });
 
-  return Response.json({ ok: true, greeting, remembers, reach, presenceName });
+  return Response.json({ ok: true, reach, presenceName });
 }
 
 // The learner clears what the presence remembers (their active org). RLS allows a
