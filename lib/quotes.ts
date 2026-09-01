@@ -29,3 +29,27 @@ export const QUOTES: Quote[] = [
 export function pickQuote(): Quote {
   return QUOTES[Math.floor(Math.random() * QUOTES.length)] ?? QUOTES[0];
 }
+
+// Live variety from a free API (ZenQuotes — no key), with the curated set as a
+// guaranteed fallback on any failure, timeout, rate-limit, or junk. Server-only.
+export async function fetchQuote(): Promise<Quote> {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 6000);
+  try {
+    const res = await fetch("https://zenquotes.io/api/random", { signal: ctl.signal, cache: "no-store" });
+    if (!res.ok) return pickQuote();
+    const j = await res.json();
+    const row = Array.isArray(j) ? j[0] : null;
+    const text = String(row?.q || "").trim();
+    const author = String(row?.a || "").trim();
+    // ZenQuotes returns its rate-limit notice as a fake "quote"; reject that and outliers.
+    if (text.length >= 12 && text.length <= 220 && author && !/zenquotes\.io|too many requests/i.test(text + " " + author)) {
+      return { text, author };
+    }
+    return pickQuote();
+  } catch {
+    return pickQuote();
+  } finally {
+    clearTimeout(timer);
+  }
+}

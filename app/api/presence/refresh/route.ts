@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveOrg } from "@/lib/orgs";
 import { MODULES } from "@/lib/modules";
 import { AI_ENABLED, presenceGreetingAI } from "@/lib/ai";
-import { pickQuote } from "@/lib/quotes";
+import { fetchQuote } from "@/lib/quotes";
 import { setFlow } from "@/lib/aiflow";
 
 export const runtime = "nodejs";
@@ -69,8 +69,8 @@ export async function POST() {
   const remembers = Array.isArray(out?.remembers) ? out.remembers.map((r: any) => String(r).slice(0, 160)).slice(0, 6) : [];
   const hook = out?.hook ? String(out.hook).slice(0, 300) : null;
 
-  // The top panel: a nice, curated quote (a small, reliable delight).
-  const reach = pickQuote();
+  // The top panel: a nice quote — live from the API, curated fallback.
+  const reach = await fetchQuote();
 
   await admin.from("learner_memory").upsert({
     user_id: user.id, org_id: org.id, greeting, remembers, hook, reach, n_sessions: count, updated_at: new Date().toISOString(),
