@@ -293,12 +293,12 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
         <div className="mt-5 rounded-xl border border-line bg-mist/30 p-3">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-ink">{opinion === "low" ? "Stay close to my materials" : "Let the AI take the lead"}</div>
-              <div className="mt-0.5 text-xs text-slate-500">{opinion === "low" ? "Builds faithfully on what you uploaded and said — you'll recognize your material." : "Uses your inputs as a starting point and adds its own scenarios and design ideas."}</div>
+              <div className="text-sm font-semibold text-ink">{opinion === "low" ? "Use my materials exactly" : "Lightly polish my materials"}</div>
+              <div className="mt-0.5 text-xs text-slate-500">{opinion === "low" ? "Verbatim where it can — no inventing, no reinterpreting. You'll see exactly your material." : "Keeps your material as-is, just tidies wording and fills small gaps to make it run."}</div>
             </div>
             <div className="flex shrink-0 rounded-full border border-line bg-white p-0.5 text-xs font-semibold">
-              <button onClick={() => setOpinion("low")} className={"rounded-full px-3 py-1 transition " + (opinion === "low" ? "bg-ink text-white" : "text-slate-500 hover:text-ink")}>Faithful</button>
-              <button onClick={() => setOpinion("high")} className={"rounded-full px-3 py-1 transition " + (opinion === "high" ? "bg-ink text-white" : "text-slate-500 hover:text-ink")}>Opinionated</button>
+              <button onClick={() => setOpinion("low")} className={"rounded-full px-3 py-1 transition " + (opinion === "low" ? "bg-ink text-white" : "text-slate-500 hover:text-ink")}>Verbatim</button>
+              <button onClick={() => setOpinion("high")} className={"rounded-full px-3 py-1 transition " + (opinion === "high" ? "bg-ink text-white" : "text-slate-500 hover:text-ink")}>Light touch</button>
             </div>
           </div>
         </div>

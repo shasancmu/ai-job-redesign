@@ -444,8 +444,8 @@ export function sourceMaterialBlock(source: string | undefined | null, opinion: 
   const s = String(source || "").trim();
   if (!s) return "";
   const head = opinion === "high"
-    ? `\nSOURCE MATERIAL — the author's uploaded documents and/or interview answers, as a STARTING POINT. You have license to reshape, extend, and improve on it with your own instructional-design judgment: the module can go well beyond what's here, invent scenarios and specifics, and take a strong point of view — as long as it serves the learning goal and stays on the author's topic.`
-    : `\nSOURCE MATERIAL — the author's own uploaded documents and/or their interview answers. This is the truth to build on. Stay FAITHFUL to it: use its actual situation, facts, terminology, characters, numbers, and specifics, so the author clearly recognizes their material in the result. Do NOT replace it with a generic or invented version, and do not drift to a nearby topic. Where a module type needs a fictional character, keep the substance real even if a name is changed.`;
+    ? `\nSOURCE MATERIAL — the author's own uploaded documents and/or their interview answers. Build CLOSELY on it: keep its situation, facts, terminology, characters, numbers, and structure. You may lightly tidy wording, fill small gaps needed to make the module work, and add minimal connective detail — but change as little as possible and invent as little as possible. The author should see essentially their own material, only lightly polished. Do not drift to a nearby topic.`
+    : `\nSOURCE MATERIAL — the author's own uploaded documents and/or their interview answers. This is the truth to build on, verbatim where you can. Stay STRICTLY FAITHFUL: use its actual situation, facts, terminology, characters, numbers, and specifics, and do not add, invent, generalize, or reinterpret. The author should recognize their material exactly. Do not drift to a nearby topic. Where a module type strictly needs a fictional name, change only the name and keep the substance.`;
   return `${head}\n${s.slice(0, 12000)}`;
 }
 
