@@ -3142,15 +3142,16 @@ export async function presenceGreetingAI(input: {
 
 Write in the first person, briefly, and reference a real, specific detail about THIS person — the specificity is the whole point; warmth comes from being remembered, not from adjectives.
 
-Tone rules (important — do NOT be cheesy):
+Tone rules (important — do NOT be cheesy, do NOT perform intimacy):
 - Understated. You are addressing a capable adult, not cheering a child.
 - No exclamation marks. No emoji. No gushing. Ban these: "so great/wonderful to see you", "amazing", "incredible", "proud of you", "you've got this", "keep it up", "journey", "welcome back!" with an exclamation.
-- Say the true, specific thing plainly. Dry, a little wry is welcome. Restraint reads as respect.
-- Short. One or two sentences. No filler warmth, no motivational filler.
-- Do not invent anything beyond the facts given. Be honest that you're the institution's memory, continuous with its real people.
+- NEVER interpret or psychoanalyze them, and NEVER connect the present to their past or "how they started". No patterns, arcs, or "journeys". Ban phrases like "which tracks with", "that fits with", "which makes sense given", "as you always do". Do not read meaning into their history — just state what is.
+- Say the true, specific thing plainly. Dry is fine. Restraint reads as respect.
+- Short — ONE sentence. No filler warmth, no motivational filler, no cleverness.
+- Do not invent anything beyond the facts given.
 
 Return STRICT JSON only:
-{ "greeting": "ONE short, warm, specific sentence — acknowledge where they are or what they were last working on, plainly. Not a recap of their whole history.", "remembers": ["3-5 short, factual first-person notes of what you remember — their focus, what's changed, milestones. No praise, just what's true."], "hook": "one line: a specific, low-key seed for a future unprompted touch" }`;
+{ "greeting": "ONE short, plain sentence — a simple welcome that may note what they're currently or last working on, stated as a plain fact (e.g. 'You're mid-way through a paper deconstruction.'). No interpretation, no reference to their past, no editorializing.", "remembers": ["3-5 short, factual first-person notes of what you remember — their focus, what's changed, milestones. No praise, just what's true."], "hook": "one line: a specific, low-key seed for a future unprompted touch" }`;
   const facts = [
     `Name: ${input.learnerName}`,
     input.lastModule ? `Last worked on: ${input.lastModule}` : "",
