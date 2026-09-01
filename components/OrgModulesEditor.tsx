@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from "react";
 
 type Mod = { slug: string; name: string; emoji: string; partner: string; tagline: string };
 const MODE = (p: string) => (p === "group" ? "Live" : p === "human" ? "Paired" : "Solo");
@@ -15,6 +15,19 @@ export default function OrgModulesEditor({ orgId }: { orgId: string }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
+  const [hover, setHover] = useState<{ m: Mod; top: number; left: number } | null>(null);
+
+  // Instant, styled hover card. Positioned `fixed` so the grid's overflow can't
+  // clip it; flips to the left edge when there isn't room on the right.
+  function showHover(e: ReactMouseEvent<HTMLElement>, m: Mod) {
+    if (!m.tagline) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const W = 280;
+    const flip = typeof window !== "undefined" && window.innerWidth - r.right < W + 20;
+    const left = flip ? Math.max(8, r.left - W - 10) : r.right + 10;
+    const top = Math.min(r.top, (typeof window !== "undefined" ? window.innerHeight : 800) - 140);
+    setHover({ m, top, left });
+  }
 
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [orgId]);
   async function load() {
@@ -54,7 +67,7 @@ export default function OrgModulesEditor({ orgId }: { orgId: string }) {
       {!all && (
         <div className="mt-3 grid max-h-72 grid-cols-1 gap-1.5 overflow-y-auto rounded-xl border border-line p-2 sm:grid-cols-2">
           {grouped.map((m) => (
-            <label key={m.slug} title={m.tagline || m.name} className={"flex cursor-pointer items-center gap-2 rounded-lg border p-2 text-sm " + (sel.has(m.slug) ? "border-ai bg-ai/5" : "border-transparent hover:bg-mist")}>
+            <label key={m.slug} onMouseEnter={(e) => showHover(e, m)} onMouseLeave={() => setHover(null)} className={"flex cursor-pointer items-center gap-2 rounded-lg border p-2 text-sm " + (sel.has(m.slug) ? "border-ai bg-ai/5" : "border-transparent hover:bg-mist")}>
               <input type="checkbox" checked={sel.has(m.slug)} onChange={() => toggle(m.slug)} />
               <span className="min-w-0 flex-1 truncate">{m.emoji} {m.name}</span>
               <span className={"shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold " + (MODE(m.partner) === "Live" ? "bg-sage/10 text-sage" : MODE(m.partner) === "Paired" ? "bg-sky-soft text-sky" : "bg-mist text-slate-400")}>{MODE(m.partner)}</span>
@@ -71,6 +84,17 @@ export default function OrgModulesEditor({ orgId }: { orgId: string }) {
       {msg && <p className="mt-3 text-sm text-emerald-700">{msg}</p>}
       {err && <p className="mt-3 text-sm text-red-700">{err}</p>}
       <div className="mt-4"><button onClick={save} disabled={busy} className="btn-primary text-sm">{busy ? "…" : "Save"}</button></div>
+
+      {hover && (
+        <div className="pointer-events-none fixed z-50 w-[280px] rounded-xl border border-line bg-white p-3 shadow-lift" style={{ top: hover.top, left: hover.left }}>
+          <div className="flex items-center gap-2">
+            <span className="text-base">{hover.m.emoji}</span>
+            <span className="text-sm font-bold text-ink">{hover.m.name}</span>
+            <span className={"ml-auto shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold " + (MODE(hover.m.partner) === "Live" ? "bg-sage/10 text-sage" : MODE(hover.m.partner) === "Paired" ? "bg-sky-soft text-sky" : "bg-mist text-slate-400")}>{MODE(hover.m.partner)}</span>
+          </div>
+          <p className="mt-1.5 text-xs leading-relaxed text-slate2">{hover.m.tagline}</p>
+        </div>
+      )}
     </section>
   );
 }
