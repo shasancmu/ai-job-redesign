@@ -28,15 +28,28 @@ export async function POST(request: Request) {
   const u = await gatherUnderstanding(admin, org, userId);
   if (!u) return NextResponse.json({ error: "That person isn't in your school." }, { status: 404 });
 
+  const force = body.force === true;
+
+  // Cache-first: serve the stored reading unless a regenerate was asked for.
+  // (Guarded so it degrades to always-generate if the table isn't migrated yet.)
+  if (!force) {
+    try {
+      const { data: cached } = await admin.from("person_briefs").select("brief, updated_at").eq("org_id", org.id).eq("user_id", userId).maybeSingle();
+      if (cached?.brief) return NextResponse.json({ ok: true, brief: cached.brief, recommended: u.recommended, cachedAt: cached.updated_at });
+    } catch { /* table not migrated — fall through and generate */ }
+  }
+
   const inputs = briefInputs(u);
 
-  // Fallback brief (also when AI is off) — plain, grounded, never guessing.
+  // Fallback (also when AI is off) — plain, grounded, never guessing.
   const fallback = {
-    who: u.who.segmentLabel ? `${u.person.name} told us they're ${u.who.segmentLabel.replace(/^I'm /, "").toLowerCase()}${u.who.studyField ? `, studying ${u.who.studyField}` : ""}.` : `We don't know much about ${u.person.name} yet — they haven't filled in who they are.`,
-    here_for: u.who.goalLabel ? `They're here to ${u.who.goalLabel.toLowerCase()}.` : "",
-    where: u.person.state.lastActiveDays == null ? "They haven't started yet." : `${u.person.timeline.filter((t) => t.done).length} module(s) finished; last active ${u.person.state.lastActiveDays} days ago.`,
+    who: u.who.segmentLabel
+      ? `${u.person.name} — ${u.who.segmentLabel.replace(/^I'm /, "").toLowerCase()}${u.who.goalLabel ? `, here to ${u.who.goalLabel.toLowerCase()}` : ""}.`
+      : `Little is known about ${u.person.name} yet.`,
+    blocker: "",
+    unlock: "",
     needs: u.recommended.map((r) => `Might point them to “${r.name}”`),
-    one_thing: "Send them a short personal note — ask what brought them here and what they're hoping to get out of it.",
+    one_thing: "Send a short note and ask what they're really after.",
   };
 
   let brief: any = fallback;
@@ -47,5 +60,11 @@ export async function POST(request: Request) {
     } catch { /* keep fallback */ }
   }
 
-  return NextResponse.json({ ok: true, brief, recommended: u.recommended });
+  // Store the reading so the next open is instant and stable.
+  const now = new Date().toISOString();
+  try {
+    await admin.from("person_briefs").upsert({ org_id: org.id, user_id: userId, brief, generated_by: user.id, updated_at: now }, { onConflict: "org_id,user_id" });
+  } catch { /* table not migrated — brief still returned, just not cached */ }
+
+  return NextResponse.json({ ok: true, brief, recommended: u.recommended, cachedAt: now, generated: true });
 }
