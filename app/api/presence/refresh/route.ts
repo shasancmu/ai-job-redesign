@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveOrg } from "@/lib/orgs";
 import { MODULES } from "@/lib/modules";
 import { AI_ENABLED, presenceGreetingAI } from "@/lib/ai";
+import { fetchTrending } from "@/lib/trending";
 import { setFlow } from "@/lib/aiflow";
 
 export const runtime = "nodejs";
@@ -64,15 +65,19 @@ export async function POST() {
       });
     } catch { out = null; }
   }
-  const greeting = String(out?.greeting || `Welcome back, ${learnerName}. Last time you were working on ${doneNames[0]}.`).slice(0, 500);
+  const greeting = String(out?.greeting || `You were last working on ${doneNames[0]}.`).slice(0, 500);
   const remembers = Array.isArray(out?.remembers) ? out.remembers.map((r: any) => String(r).slice(0, 160)).slice(0, 6) : [];
   const hook = out?.hook ? String(out.hook).slice(0, 300) : null;
 
+  // The outward "reach": one current/trending item tied to what they were last on.
+  const query = out?.query ? String(out.query).slice(0, 120) : doneNames[0];
+  const reach = await fetchTrending(query).catch(() => null);
+
   await admin.from("learner_memory").upsert({
-    user_id: user.id, org_id: org.id, greeting, remembers, hook, n_sessions: count, updated_at: new Date().toISOString(),
+    user_id: user.id, org_id: org.id, greeting, remembers, hook, reach, n_sessions: count, updated_at: new Date().toISOString(),
   }, { onConflict: "user_id,org_id" });
 
-  return Response.json({ ok: true, greeting, remembers, presenceName });
+  return Response.json({ ok: true, greeting, remembers, reach, presenceName });
 }
 
 // The learner clears what the presence remembers (their active org). RLS allows a

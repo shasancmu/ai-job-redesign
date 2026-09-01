@@ -1352,10 +1352,12 @@ create table if not exists public.learner_memory (
   greeting    text,
   remembers   jsonb,          -- string[] shown in "what I remember"
   hook        text,           -- the seed for the next unprompted reach
+  reach       jsonb,          -- {title,url,source}: a current/trending item tied to the last module
   n_sessions  int default 0,  -- staleness signal: rebuild when the count moves
   updated_at  timestamptz default now(),
   primary key (user_id, org_id)
 );
+alter table public.learner_memory add column if not exists reach jsonb;
 alter table public.learner_memory enable row level security;
 -- The learner can read and clear their own memory; writes go through the service
 -- role (the refresh endpoint), so no insert/update policy for the learner.

@@ -6,19 +6,24 @@ import { useEffect, useState } from "react";
 // knows what you were last working on, plus a transparent "what I remember" the
 // learner can read and clear. Refreshes itself in the background when stale, so it
 // never slows the page.
+type Reach = { title: string; url: string; source?: string };
+
 export default function PresenceGreeting({
   presenceName,
   initialGreeting,
   initialRemembers = [],
+  initialReach = null,
   needsRefresh = false,
 }: {
   presenceName: string;
   initialGreeting: string | null;
   initialRemembers?: string[];
+  initialReach?: Reach | null;
   needsRefresh?: boolean;
 }) {
   const [greeting, setGreeting] = useState(initialGreeting || "");
   const [remembers, setRemembers] = useState<string[]>(initialRemembers);
+  const [reach, setReach] = useState<Reach | null>(initialReach);
   const [open, setOpen] = useState(false);
   const [gone, setGone] = useState(false);
 
@@ -27,7 +32,7 @@ export default function PresenceGreeting({
     let live = true;
     fetch("/api/presence/refresh", { method: "POST" })
       .then((r) => r.json())
-      .then((d) => { if (live && d?.ok && d.greeting) { setGreeting(d.greeting); setRemembers(Array.isArray(d.remembers) ? d.remembers : []); } })
+      .then((d) => { if (live && d?.ok && d.greeting) { setGreeting(d.greeting); setRemembers(Array.isArray(d.remembers) ? d.remembers : []); setReach(d.reach || null); } })
       .catch(() => {});
     return () => { live = false; };
   }, [needsRefresh]);
@@ -37,12 +42,19 @@ export default function PresenceGreeting({
     try { await fetch("/api/presence/refresh", { method: "DELETE" }); } catch { /* best effort */ }
   }
 
-  if (gone || !greeting) return null;
+  if (gone || (!greeting && !reach)) return null;
 
   return (
     <div className="mb-6 border-l-2 border-line pl-4">
       <div className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-400">{presenceName}</div>
-      <p className="mt-1 text-[1.02rem] leading-relaxed text-ink">{greeting}</p>
+      {greeting && <p className="mt-1 text-[1.02rem] leading-relaxed text-ink">{greeting}</p>}
+      {reach && (
+        <a href={reach.url} target="_blank" rel="noopener noreferrer" className="group mt-2 block max-w-xl rounded-xl border border-line bg-white p-3 transition hover:shadow-soft">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-sage">Trending now · thought you'd want to see this</div>
+          <div className="mt-1 text-sm font-medium leading-snug text-ink group-hover:text-sky">{reach.title} <span className="text-slate-300">↗</span></div>
+          {reach.source && <div className="mt-0.5 text-[11px] text-slate-400">{reach.source}</div>}
+        </a>
+      )}
       {remembers.length > 0 && (
         <div className="mt-1.5">
           <button onClick={() => setOpen((o) => !o)} className="text-xs text-slate-400 hover:text-slate2">{open ? "Hide" : "What I've noted"}</button>

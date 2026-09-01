@@ -248,15 +248,16 @@ export default async function Dashboard({
   // greeting + what it remembers. Reads the cache only (fast); the component
   // refreshes itself in the background when stale. Degrades to nothing if the
   // learner_memory table / presence columns aren't there yet.
-  let presence: { name: string; greeting: string | null; remembers: string[]; needsRefresh: boolean } | null = null;
+  let presence: { name: string; greeting: string | null; remembers: string[]; reach: any; needsRefresh: boolean } | null = null;
   if (activeOrg && !isProxy) {
     try {
-      const { data: mem } = await supabase.from("learner_memory").select("greeting, remembers, n_sessions, updated_at").eq("user_id", user.id).eq("org_id", activeOrg.id).maybeSingle();
-      const stale = !mem || (mem as any).n_sessions !== reportsCount || (Date.now() - new Date((mem as any).updated_at).getTime()) > 7 * 864e5;
+      const { data: mem } = await supabase.from("learner_memory").select("greeting, remembers, reach, n_sessions, updated_at").eq("user_id", user.id).eq("org_id", activeOrg.id).maybeSingle();
+      const stale = !mem || (mem as any).n_sessions !== reportsCount || (Date.now() - new Date((mem as any).updated_at).getTime()) > 3 * 864e5;
       presence = {
         name: (activeOrg as any).presence_name || activeOrg.name,
         greeting: (mem as any)?.greeting || null,
         remembers: Array.isArray((mem as any)?.remembers) ? (mem as any).remembers : [],
+        reach: (mem as any)?.reach || null,
         needsRefresh: reportsCount >= 1 && stale,
       };
     } catch { presence = null; }
@@ -364,8 +365,8 @@ export default async function Dashboard({
       <EasterEgg />
       {isProxy && <ViewAsBanner email={proxy!.email} />}
 
-      {presence && (presence.greeting || presence.needsRefresh) && (
-        <PresenceGreeting presenceName={presence.name} initialGreeting={presence.greeting} initialRemembers={presence.remembers} needsRefresh={presence.needsRefresh} />
+      {presence && (presence.greeting || presence.reach || presence.needsRefresh) && (
+        <PresenceGreeting presenceName={presence.name} initialGreeting={presence.greeting} initialRemembers={presence.remembers} initialReach={presence.reach} needsRefresh={presence.needsRefresh} />
       )}
 
       {/* Celebration on return from a finished run (Fogg: emotion right after the
