@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 // knows what you were last working on, plus a transparent "what I remember" the
 // learner can read and clear. Refreshes itself in the background when stale, so it
 // never slows the page.
-type Reach = { title: string; url: string; source?: string };
+type Reach = { text: string; author?: string };
 
 export default function PresenceGreeting({
   presenceName,
@@ -48,12 +48,11 @@ export default function PresenceGreeting({
     <div className="mb-6 border-l-2 border-line pl-4">
       <div className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-400">{presenceName}</div>
       {greeting && <p className="mt-1 text-[1.02rem] leading-relaxed text-ink">{greeting}</p>}
-      {reach && (
-        <a href={reach.url} target="_blank" rel="noopener noreferrer" className="group mt-2 block max-w-xl rounded-xl border border-line bg-white p-3 transition hover:shadow-soft">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-sage">Trending now · thought you'd want to see this</div>
-          <div className="mt-1 text-sm font-medium leading-snug text-ink group-hover:text-sky">{reach.title} <span className="text-slate-300">↗</span></div>
-          {reach.source && <div className="mt-0.5 text-[11px] text-slate-400">{reach.source}</div>}
-        </a>
+      {reach?.text && (
+        <figure className="mt-2.5 max-w-xl">
+          <blockquote className="serif-italic text-[1.15rem] leading-snug text-ink">“{reach.text}”</blockquote>
+          {reach.author && <figcaption className="mt-1 text-xs text-slate-400">— {reach.author}</figcaption>}
+        </figure>
       )}
       {remembers.length > 0 && (
         <div className="mt-1.5">

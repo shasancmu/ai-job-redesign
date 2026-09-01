@@ -3150,7 +3150,7 @@ Tone rules (important — do NOT be cheesy):
 - Do not invent anything beyond the facts given. Be honest that you're the institution's memory, continuous with its real people.
 
 Return STRICT JSON only:
-{ "greeting": "ONE short sentence — a plain lead-in that ties their last focus to something worth their attention. Not a recap of their history. e.g. 'You were just deep in causal identification — here's something in that vein doing the rounds.'", "query": "2-5 words: a search query for CURRENT news/discussion related to their last focus or field (the topic, not the skill name). e.g. 'causal inference', 'startup A/B testing', 'research collaboration'. This drives a live trending link, so make it a real, searchable topic.", "remembers": ["3-5 short, factual first-person notes of what you remember — their focus, what's changed, milestones. No praise, just what's true."], "hook": "one line: a specific, low-key seed for a future unprompted touch" }`;
+{ "greeting": "ONE short, warm, specific sentence — acknowledge where they are or what they were last working on, plainly. Not a recap of their whole history.", "remembers": ["3-5 short, factual first-person notes of what you remember — their focus, what's changed, milestones. No praise, just what's true."], "hook": "one line: a specific, low-key seed for a future unprompted touch" }`;
   const facts = [
     `Name: ${input.learnerName}`,
     input.lastModule ? `Last worked on: ${input.lastModule}` : "",
