@@ -39,7 +39,7 @@ export default function Logo({
         <img src={tenant!.logoUrl!} alt={name} style={{ height: logoHeight, maxWidth: logoHeight * 6 }} className="shrink-0 object-contain" />
       ) : (
         <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true" className="shrink-0">
-          <g style={{ mixBlendMode: "multiply" }}>
+          <g className="logo-discs" style={{ mixBlendMode: "multiply" }}>
             <circle cx="15.5" cy="20" r="11.5" fill="#4A6A4E" fillOpacity="0.92" />
             <circle cx="24.5" cy="20" r="11.5" fill="#CE8F2C" fillOpacity="0.92" />
           </g>
@@ -49,7 +49,7 @@ export default function Logo({
     </>
   );
 
-  const cls = `inline-flex items-center gap-2.5 ${className}`;
+  const cls = `logo-mark inline-flex items-center gap-2.5 ${className}`;
   return href ? (
     <Link href={href} aria-label={name} className={cls}>{inner}</Link>
   ) : (

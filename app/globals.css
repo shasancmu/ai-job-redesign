@@ -228,6 +228,18 @@ button { transition-timing-function: var(--ease); }
 @keyframes lux-fade { from { opacity: 0; } to { opacity: 1; } }
 main { animation: lux-fade 0.45s var(--ease) both; }
 
+/* ---- Subtle joy: quiet, on-brand delight (the reduced-motion guard below zeroes it) ---- */
+/* The two-disc mark drifts together on hover — the whole worth more than the parts. */
+.logo-mark .logo-discs circle { transition: transform 0.45s cubic-bezier(0.34, 1.4, 0.5, 1); }
+.logo-mark:hover .logo-discs circle:nth-of-type(1) { transform: translateX(2px); }
+.logo-mark:hover .logo-discs circle:nth-of-type(2) { transform: translateX(-2px); }
+/* Primary calls-to-action lift a hair on hover; the press still wins on click. */
+.btn-primary:hover, .btn-dark:hover { transform: translateY(-1px); }
+.btn-primary:active, .btn-dark:active { transform: translateY(0) scale(0.985); }
+/* A gentle pop for a genuine moment of arrival (a finish, a first). */
+@keyframes joy-pop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }
+.joy-pop { display: inline-block; animation: joy-pop 0.5s var(--ease) both; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;

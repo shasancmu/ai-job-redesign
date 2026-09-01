@@ -374,7 +374,7 @@ export default async function Dashboard({
           "what's next", reached on the motivation wave. */}
       {searchParams.done && (
         <div className="mb-6 rounded-2xl border-2 border-sage/40 bg-gradient-to-br from-sage/8 to-white p-4 text-center">
-          <div className="text-2xl" aria-hidden>🎉</div>
+          <div className="joy-pop text-2xl" aria-hidden>🎉</div>
           <div className="mt-0.5 text-sm font-bold text-ink">
             {(() => { const m = searchParams.done && searchParams.done !== "1" ? moduleBySlug(searchParams.done) : null; return m ? `Nice — you finished ${m.name}.` : "Nice work — that's done and saved."; })()}
           </div>
