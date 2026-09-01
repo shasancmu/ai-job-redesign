@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveOrg } from "@/lib/orgs";
 import { MODULES } from "@/lib/modules";
-import { fetchQuote } from "@/lib/quotes";
+import { pickQuote } from "@/lib/quotes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,8 +47,8 @@ export async function POST() {
 
   const presenceName = org.presence_name || org.name;
 
-  // The panel is just a nice quote now — live from the API, curated fallback. No AI.
-  const reach = await fetchQuote();
+  // The panel is a curated, inspiring quote — chosen for tone, no random API. No AI.
+  const reach = pickQuote();
 
   await admin.from("learner_memory").upsert({
     user_id: user.id, org_id: org.id, reach, n_sessions: count, updated_at: new Date().toISOString(),

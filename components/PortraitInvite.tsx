@@ -22,8 +22,8 @@ export default function PortraitInvite() {
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white p-4">
       <div className="min-w-0">
-        <div className="text-sm font-bold text-ink">Tell us who you are</div>
-        <p className="mt-0.5 max-w-lg text-sm text-slate2">A few minutes so the people who teach you actually understand you — and you leave with a clearer sense of what you&apos;re working toward.</p>
+        <div className="text-sm font-bold text-ink">How can we help you?</div>
+        <p className="mt-0.5 max-w-lg text-sm text-slate2">A few minutes on what you&apos;re actually working toward, so the people who teach you can help — and you leave clearer yourself.</p>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <Link href="/portrait" className="btn-primary text-sm">Start</Link>
