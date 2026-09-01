@@ -1438,6 +1438,32 @@ from public.class_units cu
 where cu.org_id = c.org_id and cu.is_default and c.class_unit_id is null and c.org_id is not null;
 
 -- ============================================================================
+-- Program directors: the explicit middle tier of authority, between the org
+-- director (runs the whole school) and the instructor (runs one cohort). A
+-- program director runs a CLASS/program (class_unit) as a P&L — its cohorts,
+-- the instructors under it, and the alumni it produces — WITHOUT being a
+-- director of the whole org. This is deliberately distinct from
+-- class_units.owner_id ("owns the modules"): program direction is "runs the
+-- program." Assigned by an org director (or superadmin). A person can direct
+-- several programs, and their org standing (org_role) is independent of it —
+-- so a plain 'member' can be appointed to direct a program. org_id is
+-- denormalized from the class_unit for fast per-org lookup and roll-up.
+-- ============================================================================
+create table if not exists public.program_directors (
+  class_unit_id uuid not null references public.class_units (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  org_id uuid not null references public.organizations (id) on delete cascade,
+  assigned_by uuid references auth.users (id) on delete set null,
+  created_at timestamptz not null default now(),
+  primary key (class_unit_id, user_id)
+);
+create index if not exists program_directors_user_idx on public.program_directors (user_id);
+create index if not exists program_directors_org_idx on public.program_directors (org_id);
+alter table public.program_directors enable row level security;
+drop policy if exists program_directors_read_own on public.program_directors;
+create policy program_directors_read_own on public.program_directors for select using (user_id = auth.uid()); -- writes via service role
+
+-- ============================================================================
 -- Staff invite links: a director shares a link/code that grants instructor
 -- status to whoever opens it (optionally restricted to an email domain). All
 -- create/redeem/revoke goes through the service role.

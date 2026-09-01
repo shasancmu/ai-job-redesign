@@ -12,6 +12,14 @@
 //   ('facilitator' is the legacy name for 'director' and is normalized on read,
 //    so nothing breaks before the migration runs.)
 //
+//   program director (program_directors table): the explicit MIDDLE tier, between
+//   the org director and the instructor. Runs one or more CLASSES/programs
+//   (class_units) as a P&L — its cohorts, the instructors under it, the alumni it
+//   produces — without org-wide reach. It is a per-program grant, NOT an org_role
+//   (a person can direct program A and be a plain member elsewhere), so it lives in
+//   its own table and is surfaced here as programDirectorUnitIds. Independent of
+//   class_units.owner_id: owning the modules ≠ running the program.
+//
 // A user can belong to several orgs. The "active" org (whose branding shows) is
 // resolved from the URL slug when present, else a cookie, else their first org.
 // ============================================================================
@@ -134,8 +142,10 @@ export async function getMyOrgs(userId: string): Promise<Membership[]> {
 
 export type RoleInfo = {
   superadmin: boolean;
-  directorOrgIds: string[];   // orgs this user runs (org-wide reach)
-  instructorOrgIds: string[]; // orgs where they instruct (own cohorts only)
+  directorOrgIds: string[];        // orgs this user runs (org-wide reach)
+  instructorOrgIds: string[];      // orgs where they instruct (own cohorts only)
+  programDirectorUnitIds: string[]; // class_units (programs) they direct — the middle tier
+  programDirectorOrgIds: string[];  // orgs those programs live in (for roll-up scoping)
   memberOrgIds: string[];
   memberships: Membership[];
 };
@@ -144,7 +154,7 @@ export type RoleInfo = {
 // (ADMIN_EMAILS) OR the platform_role column — the env list can never lock you
 // out even if the DB is wrong.
 export async function roleFor(user: { id: string; email?: string | null } | null): Promise<RoleInfo> {
-  const empty: RoleInfo = { superadmin: false, directorOrgIds: [], instructorOrgIds: [], memberOrgIds: [], memberships: [] };
+  const empty: RoleInfo = { superadmin: false, directorOrgIds: [], instructorOrgIds: [], programDirectorUnitIds: [], programDirectorOrgIds: [], memberOrgIds: [], memberships: [] };
   if (!user) return empty;
   let superadmin = isAdmin(user.email);
   const db = admin();
@@ -153,13 +163,37 @@ export async function roleFor(user: { id: string; email?: string | null } | null
     superadmin = (data as any)?.platform_role === "superadmin";
   }
   const memberships = await getMyOrgs(user.id);
+  // The middle tier: programs (class_units) this user directs. Its own table, so
+  // it survives if the table isn't migrated yet (→ empty, nothing breaks).
+  let programDirectorUnitIds: string[] = [];
+  let programDirectorOrgIds: string[] = [];
+  if (db) {
+    try {
+      const { data: pd } = await db.from("program_directors").select("class_unit_id, org_id").eq("user_id", user.id);
+      const rows = (pd as any[]) || [];
+      programDirectorUnitIds = rows.map((r) => r.class_unit_id).filter(Boolean);
+      programDirectorOrgIds = [...new Set(rows.map((r) => r.org_id).filter(Boolean))];
+    } catch { /* table not set up yet */ }
+  }
   return {
     superadmin,
     directorOrgIds: memberships.filter((m) => m.role === "director").map((m) => m.org.id),
     instructorOrgIds: memberships.filter((m) => m.role === "instructor").map((m) => m.org.id),
+    programDirectorUnitIds,
+    programDirectorOrgIds,
     memberOrgIds: memberships.map((m) => m.org.id),
     memberships,
   };
+}
+
+// Does this user direct THIS specific program (class_unit)? Superadmin, an org
+// director of the program's org, or an explicit program-director assignment.
+export async function isProgramDirector(user: { id: string; email?: string | null } | null, classUnitId: string, orgId?: string): Promise<boolean> {
+  if (!classUnitId) return false;
+  const r = await roleFor(user);
+  if (r.superadmin) return true;
+  if (orgId && r.directorOrgIds.includes(orgId)) return true;
+  return r.programDirectorUnitIds.includes(classUnitId);
 }
 
 export async function isSuperadmin(user: { id: string; email?: string | null } | null): Promise<boolean> {
@@ -193,14 +227,18 @@ export type StaffAccess = {
   superadmin: boolean;
   orgIds: string[];          // director orgs → org-wide cohort reach
   instructorOrgIds: string[];
+  programUnitIds: string[];  // programs (class_units) they direct → reach over that subtree
+  programOrgIds: string[];   // orgs those programs live in
 };
 export async function orgStaffAccess(user: { id: string; email?: string | null } | null): Promise<StaffAccess> {
   const r = await roleFor(user);
   return {
-    ok: r.superadmin || r.directorOrgIds.length > 0 || r.instructorOrgIds.length > 0,
+    ok: r.superadmin || r.directorOrgIds.length > 0 || r.instructorOrgIds.length > 0 || r.programDirectorUnitIds.length > 0,
     superadmin: r.superadmin,
     orgIds: r.directorOrgIds,
     instructorOrgIds: r.instructorOrgIds,
+    programUnitIds: r.programDirectorUnitIds,
+    programOrgIds: r.programDirectorOrgIds,
   };
 }
 // Legacy alias — existing callers keep working while labels migrate.
@@ -226,6 +264,21 @@ export async function getActiveOrg(
     if (m) return m.org;
   }
   return memberships[0].org;
+}
+
+// The org a STAFF member (director / program director / instructor) is currently
+// acting in — the active org if they staff it, else the first org they staff.
+// The single resolver for staff-facing tools that serve all three tiers.
+export async function staffActiveOrg(user: { id: string; email?: string | null } | null): Promise<Org | null> {
+  if (!user) return null;
+  const role = await roleFor(user);
+  const staffOrgIds = new Set([...role.directorOrgIds, ...role.programDirectorOrgIds, ...role.instructorOrgIds]);
+  const active = await getActiveOrg(user).catch(() => null);
+  if (active && (role.superadmin || staffOrgIds.has(active.id))) return active;
+  const anyId = role.directorOrgIds[0] || role.programDirectorOrgIds[0] || role.instructorOrgIds[0];
+  if (anyId) return await getOrgById(anyId);
+  if (role.superadmin && active) return active;
+  return null;
 }
 
 // On sign-in, turn a pending email invite into a real membership. Idempotent.

@@ -481,6 +481,37 @@ export async function benchmarkNoteAI(system: string, user: string): Promise<str
   );
   return String(text || "").replace(/\s+/g, " ").trim();
 }
+
+// The memory-prosthetic draft: help a teacher write a SHORT, genuine check-in to
+// one student they know — grounded in what that person last worked on. It is
+// never sent automatically; the human edits it and sends it in their own voice.
+// So the draft is deliberately plain and ask-free: no offer, no link, no CTA —
+// a teacher reaching out because they noticed, not a funnel step.
+export async function draftReachOutAI(input: {
+  learnerName: string; senderName?: string; orgName: string; voice?: string;
+  lastModule?: string | null; quietDays?: number | null;
+}): Promise<string> {
+  const first = (input.learnerName || "there").trim().split(/\s+/)[0];
+  const senderFirst = input.senderName ? input.senderName.trim().split(/\s+/)[0] : "";
+  const system = [
+    "You help a teacher write a short, genuine check-in note to ONE of their students — a real person they know.",
+    "This is NOT marketing. There is NO ask, NO offer, NO call-to-action, NO link, NO event. It is a teacher reaching out because they noticed someone had gone a little quiet and they care.",
+    "Constraints: 40–80 words. Warm but not gushing; specific, not generic; plain and human. If given what they last worked on, refer to it naturally. At most one light, open question. No emojis. No subject line. No preamble like 'Here is a note'. Output only the note body.",
+    senderFirst ? `Sign off simply as "${senderFirst}".` : "Do not invent a sign-off name.",
+    input.voice ? `The institution's voice is: ${input.voice}. Let it lightly tint the tone; the teacher's own plain voice comes first.` : "",
+  ].filter(Boolean).join("\n");
+  const user = [
+    `Student's first name: ${first}`,
+    input.lastModule ? `They last worked on: ${input.lastModule}` : "You don't know exactly what they last did — keep it about them, not a specific module.",
+    input.quietDays != null ? `They've been quiet for about ${input.quietDays} days.` : "",
+    `Institution: ${input.orgName}`,
+  ].filter(Boolean).join("\n");
+  const text = await complete(
+    [{ role: "system", content: system }, { role: "user", content: user }],
+    { temperature: 0.7, maxTokens: 220, low: true, timeoutMs: 30000, flow: "relationship:reach-out-draft" },
+  );
+  return String(text || "").trim();
+}
 export async function simulateRunAI(system: string, user: string): Promise<any> {
   // The playtest runs this then the examiner in one request; bound it so the pair
   // stays under the route's 120s.
@@ -3162,6 +3193,57 @@ Return STRICT JSON only:
     input.returningAfterDays ? `Returning after ~${input.returningAfterDays} days away.` : "",
   ].filter(Boolean).join("\n");
   return completeJson([{ role: "system", content: system }, { role: "user", content: facts }], { temperature: 0.7, maxTokens: 500 });
+}
+
+// Understand ONE person — so a teacher can care from understanding, not data.
+// Explicitly not a sales/conversion read: it describes a human and what would
+// help THEM, never how to extract value from them.
+export async function understandPersonAI(input: { name: string; orgName: string; who: string; journey: string; peers?: string }): Promise<any> {
+  const system = `You help a teacher genuinely UNDERSTAND one of their students, so they can care well — because care comes from understanding, not from data. You're given who this person said they are and what they've actually done in the program.
+
+This is NOT a sales or "conversion" analysis. Never mention selling, offers, upsell, retention, funnels, or the institution's revenue. There are no "leads" here — only a person to understand and help. Be specific, generous, and honest: a good teacher is candid about where someone is, kindly.
+
+Ground every claim in the facts given — never invent biography. If little is known, say so plainly instead of guessing. No flattery, no psychoanalysis.
+
+Return STRICT JSON only:
+{
+  "who": "2-3 plain, human sentences: who this person is and where they're coming from, from what they told us and did.",
+  "here_for": "1-2 sentences: what they seem to want out of this, in their terms.",
+  "where": "1-2 sentences: where they actually are right now — just arrived, engaged, drifting, stuck — stated honestly.",
+  "needs": ["2-4 concrete things that would genuinely help THEM — a topic to point them to, a peer to introduce, a conversation to have. Help, not asks."],
+  "one_thing": "the single most caring, specific thing this teacher could do next for this person."
+}`;
+  const facts = [
+    `Student: ${data0(input.name, 80)}`, `Institution: ${data0(input.orgName, 80)}`,
+    "", "WHO THEY SAID THEY ARE:", data0(input.who, 1200),
+    "", "WHAT THEY'VE DONE:", data0(input.journey, 2000),
+    input.peers ? `\nPEERS THEY'VE WORKED WITH: ${data0(input.peers, 600)}` : "",
+  ].join("\n");
+  return completeJson([{ role: "system", content: system }, { role: "user", content: facts }], { temperature: 0.5, maxTokens: 700 });
+}
+
+// Understand a GROUP — a cohort, program, or school — so its leader can care for
+// it, not manage it as a funnel. Same discipline: no targeting, no revenue.
+export async function rollupUnderstandingAI(input: { scope: string; size: number; composition: string; engagement: string; standouts?: string }): Promise<any> {
+  const system = `You help a program leader UNDERSTAND a group of their people — a cohort, a program, or a whole school — so they can care for it well. You're given the group's composition (who they said they are, what they want) and how they're engaging.
+
+NOT a marketing or revenue analysis. No "segments to target", no conversion, no upsell, no LTV. Describe these people honestly and say what would genuinely help them flourish. Ground everything in the numbers given; don't invent.
+
+Return STRICT JSON only:
+{
+  "portrait": "2-4 sentences: who this group is — the mix of people and what they came for.",
+  "where": "1-2 sentences: where they are collectively right now, honestly.",
+  "needs": ["2-4 things that would genuinely help this group flourish"],
+  "watch": ["1-3 honest concerns — where care is thinning, who's at risk of drifting"],
+  "one_move": "the single highest-care move the leader could make this month."
+}`;
+  const facts = [
+    `Group: ${data0(input.scope, 120)} (${input.size} people)`,
+    "", "COMPOSITION:", data0(input.composition, 1500),
+    "", "ENGAGEMENT:", data0(input.engagement, 1200),
+    input.standouts ? `\nNOTABLE PEOPLE:\n${data0(input.standouts, 900)}` : "",
+  ].join("\n");
+  return completeJson([{ role: "system", content: system }, { role: "user", content: facts }], { temperature: 0.5, maxTokens: 850 });
 }
 
 // tiny local hygiene for the presence prompt (the AI boundary stays in lib/ai)
