@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   const current = body.currentSpec ? JSON.stringify(body.currentSpec).slice(0, 12000) : "";
   if (!intent && !current) return Response.json({ error: "Describe the instrument you want." }, { status: 400 });
   setFlow("mechanics:analytical-copilot");
-  const user_msg = [current ? `IMPROVE this instrument per the instruction. Return the full JSON.\n\nCURRENT:\n${current}` : "Draft a new instrument.", intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "", sourceMaterialBlock(source)].join("\n");
+  const user_msg = [current ? `IMPROVE this instrument per the instruction. Return the full JSON.\n\nCURRENT:\n${current}` : "Draft a new instrument.", intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "", sourceMaterialBlock(source, body.opinion === "high" ? "high" : "low")].join("\n");
   try {
     if (body?.stream) return streamSpecResponse(SYSTEM, user_msg, validateAnalyticalSpec);
     const spec = await moduleCopilotAI(SYSTEM, user_msg);

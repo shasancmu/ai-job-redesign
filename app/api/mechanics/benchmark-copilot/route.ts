@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   const user_msg = [
     current ? `IMPROVE this quiz per the instruction. Return the full updated JSON.\n\nCURRENT:\n${current}` : "Draft a new quiz.",
     intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "",
-    sourceMaterialBlock(source),
+    sourceMaterialBlock(source, body.opinion === "high" ? "high" : "low"),
   ].join("\n");
   try {
     if (body?.stream) return streamSpecResponse(SYSTEM, user_msg, validateBenchConfig);

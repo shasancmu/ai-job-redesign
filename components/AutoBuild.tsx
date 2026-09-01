@@ -40,6 +40,7 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
   const [err, setErr] = useState("");
   const [options, setOptions] = useState<any[]>([]);
   const [source, setSource] = useState("");
+  const [opinion, setOpinion] = useState<"low" | "high">("low"); // faithful vs. opinionated generation
   const [sel, setSel] = useState<Set<number>>(new Set());
   const [one, setOne] = useState<{ kind: string; spec: any } | null>(null);
   const [created, setCreated] = useState<any[]>([]);
@@ -120,7 +121,7 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
   }
 
   async function generateOne(opt: any, onProgress?: (p: { chars: number; name: string }) => void): Promise<any> {
-    const res = await fetch(KINDS[opt.kind].endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intent: opt.concept, sourceText: source, stream: true }) });
+    const res = await fetch(KINDS[opt.kind].endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intent: opt.concept, sourceText: source, opinion, stream: true }) });
     const ct = res.headers.get("content-type") || "";
     if (ct.includes("text/event-stream") && res.body) {
       const reader = res.body.getReader();
@@ -288,7 +289,20 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
             );
           })}
         </div>
-        <button onClick={build} disabled={sel.size === 0} className="btn-primary mt-5 w-full text-base disabled:opacity-50">{sel.size <= 1 ? "Build this module →" : `Build ${sel.size} modules →`}</button>
+        {/* How much license the AI takes: stay faithful to inputs vs. add its own ideas. */}
+        <div className="mt-5 rounded-xl border border-line bg-mist/30 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-ink">{opinion === "low" ? "Stay close to my materials" : "Let the AI take the lead"}</div>
+              <div className="mt-0.5 text-xs text-slate-500">{opinion === "low" ? "Builds faithfully on what you uploaded and said — you'll recognize your material." : "Uses your inputs as a starting point and adds its own scenarios and design ideas."}</div>
+            </div>
+            <div className="flex shrink-0 rounded-full border border-line bg-white p-0.5 text-xs font-semibold">
+              <button onClick={() => setOpinion("low")} className={"rounded-full px-3 py-1 transition " + (opinion === "low" ? "bg-ink text-white" : "text-slate-500 hover:text-ink")}>Faithful</button>
+              <button onClick={() => setOpinion("high")} className={"rounded-full px-3 py-1 transition " + (opinion === "high" ? "bg-ink text-white" : "text-slate-500 hover:text-ink")}>Opinionated</button>
+            </div>
+          </div>
+        </div>
+        <button onClick={build} disabled={sel.size === 0} className="btn-primary mt-4 w-full text-base disabled:opacity-50">{sel.size <= 1 ? "Build this module →" : `Build ${sel.size} modules →`}</button>
         {err && <p className="mt-3 text-sm text-red-700">{err}</p>}
         <div className="mt-3 text-center"><button onClick={() => { setPhase("upload"); setOptions([]); }} className="text-sm text-slate-400 hover:text-ink">← Different files</button></div>
       </div>

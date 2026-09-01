@@ -72,7 +72,7 @@ export async function POST(request: Request) {
   const user_msg = [
     current ? `IMPROVE this existing ModuleSpec per the instruction below. Return the full updated spec.\n\nCURRENT SPEC:\n${current}` : "Draft a new ModuleSpec.",
     intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "",
-    sourceMaterialBlock(source),
+    sourceMaterialBlock(source, body.opinion === "high" ? "high" : "low"),
   ].join("\n");
 
   try {

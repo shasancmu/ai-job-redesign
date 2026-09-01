@@ -437,13 +437,16 @@ async function completeJson(
 export async function roleplayExaminerAI(system: string, user: string, maxTokens = 2400): Promise<any> {
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens });
 }
-// A single, strongly-worded SOURCE MATERIAL block for the authoring copilots, so a
-// generated module stays FAITHFUL to what the author actually gave (their uploaded
-// documents and their interview answers) instead of inventing a generic version.
-export function sourceMaterialBlock(source: string | undefined | null): string {
+// The SOURCE MATERIAL block for the authoring copilots. `opinion` is the author's
+// toggle: "low" = stay faithful to what they gave (their docs + interview answers),
+// "high" = treat it as a starting point and add the AI's own design judgment.
+export function sourceMaterialBlock(source: string | undefined | null, opinion: "low" | "high" = "low"): string {
   const s = String(source || "").trim();
   if (!s) return "";
-  return `\nSOURCE MATERIAL — the author's own uploaded documents and/or their interview answers. This is the truth to build on. Stay FAITHFUL to it: use its actual situation, facts, terminology, characters, numbers, and specifics, so the author clearly recognizes their material in the result. Do NOT replace it with a generic or invented version, and do not drift to a nearby topic. Where a module type needs a fictional character, keep the substance real even if a name is changed.\n${s.slice(0, 12000)}`;
+  const head = opinion === "high"
+    ? `\nSOURCE MATERIAL — the author's uploaded documents and/or interview answers, as a STARTING POINT. You have license to reshape, extend, and improve on it with your own instructional-design judgment: the module can go well beyond what's here, invent scenarios and specifics, and take a strong point of view — as long as it serves the learning goal and stays on the author's topic.`
+    : `\nSOURCE MATERIAL — the author's own uploaded documents and/or their interview answers. This is the truth to build on. Stay FAITHFUL to it: use its actual situation, facts, terminology, characters, numbers, and specifics, so the author clearly recognizes their material in the result. Do NOT replace it with a generic or invented version, and do not drift to a nearby topic. Where a module type needs a fictional character, keep the substance real even if a name is changed.`;
+  return `${head}\n${s.slice(0, 12000)}`;
 }
 
 export async function moduleCopilotAI(system: string, user: string): Promise<any> {

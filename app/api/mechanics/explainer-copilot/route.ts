@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   const current = body.currentSpec ? JSON.stringify(body.currentSpec).slice(0, 12000) : "";
   if (!intent && !current && !source) return Response.json({ error: "Describe the explainer you want." }, { status: 400 });
   setFlow("mechanics:explainer-copilot");
-  const user_msg = [current ? `IMPROVE this explainer per the instruction. Return full JSON.\n\nCURRENT:\n${current}` : "Draft a new explainer.", intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "", sourceMaterialBlock(source)].join("\n");
+  const user_msg = [current ? `IMPROVE this explainer per the instruction. Return full JSON.\n\nCURRENT:\n${current}` : "Draft a new explainer.", intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "", sourceMaterialBlock(source, body.opinion === "high" ? "high" : "low")].join("\n");
   try {
     if (body?.stream) return streamSpecResponse(SYSTEM, user_msg, validateExplainerSpec);
     const spec = await moduleCopilotAI(SYSTEM, user_msg);
