@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   const user_msg = [
     current ? `IMPROVE this scenario per the instruction. Return the full updated JSON.\n\nCURRENT:\n${current}` : "Draft a new negotiation scenario.",
     intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "",
-    sourceMaterialBlock(source),
+    sourceMaterialBlock(source, body.opinion === "high" ? "high" : "low"),
   ].join("\n");
 
   try {

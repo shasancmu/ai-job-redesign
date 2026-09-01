@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   const current = body.currentSpec ? JSON.stringify(body.currentSpec).slice(0, 12000) : "";
   if (!intent && !current) return Response.json({ error: "Describe the redesign you want." }, { status: 400 });
   setFlow("mechanics:redesign-copilot");
-  const user_msg = [current ? `IMPROVE this per the instruction. Return full JSON.\n\nCURRENT:\n${current}` : "Draft a new redesign.", intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "", sourceMaterialBlock(source)].join("\n");
+  const user_msg = [current ? `IMPROVE this per the instruction. Return full JSON.\n\nCURRENT:\n${current}` : "Draft a new redesign.", intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "", sourceMaterialBlock(source, body.opinion === "high" ? "high" : "low")].join("\n");
   try {
     if (body?.stream) return streamSpecResponse(SYSTEM, user_msg, validateRedesignSpec);
     const spec = await moduleCopilotAI(SYSTEM, user_msg);

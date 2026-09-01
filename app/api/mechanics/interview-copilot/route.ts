@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     current ? `IMPROVE this existing module per the instruction below. Return the full updated spec.\n\nCURRENT:\n${current}` : "Draft a new module.",
     intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "",
     framework ? `\nFRAMEWORK to ground it in:\n${framework}` : "",
-    sourceMaterialBlock(source),
+    sourceMaterialBlock(source, body.opinion === "high" ? "high" : "low"),
   ].join("\n");
 
   try {
