@@ -437,6 +437,15 @@ async function completeJson(
 export async function roleplayExaminerAI(system: string, user: string, maxTokens = 2400): Promise<any> {
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens });
 }
+// A single, strongly-worded SOURCE MATERIAL block for the authoring copilots, so a
+// generated module stays FAITHFUL to what the author actually gave (their uploaded
+// documents and their interview answers) instead of inventing a generic version.
+export function sourceMaterialBlock(source: string | undefined | null): string {
+  const s = String(source || "").trim();
+  if (!s) return "";
+  return `\nSOURCE MATERIAL — the author's own uploaded documents and/or their interview answers. This is the truth to build on. Stay FAITHFUL to it: use its actual situation, facts, terminology, characters, numbers, and specifics, so the author clearly recognizes their material in the result. Do NOT replace it with a generic or invented version, and do not drift to a nearby topic. Where a module type needs a fictional character, keep the substance real even if a name is changed.\n${s.slice(0, 12000)}`;
+}
+
 export async function moduleCopilotAI(system: string, user: string): Promise<any> {
   // A full module spec is a heavy generation; give it near the route's maxDuration
   // rather than the default 55s so it doesn't abort mid-build. 95s + a 20s capped

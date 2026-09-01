@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
-import { AI_ENABLED, moduleCopilotAI } from "@/lib/ai";
+import { AI_ENABLED, moduleCopilotAI, sourceMaterialBlock } from "@/lib/ai";
 import { streamSpecResponse } from "@/lib/mechanics/specStream";
 import { validateAnalyticalSpec } from "@/lib/mechanics/analyticalStore";
 
@@ -37,10 +37,11 @@ export async function POST(request: Request) {
   let body: any;
   try { body = await request.json(); } catch { return Response.json({ error: "bad request" }, { status: 400 }); }
   const intent = String(body.intent || "").slice(0, 4000);
+  const source = String(body.sourceText || "").slice(0, 12000);
   const current = body.currentSpec ? JSON.stringify(body.currentSpec).slice(0, 12000) : "";
   if (!intent && !current) return Response.json({ error: "Describe the instrument you want." }, { status: 400 });
   setFlow("mechanics:analytical-copilot");
-  const user_msg = [current ? `IMPROVE this instrument per the instruction. Return the full JSON.\n\nCURRENT:\n${current}` : "Draft a new instrument.", intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : ""].join("\n");
+  const user_msg = [current ? `IMPROVE this instrument per the instruction. Return the full JSON.\n\nCURRENT:\n${current}` : "Draft a new instrument.", intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "", sourceMaterialBlock(source)].join("\n");
   try {
     if (body?.stream) return streamSpecResponse(SYSTEM, user_msg, validateAnalyticalSpec);
     const spec = await moduleCopilotAI(SYSTEM, user_msg);

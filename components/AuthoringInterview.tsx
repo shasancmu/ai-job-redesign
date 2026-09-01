@@ -45,11 +45,12 @@ export default function AuthoringInterview({ sourceText, onDone, onCancel }: {
   }, [sourceText]);
 
   async function report() {
+    stopVoice(); // wrap up: silence the mic + speech immediately, before the round-trip
     setBuilding(true); setErr("");
     try {
       const res = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "report", messages, sourceText }) });
       const d = await res.json().catch(() => ({}));
-      if (res.ok && Array.isArray(d.options) && d.options.length) { stopVoice(); onDone(d.options, d.transcript || ""); return; }
+      if (res.ok && Array.isArray(d.options) && d.options.length) { onDone(d.options, d.transcript || ""); return; }
       setErr(d.error || "Not quite enough yet. Say a little more, then try again.");
     } catch { setErr("Couldn't build ideas. Try again."); }
     setBuilding(false);

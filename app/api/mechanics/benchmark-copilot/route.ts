@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
-import { AI_ENABLED, moduleCopilotAI } from "@/lib/ai";
+import { AI_ENABLED, moduleCopilotAI, sourceMaterialBlock } from "@/lib/ai";
 import { streamSpecResponse } from "@/lib/mechanics/specStream";
 import { validateBenchConfig } from "@/lib/mechanics/benchStore";
 
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   const user_msg = [
     current ? `IMPROVE this quiz per the instruction. Return the full updated JSON.\n\nCURRENT:\n${current}` : "Draft a new quiz.",
     intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "",
-    source ? `\nSOURCE MATERIAL:\n${source}` : "",
+    sourceMaterialBlock(source),
   ].join("\n");
   try {
     if (body?.stream) return streamSpecResponse(SYSTEM, user_msg, validateBenchConfig);

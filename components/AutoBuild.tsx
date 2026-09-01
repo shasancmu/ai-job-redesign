@@ -19,6 +19,18 @@ const KINDS: Record<string, { label: string; emoji: string; endpoint: string; ta
   Object.fromEntries(AUTHOR_FORMATS.map(({ id, ...rest }) => [id, rest]));
 const LOADING = ["Reading your materials…", "Finding the interactive core…", "Drafting your modules…"];
 
+// Starter templates — concrete ideas so an instructor isn't staring at a blank
+// page. Picking one drops them straight to "build" with the concept filled in;
+// they can edit it after. Grounded in the formats the platform does best.
+const TEMPLATES: { kind: string; emoji: string; title: string; concept: string }[] = [
+  { kind: "roleplay", emoji: "🗣️", title: "A difficult conversation", concept: "The learner role-plays a hard conversation with a person they name at the start (deliver tough feedback, say no to a stakeholder, manage up). The AI stays in character under a hidden goal; the learner is graded on how they handle it, not on a right answer." },
+  { kind: "roleplay", emoji: "🔍", title: "Grill the identification strategy", concept: "An econometrician interrogates the learner about the causal-identification strategy behind a claim the learner brings — pushing on confounds, selection, and what would falsify it. Graded on the rigor of their reasoning." },
+  { kind: "interview", emoji: "🗂️", title: "Apply a framework to your own case", concept: "An AI interviews the learner about their own situation and then drafts a filled-in canvas / scorecard for a framework the author chooses, so they leave with an analysis of their real case." },
+  { kind: "negotiation", emoji: "🤝", title: "Negotiate a live deal", concept: "The learner negotiates a scored deal against an AI counterpart that has a hidden payoff table — trading across several issues to find value, then sees how they did." },
+  { kind: "benchmark", emoji: "⏱️", title: "Concept check with calibration", concept: "A short timed multiple-choice quiz on the key concepts, scored server-side, that also measures how well-calibrated the learner's confidence is." },
+  { kind: "newsframe", emoji: "🗞️", title: "This week, in the news", concept: "The learner applies a business framework to a real, current news story pulled live, and writes up what the framework reveals." },
+];
+
 export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: string; canGlobal: boolean; orgName: string | null; startMode?: string }) {
   const supabase = createClient();
   const [phase, setPhase] = useState<"upload" | "interview" | "choose" | "editor" | "created">(startMode === "interview" ? "interview" : "upload");
@@ -84,6 +96,18 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
     if (files.length) { setBusy("prep"); try { setInterviewSource(await collectSource()); } catch { setInterviewSource(""); } setBusy(""); }
     else setInterviewSource("");
     setPhase("interview");
+  }
+
+  // Start from a template — jump straight to the build step with the concept
+  // filled in (plus any uploaded files as grounding). They can edit after.
+  async function startTemplate(t: { kind: string; title: string; concept: string }) {
+    setErr("");
+    let src = "";
+    if (files.length) { setBusy("prep"); try { src = await collectSource(); } catch { src = ""; } setBusy(""); }
+    setOptions([{ kind: t.kind, title: t.title, concept: t.concept }]);
+    setSource(src);
+    setSel(new Set([0]));
+    setPhase("choose");
   }
 
   function onInterviewDone(opts: any[], transcript: string) {
@@ -292,17 +316,34 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
       <button onClick={analyze} disabled={!files.length} className="btn-primary mt-5 w-full text-base disabled:opacity-50">See what I can make →</button>
       {err && <p className="mt-3 text-sm text-red-700">{err}</p>}
 
-      <div className="mt-5 flex items-center gap-3 text-xs text-slate-400"><div className="h-px flex-1 bg-line" />or<div className="h-px flex-1 bg-line" /></div>
-      <button onClick={startInterview} className="mt-5 flex w-full items-center gap-3 rounded-2xl border border-line bg-white p-4 text-left transition hover:border-ai/40 hover:shadow-sm">
+      {/* Voice/text interview — grounded in the files if any (an "and", not "or"). */}
+      <button onClick={startInterview} className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-line bg-white p-4 text-left transition hover:border-ai/40 hover:shadow-sm">
         <div className="text-2xl">🎙️</div>
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-bold text-ink">{files.length ? "Talk it through instead" : "No materials? Talk it through"}</div>
-          <div className="text-xs text-slate-500">A few quick questions{files.length ? " about your materials" : ""}, by text or voice, and it proposes what to build.</div>
+          <div className="text-sm font-bold text-ink">{files.length ? "Talk it through first" : "Talk it through"}</div>
+          <div className="text-xs text-slate-500">{files.length ? "A few questions by voice or text, building on the files you added — then it proposes what to build." : "A few questions by voice or text, and it proposes what to build. Add files above and it uses both."}</div>
         </div>
         <span className="shrink-0 text-sm font-semibold text-ai">→</span>
       </button>
 
-      <p className="mt-4 text-center text-xs text-slate-400">Files are read for this draft only and never stored. Scanned PDFs (images) aren't supported.</p>
+      {/* Starter templates — ideas to build from, alone or on top of files. */}
+      <div className="mt-7">
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Or start from an idea</div>
+        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          {TEMPLATES.map((t, i) => (
+            <button key={i} onClick={() => startTemplate(t)} className="flex items-start gap-2.5 rounded-xl border border-line bg-white p-3 text-left transition hover:border-ai/40 hover:shadow-sm">
+              <span className="text-lg leading-none">{t.emoji}</span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-ink">{t.title}</span>
+                <span className="mt-0.5 block text-xs leading-snug text-slate-500">{t.concept.split(".")[0]}.</span>
+              </span>
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-slate-400">Pick one to build it now — it uses your files too if you added any. Edit everything after.</p>
+      </div>
+
+      <p className="mt-5 text-center text-xs text-slate-400">Files are read for this draft only and never stored. Scanned PDFs (images) aren't supported.</p>
     </div>
   );
 }
