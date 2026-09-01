@@ -4,6 +4,21 @@ import Logo from "@/components/Logo";
 import ShareReport from "@/components/ShareReport";
 import PrintButton from "@/components/PrintButton";
 
+// A rare, dry acknowledgment for finishing — deterministic per report (~1 in 7),
+// never gushing. A small easter egg; most reports show nothing here.
+function finishDelight(code: string): string | null {
+  let h = 0;
+  for (let i = 0; i < code.length; i++) h = (h * 31 + code.charCodeAt(i)) >>> 0;
+  if (h % 7 !== 0) return null;
+  const lines = [
+    "Most people don't get to the end of this one. You did.",
+    "This one has a low finish rate — you're in the minority.",
+    "You could have skimmed. You didn't.",
+    "Quietly: this was a hard one to see through.",
+  ];
+  return lines[h % lines.length];
+}
+
 // Shared chrome for owner-only report pages: logo + share + back, an eyebrow /
 // title, and either the report or a "not built yet" empty state.
 export default function ReportShell({
@@ -43,6 +58,7 @@ export default function ReportShell({
       <div className="mb-6">
         <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">{eyebrow}</div>
         <h1 className="mt-1 text-3xl text-ink">{title}</h1>
+        {hasReport && finishDelight(code) && <p className="mt-2 text-sm italic text-slate-400">{finishDelight(code)}</p>}
       </div>
 
       {hasReport ? (

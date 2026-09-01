@@ -5,6 +5,7 @@ import Link from "next/link";
 import RoleplayChat, { type Msg } from "@/components/RoleplayChat";
 import { streamPost } from "@/lib/streamClient";
 import GenericRoleplayReport from "@/components/GenericRoleplayReport";
+import { WARM_LOADING, pick } from "@/lib/warmth";
 
 // Runs ANY role-play ModuleSpec (the public view). Self-contained: a run code
 // drives the hidden scenario server-side; transcript lives in client state.
@@ -17,6 +18,7 @@ export default function RoleplaySpecRoom({ spec, cohort }: { spec: any; cohort?:
   const [verdict, setVerdict] = useState<Record<string, any>>({});
   const [report, setReport] = useState<any>(null);
   const [busy, setBusy] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState("Grading…");
   const [err, setErr] = useState("");
   const [persona, setPersona] = useState("");
   const [personaSet, setPersonaSet] = useState(false);
@@ -42,7 +44,7 @@ export default function RoleplaySpecRoom({ spec, cohort }: { spec: any; cohort?:
     return streamPost("/api/mechanics/roleplay/reply", { slug: spec.slug, code, messages: history, persona: openRole ? persona : undefined }, onChunk || (() => {}));
   }
   async function grade() {
-    setBusy(true); setErr("");
+    setBusy(true); setLoadingMsg(pick(WARM_LOADING)); setErr("");
     try {
       const pre = openRole && persona.trim() ? `COUNTERPART (chosen by the learner): ${persona.trim()}\n\n` : "";
       const transcript = pre + chat.map((m) => `${m.role === "user" ? "LEARNER" : character.toUpperCase()}: ${m.content}`).join("\n");
@@ -132,7 +134,7 @@ export default function RoleplaySpecRoom({ spec, cohort }: { spec: any; cohort?:
 
         {step.kind === "report" && (
           report ? <GenericRoleplayReport report={report} blocks={spec.report || []} />
-          : <div className="card p-8 text-center"><p className="text-slate-600">Grade this run against the module's rubric.</p><button onClick={grade} disabled={busy} className="btn-primary mt-4 text-sm">{busy ? "Grading..." : "✨ Grade my run"}</button>{err && <p className="mt-3 text-sm text-red-700">{err}</p>}</div>
+          : <div className="card p-8 text-center"><p className="text-slate-600">Grade this run against the module's rubric.</p><button onClick={grade} disabled={busy} className="btn-primary mt-4 text-sm">{busy ? loadingMsg : "✨ Grade my run"}</button>{err && <p className="mt-3 text-sm text-red-700">{err}</p>}</div>
         )}
       </div>
 

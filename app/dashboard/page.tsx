@@ -25,6 +25,7 @@ import { I18N_ENABLED } from "@/lib/flags";
 import EnrichOnce from "@/components/EnrichOnce";
 import YourWork, { type WorkItem } from "@/components/YourWork";
 import PresenceGreeting from "@/components/PresenceGreeting";
+import EasterEgg from "@/components/EasterEgg";
 import FollowUps from "@/components/FollowUps";
 import { dueFollowUps } from "@/lib/followups";
 import { computeStreak, artifactHref, nextStep } from "@/lib/momentum";
@@ -350,6 +351,7 @@ export default async function Dashboard({
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
+      <EasterEgg />
       {isProxy && <ViewAsBanner email={proxy!.email} />}
 
       {presence && (presence.greeting || presence.needsRefresh) && (

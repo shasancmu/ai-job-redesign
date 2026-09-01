@@ -40,21 +40,18 @@ export default function PresenceGreeting({
   if (gone || !greeting) return null;
 
   return (
-    <div className="mb-6 rounded-2xl border border-line bg-gradient-to-br from-sage/5 to-white p-5 shadow-soft">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-sage">{presenceName}</div>
-      <p className="mt-1.5 text-[1.05rem] leading-relaxed text-ink">{greeting}</p>
+    <div className="mb-6 border-l-2 border-line pl-4">
+      <div className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-400">{presenceName}</div>
+      <p className="mt-1 text-[1.02rem] leading-relaxed text-ink">{greeting}</p>
       {remembers.length > 0 && (
-        <div className="mt-2">
-          <button onClick={() => setOpen((o) => !o)} className="text-xs font-medium text-slate2 hover:text-ink">{open ? "Hide" : "What I remember about you"}</button>
+        <div className="mt-1.5">
+          <button onClick={() => setOpen((o) => !o)} className="text-xs text-slate-400 hover:text-slate2">{open ? "Hide" : "What I've noted"}</button>
           {open && (
-            <div className="mt-2 rounded-xl bg-mist/60 p-3">
+            <div className="mt-2 max-w-xl">
               <ul className="space-y-1">
-                {remembers.map((r, i) => <li key={i} className="text-sm text-slate-700">• {r}</li>)}
+                {remembers.map((r, i) => <li key={i} className="text-sm text-slate-600">— {r}</li>)}
               </ul>
-              <div className="mt-2 flex items-center gap-3 text-[11px] text-slate-400">
-                <span>This is yours — it's here to serve you.</span>
-                <button onClick={forget} className="font-medium text-slate-500 hover:text-clay">Forget this</button>
-              </div>
+              <div className="mt-2 text-[11px] text-slate-400">Yours to <button onClick={forget} className="underline hover:text-clay">forget</button>.</div>
             </div>
           )}
         </div>

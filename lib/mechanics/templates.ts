@@ -57,7 +57,7 @@ export function difficultConversationSpec(): ModuleSpec {
     ],
     rubric: {
       gradedBy: "examiner",
-      instructions: "You are a communication coach. Grade how well the learner handled a difficult conversation with the counterpart they chose: did they name the issue clearly, lead with empathy and specifics, stay calm under pushback, listen and adjust, and move toward a constructive outcome? Reward directness paired with respect; note blame, vagueness, or avoidance. Grade the LEARNER only, never the counterpart.",
+      instructions: "You are a communication coach. Grade how well the learner handled a difficult conversation with the counterpart they chose: did they name the issue clearly, lead with empathy and specifics, stay calm under pushback, listen and adjust, and move toward a constructive outcome? Reward directness paired with respect; note blame, vagueness, or avoidance. Grade the LEARNER only, never the counterpart. If they did something genuinely excellent — a line or a move most people wouldn't manage — name it specifically in 'What worked'. Real recognition when it's earned; never manufactured praise.",
       output: [
         { key: "score", label: "Score", type: "score", range: [0, 100] },
         { key: "did_well", label: "What worked", type: "text" },

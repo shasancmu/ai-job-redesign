@@ -64,7 +64,7 @@ export async function POST() {
       });
     } catch { out = null; }
   }
-  const greeting = String(out?.greeting || `Welcome back, ${learnerName}. Good to see you again — last time you were working on ${doneNames[0]}.`).slice(0, 500);
+  const greeting = String(out?.greeting || `Welcome back, ${learnerName}. Last time you were working on ${doneNames[0]}.`).slice(0, 500);
   const remembers = Array.isArray(out?.remembers) ? out.remembers.map((r: any) => String(r).slice(0, 160)).slice(0, 6) : [];
   const hook = out?.hook ? String(out.hook).slice(0, 300) : null;
 
