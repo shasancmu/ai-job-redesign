@@ -45,6 +45,7 @@ import { RESUME_CRAFT } from "./resume";
 import { WMS } from "./business";
 import { createAdminClient } from "./supabase/admin";
 import { currentFlow } from "./aiflow";
+import { currentAiProvider } from "./aiProvider";
 
 // Anthropic's OpenAI-compatible endpoint requires max_tokens and doesn't take
 // response_format, so we set the first and only send the second elsewhere.
@@ -278,9 +279,18 @@ async function runCompletion(
   // default is low for non-streamed and main for streamed. When AI_MODEL_LOW is
   // unset, LOW_* equals the main config, so this whole thing is a no-op.
   const useLow = !opts.vision && (opts.low === true || (opts.low !== false && !opts.onToken));
-  const baseUrl = (opts.vision ? VISION_BASE_URL : useLow ? LOW_BASE_URL : BASE_URL).replace(/\/$/, "");
-  const model = opts.vision ? VISION_MODEL : useLow ? LOW_MODEL : MODEL;
-  const apiKey = opts.vision ? VISION_API_KEY : useLow ? LOW_API_KEY : process.env.AI_API_KEY;
+  let baseUrl = (opts.vision ? VISION_BASE_URL : useLow ? LOW_BASE_URL : BASE_URL).replace(/\/$/, "");
+  let model = opts.vision ? VISION_MODEL : useLow ? LOW_MODEL : MODEL;
+  let apiKey = opts.vision ? VISION_API_KEY : useLow ? LOW_API_KEY : process.env.AI_API_KEY;
+  // Per-org BYO provider (e.g. a university's own FERPA-compliant, self-hosted
+  // endpoint): when one is active for this request, ALL non-vision text calls go
+  // to it EXCLUSIVELY — no fallback to the shared platform model (fail-closed).
+  const orgProv = opts.vision ? null : currentAiProvider();
+  if (orgProv) {
+    baseUrl = orgProv.baseUrl.replace(/\/$/, "");
+    apiKey = orgProv.apiKey;
+    model = useLow ? (orgProv.lowModel || orgProv.model) : orgProv.model;
+  }
   const isAnthropic = baseUrl.includes("anthropic.com");
   // Some vision/reasoning models reject `temperature` entirely, so on vision
   // calls we send only an explicitly-provided value and otherwise omit it.
@@ -490,6 +500,12 @@ export async function authoringInterviewReply(system: string, history: ChatMsg[]
   return complete([{ role: "system", content: system }, ...convo], { temperature: 0.7, maxTokens: 400, onToken });
 }
 // One-sentence, specific debrief for a quiz result: fast model, plain text.
+// A minimal call to verify a provider is reachable and answering (used by the
+// org "test connection" button, under a temporarily-installed org provider).
+export async function aiHealthCheck(): Promise<string> {
+  return complete([{ role: "system", content: "Reply with exactly: OK" }, { role: "user", content: "ping" }], { maxTokens: 8, low: false, temperature: 0, timeoutMs: 15000, flow: "org-ai:test" });
+}
+
 export async function benchmarkNoteAI(system: string, user: string): Promise<string> {
   const text = await complete(
     [{ role: "system", content: system }, { role: "user", content: user }],

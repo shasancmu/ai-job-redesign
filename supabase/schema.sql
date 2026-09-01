@@ -1464,6 +1464,26 @@ drop policy if exists program_directors_read_own on public.program_directors;
 create policy program_directors_read_own on public.program_directors for select using (user_id = auth.uid()); -- writes via service role
 
 -- ============================================================================
+-- Org AI provider (BYO models): an org can point the platform at its OWN
+-- self-hosted, private models + API key, so student data never reaches the
+-- shared/public model (e.g. a university's FERPA-compliant endpoint). The key is
+-- write-only from the UI and NEVER returned to any client; it is read only
+-- server-side (service role) to make the call. base_url may be an OpenAI-
+-- compatible or Anthropic endpoint (protocol auto-detected from the URL).
+-- ============================================================================
+create table if not exists public.org_ai_config (
+  org_id uuid primary key references public.organizations (id) on delete cascade,
+  enabled boolean not null default false,
+  base_url text,
+  api_key text,       -- secret: service-role only, never selected to a client
+  model text,
+  low_model text,     -- optional fast model; falls back to model
+  updated_by uuid references auth.users (id) on delete set null,
+  updated_at timestamptz not null default now()
+);
+alter table public.org_ai_config enable row level security; -- service-role only, no policies (denies all client access)
+
+-- ============================================================================
 -- Learner portrait: what a person told us about themselves in the reflective
 -- "portrait" interview — the basis for being genuinely SEEN by their mentors.
 -- The person OWNS it: RLS lets them read and delete their own row (control is
