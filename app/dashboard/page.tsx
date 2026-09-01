@@ -559,7 +559,7 @@ export default async function Dashboard({
               <div className="mt-1 text-sm text-slate2">When your instructor assigns an exercise{cohortName ? ` to ${cohortName}` : ""}, it appears right here.</div>
             </div>
           ) : (
-          <div className="mt-2 grid gap-3 sm:grid-cols-2">
+          <div className="mt-2 grid gap-3 sm:grid-cols-2 stagger-in">
             {classAssignments.map((r) => (
               <a key={r.slug} href={r.href} className="group flex items-center gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
                 <div className="text-2xl">{r.emoji}</div>
@@ -598,7 +598,7 @@ export default async function Dashboard({
         <section className="mb-8">
           <h2 className="eyebrow">Research intelligence</h2>
           <p className="mb-4 mt-1 max-w-2xl text-sm text-slate2">Scientifiq.AI tools — ask the ecosystem, score a portfolio across every dimension of potential, and map cross-disciplinary collaboration.</p>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 stagger-in">
             {researchTools.map((t) => (
               <a key={t.href} href={t.href} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
                 <div className="text-2xl">{t.emoji}</div>
@@ -617,7 +617,7 @@ export default async function Dashboard({
         <section data-tour="catalog">
           <h2 className="eyebrow">Start here</h2>
           <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">New to Superadditive? Pick one and do it — about 20 minutes, and you walk away with something real, not a completion checkmark.</p>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-3 stagger-in">
             {startHere.map((m) => (
               <a key={m.slug} href={`/start/${m.slug}`} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
                 <div className="text-2xl">{m.emoji}</div>

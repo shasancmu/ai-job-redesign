@@ -283,6 +283,17 @@ main > *:nth-child(n + 6) { animation-delay: 0.24s; }
   to { opacity: 1; transform: none; }
 }
 
+/* Card-level staggered reveal — add .stagger-in to a grid/row and its cards cascade
+   in one after another (a gentle rise), rather than the block appearing all at once. */
+.stagger-in > * { animation: lux-rise 0.5s var(--ease) both; }
+.stagger-in > *:nth-child(1) { animation-delay: 0.04s; }
+.stagger-in > *:nth-child(2) { animation-delay: 0.09s; }
+.stagger-in > *:nth-child(3) { animation-delay: 0.14s; }
+.stagger-in > *:nth-child(4) { animation-delay: 0.19s; }
+.stagger-in > *:nth-child(5) { animation-delay: 0.24s; }
+.stagger-in > *:nth-child(6) { animation-delay: 0.29s; }
+.stagger-in > *:nth-child(n + 7) { animation-delay: 0.33s; }
+
 /* ---- Print / Save-as-PDF -------------------------------------------------
    Reports are things people keep and forward. When printed, drop the app
    chrome, keep brand colors, and stop cards from splitting across a page. */
@@ -292,7 +303,7 @@ main > *:nth-child(n + 6) { animation-delay: 0.24s; }
   /* Honor brand colors and tinted fills on paper. */
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   /* Never print mid entrance-animation. */
-  main, main > * { animation: none !important; opacity: 1 !important; transform: none !important; }
+  main, main > *, .stagger-in > * { animation: none !important; opacity: 1 !important; transform: none !important; }
   /* Interactive chrome that shouldn't be on the page. */
   .no-print, [data-no-print] { display: none !important; }
   /* Keep a report card intact across a page break; flatten shadows for ink. */

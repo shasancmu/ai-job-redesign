@@ -244,7 +244,7 @@ export default function Catalog({
   // On the class view (moduleSlugs given) keep the curated order flat.
   // On the main dashboard, group by TOPIC.
   const grouped = !moduleSlugs;
-  const grid = "grid gap-4 sm:grid-cols-2 lg:grid-cols-3";
+  const grid = "grid gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger-in";
 
   // "Recommended for you" — resolve the segment/goal slugs to modules, in order.
   const recModules = grouped

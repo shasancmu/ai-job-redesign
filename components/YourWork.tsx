@@ -18,7 +18,7 @@ export default function YourWork({
   return (
     <section className="mb-8">
       <div className="mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Jump back in</div>
-      <div className="flex flex-wrap gap-2">
+      <div className="stagger-in flex flex-wrap gap-2">
         {recents.map((it) => (
           <Link
             key={it.slug}
