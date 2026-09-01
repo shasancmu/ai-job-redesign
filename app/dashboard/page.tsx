@@ -25,6 +25,7 @@ import { I18N_ENABLED } from "@/lib/flags";
 import EnrichOnce from "@/components/EnrichOnce";
 import YourWork, { type WorkItem } from "@/components/YourWork";
 import PresenceGreeting from "@/components/PresenceGreeting";
+import PortraitInvite from "@/components/PortraitInvite";
 import EasterEgg from "@/components/EasterEgg";
 import Dismissible from "@/components/Dismissible";
 import { cookies } from "next/headers";
@@ -366,6 +367,8 @@ export default async function Dashboard({
       {presence && (presence.reach || presence.needsRefresh) && (
         <PresenceGreeting presenceName={presence.name} initialReach={presence.reach} needsRefresh={presence.needsRefresh} />
       )}
+
+      <PortraitInvite />
 
       {/* Celebration on return from a finished run (Fogg: emotion right after the
           behavior wires the habit). The Continue + certificate cards below are the
