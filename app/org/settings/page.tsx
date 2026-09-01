@@ -5,7 +5,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { roleFor } from "@/lib/orgs";
 import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
-import OrgBrandingEditor, { type BrandingOrg } from "@/components/OrgBrandingEditor";
+import OrgSettingsClient from "@/components/OrgSettingsClient";
+import { type BrandingOrg } from "@/components/OrgBrandingEditor";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Organization settings" };
@@ -45,14 +46,7 @@ export default async function OrgSettingsPage() {
       {orgs.length === 0 ? (
         <div className="card p-8 text-center text-slate2">We couldn't load your organization. <Link href="/dashboard" className="text-sky hover:underline">Back to dashboard</Link>.</div>
       ) : (
-        <div className="space-y-10">
-          {orgs.map((org) => (
-            <div key={org.id}>
-              {orgs.length > 1 && <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">{org.name} · superadditive.app/{org.slug}</div>}
-              <OrgBrandingEditor org={org} />
-            </div>
-          ))}
-        </div>
+        <OrgSettingsClient orgs={orgs} />
       )}
     </main>
   );

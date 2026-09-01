@@ -26,6 +26,8 @@ import EnrichOnce from "@/components/EnrichOnce";
 import YourWork, { type WorkItem } from "@/components/YourWork";
 import PresenceGreeting from "@/components/PresenceGreeting";
 import EasterEgg from "@/components/EasterEgg";
+import Dismissible from "@/components/Dismissible";
+import { cookies } from "next/headers";
 import FollowUps from "@/components/FollowUps";
 import { dueFollowUps } from "@/lib/followups";
 import { computeStreak, artifactHref, nextStep } from "@/lib/momentum";
@@ -309,6 +311,14 @@ export default async function Dashboard({
     if (all[0]) myCapstone = { code: all[0].code, phase: all[0].phase, status: all[0].status };
   } catch { /* no capstone teams */ }
 
+  // Cards the learner has dismissed (stored in a cookie the server can read, so a
+  // dismissed card is simply never rendered again). Keyed so a new resume/capstone
+  // can still surface later.
+  let dismissed = new Set<string>();
+  try { dismissed = new Set(decodeURIComponent(cookies().get("dash_dismissed")?.value || "").split(",").filter(Boolean)); } catch { /* none */ }
+  const resumeId = `resume:${continueItem ? continueItem.slug : nextStep?.nextSlug || "next"}`;
+  const capstoneId = myCapstone ? `capstone:${myCapstone.code}` : "";
+
   // Role-appropriate home. The org / class / cohort machinery is for staff;
   // a learner should see their program (assigned work + progress), not the
   // whole library. So an org member gets a cohort-first home and the general
@@ -447,7 +457,8 @@ export default async function Dashboard({
       {/* ONE primary "next" card — resume an unfinished run if there is one, else
           the next step toward the certificate. Certificate progress rides along as
           a bar so momentum shows without a second competing card. */}
-      {(continueItem || nextStep) && (
+      {(continueItem || nextStep) && !dismissed.has(resumeId) && (
+        <Dismissible id={resumeId}>
         <a href={continueItem ? continueItem.href : `/start/${nextStep!.nextSlug}`} className="group mb-6 block rounded-2xl border-2 border-sage/40 bg-gradient-to-br from-white to-sage/5 p-5 transition hover:shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -469,6 +480,7 @@ export default async function Dashboard({
             </div>
           )}
         </a>
+        </Dismissible>
       )}
 
       {/* Runs banner only when it's actually urgent — out of runs, or the alumni
@@ -566,7 +578,8 @@ export default async function Dashboard({
         <YourWork recents={recents} reportsCount={reportsCount} />
       </div>
 
-      {myCapstone && (
+      {myCapstone && !dismissed.has(capstoneId) && (
+        <Dismissible id={capstoneId}>
         <a href={`/capstone/${myCapstone.code}`} className="mb-6 flex items-center justify-between rounded-2xl border border-line bg-white p-4 transition hover:shadow-lift">
           <div className="flex items-center gap-3">
             <span className="text-2xl" aria-hidden>📉</span>
@@ -577,6 +590,7 @@ export default async function Dashboard({
           </div>
           <span className="shrink-0 text-slate-300">→</span>
         </a>
+        </Dismissible>
       )}
 
       {isDeepTech && researchTools.length > 0 && (
