@@ -2,68 +2,85 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { roleFor, getActiveOrg } from "@/lib/orgs";
-import { gatherRelationshipOS, type MemberState } from "@/lib/relationships";
+import { roleFor, getActiveOrg, getOrgById } from "@/lib/orgs";
+import { gatherCareOS, SPAN_HEALTHY, SPAN_MAX, type CarePerson, type Carer } from "@/lib/relationshipOS";
 import { SEGMENTS } from "@/lib/pushes";
-import { listAutomations } from "@/lib/automations";
 import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
 import PushComposer from "@/components/PushComposer";
-import AutomationsPanel from "@/components/AutomationsPanel";
+import ReachOut from "@/components/ReachOut";
+import PersonLookup from "@/components/PersonLookup";
+import RollupReport from "@/components/RollupReport";
 
 export const dynamic = "force-dynamic";
 
-const BUCKET_META: Record<string, { label: string; cls: string; dot: string }> = {
-  strong: { label: "Strong", cls: "text-emerald-700", dot: "#059669" },
-  cooling: { label: "Cooling", cls: "text-amber-700", dot: "#B45309" },
-  at_risk: { label: "At risk", cls: "text-orange-700", dot: "#C2410C" },
-  dormant: { label: "Dormant", cls: "text-slate-500", dot: "#94A3B8" },
-};
+const DOT: Record<string, string> = { strong: "#059669", cooling: "#B45309", at_risk: "#C2410C", dormant: "#94A3B8" };
+const BUCKET_LABEL: Record<string, string> = { strong: "strong", cooling: "cooling", at_risk: "at risk", dormant: "quiet" };
 
 function ago(d: number | null): string {
-  if (d == null) return "never";
+  if (d == null) return "not yet";
   if (d === 0) return "today";
-  if (d < 30) return `${d}d ago`;
-  if (d < 365) return `${Math.round(d / 30)}mo ago`;
-  return `${Math.round(d / 365)}y ago`;
+  if (d < 30) return `${d}d quiet`;
+  if (d < 365) return `${Math.round(d / 30)}mo quiet`;
+  return `${Math.round(d / 365)}y quiet`;
 }
 
-function PersonRow({ m, right }: { m: MemberState; right?: string }) {
-  const b = BUCKET_META[m.bucket];
+// A person, shown as someone to be cared for — context first, so the human who
+// reaches out already knows something true about them (the memory prosthetic).
+function PersonLine({ p, note }: { p: CarePerson; note?: string }) {
   return (
-    <Link href={`/team/person/${m.userId}`} className="flex items-center gap-3 px-4 py-2.5 text-sm transition hover:bg-mist/40">
-      <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: b.dot }} />
-      <span className="min-w-0 flex-1 truncate font-medium text-ink">{m.name}</span>
-      <span className="shrink-0 text-xs text-slate-400">{right ?? `${m.degree} tie${m.degree === 1 ? "" : "s"} · ${ago(m.lastActiveDays)}`}</span>
+    <Link href={`/team/person/${p.userId}`} className="flex items-center gap-3 px-4 py-2.5 text-sm transition hover:bg-mist/40">
+      <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: DOT[p.bucket] }} />
+      <span className="min-w-0 flex-1 truncate font-medium text-ink">{p.name}</span>
+      <span className="hidden shrink-0 truncate text-xs text-slate-400 sm:block">{note ?? (p.lastModule ? `last: ${p.lastModule}` : "")}</span>
+      <span className="shrink-0 text-xs text-slate-400">{ago(p.lastActiveDays)}</span>
     </Link>
   );
 }
 
-// The Relationship OS — a director's instrument, not a report. It reads the
-// cohort as a living network and tells the director where to invest.
+function CarerRow({ c }: { c: Carer }) {
+  const pct = Math.min(100, Math.round((c.load / SPAN_MAX) * 100));
+  const color = c.status === "over" ? "#C2410C" : c.status === "stretched" ? "#B45309" : "#059669";
+  return (
+    <div className="flex items-center gap-3 px-4 py-3">
+      <span className="min-w-0 flex-1">
+        <span className="truncate text-sm font-medium text-ink">{c.name}</span>
+        {!c.present && <span className="ml-2 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold text-orange-700">left</span>}
+        <span className="block truncate text-[11px] text-slate-400">{c.cohorts.slice(0, 2).join(", ")}{c.cohorts.length > 2 ? "…" : ""}</span>
+      </span>
+      <div className="h-2 w-24 shrink-0 overflow-hidden rounded-full bg-mist sm:w-40">
+        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+      </div>
+      <span className="w-16 shrink-0 text-right text-sm font-semibold tabular-nums" style={{ color }}>{c.load}</span>
+    </div>
+  );
+}
+
+// The Relationship OS — an instrument of care, not a report. It reads only the
+// viewer's OWN span (a director sees the whole tree; a program director their
+// programs; an instructor their cohorts) and asks one question: is every person
+// here known by a human? Then it helps that human be helpful.
 export default async function RelationshipsPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/team/relationships");
 
   const role = await roleFor(user);
-  const directorOrgs = role.memberships.filter((m) => m.role === "director").map((m) => m.org);
+  const staffOrgIds = new Set([...role.directorOrgIds, ...role.programDirectorOrgIds, ...role.instructorOrgIds]);
   const active = await getActiveOrg(user).catch(() => null);
-  let org = directorOrgs.find((o) => active && o.id === active.id) || directorOrgs[0];
-  if (!org && role.superadmin && active) org = active;
+  let org = active && (role.superadmin || staffOrgIds.has(active.id)) ? active : null;
+  if (!org) {
+    const anyId = role.directorOrgIds[0] || role.programDirectorOrgIds[0] || role.instructorOrgIds[0];
+    if (anyId) org = await getOrgById(anyId);
+    else if (role.superadmin && active) org = active;
+  }
   if (!org) redirect(role.superadmin ? "/admin/orgs" : "/dashboard");
 
   const admin = createAdminClient();
-  const os = await gatherRelationshipOS(admin, org);
-  const pct = (n: number) => (os.members ? Math.round((n / os.members) * 100) : 0);
-
-  const segCount: Record<string, number> = {
-    everyone: os.members, active: os.active, reengage: os.reengage.length,
-    cooling: os.buckets.cooling, at_risk: os.buckets.at_risk,
-    isolated: os.isolates.length, connectors: os.connectors.length,
-  };
-  const segments = SEGMENTS.map((s) => ({ ...s, count: segCount[s.key] ?? 0 }));
-  const rules = await listAutomations(admin, org.id);
+  const os = await gatherCareOS(admin, org, role, user.id);
+  const coveragePct = Math.round(os.coverage * 100);
+  const roleLabel = os.role === "director" ? "Across the school" : os.role === "program_director" ? "Across your programs" : "Your cohorts";
+  const segments = SEGMENTS.map((s) => ({ ...s, count: s.key === "everyone" ? os.people : 0 }));
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
@@ -74,101 +91,169 @@ export default async function RelationshipsPage() {
 
       <span className="eyebrow text-sage">Relationship OS</span>
       <h1 className="mt-2 font-serif text-4xl leading-tight text-ink">{org.name}</h1>
+      <p className="mt-2 text-sm font-medium text-slate-500">{roleLabel} · {os.spanLabel}</p>
       <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-slate2">
-        Your cohort as a living network, not a mailing list. This reads who&apos;s strongly tied, whose tie is <b>cooling</b> (catch it before it&apos;s gone), who&apos;s <b>isolated</b>, and who the <b>connectors</b> are. Your move is always the same: invest value where it&apos;s decaying — never extract before you&apos;ve given.
+        Not a mailing list. This asks one question — <b>is every person here known by a human?</b> — and then helps you be that human. It surfaces and routes; it never reaches out for you. A note in your voice is worth more than anything a system could send.
       </p>
 
-      <div className="mt-6">
-        <PushComposer segments={segments} />
-      </div>
+      <div className="mt-5"><PersonLookup /></div>
 
-      {/* Network health */}
-      <section className="mt-8">
-        <h2 className="eyebrow mb-3">Network health</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-2xl border border-line bg-white p-4"><div className="text-2xl font-bold text-ink tabular-nums">{os.members.toLocaleString()}</div><div className="mt-0.5 text-xs text-slate2">People</div></div>
-          <div className="rounded-2xl border border-line bg-white p-4"><div className="text-2xl font-bold text-ink tabular-nums">{os.edges.toLocaleString()}</div><div className="mt-0.5 text-xs text-slate2">Connections</div><div className="text-[11px] text-slate-400">avg {os.avgDegree.toFixed(1)}/person</div></div>
-          <div className="rounded-2xl border border-line bg-white p-4"><div className="text-2xl font-bold text-ink tabular-nums">{Math.round(os.density * 100)}%</div><div className="mt-0.5 text-xs text-slate2">Density</div><div className="text-[11px] text-slate-400">how woven-together</div></div>
-          <div className="rounded-2xl border border-line bg-white p-4"><div className="text-2xl font-bold text-ink tabular-nums">{os.isolates.length.toLocaleString()}</div><div className="mt-0.5 text-xs text-slate2">Isolated</div><div className="text-[11px] text-slate-400">no ties yet</div></div>
-        </div>
-      </section>
-
-      {/* Relationship states */}
-      <section className="mt-8">
-        <h2 className="eyebrow mb-3">Tie strength</h2>
-        <div className="overflow-hidden rounded-2xl border border-line">
-          {(["strong", "cooling", "at_risk", "dormant"] as const).map((k, i) => {
-            const b = BUCKET_META[k];
-            return (
-              <div key={k} className={"flex items-center gap-3 px-4 py-3 " + (i > 0 ? "border-t border-line" : "")}>
-                <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: b.dot }} />
-                <span className={"w-20 shrink-0 text-sm font-semibold " + b.cls}>{b.label}</span>
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-mist">
-                  <div className="h-full rounded-full" style={{ width: `${pct(os.buckets[k])}%`, background: b.dot }} />
-                </div>
-                <span className="w-12 shrink-0 text-right text-sm font-semibold text-ink tabular-nums">{os.buckets[k]}</span>
-              </div>
-            );
-          })}
-        </div>
-        <p className="mt-2 text-xs text-slate-400">Recency + frequency + who they&apos;ve worked with. A tie decays with silence — <b>cooling</b> is the window to act.</p>
-      </section>
-
-      {/* The director's three moves */}
-      <section className="mt-10">
-        <h2 className="eyebrow mb-1">Your moves this week</h2>
-        <p className="mb-4 text-sm text-slate2">Three plays, in priority order. Each is a deposit of value, not an ask.</p>
-
-        <div className="rounded-2xl border-2 border-amber/50 bg-amber-soft/40 p-4">
-          <div className="text-sm font-bold text-ink">1 · Re-engage the cooling ({os.reengage.length})</div>
-          <p className="mt-0.5 text-xs text-slate2">They were active and are slipping. A relevant new module or a personal note now costs far less than winning them back later.</p>
-          {os.reengage.length > 0 && (
-            <div className="mt-3 overflow-hidden rounded-xl border border-line bg-white">
-              {os.reengage.slice(0, 8).map((m, i) => <div key={m.userId} className={i > 0 ? "border-t border-line" : ""}><PersonRow m={m} right={`${BUCKET_META[m.bucket].label} · ${ago(m.lastActiveDays)}`} /></div>)}
-            </div>
-          )}
-        </div>
-
-        <div className="mt-3 rounded-2xl border border-line bg-white p-4">
-          <div className="text-sm font-bold text-ink">2 · Bridge the isolated ({os.isolates.length})</div>
-          <p className="mt-0.5 text-xs text-slate2">They&apos;ve shown up but have no peer tie — the strongest predictor of drifting away. Pair them, introduce them, or seat them in a live activity.</p>
-          {os.isolates.length > 0 && (
-            <div className="mt-3 overflow-hidden rounded-xl border border-line">
-              {os.isolates.slice(0, 8).map((m, i) => <div key={m.userId} className={i > 0 ? "border-t border-line" : ""}><PersonRow m={m} right={ago(m.lastActiveDays)} /></div>)}
-            </div>
-          )}
-        </div>
-
-        <div className="mt-3 rounded-2xl border border-line bg-white p-4">
-          <div className="text-sm font-bold text-ink">3 · Activate the connectors ({os.connectors.length})</div>
-          <p className="mt-0.5 text-xs text-slate2">The brokers who move value and referrals across the cohort. Give them something worth passing on — they&apos;re how the relationship goes viral, at zero cost to you.</p>
-          {os.connectors.length > 0 && (
-            <div className="mt-3 overflow-hidden rounded-xl border border-line">
-              {os.connectors.slice(0, 8).map((m, i) => <div key={m.userId} className={i > 0 ? "border-t border-line" : ""}><PersonRow m={m} right={`${m.degree} ties`} /></div>)}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Automations — make the relationship maintain itself */}
-      <section className="mt-10">
-        <h2 className="eyebrow mb-1">On autopilot</h2>
-        <p className="mb-4 text-sm text-slate2">Set a rule once and the relationship maintains itself — value drips to people the moment they start slipping, at no ongoing effort. Fires daily.</p>
-        <AutomationsPanel rules={rules} />
-      </section>
-
-      {/* The rules of the cohort — interact, don't subvert */}
-      <section className="mt-10 rounded-2xl border border-line bg-mist/40 p-5">
-        <div className="text-xs font-semibold uppercase tracking-wide text-sage">The rules of the cohort</div>
-        <p className="mt-1.5 text-sm leading-relaxed text-slate2">
-          People strengthen ties by giving each other value — reacting to a peer&apos;s work, endorsing, introducing. The design keeps it positive-sum and <b>subversion-resistant</b>: interactions are <b>bounded</b> (build on a peer&apos;s output, not broadcast to the room), <b>reciprocity-gated</b> (you contribute to receive), <b>reputation-weighted</b> (standing comes from what you give, not what you claim), and <b>rate-limited</b> — so the cohort game rewards contribution and starves spam, self-promotion, and free-riding.
-        </p>
-      </section>
-
-      {os.members === 0 && (
+      {os.people === 0 ? (
         <div className="mt-8 rounded-2xl border border-dashed border-line bg-white p-6 text-center text-sm text-slate2">
-          No one in your cohorts yet. As people join and work together, the network fills in here.
+          No one in your {os.role === "instructor" ? "cohorts" : "programs"} yet. As people join and work, they&apos;ll appear here — each one someone to know.
         </div>
+      ) : (
+        <>
+          {/* Care coverage — the hero. Principle 2: every person known by a human. */}
+          <section className="mt-8">
+            <div className="rounded-2xl border border-line bg-white p-5">
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <div className="eyebrow text-slate-400">Care coverage</div>
+                  <div className="mt-1 text-4xl font-bold text-ink tabular-nums">{coveragePct}%</div>
+                  <div className="mt-0.5 text-sm text-slate2">{os.covered.toLocaleString()} of {os.people.toLocaleString()} known by a human</div>
+                </div>
+                <div className="text-right">
+                  <div className={"text-2xl font-bold tabular-nums " + (os.orphaned.length ? "text-orange-700" : "text-emerald-700")}>{os.orphaned.length}</div>
+                  <div className="text-xs text-slate2">carried only<br />by the system</div>
+                </div>
+              </div>
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-mist">
+                <div className="h-full rounded-full bg-emerald-500" style={{ width: `${coveragePct}%` }} />
+              </div>
+              {os.orphaned.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-xs text-slate2">These people are here but in no one&apos;s cohort — assign each to a human before they drift.</p>
+                  <div className="mt-2 overflow-hidden rounded-xl border border-line">
+                    {os.orphaned.slice(0, 8).map((p, i) => (
+                      <div key={p.userId} className={"flex items-center " + (i > 0 ? "border-t border-line" : "")}>
+                        <div className="min-w-0 flex-1"><PersonLine p={p} /></div>
+                        <div className="pr-2"><ReachOut userId={p.userId} name={p.name} /></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Understand the whole span — care from understanding, at scale. */}
+          <section className="mt-8">
+            <h2 className="eyebrow mb-1">Understand {os.role === "director" ? "your school" : os.role === "program_director" ? "your programs" : "your cohort"}</h2>
+            <p className="mb-3 text-sm text-slate2">A reading of who these people are and what they need — the way you&apos;d read one student, across the whole group.</p>
+            <RollupReport label={os.role === "director" ? "your school" : os.role === "program_director" ? "your programs" : "your cohort"} />
+          </section>
+
+          {/* Programs — the recursion of specializing-in-people (principle 5). */}
+          {os.role !== "instructor" && os.programs.length > 0 && (
+            <section className="mt-8">
+              <h2 className="eyebrow mb-1">Your programs</h2>
+              <p className="mb-3 text-sm text-slate2">You don&apos;t carry everyone — you carry the people who carry them. Each program is run by its director and its instructors.</p>
+              <div className="space-y-2">
+                {os.programs.map((pr) => (
+                  <div key={pr.unitId} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line bg-white p-4">
+                    <div className="min-w-0">
+                      <div className="text-sm font-bold text-ink">{pr.name}</div>
+                      <div className="mt-0.5 text-xs text-slate-500">
+                        {pr.directors.length ? `Director: ${pr.directors.map((d) => d.name).join(", ")}` : <span className="text-orange-700">No program director yet</span>}
+                        {" · "}{pr.carers} carer{pr.carers === 1 ? "" : "s"} · {pr.people} {pr.people === 1 ? "person" : "people"}
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div className={"text-sm font-semibold tabular-nums " + (pr.people && pr.covered === pr.people ? "text-emerald-700" : "text-amber-700")}>{pr.people ? Math.round((pr.covered / pr.people) * 100) : 100}%</div>
+                      <div className="text-[11px] text-slate-400">covered</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Carers & span load — principle 3 (respect the budget) + 4 (add humans). */}
+          {os.carers.length > 0 && (
+            <section className="mt-8">
+              <h2 className="eyebrow mb-1">Who carries whom</h2>
+              <p className="mb-3 text-sm text-slate2">A person can only truly know so many — roughly {SPAN_HEALTHY} well, {SPAN_MAX} at the limit. Past that, the relationship thins to a transaction. The fix is never more automation; it&apos;s another human.</p>
+              <div className="overflow-hidden rounded-2xl border border-line bg-white">
+                {os.carers.slice(0, 12).map((c, i) => <div key={c.userId} className={i > 0 ? "border-t border-line" : ""}><CarerRow c={c} /></div>)}
+              </div>
+              {os.overloaded.length > 0 && (
+                <div className="mt-3 rounded-xl border-2 border-orange-200 bg-orange-50/60 p-3 text-sm text-orange-900">
+                  <b>{os.overloaded.length} {os.overloaded.length === 1 ? "carer is" : "carers are"} beyond human scale.</b> {os.overloaded.slice(0, 3).map((c) => c.name).join(", ")}{os.overloaded.length > 3 ? "…" : ""} — split a cohort or bring in another instructor so their people stay genuinely known, not processed.
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Who needs a person now — principle 6: route scarce care, don't automate it. */}
+          {os.needsPerson.length > 0 && (
+            <section className="mt-10">
+              <h2 className="eyebrow mb-1">Who needs a person now</h2>
+              <p className="mb-3 text-sm text-slate2">Slipping, and already known by someone — so this is a nudge to a <b>person</b>, not a campaign. Open anyone to see what they last worked on, and reach out yourself.</p>
+              <div className="overflow-hidden rounded-2xl border border-line bg-white">
+                {os.needsPerson.slice(0, 12).map((p, i) => (
+                  <div key={p.userId} className={"flex items-center " + (i > 0 ? "border-t border-line" : "")}>
+                    <div className="min-w-0 flex-1"><PersonLine p={p} note={p.carriedBy.length ? `${BUCKET_LABEL[p.bucket]} · carried by ${p.carriedBy[0].name}` : BUCKET_LABEL[p.bucket]} /></div>
+                    <div className="pr-2"><ReachOut userId={p.userId} name={p.name} /></div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Succession — principle 2: never let a tie be orphaned. */}
+          {os.succession.length > 0 && (
+            <section className="mt-10">
+              <h2 className="eyebrow mb-1">Needs a human</h2>
+              <p className="mb-3 text-sm text-slate2">A relationship should never fall to no one. Hand these off before the tie goes cold.</p>
+              <div className="space-y-2">
+                {os.succession.map((s, i) => (
+                  <div key={i} className="rounded-2xl border border-amber/50 bg-amber-soft/40 p-4">
+                    <div className="text-sm font-bold text-ink">{s.cohort} · {s.people} {s.people === 1 ? "person" : "people"}</div>
+                    <p className="mt-0.5 text-xs text-slate2">{s.reason}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Peers helping peers — principle 7: the scale escape. */}
+          {(os.helpfulPeers.length > 0 || os.unwelcomed.length > 0) && (
+            <section className="mt-10">
+              <h2 className="eyebrow mb-1">Peers helping peers</h2>
+              <p className="mb-3 text-sm text-slate2">The most durable relationships aren&apos;t to you — they&apos;re to each other. A cohort that helps itself needs no one at the center.</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {os.helpfulPeers.length > 0 && (
+                  <div className="rounded-2xl border border-line bg-white p-4">
+                    <div className="text-sm font-bold text-ink">Already helping others</div>
+                    <p className="mt-0.5 text-xs text-slate2">People who&apos;ve worked alongside the most peers. Thank them — genuinely. Maybe ask one to welcome someone new.</p>
+                    <div className="mt-3 overflow-hidden rounded-xl border border-line">
+                      {os.helpfulPeers.slice(0, 6).map((p, i) => <div key={p.userId} className={i > 0 ? "border-t border-line" : ""}><PersonLine p={p} note={`${p.peerDegree} peer${p.peerDegree === 1 ? "" : "s"}`} /></div>)}
+                    </div>
+                  </div>
+                )}
+                {os.unwelcomed.length > 0 && (
+                  <div className="rounded-2xl border border-line bg-white p-4">
+                    <div className="text-sm font-bold text-ink">No peer yet</div>
+                    <p className="mt-0.5 text-xs text-slate2">They&apos;ve shown up but no one&apos;s worked with them. Introduce them to one person — that&apos;s the tie that keeps them.</p>
+                    <div className="mt-3 overflow-hidden rounded-xl border border-line">
+                      {os.unwelcomed.slice(0, 6).map((p, i) => <div key={p.userId} className={i > 0 ? "border-t border-line" : ""}><PersonLine p={p} note="" /></div>)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* Broadcast — deliberately last and deliberately small (principle 8). */}
+          <section className="mt-10 rounded-2xl border border-line bg-mist/40 p-5">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Broadcast — sparingly</div>
+            <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate2">
+              A broadcast reaches everyone at once — the opposite of a personal note. It&apos;s right for a genuine announcement, wrong as a stand-in for care. If you can name the person and why, send a note instead.
+            </p>
+            <div className="mt-3"><PushComposer segments={segments} /></div>
+          </section>
+        </>
       )}
 
       <div className="mt-10 flex flex-wrap gap-3">

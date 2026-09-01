@@ -2,29 +2,31 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { roleFor, getActiveOrg } from "@/lib/orgs";
-import { gatherPerson } from "@/lib/relationships";
+import { staffActiveOrg } from "@/lib/orgs";
+import { gatherUnderstanding } from "@/lib/understand";
 import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
+import UnderstandBrief from "@/components/UnderstandBrief";
+import ReachOut from "@/components/ReachOut";
 
 export const dynamic = "force-dynamic";
 
 const BUCKET: Record<string, { label: string; cls: string }> = {
-  strong: { label: "Strong", cls: "bg-emerald-50 text-emerald-700" },
+  strong: { label: "Active", cls: "bg-emerald-50 text-emerald-700" },
   cooling: { label: "Cooling", cls: "bg-amber-50 text-amber-800" },
-  at_risk: { label: "At risk", cls: "bg-orange-50 text-orange-700" },
-  dormant: { label: "Dormant", cls: "bg-mist text-slate2" },
+  at_risk: { label: "Drifting", cls: "bg-orange-50 text-orange-700" },
+  dormant: { label: "Quiet", cls: "bg-mist text-slate2" },
 };
 
 function day(iso: string): string {
   try { return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }); } catch { return ""; }
 }
 function ago(d: number | null): string {
-  if (d == null) return "never active";
-  if (d === 0) return "active today";
-  if (d < 30) return `active ${d}d ago`;
-  if (d < 365) return `active ${Math.round(d / 30)}mo ago`;
-  return `active ${Math.round(d / 365)}y ago`;
+  if (d == null) return "not started yet";
+  if (d === 0) return "here today";
+  if (d < 30) return `last here ${d}d ago`;
+  if (d < 365) return `last here ${Math.round(d / 30)}mo ago`;
+  return `last here ${Math.round(d / 365)}y ago`;
 }
 
 export default async function PersonPage({ params }: { params: { id: string } }) {
@@ -32,18 +34,28 @@ export default async function PersonPage({ params }: { params: { id: string } })
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const role = await roleFor(user);
-  const active = await getActiveOrg(user).catch(() => null);
-  const directorOrgs = role.memberships.filter((m) => m.role === "director").map((m) => m.org);
-  let org = directorOrgs.find((o) => active && o.id === active.id) || directorOrgs[0];
-  if (!org && role.superadmin && active) org = active;
+  const org = await staffActiveOrg(user);
   if (!org) redirect("/dashboard");
 
   const admin = createAdminClient();
-  const p = await gatherPerson(admin, org, params.id);
-  if (!p) redirect("/team/relationships"); // not a member of this org
+  const u = await gatherUnderstanding(admin, org, params.id);
+  if (!u) redirect("/team/relationships"); // not in this org
 
+  const p = u.person;
+  const w = u.who;
   const b = BUCKET[p.state.bucket];
+
+  // "Who they are" facts — from what they told us at onboarding.
+  const facts = [
+    w.segmentLabel && w.segmentLabel.replace(/^I'm /, ""),
+    w.goalLabel && `wants to ${w.goalLabel.toLowerCase()}`,
+    w.studyField,
+    w.teamSize && `team: ${w.teamSize}`,
+    w.founderStage,
+    w.emailType === "corporate" && w.domain && `@${w.domain}`,
+    w.emailType === "education" && w.domain && `@${w.domain}`,
+    w.language && w.language !== "English" && w.language,
+  ].filter(Boolean) as string[];
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
@@ -56,20 +68,35 @@ export default async function PersonPage({ params }: { params: { id: string } })
         <h1 className="font-serif text-4xl leading-tight text-ink">{p.name}</h1>
         <span className={"rounded-full px-2.5 py-0.5 text-xs font-semibold " + b.cls}>{b.label}</span>
       </div>
-      <p className="mt-2 text-sm text-slate2">{ago(p.state.lastActiveDays)} · {p.state.runs} exercise{p.state.runs === 1 ? "" : "s"} · {p.state.degree} peer tie{p.state.degree === 1 ? "" : "s"}</p>
+      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-slate2">
+        {w.email && <span className="font-mono text-[13px] text-slate-500">{w.email}</span>}
+        <span>· {ago(p.state.lastActiveDays)}</span>
+      </div>
+      {facts.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {facts.map((f, i) => <span key={i} className="rounded-full bg-mist px-2.5 py-0.5 text-xs text-slate2">{f}</span>)}
+        </div>
+      )}
+      <div className="mt-4"><ReachOut userId={p.userId} name={p.name} /></div>
 
-      {/* Activity timeline */}
+      {/* The understanding — who they are, what they need. Loads on open. */}
+      <section className="mt-6">
+        <h2 className="eyebrow mb-2">Understanding {p.name.split(/\s+/)[0]}</h2>
+        <UnderstandBrief userId={p.userId} />
+      </section>
+
+      {/* Evidence: what they've actually done. */}
       <section className="mt-8">
-        <h2 className="eyebrow mb-3">Timeline</h2>
+        <h2 className="eyebrow mb-3">What they&apos;ve worked on</h2>
         {p.timeline.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-line bg-white p-5 text-sm text-slate-400">No activity yet.</div>
+          <div className="rounded-2xl border border-dashed border-line bg-white p-5 text-sm text-slate-400">Nothing yet — they&apos;ve joined but haven&apos;t started. A first note from you might be what gets them going.</div>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-line">
             {p.timeline.map((t, i) => (
               <div key={i} className={"flex items-center gap-3 px-4 py-2.5 text-sm " + (i > 0 ? "border-t border-line" : "")}>
                 <span className="text-lg" aria-hidden>{t.emoji}</span>
                 <span className="min-w-0 flex-1 truncate text-ink">{t.name}</span>
-                {t.done && <span className="shrink-0 rounded-full bg-sage-soft px-2 py-0.5 text-[11px] font-medium text-sage">done</span>}
+                {t.done ? <span className="shrink-0 rounded-full bg-sage-soft px-2 py-0.5 text-[11px] font-medium text-sage">finished</span> : <span className="shrink-0 rounded-full bg-mist px-2 py-0.5 text-[11px] font-medium text-slate-400">started</span>}
                 <span className="shrink-0 text-xs text-slate-400">{day(t.at)}</span>
               </div>
             ))}
@@ -80,7 +107,7 @@ export default async function PersonPage({ params }: { params: { id: string } })
       {/* Peers */}
       {p.peers.length > 0 && (
         <section className="mt-8">
-          <h2 className="eyebrow mb-3">Peers they&apos;ve worked with</h2>
+          <h2 className="eyebrow mb-3">People they&apos;ve worked with</h2>
           <div className="flex flex-wrap gap-2">
             {p.peers.map((pe) => (
               <Link key={pe.userId} href={`/team/person/${pe.userId}`} className="rounded-full border border-line bg-white px-3 py-1 text-sm text-slate2 transition hover:border-slate-300 hover:text-ink">{pe.name}</Link>
@@ -89,26 +116,24 @@ export default async function PersonPage({ params }: { params: { id: string } })
         </section>
       )}
 
-      {/* Pushes received */}
-      <section className="mt-8">
-        <h2 className="eyebrow mb-3">What they&apos;ve been sent</h2>
-        {p.pushes.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-line bg-white p-5 text-sm text-slate-400">Nothing yet — send a value drop from the console.</div>
-        ) : (
+      {/* Notes & messages they've received */}
+      {p.pushes.length > 0 && (
+        <section className="mt-8">
+          <h2 className="eyebrow mb-3">Notes they&apos;ve received</h2>
           <div className="overflow-hidden rounded-2xl border border-line">
             {p.pushes.map((pu, i) => (
               <div key={i} className={"flex items-center gap-3 px-4 py-2.5 text-sm " + (i > 0 ? "border-t border-line" : "")}>
                 <span className="min-w-0 flex-1 truncate text-ink">{pu.title}</span>
-                <span className="shrink-0 text-xs font-medium text-slate-400">{pu.clicked ? "clicked" : pu.seen ? "seen" : "sent"}</span>
+                <span className="shrink-0 text-xs font-medium text-slate-400">{pu.clicked ? "opened" : pu.seen ? "seen" : "sent"}</span>
                 <span className="shrink-0 text-xs text-slate-400">{day(pu.at)}</span>
               </div>
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
       <div className="mt-10">
-        <Link href="/team/relationships" className="btn-ghost text-sm">← Back to the network</Link>
+        <Link href="/team/relationships" className="btn-ghost text-sm">← Back to your people</Link>
       </div>
     </main>
   );

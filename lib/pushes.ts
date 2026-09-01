@@ -62,6 +62,28 @@ export async function createPush(
   return { ok: true, count: rows.length };
 }
 
+// A personal note to ONE named person, authored by a human. It rides the same
+// delivery rails as a push (so it lands in their inbox and stays trackable), but
+// it is carriage, not broadcast: kind "note", exactly one recipient, no CTA.
+export async function sendNote(
+  admin: any,
+  opts: { org: { id: string; name: string }; createdBy: string; userId: string; title: string; body: string }
+): Promise<{ ok: boolean; error?: string }> {
+  const title = String(opts.title || "").trim();
+  const body = String(opts.body || "").trim();
+  if (!title) return { ok: false, error: "Give the note a subject." };
+  if (!body) return { ok: false, error: "The note is empty." };
+  const { data: push, error } = await admin
+    .from("pushes")
+    .insert({ org_id: opts.org.id, created_by: opts.createdBy, kind: "note", title: title.slice(0, 160), body: body.slice(0, 2000), segment_label: "Personal note" })
+    .select("id")
+    .single();
+  if (error || !push) return { ok: false, error: error?.message || "Could not send." };
+  const { error: rErr } = await admin.from("push_recipients").insert({ push_id: push.id, user_id: opts.userId });
+  if (rErr) return { ok: false, error: rErr.message };
+  return { ok: true };
+}
+
 export type InboxItem = { id: string; kind: string; title: string; body: string | null; href: string | null; cta: string | null; from: string; seen: boolean };
 
 // A learner's recent pushes (newest first). Marks them seen as a side effect so
