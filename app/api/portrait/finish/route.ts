@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveOrg } from "@/lib/orgs";
+import { useOrgAiForUser } from "@/lib/orgAi";
 import { AI_ENABLED, synthesizePortraitAI } from "@/lib/ai";
 
 export const runtime = "nodejs";
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
   const { data: prof } = await admin.from("profiles").select("display_name").eq("id", user.id).maybeSingle();
   const name = (prof as any)?.display_name || undefined;
 
+  await useOrgAiForUser(user); // route student data to the org's own models if configured
   let result: any = null;
   try { result = await synthesizePortraitAI({ transcript, name }); } catch { /* below */ }
   if (!result || typeof result !== "object" || !result.reflection) {

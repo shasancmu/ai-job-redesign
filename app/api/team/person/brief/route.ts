@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { staffActiveOrg } from "@/lib/orgs";
+import { useOrgAi } from "@/lib/orgAi";
 import { gatherUnderstanding, briefInputs } from "@/lib/understand";
 import { understandPersonAI, AI_ENABLED } from "@/lib/ai";
 
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
 
   const org = await staffActiveOrg(user);
   if (!org) return NextResponse.json({ error: "Not your organization." }, { status: 403 });
+  await useOrgAi(org.id); // route student data to the org's own models if configured
 
   const admin = createAdminClient();
   const u = await gatherUnderstanding(admin, org, userId);

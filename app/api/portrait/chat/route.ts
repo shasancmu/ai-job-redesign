@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveOrg } from "@/lib/orgs";
+import { useOrgAi } from "@/lib/orgAi";
 import { AI_ENABLED, portraitInterviewReply } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { setFlow } from "@/lib/aiflow";
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
     .map((m: any) => ({ role: m.role, content: String(m.content).slice(0, 4000) }));
 
   const org = await getActiveOrg(user).catch(() => null);
+  await useOrgAi(org?.id); // route student data to the org's own models if configured
   let learnerName: string | undefined;
   try {
     const admin = createAdminClient();
