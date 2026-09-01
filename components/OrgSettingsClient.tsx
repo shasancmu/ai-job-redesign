@@ -24,20 +24,14 @@ export default function OrgSettingsClient({ orgs }: { orgs: BrandingOrg[] }) {
     <div className="space-y-5">
       {orgs.length > 1 && (
         <div>
-          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Which organization?</div>
-          <div className="flex flex-wrap gap-2">
-            {orgs.map((o, k) => (
-              <button
-                key={o.id}
-                onClick={() => setI(k)}
-                className={"flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition " + (k === i ? "border-ink bg-ink text-white" : "border-line bg-white text-slate2 hover:bg-mist")}
-              >
-                {o.logo_url ? <img src={o.logo_url} alt="" className="h-4 max-w-[40px] object-contain" /> : null}
-                {o.name}
-              </button>
-            ))}
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400">Organization</label>
+          <div className="flex items-center gap-2">
+            {org.logo_url ? <img src={org.logo_url} alt="" className="h-5 max-w-[44px] shrink-0 object-contain" /> : null}
+            <select className="field max-w-md" value={i} onChange={(e) => setI(Number(e.target.value))}>
+              {orgs.map((o, k) => <option key={o.id} value={k}>{o.name}</option>)}
+            </select>
           </div>
-          <div className="mt-2 text-xs text-slate-400">Editing <span className="font-medium text-slate2">{org.name}</span> · superadditive.app/{org.slug}</div>
+          <div className="mt-1.5 text-xs text-slate-400">superadditive.app/{org.slug}</div>
         </div>
       )}
 
