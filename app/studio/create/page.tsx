@@ -34,7 +34,7 @@ export default async function CreateGallery() {
       </header>
       <h1 className="text-3xl text-ink">Create a module</h1>
       <p className="mt-1 max-w-2xl text-slate2">Start from your own materials, talk it through with the AI, or pick a template. The editor and AI copilot take it from there.</p>
-      <p className="mt-2 text-sm text-slate-500">New to this? <Link href="/studio/guide" className="font-medium text-ai hover:underline">Read the guide</Link> — what modules are, and how to build one.</p>
+      <p className="mt-2 text-sm text-slate-500">New to this? <Link href="/studio/guide" className="font-medium text-ai hover:underline">Read the guide</Link> — what modules are, and how to build one. Already made some? <Link href="/studio/mine" className="font-medium text-ai hover:underline">Your modules →</Link></p>
 
       <Link href="/studio/upload" className="group mt-6 block rounded-2xl border border-ai/40 bg-gradient-to-br from-ai/5 to-mist/50 p-5 transition hover:shadow-sm sm:p-6">
         <div className="flex items-center gap-4">
