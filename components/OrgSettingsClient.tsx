@@ -5,10 +5,18 @@ import OrgBrandingEditor, { type BrandingOrg } from "@/components/OrgBrandingEdi
 import OrgAiSettings from "@/components/OrgAiSettings";
 import OrgModulesEditor from "@/components/OrgModulesEditor";
 
-// When a director runs more than one org, stacking every editor is confusing —
-// show a picker and edit one at a time.
+const TABS = [
+  { key: "branding", label: "Branding", hint: "Logo, landing page, presence" },
+  { key: "modules", label: "Modules", hint: "What your members can use" },
+  { key: "ai", label: "AI provider", hint: "Use your own private models" },
+] as const;
+type TabKey = (typeof TABS)[number]["key"];
+
+// One org at a time (picker when a director runs several), and one area at a time
+// (tabs) so the page stays scannable instead of a long stack.
 export default function OrgSettingsClient({ orgs }: { orgs: BrandingOrg[] }) {
   const [i, setI] = useState(0);
+  const [tab, setTab] = useState<TabKey>("branding");
   const org = orgs[Math.min(i, orgs.length - 1)];
   if (!org) return null;
 
@@ -32,10 +40,25 @@ export default function OrgSettingsClient({ orgs }: { orgs: BrandingOrg[] }) {
           <div className="mt-2 text-xs text-slate-400">Editing <span className="font-medium text-slate2">{org.name}</span> · superadditive.app/{org.slug}</div>
         </div>
       )}
-      {/* key forces a fresh editor (resetting its fields) when you switch orgs */}
-      <OrgBrandingEditor key={org.id} org={org} />
-      <OrgModulesEditor key={`mods-${org.id}`} orgId={org.id} />
-      <OrgAiSettings key={`ai-${org.id}`} orgId={org.id} />
+
+      {/* Section tabs */}
+      <div className="flex flex-wrap gap-1 rounded-2xl border border-line bg-mist/40 p-1">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={"flex-1 rounded-xl px-4 py-2 text-left transition " + (tab === t.key ? "bg-white shadow-soft" : "hover:bg-white/60")}
+          >
+            <span className={"block text-sm font-semibold " + (tab === t.key ? "text-ink" : "text-slate2")}>{t.label}</span>
+            <span className="mt-0.5 hidden text-[11px] text-slate-400 sm:block">{t.hint}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Active section — keyed by org so switching orgs resets fields */}
+      {tab === "branding" && <OrgBrandingEditor key={`brand-${org.id}`} org={org} />}
+      {tab === "modules" && <OrgModulesEditor key={`mods-${org.id}`} orgId={org.id} />}
+      {tab === "ai" && <OrgAiSettings key={`ai-${org.id}`} orgId={org.id} />}
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type Mod = { slug: string; name: string; emoji: string; partner: string };
+type Mod = { slug: string; name: string; emoji: string; partner: string; tagline: string };
 const MODE = (p: string) => (p === "group" ? "Live" : p === "human" ? "Paired" : "Solo");
 
 // Director-only: choose which modules this organization makes available to its
@@ -40,8 +40,8 @@ export default function OrgModulesEditor({ orgId }: { orgId: string }) {
   const grouped = useMemo(() => catalog, [catalog]);
 
   return (
-    <details className="rounded-2xl border border-line bg-white p-5">
-      <summary className="cursor-pointer select-none text-sm font-bold text-ink">Available modules</summary>
+    <section className="card p-5">
+      <h2 className="text-sm font-semibold text-ink">Available modules</h2>
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate2">
         Choose which modules your members can use. <b>{count}</b> {count === 1 ? "module" : "modules"} available now.
       </p>
@@ -54,7 +54,7 @@ export default function OrgModulesEditor({ orgId }: { orgId: string }) {
       {!all && (
         <div className="mt-3 grid max-h-72 grid-cols-1 gap-1.5 overflow-y-auto rounded-xl border border-line p-2 sm:grid-cols-2">
           {grouped.map((m) => (
-            <label key={m.slug} className={"flex cursor-pointer items-center gap-2 rounded-lg border p-2 text-sm " + (sel.has(m.slug) ? "border-ai bg-ai/5" : "border-transparent hover:bg-mist")}>
+            <label key={m.slug} title={m.tagline || m.name} className={"flex cursor-pointer items-center gap-2 rounded-lg border p-2 text-sm " + (sel.has(m.slug) ? "border-ai bg-ai/5" : "border-transparent hover:bg-mist")}>
               <input type="checkbox" checked={sel.has(m.slug)} onChange={() => toggle(m.slug)} />
               <span className="min-w-0 flex-1 truncate">{m.emoji} {m.name}</span>
               <span className={"shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold " + (MODE(m.partner) === "Live" ? "bg-sage/10 text-sage" : MODE(m.partner) === "Paired" ? "bg-sky-soft text-sky" : "bg-mist text-slate-400")}>{MODE(m.partner)}</span>
@@ -71,6 +71,6 @@ export default function OrgModulesEditor({ orgId }: { orgId: string }) {
       {msg && <p className="mt-3 text-sm text-emerald-700">{msg}</p>}
       {err && <p className="mt-3 text-sm text-red-700">{err}</p>}
       <div className="mt-4"><button onClick={save} disabled={busy} className="btn-primary text-sm">{busy ? "…" : "Save"}</button></div>
-    </details>
+    </section>
   );
 }

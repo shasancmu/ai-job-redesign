@@ -40,7 +40,7 @@ export default async function OrgSettingsPage() {
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-ink">Organization settings</h1>
-        <p className="mt-1 text-sm text-slate2">Your organization's logo, hero image, and the text on its landing page.</p>
+        <p className="mt-1 text-sm text-slate2">Your landing page, the modules your members can use, and your AI provider.</p>
       </div>
 
       {orgs.length === 0 ? (

@@ -11,7 +11,7 @@ const VALID = new Set(MODULES.map((m) => m.slug));
 // The catalog a director picks from — the built-in modules (org entitlements
 // gate these), newest sort left as declared, hidden ones excluded.
 function catalog() {
-  return MODULES.filter((m) => !(m as any).hidden).map((m) => ({ slug: m.slug, name: m.name, emoji: (m as any).emoji || "•", partner: (m as any).partner || "ai" }));
+  return MODULES.filter((m) => !(m as any).hidden).map((m) => ({ slug: m.slug, name: m.name, emoji: (m as any).emoji || "•", partner: (m as any).partner || "ai", tagline: (m as any).tagline || "" }));
 }
 
 async function orgFor(user: any, orgId: string | null) {

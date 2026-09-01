@@ -38,8 +38,8 @@ export default function OrgAiSettings({ orgId }: { orgId: string }) {
   }
 
   return (
-    <details className="rounded-2xl border border-line bg-white p-5">
-      <summary className="cursor-pointer select-none text-sm font-bold text-ink">Your AI provider (private models)</summary>
+    <section className="card p-5">
+      <h2 className="text-sm font-semibold text-ink">Your AI provider (private models)</h2>
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate2">
         Route this organization&apos;s AI to your <b>own models and key</b> — e.g. a self-hosted, private endpoint — so student data reaches your models, not the shared one. When it&apos;s on, this org&apos;s AI runs on your endpoint (no fallback to the platform model). Works with any OpenAI-compatible or Anthropic endpoint.
       </p>
@@ -80,6 +80,6 @@ export default function OrgAiSettings({ orgId }: { orgId: string }) {
         <button onClick={() => post("save")} disabled={busy} className="btn-primary text-sm">{busy ? "…" : "Save"}</button>
         <button onClick={() => post("test")} disabled={busy || !baseUrl.trim() || !model.trim()} className="btn-ghost text-sm">Test connection</button>
       </div>
-    </details>
+    </section>
   );
 }
