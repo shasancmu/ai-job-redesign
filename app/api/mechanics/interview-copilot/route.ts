@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
-import { AI_ENABLED, moduleCopilotAI } from "@/lib/ai";
+import { AI_ENABLED, moduleCopilotAI, sourceMaterialBlock } from "@/lib/ai";
 import { validateSpec, type BuilderSpec } from "@/lib/moduleBuilder";
 
 export const runtime = "nodejs";
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     current ? `IMPROVE this existing module per the instruction below. Return the full updated spec.\n\nCURRENT:\n${current}` : "Draft a new module.",
     intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "",
     framework ? `\nFRAMEWORK to ground it in:\n${framework}` : "",
-    source ? `\nSOURCE MATERIAL:\n${source}` : "",
+    sourceMaterialBlock(source),
   ].join("\n");
 
   try {

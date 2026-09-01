@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
-import { AI_ENABLED, moduleCopilotAI } from "@/lib/ai";
+import { AI_ENABLED, moduleCopilotAI, sourceMaterialBlock } from "@/lib/ai";
 import { streamSpecResponse } from "@/lib/mechanics/specStream";
 import { validateSpec, type ModuleSpec } from "@/lib/mechanics/roleplay";
 
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
   const user_msg = [
     current ? `IMPROVE this existing ModuleSpec per the instruction below. Return the full updated spec.\n\nCURRENT SPEC:\n${current}` : "Draft a new ModuleSpec.",
     intent ? `\nAUTHOR'S INSTRUCTION:\n${intent}` : "",
-    source ? `\nSOURCE MATERIAL to ground it in:\n${source}` : "",
+    sourceMaterialBlock(source),
   ].join("\n");
 
   try {
