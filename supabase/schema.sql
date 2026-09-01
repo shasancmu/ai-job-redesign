@@ -1464,6 +1464,28 @@ drop policy if exists program_directors_read_own on public.program_directors;
 create policy program_directors_read_own on public.program_directors for select using (user_id = auth.uid()); -- writes via service role
 
 -- ============================================================================
+-- Learner portrait: what a person told us about themselves in the reflective
+-- "portrait" interview — the basis for being genuinely SEEN by their mentors.
+-- The person OWNS it: RLS lets them read and delete their own row (control is
+-- what keeps this an offering, not surveillance). Staff read via service role,
+-- framed as "what they shared", never a dossier. One per person per org.
+-- ============================================================================
+create table if not exists public.learner_portrait (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  org_id uuid not null references public.organizations (id) on delete cascade,
+  transcript jsonb not null default '[]'::jsonb,  -- [{role, content}]
+  portrait jsonb,                                 -- structured self-portrait (their words)
+  reflection text,                                -- the "here's what I heard" shown back to them
+  updated_at timestamptz not null default now(),
+  primary key (user_id, org_id)
+);
+alter table public.learner_portrait enable row level security;
+drop policy if exists learner_portrait_own_read on public.learner_portrait;
+create policy learner_portrait_own_read on public.learner_portrait for select using (user_id = auth.uid());
+drop policy if exists learner_portrait_own_del on public.learner_portrait;
+create policy learner_portrait_own_del on public.learner_portrait for delete using (user_id = auth.uid()); -- writes via service role
+
+-- ============================================================================
 -- Person briefs: the cached "understanding" reading for one person in one org.
 -- Generated once (an AI call over their responses), stored, and only rebuilt
 -- when a staff member explicitly asks — so opening a profile is instant and the

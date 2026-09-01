@@ -85,6 +85,22 @@ export default async function PersonPage({ params }: { params: { id: string } })
         <UnderstandBrief userId={p.userId} />
       </section>
 
+      {/* What they told us themselves — their own words, not a dossier. */}
+      {u.portrait && (u.portrait.summary || u.portrait.reaching_for || u.portrait.context) && (
+        <section className="mt-6">
+          <h2 className="eyebrow mb-2">In {p.name.split(/\s+/)[0]}&apos;s own words</h2>
+          <div className="rounded-2xl border border-line bg-mist/30 p-5">
+            {u.portrait.summary && <p className="text-[15px] leading-relaxed text-ink">{u.portrait.summary}</p>}
+            <div className="mt-3 space-y-2">
+              {([["reaching_for", "Reaching for"], ["friction", "What's hard"], ["where_headed", "Where they're headed"], ["how_they_work", "How they work"], ["context", "Their day to day"]] as const).map(([k, label]) =>
+                u.portrait[k] ? <p key={k} className="text-sm leading-relaxed text-slate2"><span className="font-semibold text-ink">{label}:</span> {u.portrait[k]}</p> : null
+              )}
+            </div>
+            <p className="mt-3 text-[11px] text-slate-400">From the portrait they chose to share. Reference it the way you&apos;d remember what someone told you — not as a file.</p>
+          </div>
+        </section>
+      )}
+
       {/* Evidence: what they've actually done. */}
       <section className="mt-8">
         <h2 className="eyebrow mb-3">What they&apos;ve worked on</h2>

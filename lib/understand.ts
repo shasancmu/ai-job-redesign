@@ -28,6 +28,7 @@ export type Understanding = {
   who: Who;
   recommended: { slug: string; name: string; emoji: string }[]; // what would fit them next
   work: string; // excerpts of what they actually produced — their own responses
+  portrait: any | null; // the self-portrait they gave in the portrait interview (their words)
 };
 
 // What the person actually made and said — their workflow redesigns (in their own
@@ -102,12 +103,20 @@ export async function gatherUnderstanding(admin: any, org: { id: string; name: s
 
   const work = await gatherWork(admin, userId, org);
 
-  return { person, who, recommended, work };
+  // The self-portrait they gave — their own words about themselves, the richest
+  // and most consented evidence there is.
+  let portrait: any = null;
+  try {
+    const { data: lp } = await admin.from("learner_portrait").select("portrait").eq("user_id", userId).eq("org_id", org.id).maybeSingle();
+    portrait = (lp as any)?.portrait || null;
+  } catch { /* table not migrated */ }
+
+  return { person, who, recommended, work, portrait };
 }
 
 // Assemble the "who they are" facts and journey into two prose blocks the AI can
 // reason over for the understanding brief.
-export function briefInputs(u: Understanding): { who: string; journey: string; peers: string; work: string } {
+export function briefInputs(u: Understanding): { who: string; journey: string; peers: string; work: string; portrait: string } {
   const w = u.who;
   const whoLines = [
     w.segmentLabel && `Says they are: ${w.segmentLabel}`,
@@ -133,7 +142,15 @@ export function briefInputs(u: Understanding): { who: string; journey: string; p
   ].filter(Boolean);
   const journey = journeyLines.join("\n");
   const peers = u.person.peers.slice(0, 8).map((p) => p.name).join(", ");
-  return { who, journey, peers, work: u.work };
+
+  const pp = u.portrait || {};
+  const portrait = [
+    pp.summary, pp.context && `Context: ${pp.context}`, pp.reaching_for && `Reaching for: ${pp.reaching_for}`,
+    pp.friction && `What's hard: ${pp.friction}`, pp.how_they_work && `How they work: ${pp.how_they_work}`,
+    pp.where_headed && `Where headed: ${pp.where_headed}`,
+  ].filter(Boolean).join("\n");
+
+  return { who, journey, peers, work: u.work, portrait };
 }
 
 // A whole group, understood — for a roll-up at the viewer's level (a cohort for
