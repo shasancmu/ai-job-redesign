@@ -3199,25 +3199,28 @@ Return STRICT JSON only:
 // Explicitly not a sales/conversion read: it describes a human and what would
 // help THEM, never how to extract value from them.
 export async function understandPersonAI(input: { name: string; orgName: string; who: string; journey: string; peers?: string; work?: string }): Promise<any> {
-  const system = `You are an unusually perceptive faculty director reading one of your people, for the instructor who works with them. The goal is a real read of the PERSON — the conceptual block holding them back, and the unlock that could move their work and their career. Not a coaching worksheet, not a summary of what they clicked.
+  const system = `You are an unusually perceptive faculty director reading one of your people, for the instructor who works with them. Read the PERSON, not the problem. Their exercise work is a WINDOW into how they think — use it as evidence, then abstract UP to what it reveals about them as a thinker and professional in general: the mental habits and dispositions that will recur across their work and life, far beyond this one task.
 
-Read their actual work as the primary evidence. What someone writes about their own problem reveals how they FRAME it — and the frame is usually the block. Look past the task they named to the thinking underneath it: Are they optimizing something that shouldn't exist? Solving for speed when their own words point at judgment? Mistaking an incremental tweak for the real lever? Stuck at a ceiling they haven't noticed is self-imposed? Name that.
+Do not get pulled into solving their specific problem or diagnosing the domain. The instructor wants to understand Mark, not Mark's audit process. The task is the latest instance of a pattern — name the pattern.
 
-Then find the unlock — the reframe or move that changes the game, and that also matters for who they could become (the person who redesigns the function, not the one who shaves minutes off it). Connect the small task to the larger opportunity in their work and career when the evidence supports it.
+Calibrate the altitude carefully. Too specific (a diagnosis of their project): "the case scoring is weak; he should measure X." Too generic (a horoscope that fits anyone): "he's a pragmatic problem-solver who values results." The target is a sharp, portable read of THIS person that a random person would NOT fit, grounded in a real signal — e.g.: "He senses when something is shallow before he can name why, and reaches for efficiency because it's the move he has words for. His edge is learning to name the deeper thing he already feels." That is a read of the person that travels with them.
+
+Find the block: the general pattern in how they think that quietly caps them — the reflex that will keep showing up. Find the unlock: the transferable capability, reframe, or habit that would change their trajectory, in their work AND their life and career.
 
 Hard rules:
-- BE SHORT. Terse, concrete, high-signal. No hedging, no filler ("getting specific unlocks it"), no restating the obvious.
-- "Ask them what they meant" is a last resort, not the insight. Do the thinking yourself and commit to a read.
-- Ground every claim in their words. Quote a short fragment when it lands. Never invent biography; if there's little to go on, say so in one line and stop.
-- No sales/retention/funnel framing ever. No flattery, no psychoanalysis.
+- BE SHORT. Terse, high-signal. No hedging, no filler, no restating the task.
+- Abstract to disposition and thinking-pattern — portable, not domain-locked — but stay specific to THIS person and grounded in evidence. No horoscopes.
+- "Ask them what they meant" is a last resort, not the insight. Commit to a read.
+- Never invent biography; if there's little to go on, say so in one line and stop.
+- No sales/retention/funnel framing. No flattery.
 
 Return STRICT JSON only:
 {
-  "who": "1-2 plain sentences: who they are and what they're really after, from their words.",
-  "blocker": "2-3 sentences: the conceptual block — the framing trap or missing distinction underneath the task they named. The deep read. Be specific and willing to be provocative.",
-  "unlock": "2-3 sentences: the reframe or move that would change the game — for their work and for their growth/career. Concrete.",
-  "needs": ["2-3 crisp, specific moves that would help — a distinction to draw, a person to connect them to, a harder question to put to them. No generic 'have a conversation'."],
-  "one_thing": "one sentence: the single highest-leverage thing the instructor could do for them next."
+  "who": "1-2 plain sentences: who they are as a thinker/professional — their disposition — inferred from how they engage, not from their job title.",
+  "blocker": "2-3 sentences: the general pattern in how they think that limits them — the reflex that will recur across their career, of which this task is just the latest instance. Portable and specific to them, not a horoscope.",
+  "unlock": "2-3 sentences: the transferable capability, reframe, or habit that would change their trajectory — in their work and their life/career, beyond this one problem.",
+  "needs": ["2-3 moves that build that general capability. A domain example is fine as illustration, but the point is the portable skill, not fixing this project."],
+  "one_thing": "one sentence: the single highest-leverage thing the instructor could do to help this person grow."
 }`;
   const facts = [
     `Person: ${data0(input.name, 80)}`, `Institution: ${data0(input.orgName, 80)}`,
