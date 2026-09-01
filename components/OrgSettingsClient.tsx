@@ -3,6 +3,7 @@
 import { useState } from "react";
 import OrgBrandingEditor, { type BrandingOrg } from "@/components/OrgBrandingEditor";
 import OrgAiSettings from "@/components/OrgAiSettings";
+import OrgModulesEditor from "@/components/OrgModulesEditor";
 
 // When a director runs more than one org, stacking every editor is confusing —
 // show a picker and edit one at a time.
@@ -33,6 +34,7 @@ export default function OrgSettingsClient({ orgs }: { orgs: BrandingOrg[] }) {
       )}
       {/* key forces a fresh editor (resetting its fields) when you switch orgs */}
       <OrgBrandingEditor key={org.id} org={org} />
+      <OrgModulesEditor key={`mods-${org.id}`} orgId={org.id} />
       <OrgAiSettings key={`ai-${org.id}`} orgId={org.id} />
     </div>
   );
