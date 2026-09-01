@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   try {
     const lang = await getUserLanguage(supabase, user.id);
     return streamingResponse((emit) => withLanguage(lang, () =>
-      canvasInterviewReply(def.interviewSystem, def.subjectLabel, String(body.subject || "").slice(0, 400), messages, emit)
+      canvasInterviewReply(def.interviewSystem, def.subjectLabel, String(body.subject || "").slice(0, 400), messages, emit, def.interviewStyle)
     ));
   } catch (e: any) {
     return Response.json({ error: e?.message || "The AI is unavailable." }, { status: 502 });

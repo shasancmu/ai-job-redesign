@@ -1948,13 +1948,25 @@ Be specific and realistic, no vague "leverage AI." Output short markdown, one bl
 // framework by lib/canvases.ts (GAS, opportunity-capability, experiment, …).
 // ============================================================================
 
+// A rigorous, adversarial cross-examination — for evaluative canvases (identification,
+// referee) where the job is to test whether an argument HOLDS, not to collect a story.
+const INTERVIEW_GRILL = `Conduct a rigorous, adversarial oral examination — a tough seminar discussant or referee, not a friendly interviewer:
+- Be DIRECTIVE and CHALLENGING. Go after the weakest point. Interrogate the logic; it is expected that you push back, name a flaw, and make them defend it.
+- Attack the ARGUMENT, never the person's experience. Do NOT ask how they got into the topic, how they adopted or used a tool, or to walk you through their general story — those are irrelevant. Every question must test whether the claim survives.
+- Name the specific weakness you see in THEIR case and force them to answer it — state the counter-hypothesis yourself and make them defeat it ("A good firm would adopt this anyway; how do you rule out selection?").
+- ONE sharp question at a time — short and pointed. No lecturing, no lists; one blade at a time.
+- If they dodge or answer vaguely, don't accept it: restate the hole and ask again, harder.
+- When they actually answer well, concede it briefly ("Fine — that rules out reverse causality") and move to the next weakness. The goal is to learn whether the argument holds.`;
+
 export async function canvasInterviewReply(
   interviewSystem: string,
   subjectLabel: string,
   subject: string,
   history: ChatMsg[],
-  onToken?: (d: string) => void
+  onToken?: (d: string) => void,
+  style: "explore" | "grill" = "explore"
 ): Promise<string> {
+  const craft = style === "grill" ? INTERVIEW_GRILL : INTERVIEW_CRAFT;
   const ctx = subject
     ? `Their ${subjectLabel}: ${subject}`
     : `They haven't named the ${subjectLabel} yet; open by asking what it is.`;
@@ -1962,7 +1974,7 @@ export async function canvasInterviewReply(
     ? history
     : [{ role: "user", content: `Please begin, ask your first question about my ${subjectLabel}.` }];
   return complete(
-    [{ role: "system", content: `${interviewSystem}\n\n${INTERVIEW_CRAFT}\n\n${ctx}` }, ...conversation],
+    [{ role: "system", content: `${interviewSystem}\n\n${craft}\n\n${ctx}` }, ...conversation],
     { temperature: 0.7, onToken }
   );
 }

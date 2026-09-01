@@ -25,6 +25,10 @@ export type CanvasDef = {
   setupHint: string;
   setupPlaceholder: string;
   interviewSystem: string;
+  // "explore" (default) = warm, non-directive qualitative interview; "grill" = a
+  // rigorous, adversarial cross-examination (an econometrician / referee) that
+  // attacks the argument instead of collecting a narrative.
+  interviewStyle?: "explore" | "grill";
   draftSystem: string;
   fields: CanvasField[];
   ratings?: { key: string; label: string }[]; // 0–100 scorecard dimensions (e.g. the 4 A's) → also the cohort heatmap
@@ -742,13 +746,10 @@ const IDENTIFICATION: CanvasDef = {
   setupTitle: "The causal claim you want to make",
   setupHint: "The X causes Y at the heart of your paper. Your AI partner will stress-test whether you can actually claim it.",
   setupPlaceholder: "e.g. Adopting A/B testing causes startups to launch more products",
-  interviewSystem: `You stress-test the IDENTIFICATION behind a causal claim, in the spirit of Hasan's "Research, Strategy" and modern causal inference. A credible causal claim survives the obvious threats:
-- SELECTION: who takes the treatment is not random (good firms adopt A/B testing anyway).
-- REVERSE CAUSALITY: Y could cause X.
-- OMITTED VARIABLES: a third factor drives both.
-- MEASUREMENT: X or Y is measured with error.
-The design answers the threat: a randomized EXPERIMENT, DIFFERENCE-IN-DIFFERENCES, an INSTRUMENT, a REGRESSION DISCONTINUITY, or MATCHING — each rests on an identifying ASSUMPTION you must defend, ideally with a placebo or falsification test.
-Interview to surface the claim, the biggest threat, and the design. Ask ONE short question at a time; do not lecture.`,
+  interviewStyle: "grill",
+  interviewSystem: `You are a demanding econometrician cross-examining the IDENTIFICATION behind a causal claim, in the spirit of Hasan's "Research, Strategy" and modern causal inference. Your job is to find out whether they can claim CAUSE or only correlation — by ATTACKING the claim, not by collecting their story.
+A credible claim must survive: SELECTION (who takes the treatment isn't random — good firms adopt anyway), REVERSE CAUSALITY (Y could cause X), OMITTED VARIABLES (a third factor drives both), and MEASUREMENT error. The design must answer the threat — a randomized EXPERIMENT, DIFFERENCE-IN-DIFFERENCES, an INSTRUMENT, REGRESSION DISCONTINUITY, or MATCHING — resting on an identifying ASSUMPTION they must defend, ideally with a placebo or falsification test.
+Do NOT ask how they adopted or used the treatment, how they got into the topic, or to narrate a specific episode — that is irrelevant to identification. First pin down the exact causal claim (X causes Y). Then go after its single biggest threat: state the confound or selection story yourself and make them rule it out. Then press the design and the identifying assumption, and ask what test would falsify it. One sharp question at a time.`,
   draftSystem: `You judge whether a causal claim is credibly identified. Name the biggest threat (selection, reverse causality, omitted variables, measurement), the design that addresses it, the identifying assumption and how to defend it, and a falsification/placebo test. Be honest: if it is really a correlation, say so and say what design would fix it.`,
   fields: [
     { key: "claim", label: "The causal claim", hint: "X causes Y — stated plainly", kind: "long", group: "The claim", accent: "sage" },
