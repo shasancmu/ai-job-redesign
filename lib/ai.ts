@@ -466,12 +466,16 @@ export async function moduleCriticAI(system: string, user: string): Promise<any>
 // Streaming Q&A for an instructor chatting with their cohort's data. The system
 // prompt carries the cohort digest; this just streams grounded answers.
 export async function cohortChatReply(system: string, history: ChatMsg[], onToken: (t: string) => void): Promise<string> {
-  return complete([{ role: "system", content: system }, ...history.slice(-16)], { temperature: 0.4, maxTokens: 900, onToken, low: true });
+  const convo: ChatMsg[] = history.length ? history.slice(-16) : [{ role: "user", content: "(Begin.)" }];
+  return complete([{ role: "system", content: system }, ...convo], { temperature: 0.4, maxTokens: 900, onToken, low: true });
 }
 // Streaming interviewer for the module-authoring flow: given the running
 // conversation, streams the next short question (works for both text and voice).
 export async function authoringInterviewReply(system: string, history: ChatMsg[], onToken: (t: string) => void): Promise<string> {
-  return complete([{ role: "system", content: system }, ...history.slice(-24)], { temperature: 0.7, maxTokens: 400, onToken });
+  // The opening turn has no history yet; the Anthropic API requires at least one
+  // non-system message, so seed a synthetic "begin" turn (as empathy/portrait do).
+  const convo: ChatMsg[] = history.length ? history.slice(-24) : [{ role: "user", content: "(Begin the interview now with your opening question.)" }];
+  return complete([{ role: "system", content: system }, ...convo], { temperature: 0.7, maxTokens: 400, onToken });
 }
 // One-sentence, specific debrief for a quiz result: fast model, plain text.
 export async function benchmarkNoteAI(system: string, user: string): Promise<string> {
