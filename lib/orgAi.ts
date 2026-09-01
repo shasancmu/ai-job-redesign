@@ -3,6 +3,7 @@
 // the shared platform model. Server-only. The API key lives in org_ai_config and
 // is never returned to any client — it is read here purely to make the call.
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/orgs";
 import { setAiProvider, type AiProvider } from "@/lib/aiProvider";
 
@@ -60,4 +61,46 @@ export async function useOrgAiForUser(user: { id: string; email?: string | null 
   if (!user) return;
   const org = await getActiveOrg(user).catch(() => null);
   if (org) await useOrgAi(org.id);
+}
+
+// Called LAZILY by the AI layer on the first non-vision AI call of a request:
+// resolve the acting user's active org and install its provider (or mark that we
+// tried and found none, so the request falls back to the system/env models).
+// This gives every AI route coverage automatically, with no per-route wiring.
+// Safe outside a request (cron, scripts): cookies()/getUser throw, we catch, and
+// the system models are used. `provider` is set (possibly null) either way, which
+// also marks resolution attempted so this runs at most once per request.
+export async function resolveRequestAiProvider(): Promise<void> {
+  let provider: AiProvider | null = null;
+  try {
+    // Cheap gate: if NO org has BYO enabled (the common case), skip the whole
+    // resolution — no getUser, no per-request cost. Cached per instance for 60s.
+    if (await anyOrgHasByo()) {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const org = await getActiveOrg(user).catch(() => null);
+        if (org) provider = await getOrgAiProvider(org.id);
+      }
+    }
+  } catch { /* no request context / no session → system models */ }
+  setAiProvider(provider);
+}
+
+// Is any org currently using BYO models? Cached per server instance so the lazy
+// resolver stays free until someone actually turns it on.
+let _byoCache: { at: number; any: boolean } | null = null;
+async function anyOrgHasByo(): Promise<boolean> {
+  const now = Date.now();
+  if (_byoCache && now - _byoCache.at < 60_000) return _byoCache.any;
+  let any = false;
+  try {
+    const db = admin();
+    if (db) {
+      const { count } = await db.from("org_ai_config").select("org_id", { count: "exact", head: true }).eq("enabled", true);
+      any = (count || 0) > 0;
+    }
+  } catch { /* on error assume none, so we never add cost on a broken query */ }
+  _byoCache = { at: now, any };
+  return any;
 }

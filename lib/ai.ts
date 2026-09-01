@@ -45,7 +45,8 @@ import { RESUME_CRAFT } from "./resume";
 import { WMS } from "./business";
 import { createAdminClient } from "./supabase/admin";
 import { currentFlow } from "./aiflow";
-import { currentAiProvider } from "./aiProvider";
+import { currentAiProvider, providerAttempted } from "./aiProvider";
+import { resolveRequestAiProvider } from "./orgAi";
 
 // Anthropic's OpenAI-compatible endpoint requires max_tokens and doesn't take
 // response_format, so we set the first and only send the second elsewhere.
@@ -283,8 +284,13 @@ async function runCompletion(
   let model = opts.vision ? VISION_MODEL : useLow ? LOW_MODEL : MODEL;
   let apiKey = opts.vision ? VISION_API_KEY : useLow ? LOW_API_KEY : process.env.AI_API_KEY;
   // Per-org BYO provider (e.g. a university's own FERPA-compliant, self-hosted
-  // endpoint): when one is active for this request, ALL non-vision text calls go
-  // to it EXCLUSIVELY — no fallback to the shared platform model (fail-closed).
+  // endpoint): resolve the acting org's provider once per request (lazy, so every
+  // AI route is covered with no per-route wiring). When one is active, ALL
+  // non-vision text calls go to it EXCLUSIVELY — no fallback to the shared platform
+  // model (fail-closed). When none is configured, the system/env models are used.
+  if (!opts.vision && !providerAttempted()) {
+    await resolveRequestAiProvider();
+  }
   const orgProv = opts.vision ? null : currentAiProvider();
   if (orgProv) {
     baseUrl = orgProv.baseUrl.replace(/\/$/, "");
