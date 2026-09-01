@@ -24,6 +24,7 @@ import LanguagePicker from "@/components/LanguagePicker";
 import { I18N_ENABLED } from "@/lib/flags";
 import EnrichOnce from "@/components/EnrichOnce";
 import YourWork, { type WorkItem } from "@/components/YourWork";
+import PresenceGreeting from "@/components/PresenceGreeting";
 import FollowUps from "@/components/FollowUps";
 import { dueFollowUps } from "@/lib/followups";
 import { computeStreak, artifactHref, nextStep } from "@/lib/momentum";
@@ -239,6 +240,25 @@ export default async function Dashboard({
     });
   }
   const reportsCount = workItems.filter((w) => w.done).length;
+
+  // The institution's remembering "presence" (Ritz "Mystique"): a cached warm
+  // greeting + what it remembers. Reads the cache only (fast); the component
+  // refreshes itself in the background when stale. Degrades to nothing if the
+  // learner_memory table / presence columns aren't there yet.
+  let presence: { name: string; greeting: string | null; remembers: string[]; needsRefresh: boolean } | null = null;
+  if (activeOrg && !isProxy) {
+    try {
+      const { data: mem } = await supabase.from("learner_memory").select("greeting, remembers, n_sessions, updated_at").eq("user_id", user.id).eq("org_id", activeOrg.id).maybeSingle();
+      const stale = !mem || (mem as any).n_sessions !== reportsCount || (Date.now() - new Date((mem as any).updated_at).getTime()) > 7 * 864e5;
+      presence = {
+        name: (activeOrg as any).presence_name || activeOrg.name,
+        greeting: (mem as any)?.greeting || null,
+        remembers: Array.isArray((mem as any)?.remembers) ? (mem as any).remembers : [],
+        needsRefresh: reportsCount >= 1 && stale,
+      };
+    } catch { presence = null; }
+  }
+
   // The last few modules touched, newest first — a lightweight "jump back in".
   const recents = [...workItems].sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, 4);
 
@@ -331,6 +351,10 @@ export default async function Dashboard({
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       {isProxy && <ViewAsBanner email={proxy!.email} />}
+
+      {presence && (presence.greeting || presence.needsRefresh) && (
+        <PresenceGreeting presenceName={presence.name} initialGreeting={presence.greeting} initialRemembers={presence.remembers} needsRefresh={presence.needsRefresh} />
+      )}
 
       {/* Celebration on return from a finished run (Fogg: emotion right after the
           behavior wires the habit). The Continue + certificate cards below are the

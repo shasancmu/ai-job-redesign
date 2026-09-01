@@ -8,6 +8,7 @@ export type BrandingOrg = {
   id: string; slug: string; name: string; tagline: string | null; primary_color: string | null;
   logo_url: string | null; hero_image_url: string | null; about: string | null;
   highlights: Highlight[] | null; faculty: Faculty[] | null;
+  presence_name: string | null; presence_voice: string | null;
 };
 
 // Shrink an image in the browser before upload so it never exceeds the serverless
@@ -49,6 +50,8 @@ export default function OrgBrandingEditor({ org }: { org: BrandingOrg }) {
   const [hero, setHero] = useState(org.hero_image_url || "");
   const [highlights, setHighlights] = useState<Highlight[]>(org.highlights || []);
   const [faculty, setFaculty] = useState<Faculty[]>(org.faculty || []);
+  const [presenceName, setPresenceName] = useState(org.presence_name || "");
+  const [presenceVoice, setPresenceVoice] = useState(org.presence_voice || "");
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -73,6 +76,7 @@ export default function OrgBrandingEditor({ org }: { org: BrandingOrg }) {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "save_org", id: org.id, name: name.trim(), tagline, primary_color: color, about,
+          presence_name: presenceName.trim(), presence_voice: presenceVoice.trim(),
           highlights: highlights.filter((h) => h.title.trim() || h.body.trim()),
           faculty: faculty.filter((f) => f.name.trim()),
         }),
@@ -136,6 +140,24 @@ export default function OrgBrandingEditor({ org }: { org: BrandingOrg }) {
             <input type="color" value={/^#[0-9a-fA-F]{6}$/.test(color) ? color : "#3f7a52"} onChange={(e) => setColor(e.target.value)} className="h-9 w-12 cursor-pointer rounded border border-line bg-white" />
             <input className="field max-w-[140px]" value={color} onChange={(e) => setColor(e.target.value)} placeholder="#3f7a52" />
           </div>
+        </div>
+      </section>
+
+      {/* The presence — the remembering voice of the institution */}
+      <section className="card space-y-4 p-5">
+        <div>
+          <h2 className="text-sm font-semibold text-ink">Your presence</h2>
+          <p className="mt-0.5 text-xs text-slate2">A warm voice that greets returning learners by what they were last working on and remembers them over time — the institution as a someone, not a portal.</p>
+        </div>
+        <div>
+          <label className="lbl">What it's called</label>
+          <input className="field" value={presenceName} onChange={(e) => setPresenceName(e.target.value)} placeholder={`e.g. ${org.name.split(" ")[0]}, or a warm name your people will recognize`} />
+          <p className="mt-1 text-[11px] text-slate-400">Shown as the voice on the learner's dashboard. Leave blank to use your org's name.</p>
+        </div>
+        <div>
+          <label className="lbl">How it speaks <span className="font-normal text-slate-400">— tone &amp; personality</span></label>
+          <textarea className="field min-h-[80px]" value={presenceVoice} onChange={(e) => setPresenceVoice(e.target.value)} placeholder="e.g. Warm, direct, a little wry. Speaks like a favorite professor who remembers you — never salesy, never corporate. Encouraging but honest." />
+          <p className="mt-1 text-[11px] text-slate-400">Guides how the presence writes to your people. It always references something real about them and never sells or assigns.</p>
         </div>
       </section>
 

@@ -26,7 +26,7 @@ export default async function OrgSettingsPage() {
   const admin = createAdminClient();
   const { data } = await admin
     .from("organizations")
-    .select("id, slug, name, tagline, primary_color, logo_url, hero_image_url, about, highlights, faculty")
+    .select("id, slug, name, tagline, primary_color, logo_url, hero_image_url, about, highlights, faculty, presence_name, presence_voice")
     .in("id", r.directorOrgIds);
   const orgs = (data || []) as BrandingOrg[];
 

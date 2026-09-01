@@ -1329,10 +1329,40 @@ alter table public.organizations add column if not exists about text;
 alter table public.organizations add column if not exists highlights jsonb;
 alter table public.organizations add column if not exists faculty jsonb;
 
+-- The institution's "presence" — a warm, persistent voice that remembers each
+-- learner (the Ritz "Mystique"). presence_name is what the org calls it; the
+-- voice guides how it speaks. Both optional; a tasteful default is used if unset.
+alter table public.organizations add column if not exists presence_name text;
+alter table public.organizations add column if not exists presence_voice text;
+
 -- Data Processing Agreement acceptance (org customer accepts the processor
 -- terms). Records when and who.
 alter table public.organizations add column if not exists dpa_accepted_at timestamptz;
 alter table public.organizations add column if not exists dpa_accepted_by text;
+
+-- ============================================================================
+-- Learner memory — the presence's per-relationship "Mystique" record. One row
+-- per (learner, org): a cached, warm summary the institution reflects back
+-- (greeting + what it remembers + a hook for the next unprompted touch). Built
+-- from the learner's own activity; shown TO them and theirs to edit/forget.
+-- ============================================================================
+create table if not exists public.learner_memory (
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  org_id      uuid not null references public.organizations(id) on delete cascade,
+  greeting    text,
+  remembers   jsonb,          -- string[] shown in "what I remember"
+  hook        text,           -- the seed for the next unprompted reach
+  n_sessions  int default 0,  -- staleness signal: rebuild when the count moves
+  updated_at  timestamptz default now(),
+  primary key (user_id, org_id)
+);
+alter table public.learner_memory enable row level security;
+-- The learner can read and clear their own memory; writes go through the service
+-- role (the refresh endpoint), so no insert/update policy for the learner.
+drop policy if exists learner_memory_own_select on public.learner_memory;
+create policy learner_memory_own_select on public.learner_memory for select using (auth.uid() = user_id);
+drop policy if exists learner_memory_own_delete on public.learner_memory;
+create policy learner_memory_own_delete on public.learner_memory for delete using (auth.uid() = user_id);
 
 -- ============================================================================
 -- Role model (phase 1): an org's staff is a Director (runs the whole org, sees

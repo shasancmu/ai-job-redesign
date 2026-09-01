@@ -3118,6 +3118,37 @@ Return STRICT JSON only:
   ], { temperature: 0.2, maxTokens: 700 });
 }
 
+// The institution's "presence" (the Ritz "Mystique"): a warm, remembering voice
+// that greets a returning learner by what they were last doing and reflects their
+// growth back — witnessing, not processing. Grounded ONLY in the learner's own facts.
+export async function presenceGreetingAI(input: {
+  presenceName: string; voice?: string; orgName: string; learnerName: string;
+  lastModule?: string; modulesDone: string[]; goal?: string; firstSeen?: string;
+  count: number; returningAfterDays?: number;
+}): Promise<any> {
+  const system = `You are ${data0(input.presenceName, 60)}, the warm, remembering presence of ${data0(input.orgName, 80)} — the institution personified as an attentive guide.${input.voice ? ` Voice guidance: ${data0(input.voice, 400)}` : ""}
+
+You speak in the first person, briefly (1-2 sentences), and ALWAYS reference a real, specific detail about THIS person — never generic. You never sell, never assign, never guilt. You make them feel WITNESSED — remembered and thought of — not processed. Be honest that you are the institution's memory and voice, continuous with its real faculty. Warm, specific, dignified. Do not invent facts beyond what you're given.
+
+Return STRICT JSON only:
+{ "greeting": "1-2 sentence greeting: name them, reference what they were last working on, gently offer a next step", "remembers": ["3-5 short first-person bullets of what you remember — their focus, growth, milestones"], "hook": "one line: a seed for a future unprompted, personal touch (a 'we thought of you' idea)" }`;
+  const facts = [
+    `Name: ${input.learnerName}`,
+    input.lastModule ? `Last worked on: ${input.lastModule}` : "",
+    input.modulesDone.length ? `Has worked through: ${input.modulesDone.slice(0, 12).join(", ")}` : "New here — little history yet.",
+    input.goal ? `Their stated goal: ${input.goal}` : "",
+    input.firstSeen ? `First joined: ${input.firstSeen}` : "",
+    `Modules finished: ${input.count}`,
+    input.returningAfterDays ? `Returning after ~${input.returningAfterDays} days away.` : "",
+  ].filter(Boolean).join("\n");
+  return completeJson([{ role: "system", content: system }, { role: "user", content: facts }], { temperature: 0.7, maxTokens: 500 });
+}
+
+// tiny local hygiene for the presence prompt (the AI boundary stays in lib/ai)
+function data0(s: string | undefined, max: number): string {
+  return String(s || "").replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, " ").replace(/`{3,}/g, "``").trim().slice(0, max);
+}
+
 // ---- Licensing Brief (Scientifiq scouting) --------------------------------
 export async function licensingBriefAI(input: {
   abstract: string;

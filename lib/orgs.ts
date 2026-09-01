@@ -48,6 +48,8 @@ export type Org = {
   about: string | null; // short intro paragraph under the hero
   highlights: OrgHighlight[] | null; // institution-specific "why us" cards
   faculty: OrgFaculty[] | null; // key people, shown as circles
+  presence_name: string | null; // what the org calls its remembering "presence"
+  presence_voice: string | null; // how that presence speaks (tone/persona guidance)
   dpa_accepted_at: string | null; // when the org accepted the DPA
   dpa_accepted_by: string | null; // who accepted (name/email)
 };

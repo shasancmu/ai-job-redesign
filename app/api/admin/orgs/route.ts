@@ -63,6 +63,10 @@ export async function POST(request: Request) {
         faculty: cleanFaculty(body.faculty),
         updated_at: new Date().toISOString(),
       };
+      // Only touch presence when the caller actually sends it (the superadmin
+      // console doesn't, and must not wipe a director's presence config).
+      if (body.presence_name !== undefined) branding.presence_name = body.presence_name ? String(body.presence_name).slice(0, 60) : null;
+      if (body.presence_voice !== undefined) branding.presence_voice = body.presence_voice ? String(body.presence_voice).slice(0, 600) : null;
 
       if (body.id) {
         // Editing an existing org: superadmin, or a director of THIS org.
