@@ -1464,6 +1464,23 @@ drop policy if exists program_directors_read_own on public.program_directors;
 create policy program_directors_read_own on public.program_directors for select using (user_id = auth.uid()); -- writes via service role
 
 -- ============================================================================
+-- Person briefs: the cached "understanding" reading for one person in one org.
+-- Generated once (an AI call over their responses), stored, and only rebuilt
+-- when a staff member explicitly asks — so opening a profile is instant and the
+-- reading is stable, not re-rolled on every view. Service-role only.
+-- ============================================================================
+create table if not exists public.person_briefs (
+  org_id uuid not null references public.organizations (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  brief jsonb not null,
+  generated_by uuid references auth.users (id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (org_id, user_id)
+);
+alter table public.person_briefs enable row level security; -- service-role only
+
+-- ============================================================================
 -- Staff invite links: a director shares a link/code that grants instructor
 -- status to whoever opens it (optionally restricted to an email domain). All
 -- create/redeem/revoke goes through the service role.
