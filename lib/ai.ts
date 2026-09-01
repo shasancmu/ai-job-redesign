@@ -331,7 +331,9 @@ async function runCompletion(
       if (jsonPrefill) convo.push({ role: "assistant", content: "{" });
       const payload: Record<string, any> = { model, max_tokens: opts.maxTokens ?? 4096, messages: convo };
       if (sys) payload.system = [{ type: "text", text: sys, cache_control: { type: "ephemeral" } }];
-      if (temp != null) payload.temperature = Math.min(Math.max(temp, 0), 1);
+      // Omit temperature on a BYO org provider: some models (o-series/gpt-5/etc.)
+      // reject any non-default temperature, so let the model use its own default.
+      if (temp != null && !orgProv) payload.temperature = Math.min(Math.max(temp, 0), 1);
       const anthropicHeaders = {
         "Content-Type": "application/json",
         "x-api-key": apiKey || "",
@@ -362,7 +364,9 @@ async function runCompletion(
     // Big enough that structured plans don't get truncated into invalid JSON.
     max_tokens: opts.maxTokens ?? 4096,
   };
-  if (temp != null) payload.temperature = temp;
+  // Omit temperature on a BYO org provider (see note above): strict newer models
+  // reject any non-default value, so let the endpoint apply its own default.
+  if (temp != null && !orgProv) payload.temperature = temp;
   if (opts.json && !isAnthropic) payload.response_format = { type: "json_object" };
   const compatHeaders = {
     "Content-Type": "application/json",
