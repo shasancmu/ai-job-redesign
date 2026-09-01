@@ -27,7 +27,46 @@ export type Understanding = {
   person: PersonProfile;
   who: Who;
   recommended: { slug: string; name: string; emoji: string }[]; // what would fit them next
+  work: string; // excerpts of what they actually produced — their own responses
 };
+
+// What the person actually made and said — their workflow redesigns (in their own
+// words), roleplay outcomes, and module summaries. This is the substance behind
+// "what would help them", grounded in their responses, not just which modules
+// they touched. Bounded and truncated. Staff-only, org-scoped.
+export async function gatherWork(admin: any, userId: string, org: { id: string }): Promise<string> {
+  const { data: classes } = await admin.from("classes").select("id, code").eq("org_id", org.id);
+  const codes = ((classes as any[]) || []).map((c) => c.code).filter(Boolean).slice(0, 4000);
+  const clip = (s: any, n = 240) => String(s || "").replace(/\s+/g, " ").trim().slice(0, n);
+  const parts: string[] = [];
+
+  let sessionIds: string[] = [];
+  if (codes.length) {
+    const { data: sess } = await admin.from("sessions").select("id").in("cohort", codes)
+      .or(`host_id.eq.${userId},guest_id.eq.${userId}`).order("created_at", { ascending: false }).limit(30);
+    sessionIds = ((sess as any[]) || []).map((s) => s.id);
+  }
+  if (sessionIds.length) {
+    const { data: wf } = await admin.from("workflow_docs").select("name, why, success, failure, better").in("session_id", sessionIds.slice(0, 20));
+    for (const w of ((wf as any[]) || []).slice(0, 4)) {
+      const bits = [w.name && `"${clip(w.name, 100)}"`, w.why && `why it matters: ${clip(w.why)}`, w.success && `success = ${clip(w.success)}`, w.failure && `failure = ${clip(w.failure)}`, w.better && `wants to improve: ${clip(w.better)}`].filter(Boolean);
+      if (bits.length) parts.push("Workflow they redesigned — " + bits.join("; "));
+    }
+  }
+
+  const { data: rp } = await admin.from("roleplay_results").select("scenario, score, verdict").eq("user_id", userId).order("created_at", { ascending: false }).limit(4);
+  for (const r of ((rp as any[]) || [])) {
+    const v = r.verdict && typeof r.verdict === "object" ? (r.verdict.summary || r.verdict.headline || r.verdict.note || "") : "";
+    parts.push(`Role-play "${clip(r.scenario, 80)}"${r.score != null ? ` (scored ${r.score})` : ""}${v ? `: ${clip(v)}` : ""}`);
+  }
+
+  const { data: mr } = await admin.from("mechanics_results").select("slug, summary, score").eq("user_id", userId).order("created_at", { ascending: false }).limit(4);
+  for (const m of ((mr as any[]) || [])) {
+    if (m.summary) parts.push(`${clip(m.slug, 60)}: ${clip(m.summary)}`);
+  }
+
+  return parts.slice(0, 10).join("\n");
+}
 
 // One person, understood. Returns null if they aren't in this org (gatherPerson
 // enforces that boundary).
@@ -61,12 +100,14 @@ export async function gatherUnderstanding(admin: any, org: { id: string; name: s
     .filter((r) => !doneNames.has(r.name))
     .slice(0, 4);
 
-  return { person, who, recommended };
+  const work = await gatherWork(admin, userId, org);
+
+  return { person, who, recommended, work };
 }
 
 // Assemble the "who they are" facts and journey into two prose blocks the AI can
 // reason over for the understanding brief.
-export function briefInputs(u: Understanding): { who: string; journey: string; peers: string } {
+export function briefInputs(u: Understanding): { who: string; journey: string; peers: string; work: string } {
   const w = u.who;
   const whoLines = [
     w.segmentLabel && `Says they are: ${w.segmentLabel}`,
@@ -92,7 +133,7 @@ export function briefInputs(u: Understanding): { who: string; journey: string; p
   ].filter(Boolean);
   const journey = journeyLines.join("\n");
   const peers = u.person.peers.slice(0, 8).map((p) => p.name).join(", ");
-  return { who, journey, peers };
+  return { who, journey, peers, work: u.work };
 }
 
 // A whole group, understood — for a roll-up at the viewer's level (a cohort for

@@ -3198,25 +3198,28 @@ Return STRICT JSON only:
 // Understand ONE person — so a teacher can care from understanding, not data.
 // Explicitly not a sales/conversion read: it describes a human and what would
 // help THEM, never how to extract value from them.
-export async function understandPersonAI(input: { name: string; orgName: string; who: string; journey: string; peers?: string }): Promise<any> {
-  const system = `You help a teacher genuinely UNDERSTAND one of their students, so they can care well — because care comes from understanding, not from data. You're given who this person said they are and what they've actually done in the program.
+export async function understandPersonAI(input: { name: string; orgName: string; who: string; journey: string; peers?: string; work?: string }): Promise<any> {
+  const system = `You help a teacher genuinely UNDERSTAND one of their students, so they can care well — because care comes from understanding, not from data. You're given who this person said they are, what they've done, and — most importantly — excerpts of what they ACTUALLY PRODUCED (their own words in the exercises).
+
+Read their actual work closely: it's the truest signal of what they're grappling with, what they care about, and where they're stuck or reaching. Let "what would help" and "where they are" come from THEIR RESPONSES, not just which modules they opened. Quote or paraphrase a specific thing they wrote when it earns the point.
 
 This is NOT a sales or "conversion" analysis. Never mention selling, offers, upsell, retention, funnels, or the institution's revenue. There are no "leads" here — only a person to understand and help. Be specific, generous, and honest: a good teacher is candid about where someone is, kindly.
 
-Ground every claim in the facts given — never invent biography. If little is known, say so plainly instead of guessing. No flattery, no psychoanalysis.
+Ground every claim in what you're given — never invent biography. If little is known, say so plainly instead of guessing. No flattery, no psychoanalysis.
 
 Return STRICT JSON only:
 {
-  "who": "2-3 plain, human sentences: who this person is and where they're coming from, from what they told us and did.",
+  "who": "2-3 plain, human sentences: who this person is and where they're coming from, from what they told us and what their work reveals.",
   "here_for": "1-2 sentences: what they seem to want out of this, in their terms.",
-  "where": "1-2 sentences: where they actually are right now — just arrived, engaged, drifting, stuck — stated honestly.",
-  "needs": ["2-4 concrete things that would genuinely help THEM — a topic to point them to, a peer to introduce, a conversation to have. Help, not asks."],
+  "where": "1-2 sentences: where they actually are right now — engaged, drifting, stuck on something specific — grounded in their work.",
+  "needs": ["2-4 concrete things that would genuinely help THEM, drawn from what their responses show they're wrestling with — a topic to point them to, a peer to introduce, a conversation to have. Help, not asks."],
   "one_thing": "the single most caring, specific thing this teacher could do next for this person."
 }`;
   const facts = [
     `Student: ${data0(input.name, 80)}`, `Institution: ${data0(input.orgName, 80)}`,
     "", "WHO THEY SAID THEY ARE:", data0(input.who, 1200),
     "", "WHAT THEY'VE DONE:", data0(input.journey, 2000),
+    input.work ? `\nWHAT THEY ACTUALLY PRODUCED (their own responses):\n${data0(input.work, 3000)}` : "\n(No exercise work captured yet — reason only from the above, and say plainly that there's little to go on.)",
     input.peers ? `\nPEERS THEY'VE WORKED WITH: ${data0(input.peers, 600)}` : "",
   ].join("\n");
   return completeJson([{ role: "system", content: system }, { role: "user", content: facts }], { temperature: 0.5, maxTokens: 700 });

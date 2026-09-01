@@ -42,7 +42,7 @@ export async function POST(request: Request) {
   let brief: any = fallback;
   if (AI_ENABLED) {
     try {
-      const ai = await understandPersonAI({ name: u.person.name, orgName: org.name, who: inputs.who, journey: inputs.journey, peers: inputs.peers });
+      const ai = await understandPersonAI({ name: u.person.name, orgName: org.name, who: inputs.who, journey: inputs.journey, peers: inputs.peers, work: inputs.work });
       if (ai && typeof ai === "object" && ai.who) brief = ai;
     } catch { /* keep fallback */ }
   }
