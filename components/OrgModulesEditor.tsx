@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { createPortal } from "react-dom";
 
 type Mod = { slug: string; name: string; emoji: string; partner: string; tagline: string };
 const MODE = (p: string) => (p === "group" ? "Live" : p === "human" ? "Paired" : "Solo");
@@ -85,15 +86,16 @@ export default function OrgModulesEditor({ orgId }: { orgId: string }) {
       {err && <p className="mt-3 text-sm text-red-700">{err}</p>}
       <div className="mt-4"><button onClick={save} disabled={busy} className="btn-primary text-sm">{busy ? "…" : "Save"}</button></div>
 
-      {hover && (
-        <div className="pointer-events-none fixed z-50 w-[280px] rounded-xl border border-line bg-white p-3 shadow-lift" style={{ top: hover.top, left: hover.left }}>
+      {hover && typeof document !== "undefined" && createPortal(
+        <div className="pointer-events-none fixed z-[100] w-[280px] rounded-xl border border-line bg-white p-3 shadow-lift" style={{ top: hover.top, left: hover.left }}>
           <div className="flex items-center gap-2">
             <span className="text-base">{hover.m.emoji}</span>
             <span className="text-sm font-bold text-ink">{hover.m.name}</span>
             <span className={"ml-auto shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold " + (MODE(hover.m.partner) === "Live" ? "bg-sage/10 text-sage" : MODE(hover.m.partner) === "Paired" ? "bg-sky-soft text-sky" : "bg-mist text-slate-400")}>{MODE(hover.m.partner)}</span>
           </div>
           <p className="mt-1.5 text-xs leading-relaxed text-slate2">{hover.m.tagline}</p>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   );
