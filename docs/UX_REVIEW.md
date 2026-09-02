@@ -9,7 +9,7 @@ Every bug below was reproduced in the live app **and** confirmed in source. Line
 
 ## The one-paragraph version
 
-The exercises themselves are good, and the in-room experience (stepper, timer, progress, "how this works" cards, resume banner) is genuinely well designed. The problems are all *around* the exercises: **the flagship module's AI interview is silently broken in production**; the product has **no global navigation** and **no per-exercise pages**, so its 93-module library is one 77-screen unclickable wall on the landing page and a 4-card list once you're in a cohort; and the best explanatory content in the product is shown only *after* someone has already committed to an exercise, not while they're choosing one.
+The exercises themselves are good, and the in-room experience (stepper, timer, progress, "how this works" cards, resume banner) is genuinely well designed. The problems are all *around* the exercises: **the flagship module's AI interview is silently broken in production**; the navigation never names the product's core object and there are **no per-exercise pages**, so its 93-module library is one 77-screen unclickable wall on the landing page and, in an org context, a 4-card list with no way out of it; and the best explanatory content in the product is shown only *after* someone has already committed to an exercise, not while they're choosing one.
 
 ---
 
@@ -131,17 +131,19 @@ Filter deep in the library and the list collapses (86 cards → 5), the page shr
 
 # Part 2 — Navigation burden
 
-## N1. There is no global navigation
+## N1. Global navigation is thinner than it should be — but it exists
 
-The only persistent chrome is the logo, an org switcher, and an avatar menu. The avatar menu is the de facto nav:
+**Correction to an earlier draft of this review, which claimed there was no route back to the library. There is.** `components/HeaderNav.tsx` is a shared header used on **77 pages**, and it renders a "Dashboard" link (home icon) alongside the org switcher and avatar menu. `AccountMenu` also carries a "Dashboard" item on every page except the dashboard itself. So from `/reports` or `/profile` you are one labelled click from the library.
 
-> Reports · Achievements · Profile · Take a tour · Studio · Cohorts · Organization · Data collection · Admin · Send feedback · Sign out
+What's actually thin:
 
-**It contains no link to the exercise library.** Once you're on `/reports` or `/profile`, the only route back to the thing the product is *for* is the logo or the browser Back button. 177 routes hang off a menu that doesn't mention the main one.
+- **The nav never names the product's core object.** Its one content link is "Dashboard" — a location, not a thing. "Exercises" is what people are looking for.
+- **The avatar menu flattens three audiences** — personal (Reports, Profile), authoring (Studio), administrative (Cohorts, Organization, Data collection, Admin) — into one ungrouped list.
+- **The dashboard builds its own header** rather than using `HeaderNav`, so the two can drift.
 
-The menu also flattens three different audiences — personal (Reports, Profile), authoring (Studio), administrative (Cohorts, Organization, Admin) — into one ungrouped list.
+**Recommendation:** group the admin entries in the avatar menu under a "Manage" label, and have the dashboard use `HeaderNav`. Adding a second header link for "Exercises" would just duplicate the Dashboard link — the naming problem is better solved by relabelling than by adding chrome.
 
-**Recommendation:** a persistent header with **Exercises · Reports · Achievements**, and move Studio/Cohorts/Organization/Admin behind a labelled "Manage" group in the avatar menu. This is the single highest-leverage navigation change available.
+The substantive escape-hatch problem is **N2**, which is real and now fixed.
 
 ## N2. Cohort members see 4 exercises out of 93, and can't tell that
 
@@ -149,7 +151,9 @@ In the Duke CAIO context the dashboard renders **4 cards**. Switch to "Personal"
 
 A member who joins a cohort has no way to discover the other 89 exercises — including the ones the marketing site just advertised to them.
 
-**Recommendation:** under the class list, add an explicit *"Your class assigned these 4. Browse all 93 exercises →"*. Give the switcher a label ("Viewing as") and a full-name tooltip.
+This is not the deliberate part of the design. `lib/orgs.ts:55` documents `member_can_browse` as *"members see full library (true) or only their program (false/null)"*, and `showLibrary` honours it — but the catalog inside was clamped by `moduleSlugs={orgModules}` regardless, so even staff, and even members a director had explicitly opted into browsing, still saw only the curated list, with the filters suppressed.
+
+**Fixed:** the curated view now carries the same *"Browse all N exercises"* disclosure the new-consumer view already used, holding an unclamped catalog with search and filters. Still worth doing: give the switcher a label ("Viewing as") and a full-name tooltip.
 
 ## N3. Nothing about where you are is in the URL
 
@@ -261,15 +265,13 @@ Worth protecting while changing the rest:
 3. **B3** — real "code not found" screen instead of a silent redirect home
 
 **High leverage, low cost:**
-4. **N1** — a persistent header with an Exercises link
-5. **E1** — move the three intro cards into the catalog modal
+4. **E1** — move the three intro cards into the catalog modal
 6. **B5**, **B6**, **B8**, **B9** — conditional copy, page titles, `aria-pressed`, mobile sign-in
 7. **N4** — sticky filter bar + category jump-nav
 
 **Structural:**
 8. **N5** — public `/exercise/[slug]` pages (sharing, SEO, pre-signup evaluation)
-9. **N2** — "browse all exercises" escape hatch from cohort view
-10. **N3** — filters and context in the URL
+9. **N3** — filters and context in the URL
 11. **B4** — category-derived fallback icons
 12. **E3** — sample artifacts
 13. **N7** — a place to type a class code

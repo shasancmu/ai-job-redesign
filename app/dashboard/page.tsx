@@ -359,6 +359,21 @@ export default async function Dashboard({
     />
   );
 
+  // The same catalog without the org's curation, for the "browse all" disclosure.
+  // Unclamped, so it groups by category and renders the search/filter controls.
+  const fullCatalogEl = orgModules ? (
+    <Catalog
+      userId={user.id}
+      unlocked={unlocked}
+      initialCohort={searchParams.cohort || (activeOrg ? masterCohortCode(activeOrg.id) : "")}
+      completed={completed}
+      lastCode={lastCode}
+      recommended={recommended}
+      runsLeft={runsLeft}
+      certByModule={certByModule}
+    />
+  ) : null;
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <EasterEgg />
@@ -632,11 +647,23 @@ export default async function Dashboard({
           </details>
         </section>
       ) : (
-        <section data-tour="catalog">
+        <section id="exercises" data-tour="catalog">
           <h2 className="eyebrow">{isOrgLearner ? "Explore more" : t("dash.exercises")}</h2>
           {/* The curated view renders no filter controls, so don't tell people to filter. */}
           <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">{t(orgModules ? "dash.framingCurated" : "dash.framing")}</p>
           {catalogEl}
+          {/* An org's curated list replaces the library rather than sitting beside
+              it, so without this the rest of the catalog is unreachable from an
+              org context — even for staff and for members the org opted into
+              browsing. Same disclosure the new-consumer view already uses. */}
+          {orgModules && (
+            <details className="group mt-8">
+              <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-slate2 hover:text-ink">
+                <span className="transition group-open:rotate-90">›</span> Browse all {MODULES.filter((m) => !m.hidden).length} exercises
+              </summary>
+              <div className="mt-5">{fullCatalogEl}</div>
+            </details>
+          )}
         </section>
       ))}
 
