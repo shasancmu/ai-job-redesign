@@ -3416,6 +3416,43 @@ Return STRICT JSON only:
   return completeJson([{ role: "system", content: system }, { role: "user", content: convo || "(no conversation)" }], { temperature: 0.5, maxTokens: 800 });
 }
 
+// The translator: re-express an idea from one person's professional/disciplinary
+// frame into another's, so the recipient understands it in THEIR way of thinking.
+// A frame = the primitives they think in, what they're measured on / care about,
+// their standard of evidence, and the analogies native to their world.
+export async function translateFrameAI(input: {
+  senderRole: string; senderBio?: string;
+  recipientRole: string; recipientBio?: string;
+  idea: string;
+}): Promise<any> {
+  const system = `You translate an idea from one person's professional/disciplinary FRAME into another's, so the recipient understands it in their own way of thinking. This is not swapping jargon; it is re-expressing the idea's real content inside the recipient's frame.
+
+A person's frame is four things: the PRIMITIVES they think in (their units of thought), their OBJECTIVE (what they are measured on and therefore care about), their STANDARD OF EVIDENCE (what makes something rigorous/true to them), and the ANALOGIES native to their world.
+
+Given the sender, the recipient, and the idea the sender expressed, re-express that idea in the RECIPIENT's frame:
+- use the recipient's primitives and vocabulary;
+- connect it to what the recipient cares about / is measured on;
+- justify it by the recipient's standard of evidence or rigor;
+- carry it on an analogy native to the recipient's own field or work;
+- preserve the actual content faithfully. Do NOT dumb it down, do NOT add claims the sender did not make, do NOT flatter.
+Then give the "so what for you": one line on why the recipient should care, in their terms.
+
+If the recipient's background is given, reach for analogies from their ACTUAL work, not a generic version of their field. Plain, concrete, no meta-commentary (never write "here is the translation"). No em dashes.
+
+Return STRICT JSON only:
+{
+  "translation": "2-4 sentences: the idea re-expressed in the recipient's frame, in their primitives and vocabulary.",
+  "analogy": "one short line: the analogy from the recipient's own world you used (empty string if none fits).",
+  "soWhat": "one line: why the recipient should care, stated in their terms and objective."
+}`;
+  const facts = [
+    `SENDER: ${data0(input.senderRole, 160)}`, input.senderBio ? `Sender background: ${data0(input.senderBio, 1500)}` : "",
+    "", `RECIPIENT: ${data0(input.recipientRole, 160)}`, input.recipientBio ? `Recipient background: ${data0(input.recipientBio, 1500)}` : "",
+    "", `THE IDEA (as the sender expressed it): ${data0(input.idea, 2000)}`,
+  ].filter(Boolean).join("\n");
+  return completeJson([{ role: "system", content: system }, { role: "user", content: facts }], { temperature: 0.5, maxTokens: 500 });
+}
+
 // tiny local hygiene for the presence prompt (the AI boundary stays in lib/ai)
 function data0(s: string | undefined, max: number): string {
   return String(s || "").replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, " ").replace(/`{3,}/g, "``").trim().slice(0, max);
