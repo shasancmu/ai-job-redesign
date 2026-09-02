@@ -1,5 +1,7 @@
 "use client";
 
+import SaveState from "@/components/SaveState";
+import { useDraftAutosave } from "@/components/useDraftAutosave";
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -9,6 +11,8 @@ import { validateNegScenario } from "@/lib/mechanics/negStore";
 export default function NegEditor({ me, initial, initialStatus }: { me: string; initial: any; initialStatus?: string }) {
   const supabase = createClient();
   const [scn, setScn] = useState<any>(initial);
+  // Autosave the draft as it changes, so work is never lost to a stray click.
+  const autosave = useDraftAutosave({ table: "negotiation_specs", slug: scn?.slug, ownerId: me, spec: scn });
   const [status, setStatus] = useState(initialStatus || "draft");
   const [errors, setErrors] = useState<string[]>([]);
   const [msg, setMsg] = useState("");
@@ -53,6 +57,7 @@ export default function NegEditor({ me, initial, initialStatus }: { me: string; 
       <div className="flex flex-wrap items-center gap-2 border-b border-line pb-3">
         <button onClick={validate} className="btn-ghost text-sm">Validate</button>
         <button onClick={() => save()} disabled={busy === "save"} className="btn-primary text-sm">{busy === "save" ? "Saving..." : "Save"}</button>
+        <SaveState state={autosave.state} savedAt={autosave.savedAt} />
         {status === "published"
           ? <button onClick={() => save("draft")} disabled={!!busy} className="btn-ghost text-sm">Unpublish</button>
           : <button onClick={() => save("published")} disabled={!!busy} className="btn-ghost text-sm text-sage">Publish</button>}

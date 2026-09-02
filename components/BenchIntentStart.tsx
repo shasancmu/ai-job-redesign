@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import BuildProgress from "@/components/BuildProgress";
+import { streamSpec } from "@/lib/specStreamClient";
+import { saveNewDraft } from "@/lib/saveNewDraft";
 import BenchEditor from "@/components/BenchEditor";
 
 const EXAMPLES = [
@@ -9,7 +12,6 @@ const EXAMPLES = [
   { label: "AI literacy", text: "10 questions testing practical AI judgment: when to trust a model, hallucination, prompt design, and where a human must stay in the loop." },
   { label: "Logical reasoning", text: "10 short logical-reasoning questions: syllogisms, conditional logic, and spotting a flawed argument." },
 ];
-const LOADING = ["Writing the questions…", "Building the distractors…", "Setting the answer key…", "Timing it…"];
 
 export default function BenchIntentStart({ me }: { me: string }) {
   const [phase, setPhase] = useState<"intent" | "editor">("intent");
@@ -17,23 +19,24 @@ export default function BenchIntentStart({ me }: { me: string }) {
   const [intent, setIntent] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [step, setStep] = useState(0);
-  useEffect(() => { if (!busy) return; const t = setInterval(() => setStep((s) => (s + 1) % LOADING.length), 1600); return () => clearInterval(t); }, [busy]);
+  const [progress, setProgress] = useState({ chars: 0, name: "" });
+  const [saved, setSaved] = useState(false);
 
   async function build() {
     if (!intent.trim()) return;
-    setBusy(true); setErr(""); setStep(0);
+    setBusy(true); setErr(""); setProgress({ chars: 0, name: "" });
     try {
-      const res = await fetch("/api/mechanics/benchmark-copilot", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intent }) });
-      const d = await res.json().catch(() => ({}));
-      if (!res.ok || !d.spec) setErr(d.error || "Couldn't build a draft. Try naming the topic and how many questions.");
-      else { setCfg(d.spec); setPhase("editor"); }
+      const spec = await streamSpec("/api/mechanics/benchmark-copilot", { intent }, setProgress);
+      // Write it down before the editor opens — the author has had no chance
+      // to save, and a minute of generation shouldn't die with a stray click.
+      setSaved(await saveNewDraft("benchmark", spec, me));
+      setCfg(spec); setPhase("editor");
     } catch (e: any) { setErr(e?.message || "Something went wrong."); }
     finally { setBusy(false); }
   }
 
   if (phase === "editor" && cfg) {
-    return <div><div className="mb-3 rounded-xl border border-sage/30 bg-sage-soft px-4 py-2.5 text-sm text-sage">Here's your first draft. Check the answer keys, Validate, then Publish.</div><BenchEditor me={me} initial={cfg} initialStatus="draft" /></div>;
+    return <div><div className="mb-3 rounded-xl border border-sage/30 bg-sage-soft px-4 py-2.5 text-sm text-sage">{saved ? "Saved to Your modules as a draft. " : ""}Here's your first draft. Check the answer keys, Validate, then Publish.</div><BenchEditor me={me} initial={cfg} initialStatus="draft" /></div>;
   }
 
   return (
@@ -44,11 +47,7 @@ export default function BenchIntentStart({ me }: { me: string }) {
         <p className="mt-2 text-slate2">Name the topic and difficulty; the copilot writes the questions and the answer key. A timed, server-scored quiz.</p>
       </div>
       {busy ? (
-        <div className="mt-8 rounded-2xl border border-line bg-white p-8 text-center shadow-sm">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-ai" />
-          <div className="mt-4 font-serif text-lg text-ink">Writing your quiz</div>
-          <div className="mt-1 text-sm text-slate-500">{LOADING[step]}</div>
-        </div>
+        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} fallbackLabel="Writing the questions, the distractors, and the answer key" /></div>
       ) : (
         <>
           <textarea className="field mt-6 w-full text-base" style={{ minHeight: "7rem" }} value={intent} onChange={(e) => setIntent(e.target.value)} placeholder="e.g. 8 questions on statistical reasoning for managers, moderate difficulty." autoFocus />

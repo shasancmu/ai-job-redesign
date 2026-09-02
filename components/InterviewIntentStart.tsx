@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import BuildProgress from "@/components/BuildProgress";
+import { streamSpec } from "@/lib/specStreamClient";
+import { saveNewDraft } from "@/lib/saveNewDraft";
 import ModuleBuilder from "@/components/ModuleBuilder";
 
 // The interview-family front door: describe the module (and the framework it
@@ -15,7 +18,6 @@ const EXAMPLES = [
   { label: "Balanced Scorecard", text: "A Balanced Scorecard for a team: interview the lead, then draft objectives and measures across financial, customer, process, and learning, each with a metric and a target." },
   { label: "Job / workflow redesign", text: "A redesign coach: interview someone about a job or workflow, then draft the strategic outcome and split the tasks into keep-human, human+AI, and automate, grounded in the AI-and-Human framework (cost of a mistake vs. how varied the work is), ending with a concrete plan." },
 ];
-const LOADING = ["Choosing the format…", "Writing the interview…", "Designing the canvas fields…", "Grounding it in the framework…"];
 
 export default function InterviewIntentStart({ canGlobal, orgName }: { canGlobal: boolean; orgName: string | null }) {
   const [phase, setPhase] = useState<"intent" | "editor">("intent");
@@ -25,13 +27,8 @@ export default function InterviewIntentStart({ canGlobal, orgName }: { canGlobal
   const [source, setSource] = useState("");
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
-  const [loadStep, setLoadStep] = useState(0);
-
-  useEffect(() => {
-    if (busy !== "build") return;
-    const t = setInterval(() => setLoadStep((s) => (s + 1) % LOADING.length), 1800);
-    return () => clearInterval(t);
-  }, [busy]);
+  const [progress, setProgress] = useState({ chars: 0, name: "" });
+  const [saved, setSaved] = useState(false);
 
   async function onPdf(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -51,12 +48,13 @@ export default function InterviewIntentStart({ canGlobal, orgName }: { canGlobal
 
   async function build() {
     if (!intent.trim()) return;
-    setBusy("build"); setErr(""); setLoadStep(0);
+    setBusy("build"); setErr(""); setProgress({ chars: 0, name: "" });
     try {
-      const res = await fetch("/api/mechanics/interview-copilot", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intent, framework, sourceText: source }) });
-      const d = await res.json().catch(() => ({}));
-      if (!res.ok || !d.spec) setErr(d.error || "Couldn't build a draft. Try describing the subject and the framework to apply.");
-      else { setSpec(d.spec); setPhase("editor"); }
+      const spec = await streamSpec("/api/mechanics/interview-copilot", { intent, framework, sourceText: source }, setProgress);
+      // Write it down before the editor opens — the author has had no chance
+      // to save, and a minute of generation shouldn't die with a stray click.
+      setSaved(await saveNewDraft("interview", spec, ""));
+      setSpec(spec); setPhase("editor");
     } catch (e: any) { setErr(e?.message || "Something went wrong."); }
     finally { setBusy(""); }
   }
@@ -65,7 +63,7 @@ export default function InterviewIntentStart({ canGlobal, orgName }: { canGlobal
     return (
       <div>
         <div className="mb-3 rounded-xl border border-sage/30 bg-sage-soft px-4 py-2.5 text-sm text-sage">
-          Here's your first draft. Refine the interview and the canvas below, then Publish. You can start over from an idea anytime.
+          {saved ? "Saved to Your modules as a draft. " : ""}Here's your first draft. Refine the interview and the canvas below, then Publish. You can start over from an idea anytime.
         </div>
         <ModuleBuilder initialSpec={spec} canGlobal={canGlobal} orgName={orgName} />
       </div>
@@ -81,11 +79,7 @@ export default function InterviewIntentStart({ canGlobal, orgName }: { canGlobal
       </div>
 
       {busy === "build" ? (
-        <div className="mt-8 rounded-2xl border border-line bg-white p-8 text-center shadow-sm">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-ai" />
-          <div className="mt-4 font-serif text-lg text-ink">Designing your module</div>
-          <div className="mt-1 text-sm text-slate-500">{LOADING[loadStep]}</div>
-        </div>
+        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} fallbackLabel="Writing the interview and the canvas it fills in" /></div>
       ) : (
         <>
           <div className="mt-6">

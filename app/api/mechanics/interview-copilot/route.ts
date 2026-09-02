@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, moduleCopilotAI, sourceMaterialBlock } from "@/lib/ai";
 import { validateSpec, type BuilderSpec } from "@/lib/moduleBuilder";
+import { streamSpecResponse } from "@/lib/mechanics/specStream";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -67,6 +68,9 @@ export async function POST(request: Request) {
   ].join("\n");
 
   try {
+    // Streamed by default from the authoring UI: a full spec takes longer than a
+    // single blocking AI call is allowed to, and the author gets real progress.
+    if (body?.stream) return streamSpecResponse(SYSTEM, user_msg, validateSpec as (s: any) => string[]);
     const spec = (await moduleCopilotAI(SYSTEM, user_msg)) as BuilderSpec;
     if (!spec) return Response.json({ error: "The copilot couldn't produce a module. Try rephrasing." }, { status: 502 });
     const errors = validateSpec(spec);

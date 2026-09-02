@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import BuildProgress from "@/components/BuildProgress";
+import { streamSpec } from "@/lib/specStreamClient";
+import { saveNewDraft } from "@/lib/saveNewDraft";
 import NegEditor from "@/components/NegEditor";
 
 const EXAMPLES = [
@@ -10,7 +13,6 @@ const EXAMPLES = [
   { label: "Partnership split", text: "Two co-founders negotiate equity split, roles, vesting, and decision rights, each caring more about different terms." },
   { label: "Buy a used van", text: "A single-price haggle: the learner is buying a used van with a clear walk-away, and the seller has a hidden floor." },
 ];
-const LOADING = ["Setting up the two sides…", "Building the payoff tables…", "Placing the value-creating trades…", "Writing the situation…"];
 
 export default function NegIntentStart({ me }: { me: string }) {
   const [phase, setPhase] = useState<"intent" | "editor">("intent");
@@ -18,18 +20,18 @@ export default function NegIntentStart({ me }: { me: string }) {
   const [intent, setIntent] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [step, setStep] = useState(0);
-
-  useEffect(() => { if (!busy) return; const t = setInterval(() => setStep((s) => (s + 1) % LOADING.length), 1800); return () => clearInterval(t); }, [busy]);
+  const [progress, setProgress] = useState({ chars: 0, name: "" });
+  const [saved, setSaved] = useState(false);
 
   async function build() {
     if (!intent.trim()) return;
-    setBusy(true); setErr(""); setStep(0);
+    setBusy(true); setErr(""); setProgress({ chars: 0, name: "" });
     try {
-      const res = await fetch("/api/mechanics/negotiation-copilot", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intent }) });
-      const d = await res.json().catch(() => ({}));
-      if (!res.ok || !d.spec) setErr(d.error || "Couldn't build a draft. Try describing the sides and what they're negotiating over.");
-      else { setScn(d.spec); setPhase("editor"); }
+      const spec = await streamSpec("/api/mechanics/negotiation-copilot", { intent }, setProgress);
+      // Write it down before the editor opens — the author has had no chance
+      // to save, and a minute of generation shouldn't die with a stray click.
+      setSaved(await saveNewDraft("negotiation", spec, me));
+      setScn(spec); setPhase("editor");
     } catch (e: any) { setErr(e?.message || "Something went wrong."); }
     finally { setBusy(false); }
   }
@@ -37,7 +39,7 @@ export default function NegIntentStart({ me }: { me: string }) {
   if (phase === "editor" && scn) {
     return (
       <div>
-        <div className="mb-3 rounded-xl border border-sage/30 bg-sage-soft px-4 py-2.5 text-sm text-sage">Here's your first draft. Tune the payoffs, Validate, then Publish. The counterpart's points are the hidden scoresheet.</div>
+        <div className="mb-3 rounded-xl border border-sage/30 bg-sage-soft px-4 py-2.5 text-sm text-sage">{saved ? "Saved to Your modules as a draft. " : ""}Here's your first draft. Tune the payoffs, Validate, then Publish. The counterpart's points are the hidden scoresheet.</div>
         <NegEditor me={me} initial={scn} initialStatus="draft" />
       </div>
     );
@@ -51,11 +53,7 @@ export default function NegIntentStart({ me }: { me: string }) {
         <p className="mt-2 text-slate2">Say who's negotiating and over what. The copilot writes the hidden payoff tables that make trades pay off. You tune from there.</p>
       </div>
       {busy ? (
-        <div className="mt-8 rounded-2xl border border-line bg-white p-8 text-center shadow-sm">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-ai" />
-          <div className="mt-4 font-serif text-lg text-ink">Designing your negotiation</div>
-          <div className="mt-1 text-sm text-slate-500">{LOADING[step]}</div>
-        </div>
+        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} fallbackLabel="Setting up the two sides and their hidden payoff tables" /></div>
       ) : (
         <>
           <textarea className="field mt-6 w-full text-base" style={{ minHeight: "8rem" }} value={intent} onChange={(e) => setIntent(e.target.value)} placeholder="e.g. A candidate and a hiring manager negotiate an offer over six issues, weighted oppositely so smart trades beat a split-the-difference deal." autoFocus />

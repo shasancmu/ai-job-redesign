@@ -1,5 +1,7 @@
 "use client";
 
+import SaveState from "@/components/SaveState";
+import { useDraftAutosave } from "@/components/useDraftAutosave";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -51,6 +53,8 @@ const STANCE_HINT: Record<string, string> = {
 export default function SpecEditor({ me, initial, insights, initialStatus, cohorts, cohort, tier }: { me: string; initial: any; insights?: any; initialStatus?: string; cohorts?: string[]; cohort?: string; tier?: string }) {
   const supabase = createClient();
   const [spec, setSpecRaw] = useState<any>(initial);
+  // Autosave the draft as it changes, so work is never lost to a stray click.
+  const autosave = useDraftAutosave({ table: "module_specs", slug: spec?.slug, ownerId: me, spec });
   // Undo/redo: every structural change is reversible, so authors experiment
   // without fear. Field-level text undo still works inside inputs (we don't
   // hijack Cmd+Z there).
@@ -338,6 +342,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
         <button onClick={redo} disabled={future.current.length === 0} title="Redo (⇧⌘Z)" className="btn-ghost text-sm disabled:opacity-40">↷</button>
         <button onClick={validate} className="btn-ghost text-sm">Validate</button>
         <button onClick={() => save()} disabled={busy === "save"} className="btn-primary text-sm">{busy === "save" ? "Saving..." : "Save"}</button>
+        <SaveState state={autosave.state} savedAt={autosave.savedAt} />
         {status === "published"
           ? <button onClick={() => save("draft")} disabled={!!busy} className="btn-ghost text-sm">{busy === "unpublish" ? "..." : "Unpublish"}</button>
           : <button onClick={() => save("published")} disabled={!!busy} className="btn-ghost text-sm text-sage">{busy === "publish" ? "Publishing..." : "Publish"}</button>}

@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import BuildProgress from "@/components/BuildProgress";
+import { streamSpec } from "@/lib/specStreamClient";
+import { saveNewDraft } from "@/lib/saveNewDraft";
 import SpecEditor from "@/components/SpecEditor";
 
 // The authoring front door: describe the experience you want, optionally ground
@@ -15,13 +18,6 @@ const EXAMPLES = [
   { label: "A vendor's claims", text: "A buyer evaluates a SaaS vendor whose account exec spins but won't state a falsehood. The hidden truth is whether the product actually scales to the buyer's size. Grade the diligence questions." },
 ];
 
-const LOADING = [
-  "Choosing the right mechanic…",
-  "Writing the situation your learners will see…",
-  "Designing the hidden scenarios and the tell…",
-  "Building a rubric that grades the thinking…",
-  "Setting the guardrails…",
-];
 
 export default function IntentStart({ me }: { me: string }) {
   const [phase, setPhase] = useState<"intent" | "editor">("intent");
@@ -30,13 +26,8 @@ export default function IntentStart({ me }: { me: string }) {
   const [source, setSource] = useState("");
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
-  const [loadStep, setLoadStep] = useState(0);
-
-  useEffect(() => {
-    if (busy !== "build") return;
-    const t = setInterval(() => setLoadStep((s) => (s + 1) % LOADING.length), 1800);
-    return () => clearInterval(t);
-  }, [busy]);
+  const [progress, setProgress] = useState({ chars: 0, name: "" });
+  const [saved, setSaved] = useState(false);
 
   async function onPdf(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -56,12 +47,13 @@ export default function IntentStart({ me }: { me: string }) {
 
   async function build() {
     if (!intent.trim()) return;
-    setBusy("build"); setErr(""); setLoadStep(0);
+    setBusy("build"); setErr(""); setProgress({ chars: 0, name: "" });
     try {
-      const res = await fetch("/api/mechanics/copilot", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intent, sourceText: source }) });
-      const d = await res.json().catch(() => ({}));
-      if (!res.ok || !d.spec) setErr(d.error || "Couldn't build a draft from that. Try describing the situation and what learners should walk away able to do.");
-      else { setSpec(d.spec); setPhase("editor"); }
+      const spec = await streamSpec("/api/mechanics/copilot", { intent, sourceText: source }, setProgress);
+      // Write it down before the editor opens — the author has had no chance
+      // to save, and a minute of generation shouldn't die with a stray click.
+      setSaved(await saveNewDraft("roleplay", spec, me));
+      setSpec(spec); setPhase("editor");
     } catch (e: any) { setErr(e?.message || "Something went wrong."); }
     finally { setBusy(""); }
   }
@@ -70,7 +62,7 @@ export default function IntentStart({ me }: { me: string }) {
     return (
       <div>
         <div className="mb-3 rounded-xl border border-sage/30 bg-sage-soft px-4 py-2.5 text-sm text-sage">
-          Here's your first draft. Refine any section, run the Critique, then Save and Publish. You can always start over from an idea.
+          {saved ? "Saved to Your modules as a draft. " : ""}Here's your first draft. Refine any section, run the Critique, then Save and Publish. You can always start over from an idea.
         </div>
         <SpecEditor me={me} initial={spec} initialStatus="draft" />
       </div>
@@ -86,12 +78,7 @@ export default function IntentStart({ me }: { me: string }) {
       </div>
 
       {busy === "build" ? (
-        <div className="mt-8 rounded-2xl border border-line bg-white p-8 text-center shadow-sm">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-ai" />
-          <div className="mt-4 font-serif text-lg text-ink">Designing your module</div>
-          <div className="mt-1 text-sm text-slate-500">{LOADING[loadStep]}</div>
-          <div className="mt-2 text-[11px] text-slate-400">This takes a few seconds.</div>
-        </div>
+        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} fallbackLabel="Designing the characters, the hidden truth, and the grading" /></div>
       ) : (
         <>
           <div className="mt-6">

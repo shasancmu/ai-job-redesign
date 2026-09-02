@@ -1,5 +1,7 @@
 "use client";
 
+import SaveState from "@/components/SaveState";
+import { useDraftAutosave } from "@/components/useDraftAutosave";
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -8,6 +10,8 @@ import { validateExplainerSpec } from "@/lib/mechanics/explainerStore";
 export default function ExplainerEditor({ me, initial, initialStatus }: { me: string; initial: any; initialStatus?: string }) {
   const supabase = createClient();
   const [spec, setSpec] = useState<any>(initial);
+  // Autosave the draft as it changes, so work is never lost to a stray click.
+  const autosave = useDraftAutosave({ table: "explainer_specs", slug: spec?.slug, ownerId: me, spec: spec });
   const [status, setStatus] = useState(initialStatus || "draft");
   const [errors, setErrors] = useState<string[]>([]);
   const [msg, setMsg] = useState("");
@@ -48,6 +52,7 @@ export default function ExplainerEditor({ me, initial, initialStatus }: { me: st
       <div className="flex flex-wrap items-center gap-2 border-b border-line pb-3">
         <button onClick={validate} className="btn-ghost text-sm">Validate</button>
         <button onClick={() => save()} disabled={busy === "save"} className="btn-primary text-sm">{busy === "save" ? "Saving..." : "Save"}</button>
+        <SaveState state={autosave.state} savedAt={autosave.savedAt} />
         {status === "published" ? <button onClick={() => save("draft")} disabled={!!busy} className="btn-ghost text-sm">Unpublish</button> : <button onClick={() => save("published")} disabled={!!busy} className="btn-ghost text-sm text-sage">Publish</button>}
         {status === "published" && <span className="rounded-full bg-sage-soft px-2 py-0.5 text-[11px] font-semibold text-sage">Published</span>}
         {spec.slug && <Link href={`/e/${spec.slug}`} target="_blank" className="btn-ghost text-sm">Open full run →</Link>}
