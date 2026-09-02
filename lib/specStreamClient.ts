@@ -17,12 +17,20 @@ export async function streamSpec(
   onProgress?: (p: BuildProgress) => void,
   signal?: AbortSignal
 ): Promise<any> {
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...body, stream: true }),
-    signal,
-  });
+  let res: Response;
+  try {
+    res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...body, stream: true }),
+      signal,
+    });
+  } catch {
+    // A dropped connection surfaced as a bare "network error", which tells an
+    // author nothing about whether their description was the problem (it wasn't)
+    // or whether pressing the button again is worth it (it is).
+    throw new Error("Lost the connection while drafting. Your description is still here — press Build again.");
+  }
 
   const ct = res.headers.get("content-type") || "";
   if (!ct.includes("text/event-stream") || !res.body) {
@@ -44,7 +52,14 @@ export async function streamSpec(
   let lastName = "";
 
   for (;;) {
-    const { done, value } = await reader.read();
+    let chunk: ReadableStreamReadResult<Uint8Array>;
+    try {
+      chunk = await reader.read();
+    } catch {
+      // Mid-stream drop. Same story: not the author's fault, and retryable.
+      throw new Error("Lost the connection while drafting. Your description is still here — press Build again.");
+    }
+    const { done, value } = chunk;
     if (done) break;
     buf += decoder.decode(value, { stream: true });
     let sep: number;

@@ -11,6 +11,17 @@ function peekName(text: string): string {
   return m ? m[1] : "";
 }
 
+// Keep a long stream from looking idle. A spec takes two to three minutes and
+// has quiet stretches (between passes, or while the model thinks), which is
+// when intermediaries close the connection. SSE comment lines are ignored by
+// the parser and cost nothing.
+function heartbeat(controller: ReadableStreamDefaultController<Uint8Array>, encoder: TextEncoder) {
+  const id = setInterval(() => {
+    try { controller.enqueue(encoder.encode(": keep-alive\n\n")); } catch { clearInterval(id); }
+  }, 5000);
+  return () => clearInterval(id);
+}
+
 export function streamSpecResponse(
   system: string,
   user: string,
@@ -20,6 +31,7 @@ export function streamSpecResponse(
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       let closed = false;
+      const stopBeat = heartbeat(controller, encoder);
       const send = (obj: any) => { if (!closed) controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`)); };
       let acc = "";
       let lastName = "";
@@ -44,6 +56,7 @@ export function streamSpecResponse(
         send({ type: "error", error: e?.message || "AI request failed." });
       } finally {
         closed = true;
+        stopBeat();
         try { controller.close(); } catch { /* already closed */ }
       }
     },
@@ -68,6 +81,7 @@ export function streamStagedSpecResponse(
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       let closed = false;
+      const stopBeat = heartbeat(controller, encoder);
       const send = (obj: any) => { if (!closed) controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`)); };
       try {
         const spec = await run(send);
@@ -80,6 +94,7 @@ export function streamStagedSpecResponse(
         send({ type: "error", error: e?.message || "AI request failed." });
       } finally {
         closed = true;
+        stopBeat();
         try { controller.close(); } catch { /* already closed */ }
       }
     },
