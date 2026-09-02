@@ -80,7 +80,9 @@ export const ALIASES: Occupation[] = [
   { code: "35-3023", title: "Fast Food and Counter Workers", keywords: ["barista", "counter staff", "crew member"] },
   { code: "29-2061", title: "Licensed Practical and Licensed Vocational Nurses", keywords: ["lpn", "lvn", "practical nurse"] },
   { code: "31-1131", title: "Nursing Assistants", keywords: ["care assistant", "healthcare assistant", "nursing assistant", "hca"] },
-  { code: "11-9199", title: "Managers, All Other", keywords: ["manager", "director", "head of", "lead"] },
+  // Deliberately no generic "manager"/"director" here: this is SOC's residual
+  // bucket, and as an alias those words swallowed every named manager occupation.
+  { code: "11-9199", title: "Managers, All Other", keywords: [] },
 ];
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]+/g, " ");
@@ -159,12 +161,22 @@ function titleScore(entry: Indexed, roleToks: Set<string>, hayText: string): num
   return /\ball other\b/i.test(entry.occ.title) ? score * 0.6 : score;
 }
 
+// Aliases must match whole words. Plain substring matching made "underwriters"
+// contain "writer", "contractors" contain "cto", and "counselors" contain
+// "counsel" — which is how Insurance Underwriters matched Writers and Authors,
+// and Credit Counselors matched Lawyers.
+const hasPhrase = (hay: string, needle: string) => {
+  const n = norm(needle).trim();
+  if (!n) return false;
+  return new RegExp(`(^| )${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}( |$)`).test(hay);
+};
+
 function aliasScore(occ: Occupation, hayRole: string, hayText: string): number {
   let score = 0;
   for (const kw of occ.keywords) {
     const k = norm(kw);
-    if (hayRole.includes(k)) score += 5 + k.length / 10; // role title match weighs most
-    else if (hayText.includes(k)) score += 1;
+    if (hasPhrase(hayRole, k)) score += 5 + k.length / 10; // role title match weighs most
+    else if (hasPhrase(hayText, k)) score += 1;
   }
   return score;
 }
@@ -186,7 +198,14 @@ export function matchOccupation(role: string, text = ""): Occupation | null {
   // competing with fuzzy title overlap, which otherwise sends "Hospice Nurse"
   // to Nurse Practitioners and "Software Engineer" to QA Testers. Aliases seen
   // only in the body text stay a weak nudge.
-  const titleAliases = ALIASES.filter((a) => a.keywords.some((k) => hayRole.includes(norm(k))));
+  const specific = (k: string) => {
+    const n = norm(k).trim();
+    if (n.includes(" ")) return true;            // a phrase is deliberate
+    return (IDF[stem(n)] ?? 99) >= 3.5;          // a rare single word is too
+  };
+  const titleAliases = ALIASES.filter((a) =>
+    a.keywords.some((k) => hasPhrase(hayRole, k) && specific(k))
+  );
   const pool = titleAliases.length ? titleAliases : ALIASES;
   for (const a of pool) {
     const sc = aliasScore(a, hayRole, hayText);
