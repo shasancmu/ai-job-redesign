@@ -151,6 +151,16 @@ function Xray({ mode, state, setState, code }: { mode: "resume" | "jd"; state: a
     setBusy(false);
   }
 
+  // The previous step's button already says "Run the X-ray", so run it. Without
+  // this the analysis waited on a second, identically-labelled click.
+  const started = useRef(false);
+  useEffect(() => {
+    if (started.current) return;
+    if (hasXray(xray) || (state.text || "").length < 60) return;
+    started.current = true;
+    run();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="space-y-4">
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">

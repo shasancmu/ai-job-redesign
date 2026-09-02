@@ -8,6 +8,8 @@ import { SOLO_STEPS } from "@/lib/solo";
 import GridEditor from "@/components/GridEditor";
 import Timer from "@/components/Timer";
 import BuildPlan from "@/components/BuildPlan";
+import PredictReveal from "@/components/PredictReveal";
+import { reportGuide } from "@/lib/reportGuide";
 import { useT } from "@/components/I18nProvider";
 import type { T } from "@/lib/i18n";
 
@@ -42,6 +44,11 @@ export default function SoloRoom({
   // A session is created without phase_started_at, so step 1 has no start time.
   // Fall back to when this room mounted, or the timer would sit frozen at full.
   const [mountedAt] = useState(() => new Date().toISOString());
+  // The predict-then-reveal gate used to fire on the last step — by which point
+  // the 2×4 split and the "reimagined job" summary were already on screen, so it
+  // asked people not to peek at something rendered directly above it. Ask at the
+  // end of the interview instead, before any of the redesign has been drawn.
+  const [predicting, setPredicting] = useState(false);
 
   // ---- autosave workspace --------------------------------------------------
   const pending = useRef<Record<string, any>>({});
@@ -74,6 +81,15 @@ export default function SoloRoom({
       .from("sessions")
       .update({ phase: clamped, phase_started_at: now, status })
       .eq("id", session.id);
+  }
+
+  const guide = reportGuide("job-redesign");
+  const hasPrediction = !!ws.canvas?.prediction;
+
+  // Leaving the interview is the last moment a prediction is worth anything.
+  function onNext() {
+    if (step.key === "interview" && guide?.predictPrompt && !hasPrediction) { setPredicting(true); return; }
+    goToPhase(phase + 1);
   }
 
   return (
@@ -110,6 +126,20 @@ export default function SoloRoom({
         <h1 className="mt-1 text-2xl font-bold">{tf(t, "steps.solo." + step.key + ".title", step.title)}</h1>
         <p className="mt-1 max-w-3xl text-slate-500">{tf(t, "steps.solo." + step.key + ".subtitle", step.subtitle)}</p>
       </div>
+
+      {predicting && guide?.predictPrompt && (
+        <PredictReveal
+          prompt={guide.predictPrompt}
+          placeholder={guide.predictPlaceholder}
+          ratingLabel={guide.ratingLabel}
+          revealLabel="Build my redesign →"
+          onSubmit={(prediction) => {
+            update({ canvas: { ...(ws.canvas || {}), prediction } });
+            setPredicting(false);
+            goToPhase(phase + 1);
+          }}
+        />
+      )}
 
       <div className="pb-24">
         {step.key === "setup" && (
@@ -171,8 +201,8 @@ export default function SoloRoom({
             {t("room.back")}
           </button>
           {phase < SOLO_STEPS.length - 1 ? (
-            <button onClick={() => goToPhase(phase + 1)} className="btn-primary">
-              {t("room.next")} →
+            <button onClick={onNext} className="btn-primary">
+              {step.key === "interview" ? "Build my redesign →" : `${t("room.next")} →`}
             </button>
           ) : (
             <Link href="/dashboard" className="btn-primary">
