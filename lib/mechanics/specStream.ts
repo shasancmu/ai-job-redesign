@@ -57,3 +57,39 @@ export function streamSpecResponse(
     },
   });
 }
+
+// The staged variant: the caller drives generation in passes and reports which
+// one it's in, so the label the author reads is the work actually happening.
+export function streamStagedSpecResponse(
+  run: (emit: (e: { type: "stage"; label: string } | { type: "progress"; chars: number; name: string }) => void) => Promise<any>,
+  validate?: (spec: any) => string[],
+): Response {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      let closed = false;
+      const send = (obj: any) => { if (!closed) controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`)); };
+      try {
+        const spec = await run(send);
+        if (!spec || typeof spec !== "object") {
+          send({ type: "error", error: "The copilot couldn't produce a module. Try rephrasing." });
+        } else {
+          send({ type: "done", spec, errors: validate ? validate(spec) : [] });
+        }
+      } catch (e: any) {
+        send({ type: "error", error: e?.message || "AI request failed." });
+      } finally {
+        closed = true;
+        try { controller.close(); } catch { /* already closed */ }
+      }
+    },
+  });
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    },
+  });
+}

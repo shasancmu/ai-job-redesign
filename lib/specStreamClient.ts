@@ -9,7 +9,7 @@
 //
 // Falls back to plain JSON if a route answers without streaming, so a caller
 // can't break by pointing at one that hasn't been converted.
-export type BuildProgress = { chars: number; name: string };
+export type BuildProgress = { chars: number; name: string; stage?: string };
 
 export async function streamSpec(
   endpoint: string,
@@ -39,6 +39,9 @@ export async function streamSpec(
   let spec: any = null;
   let errText = "";
   let sawContent = false;
+  let stage = "";
+  let lastChars = 0;
+  let lastName = "";
 
   for (;;) {
     const { done, value } = await reader.read();
@@ -51,7 +54,13 @@ export async function streamSpec(
       if (!line) continue;
       let evt: any;
       try { evt = JSON.parse(line.slice(5).trim()); } catch { continue; }
-      if (evt.type === "progress") { sawContent = true; onProgress?.({ chars: evt.chars || 0, name: evt.name || "" }); }
+      if (evt.type === "stage") { stage = evt.label || stage; onProgress?.({ chars: lastChars, name: lastName, stage }); }
+      else if (evt.type === "progress") {
+        sawContent = true;
+        lastChars = evt.chars || 0;
+        lastName = evt.name || lastName;
+        onProgress?.({ chars: lastChars, name: lastName, stage });
+      }
       else if (evt.type === "done") spec = evt.spec;
       else if (evt.type === "error") errText = evt.error || "";
     }

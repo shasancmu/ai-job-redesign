@@ -11,10 +11,13 @@
 export default function BuildProgress({
   chars,
   name,
+  stage,
   fallbackLabel,
 }: {
   chars: number;
   name?: string;
+  /** The pass actually running, when the format generates in stages. */
+  stage?: string;
   fallbackLabel: string;
 }) {
   // ~5.5 chars a word is close enough, and a word count is easier to read than
@@ -34,7 +37,7 @@ export default function BuildProgress({
           <div className="truncate font-serif text-xl text-ink">
             {name ? <>Writing “{name}”</> : "Writing your module"}
           </div>
-          <div className="truncate text-sm text-slate2">{fallbackLabel}</div>
+          <div className="truncate text-sm text-slate2">{stage || fallbackLabel}</div>
         </div>
       </div>
 

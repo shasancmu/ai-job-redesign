@@ -20,7 +20,7 @@ export default function NewsFrameIntentStart({ me }: { me: string }) {
   const [intent, setIntent] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [progress, setProgress] = useState({ chars: 0, name: "" });
+  const [progress, setProgress] = useState<{ chars: number; name: string; stage?: string }>({ chars: 0, name: "" });
   const [saved, setSaved] = useState(false);
 
   async function build() {
@@ -57,7 +57,7 @@ export default function NewsFrameIntentStart({ me }: { me: string }) {
         <p className="mt-2 text-slate2">Name a framework and a news beat. Each run pulls real, current stories, and the learner applies the framework to one of them.</p>
       </div>
       {busy ? (
-        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} fallbackLabel="Mapping your framework onto a live news beat" /></div>
+        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} stage={progress.stage} fallbackLabel="Mapping your framework onto a live news beat" /></div>
       ) : (
         <>
           <textarea className="field mt-6 w-full text-base" style={{ minHeight: "7rem" }} value={intent} onChange={(e) => setIntent(e.target.value)} placeholder="e.g. Apply Porter's Five Forces to current AI-industry news, ending in a call on whether the space is structurally attractive." autoFocus />

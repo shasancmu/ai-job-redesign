@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, moduleCopilotAI, sourceMaterialBlock } from "@/lib/ai";
-import { streamSpecResponse } from "@/lib/mechanics/specStream";
+import { streamSpecResponse, streamStagedSpecResponse } from "@/lib/mechanics/specStream";
+import { generateRoleplaySpecStaged } from "@/lib/mechanics/specStages";
 import { validateSpec, type ModuleSpec } from "@/lib/mechanics/roleplay";
 
 export const runtime = "nodejs";
@@ -76,7 +77,16 @@ export async function POST(request: Request) {
   ].join("\n");
 
   try {
-    if (body?.stream) return streamSpecResponse(SYSTEM, user_msg, validateSpec);
+    if (body?.stream) {
+      // A brand-new module generates in two passes (design, then the scenarios
+      // that carry most of the words). A revision of an existing spec is small
+      // and targeted, so it stays a single pass.
+      if (current) return streamSpecResponse(SYSTEM, user_msg, validateSpec);
+      return streamStagedSpecResponse(
+        (emit) => generateRoleplaySpecStaged(SYSTEM, user_msg, emit),
+        validateSpec
+      );
+    }
     const spec = (await moduleCopilotAI(SYSTEM, user_msg)) as ModuleSpec;
     if (!spec) return Response.json({ error: "The copilot couldn't produce a valid spec. Try rephrasing." }, { status: 502 });
     const errors = validateSpec(spec);

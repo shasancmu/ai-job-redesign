@@ -20,7 +20,7 @@ export default function BenchIntentStart({ me }: { me: string }) {
   const [intent, setIntent] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [progress, setProgress] = useState({ chars: 0, name: "" });
+  const [progress, setProgress] = useState<{ chars: number; name: string; stage?: string }>({ chars: 0, name: "" });
   const [saved, setSaved] = useState(false);
 
   async function build() {
@@ -59,7 +59,7 @@ export default function BenchIntentStart({ me }: { me: string }) {
         <p className="mt-2 text-slate2">Name the topic and difficulty; the copilot writes the questions and the answer key. A timed, server-scored quiz.</p>
       </div>
       {busy ? (
-        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} fallbackLabel="Writing the questions, the distractors, and the answer key" /></div>
+        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} stage={progress.stage} fallbackLabel="Writing the questions, the distractors, and the answer key" /></div>
       ) : (
         <>
           <textarea className="field mt-6 w-full text-base" style={{ minHeight: "7rem" }} value={intent} onChange={(e) => setIntent(e.target.value)} placeholder="e.g. 8 questions on statistical reasoning for managers, moderate difficulty." autoFocus />

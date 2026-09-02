@@ -21,7 +21,7 @@ export default function NegIntentStart({ me }: { me: string }) {
   const [intent, setIntent] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [progress, setProgress] = useState({ chars: 0, name: "" });
+  const [progress, setProgress] = useState<{ chars: number; name: string; stage?: string }>({ chars: 0, name: "" });
   const [saved, setSaved] = useState(false);
 
   async function build() {
@@ -65,7 +65,7 @@ export default function NegIntentStart({ me }: { me: string }) {
         <p className="mt-2 text-slate2">Say who's negotiating and over what. The copilot writes the hidden payoff tables that make trades pay off. You tune from there.</p>
       </div>
       {busy ? (
-        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} fallbackLabel="Setting up the two sides and their hidden payoff tables" /></div>
+        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} stage={progress.stage} fallbackLabel="Setting up the two sides and their hidden payoff tables" /></div>
       ) : (
         <>
           <textarea className="field mt-6 w-full text-base" style={{ minHeight: "8rem" }} value={intent} onChange={(e) => setIntent(e.target.value)} placeholder="e.g. A candidate and a hiring manager negotiate an offer over six issues, weighted oppositely so smart trades beat a split-the-difference deal." autoFocus />

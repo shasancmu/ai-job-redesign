@@ -20,7 +20,7 @@ export default function AnalyticalIntentStart({ me }: { me: string }) {
   const [intent, setIntent] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [progress, setProgress] = useState({ chars: 0, name: "" });
+  const [progress, setProgress] = useState<{ chars: number; name: string; stage?: string }>({ chars: 0, name: "" });
   const [saved, setSaved] = useState(false);
 
   async function build() {
@@ -57,7 +57,7 @@ export default function AnalyticalIntentStart({ me }: { me: string }) {
         <p className="mt-2 text-slate2">It breaks a subject into units and scores each against a scale you define. Name what to analyze and the scale.</p>
       </div>
       {busy ? (
-        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} fallbackLabel="Breaking your subject into units and building the scale" /></div>
+        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} stage={progress.stage} fallbackLabel="Breaking your subject into units and building the scale" /></div>
       ) : (
         <>
           <textarea className="field mt-6 w-full text-base" style={{ minHeight: "7rem" }} value={intent} onChange={(e) => setIntent(e.target.value)} placeholder="e.g. An AI-exposure X-ray: paste a job, break it into tasks, score each None / Assisted / Automatable." autoFocus />

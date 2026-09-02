@@ -28,7 +28,7 @@ export default function InterviewIntentStart({ canGlobal, orgName }: { canGlobal
   const [source, setSource] = useState("");
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
-  const [progress, setProgress] = useState({ chars: 0, name: "" });
+  const [progress, setProgress] = useState<{ chars: number; name: string; stage?: string }>({ chars: 0, name: "" });
   const [saved, setSaved] = useState(false);
 
   async function onPdf(e: React.ChangeEvent<HTMLInputElement>) {
@@ -91,7 +91,7 @@ export default function InterviewIntentStart({ canGlobal, orgName }: { canGlobal
       </div>
 
       {busy === "build" ? (
-        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} fallbackLabel="Writing the interview and the canvas it fills in" /></div>
+        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} stage={progress.stage} fallbackLabel="Writing the interview and the canvas it fills in" /></div>
       ) : (
         <>
           <div className="mt-6">

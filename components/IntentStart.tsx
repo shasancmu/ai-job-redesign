@@ -27,7 +27,7 @@ export default function IntentStart({ me }: { me: string }) {
   const [source, setSource] = useState("");
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
-  const [progress, setProgress] = useState({ chars: 0, name: "" });
+  const [progress, setProgress] = useState<{ chars: number; name: string; stage?: string }>({ chars: 0, name: "" });
   const [saved, setSaved] = useState(false);
 
   async function onPdf(e: React.ChangeEvent<HTMLInputElement>) {
@@ -90,7 +90,7 @@ export default function IntentStart({ me }: { me: string }) {
       </div>
 
       {busy === "build" ? (
-        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} fallbackLabel="Designing the characters, the hidden truth, and the grading" /></div>
+        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} stage={progress.stage} fallbackLabel="Designing the characters, the hidden truth, and the grading" /></div>
       ) : (
         <>
           <div className="mt-6">

@@ -20,7 +20,7 @@ export default function RedesignIntentStart({ me }: { me: string }) {
   const [intent, setIntent] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [progress, setProgress] = useState({ chars: 0, name: "" });
+  const [progress, setProgress] = useState<{ chars: number; name: string; stage?: string }>({ chars: 0, name: "" });
   const [saved, setSaved] = useState(false);
 
   async function build() {
@@ -57,7 +57,7 @@ export default function RedesignIntentStart({ me }: { me: string }) {
         <p className="mt-2 text-slate2">Two learners interview each other, then redesign each other's subject on an instrument you define. Name the subject and the split.</p>
       </div>
       {busy ? (
-        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} fallbackLabel="Building the interview and the instrument" /></div>
+        <div className="mt-8"><BuildProgress chars={progress.chars} name={progress.name} stage={progress.stage} fallbackLabel="Building the interview and the instrument" /></div>
       ) : (
         <>
           <textarea className="field mt-6 w-full text-base" style={{ minHeight: "7rem" }} value={intent} onChange={(e) => setIntent(e.target.value)} placeholder="e.g. Partners redesign each other's job into an AI/Human split." autoFocus />
