@@ -43,14 +43,14 @@ const ROLEPLAY: ReviewStep[] = [
     key: "truth",
     title: "The hidden truth",
     why: "This is the mechanic itself — what makes it a role-play instead of a quiz.",
-    read: (s) => joinList(s?.scenarios, (x) => `${x.label || x.id}: ${x.truth}`),
+    read: (s) => joinList(s?.scenarios, (x) => `${x.label || x.id} — ${x.narrative || x.gist || x.truth}`),
     reroll: "Invent different hidden truths for the scenarios — same situation and objective, but a different thing the learner has to uncover. Keep everything else.",
   },
   {
     key: "behavior",
     title: "How hard the character pushes back",
     why: "This is the difficulty dial. Too soft and there is nothing to practise.",
-    read: (s) => joinList(s?.roles, (r) => `${r.name || r.key}: ${r.behavior || r.persona || "—"}`),
+    read: (s) => joinList((s?.roles || []).filter((r: any) => r.behavior || r.persona), (r) => `${r.name || r.key}: ${r.behavior || r.persona}`),
     reroll: "Make the character meaningfully harder to read — more evasive and more plausible, while never stating a falsehood. Keep everything else.",
   },
   {
@@ -64,7 +64,18 @@ const ROLEPLAY: ReviewStep[] = [
     key: "decision",
     title: "The call the learner has to make",
     why: "What they actually walk away having done.",
-    read: (s) => joinList(s?.flow?.filter((p: any) => p.kind === "decide" || p.kind === "verdict"), (p) => `${p.title}${p.intro ? ` — ${p.intro}` : ""}`),
+    read: (s) => {
+      const phases = (s?.flow || []).filter((p: any) => p.kind === "decide" || p.kind === "verdict");
+      const lines: string[] = [];
+      for (const p of phases) {
+        if (p.intro) lines.push(p.intro);
+        for (const f of p.verdict || []) {
+          const opts = (f.options || []).map((o: any) => o.label || o.value).filter(Boolean);
+          lines.push(`• ${f.label || f.key}${opts.length ? `: ${opts.join(" / ")}` : ""}`);
+        }
+      }
+      return lines.join("\n") || joinList(phases, (p) => p.title);
+    },
     reroll: "Sharpen the decision the learner must commit to, so it is concrete and consequential. Keep everything else.",
   },
 ];

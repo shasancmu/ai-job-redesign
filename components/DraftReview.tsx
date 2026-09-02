@@ -104,7 +104,7 @@ export default function DraftReview({
             </div>
           </div>
         ) : (
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink">{step.read(spec)}</p>
+          <ValueBlock text={step.read(spec)} />
         )}
       </div>
 
@@ -127,6 +127,25 @@ export default function DraftReview({
       <p className="mt-6 text-xs text-slate-400">
         Saved as a draft already. Everything here is editable later — this is just the part worth a look first.
       </p>
+    </div>
+  );
+}
+
+// Some values are genuinely long — a rubric runs to a couple of hundred words.
+// Dumping all of it rebuilds the wall this screen exists to replace, so show the
+// opening and let the author ask for the rest.
+function ValueBlock({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const long = text.length > 420;
+  const shown = open || !long ? text : text.slice(0, 420).replace(/\s+\S*$/, "") + "…";
+  return (
+    <div>
+      <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink">{shown}</p>
+      {long && (
+        <button onClick={() => setOpen(!open)} className="mt-2 text-xs font-semibold text-ai hover:underline">
+          {open ? "Show less" : "Show all of it"}
+        </button>
+      )}
     </div>
   );
 }
