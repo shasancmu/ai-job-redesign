@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   MODULES,
   PARTNER_META,
@@ -38,11 +39,13 @@ export default function LandingLibrary() {
   const grid = "mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3";
 
   const card = (m: (typeof MODULES)[number], chip: string) => (
-    <div key={m.slug} className="card p-6 transition hover:shadow-lift">
+    <div key={m.slug} className="group/card card p-6 transition hover:shadow-lift">
       <div className={"flex h-11 w-11 items-center justify-center rounded-xl " + chip}>
         <ModuleIcon slug={m.slug} />
       </div>
-      <h4 className="mt-4 text-lg font-bold text-ink">{m.name}</h4>
+      <Link href={`/exercise/${m.slug}`} className="mt-4 block">
+        <h4 className="text-lg font-bold text-ink transition group-hover/card:text-sage">{m.name}</h4>
+      </Link>
       <p className="mt-1.5 text-sm leading-relaxed text-slate2">{m.tagline}</p>
       <div className="mt-3 flex flex-wrap gap-1">
         {modulePills(m.slug).map((p) => (
@@ -73,6 +76,12 @@ export default function LandingLibrary() {
         <span>{m.minutes} min</span>
         <FeatureBadges slug={m.slug} />
       </div>
+      <Link
+        href={`/exercise/${m.slug}`}
+        className="mt-4 inline-block text-sm font-semibold text-sage hover:text-ink"
+      >
+        See what&apos;s involved →
+      </Link>
     </div>
   );
 

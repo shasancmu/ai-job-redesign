@@ -204,7 +204,7 @@ export default async function Home() {
       </section>
 
       {/* The exercises */}
-      <section className="mx-auto mt-24 max-w-6xl px-6 sm:mt-32">
+      <section id="library" className="mx-auto mt-24 max-w-6xl px-6 sm:mt-32 scroll-mt-6">
         <Reveal>
           <span className="eyebrow">The library</span>
           <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Find your starting point.</h2>
