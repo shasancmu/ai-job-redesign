@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import BuildProgress from "@/components/BuildProgress";
+import DraftReview from "@/components/DraftReview";
 import { streamSpec } from "@/lib/specStreamClient";
 import { saveNewDraft } from "@/lib/saveNewDraft";
 import ModuleBuilder from "@/components/ModuleBuilder";
@@ -20,7 +21,7 @@ const EXAMPLES = [
 ];
 
 export default function InterviewIntentStart({ canGlobal, orgName }: { canGlobal: boolean; orgName: string | null }) {
-  const [phase, setPhase] = useState<"intent" | "editor">("intent");
+  const [phase, setPhase] = useState<"intent" | "review" | "editor">("intent");
   const [spec, setSpec] = useState<any>(null);
   const [intent, setIntent] = useState("");
   const [framework, setFramework] = useState("");
@@ -54,9 +55,20 @@ export default function InterviewIntentStart({ canGlobal, orgName }: { canGlobal
       // Write it down before the editor opens — the author has had no chance
       // to save, and a minute of generation shouldn't die with a stray click.
       setSaved(await saveNewDraft("interview", spec, ""));
-      setSpec(spec); setPhase("editor");
+      setSpec(spec); setPhase("review");
     } catch (e: any) { setErr(e?.message || "Something went wrong."); }
     finally { setBusy(""); }
+  }
+
+  if (phase === "review" && spec) {
+    return (
+      <DraftReview
+        formatId="interview"
+        spec={spec}
+        onChange={setSpec}
+        onDone={() => setPhase("editor")}
+      />
+    );
   }
 
   if (phase === "editor" && spec) {

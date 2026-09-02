@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import BuildProgress from "@/components/BuildProgress";
+import DraftReview from "@/components/DraftReview";
 import { streamSpec } from "@/lib/specStreamClient";
 import { saveNewDraft } from "@/lib/saveNewDraft";
 import NewsFrameEditor from "@/components/NewsFrameEditor";
@@ -14,7 +15,7 @@ const EXAMPLES = [
 ];
 
 export default function NewsFrameIntentStart({ me }: { me: string }) {
-  const [phase, setPhase] = useState<"intent" | "editor">("intent");
+  const [phase, setPhase] = useState<"intent" | "review" | "editor">("intent");
   const [spec, setSpec] = useState<any>(null);
   const [intent, setIntent] = useState("");
   const [busy, setBusy] = useState(false);
@@ -30,9 +31,20 @@ export default function NewsFrameIntentStart({ me }: { me: string }) {
       // Write it down before the editor opens — the author has had no chance
       // to save, and a minute of generation shouldn't die with a stray click.
       setSaved(await saveNewDraft("newsframe", spec, me));
-      setSpec(spec); setPhase("editor");
+      setSpec(spec); setPhase("review");
     } catch (e: any) { setErr(e?.message || "Something went wrong."); }
     finally { setBusy(false); }
+  }
+
+  if (phase === "review" && spec) {
+    return (
+      <DraftReview
+        formatId="newsframe"
+        spec={spec}
+        onChange={setSpec}
+        onDone={() => setPhase("editor")}
+      />
+    );
   }
 
   if (phase === "editor" && spec) return <div><div className="mb-3 rounded-xl border border-sage/30 bg-sage-soft px-4 py-2.5 text-sm text-sage">{saved ? "Saved to Your modules as a draft. " : ""}Here&apos;s your first draft. Tune the fields and the call, Validate, then Publish.</div><NewsFrameEditor me={me} initial={spec} initialStatus="draft" /></div>;

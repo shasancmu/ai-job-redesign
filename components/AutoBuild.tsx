@@ -1,5 +1,6 @@
 "use client";
 
+import DraftReview from "@/components/DraftReview";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -33,7 +34,7 @@ const TEMPLATES: { kind: string; emoji: string; title: string; concept: string }
 
 export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: string; canGlobal: boolean; orgName: string | null; startMode?: string }) {
   const supabase = createClient();
-  const [phase, setPhase] = useState<"upload" | "interview" | "choose" | "editor" | "created">(startMode === "interview" ? "interview" : "upload");
+  const [phase, setPhase] = useState<"upload" | "interview" | "choose" | "review" | "editor" | "created">(startMode === "interview" ? "interview" : "upload");
   const [interviewSource, setInterviewSource] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState("");
@@ -171,7 +172,7 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
     try {
       if (picked.length === 1) {
         const spec = await generateOne(picked[0], (p) => setProgress({ ...p, label: picked[0].title || KINDS[picked[0].kind].label }));
-        setOne({ kind: picked[0].kind, spec }); setPhase("editor");
+        setOne({ kind: picked[0].kind, spec }); setPhase("review");
       } else {
         const out: any[] = [];
         let idx = 0;
@@ -186,6 +187,18 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
       }
     } catch (e: any) { setErr(e?.message || "Couldn't build."); }
     finally { setBusy(""); setProgress(null); }
+  }
+
+  // ---- review the draft, then the editor (single pick) ----
+  if (phase === "review" && one) {
+    return (
+      <DraftReview
+        formatId={one.kind}
+        spec={one.spec}
+        onChange={(spec) => setOne({ ...one, spec })}
+        onDone={() => setPhase("editor")}
+      />
+    );
   }
 
   // ---- editor (single pick) ----
