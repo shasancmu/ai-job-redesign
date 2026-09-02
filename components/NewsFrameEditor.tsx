@@ -1,5 +1,6 @@
 "use client";
 
+import { streamSpec } from "@/lib/specStreamClient";
 import SaveState from "@/components/SaveState";
 import { useDraftAutosave } from "@/components/useDraftAutosave";
 import { useState } from "react";
@@ -32,10 +33,8 @@ export default function NewsFrameEditor({ me, initial, initialStatus }: { me: st
     if (!intent.trim()) return;
     setBusy("copilot"); setMsg(""); setErrors([]);
     try {
-      const res = await fetch("/api/mechanics/newsframe-copilot", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intent, currentSpec: spec }) });
-      const d = await res.json().catch(() => ({}));
-      if (!res.ok || !d.spec) setErrors([d.error || "The copilot couldn't produce a module."]);
-      else { setSpec(d.spec); setErrors(d.errors || []); setMsg(d.errors?.length ? "Draft ready (warnings)" : "Draft ready ✓"); setIntent(""); }
+      const draft = await streamSpec("/api/mechanics/newsframe-copilot", { intent, currentSpec: spec });
+      setSpec(draft); setErrors([]); setMsg("Draft ready ✓"); setIntent("");
     } catch (e: any) { setErrors([e?.message || "Copilot failed."]); }
     finally { setBusy(""); }
   }

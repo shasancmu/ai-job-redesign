@@ -21,7 +21,7 @@ const SPEC_TABLES: { table: string; kind: string; label: string; emoji: string; 
   { table: "module_specs", kind: "roleplay", label: "Role-play", emoji: "🎭", edit: "/studio/roleplay/", run: "/m/" },
   { table: "negotiation_specs", kind: "negotiation", label: "Negotiation", emoji: "🤝", edit: "/studio/negotiation/", run: "/n/" },
   { table: "benchmark_specs", kind: "benchmark", label: "Quiz", emoji: "⏱️", edit: "/studio/benchmark/", run: "/b/" },
-  { table: "analytical_specs", kind: "analytical", label: "Instrument", emoji: "📊", edit: "/studio/analytical/", run: "/x/" },
+  { table: "analytical_specs", kind: "analytical", label: "Analytical", emoji: "📊", edit: "/studio/analytical/", run: "/x/" },
   { table: "redesign_specs", kind: "redesign", label: "Redesign", emoji: "🔧", edit: "/studio/redesign/", run: "/rd/" },
   { table: "newsframe_specs", kind: "newsframe", label: "In the News", emoji: "🗞️", edit: "/studio/news/", run: "/nf/" },
 ];

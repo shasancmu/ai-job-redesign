@@ -1,0 +1,136 @@
+% ============================================================================
+% Auto-generated from live scientifiq.ai data (do not hand-edit; regenerate via
+% scratchpad/kz-results.mjs). Requires: tikz, xcolor, colortbl, graphicx,
+% longtable, booktabs, array in the preamble.
+% ============================================================================
+
+\section{A Working Demonstration: Kazakhstan's Commercial Research Landscape}
+\label{sec:demo}
+
+To show that the National Innovation Operating System is a functioning instrument
+rather than a proposal, we ran its measurement layer over Kazakhstan's research
+base directly through the \texttt{scientifiq.ai} API. Every Kazakhstan-affiliated
+publication was scored for commercial, scientific, and social potential; the
+results below---a national map, an institutional ranking, a field-level heatmap,
+and a sample deep-technology portfolio---were generated automatically and are
+continuously refreshable. They correspond to Work Packages~1 and~2.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+  % country extent (schematic)
+  \draw[rounded corners=6pt, draw=gray!40, fill=gray!6] (-0.4,-0.4) rectangle (13.4,6.8);
+  \node[anchor=north west, font=\scriptsize\itshape, text=gray] at (-0.3,6.7) {Republic of Kazakhstan (schematic; longitude $\times$ latitude)};
+  \fill[teal!55,opacity=0.75] (7.86,4.30) circle (0.80);
+  \node[font=\scriptsize\bfseries,text=black] at (7.86,4.30) {};
+  \node[font=\scriptsize, above=0.80cm] at (7.86,4.30) {Astana (7,119)};
+  \fill[teal!55,opacity=0.75] (9.57,1.24) circle (0.74);
+  \node[font=\scriptsize\bfseries,text=black] at (9.57,1.24) {};
+  \node[font=\scriptsize, below=0.74cm] at (9.57,1.24) {Almaty (5,892)};
+  \fill[teal!55,opacity=0.75] (7.30,0.90) circle (0.32);
+  \node[font=\scriptsize\bfseries,text=black] at (7.30,0.90) {};
+  \node[font=\scriptsize, below=0.32cm] at (7.30,0.90) {Shymkent (367)};
+\end{tikzpicture}
+\caption{Geography of high-commercial-potential research. Bubble area is proportional to the number of Kazakhstan-affiliated publications with commercial potential $\geq 0.6$ at each city's institutions. Output is concentrated in Astana and Almaty, with Shymkent emerging---a concentration that is itself a finding for regional innovation policy.}
+\label{fig:kz-map}
+\end{figure}
+
+Figure~\ref{fig:kz-map} locates the nation's commercially promising science.
+Table~\ref{tab:kz-rank} ranks institutions by the volume of that science, and
+Table~\ref{tab:kz-heatmap} shows \emph{where} each institution's commercial
+strength lies by field. Together they give a ministry an evidence base for
+concentrating support: which institutions to back, and in which domains.
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{@{}p{5.4cm} l r r p{4.6cm}@{}}
+\toprule
+\textbf{Institution} & \textbf{City} & \textbf{High-CP} & \textbf{Mean CP} & \textbf{Leading fields} \\
+\midrule
+Nazarbayev University & Astana & 5,094 & 99 & Engineering, Medicine, Biochem/Mol.Bio \\
+Al-Farabi Kazakh National University & Almaty & 3,711 & 97 & Materials Sci., Biochem/Mol.Bio, Engineering \\
+L. N. Gumilyov Eurasian National University & Astana & 2,025 & 93 & Engineering, Materials Sci., Environ. Sci. \\
+Satbayev University & Almaty & 1,068 & 91 & Engineering, Materials Sci., Environ. Sci. \\
+Kazakh-British Technical University & Almaty & 621 & 82 & Engineering, Computer Sci., Chemistry \\
+Kazakh National Medical University & Almaty & 492 & 86 & Medicine, Biochem/Mol.Bio, Agri \& Bio \\
+M.Auezov South Kazakhstan State University & Shymkent & 367 & 69 & Engineering, Environ. Sci., Agri \& Bio \\
+\bottomrule
+\end{tabular}
+\caption{Kazakhstani institutions ranked by volume of high-commercial-potential research. \textbf{High-CP}: count of Kazakhstan-affiliated publications with commercial potential $\geq 0.6$. \textbf{Mean CP}: mean commercial-potential score (0--100) of each institution's 100 top-scored outputs.}
+\label{tab:kz-rank}
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}p{4.6cm} c c c c c c c@{}}
+\toprule
+& \rotatebox{55}{\footnotesize Engineering} & \rotatebox{55}{\footnotesize Medicine} & \rotatebox{55}{\footnotesize Materials Sci.} & \rotatebox{55}{\footnotesize Biochem/Mol.Bio} & \rotatebox{55}{\footnotesize Environ. Sci.} & \rotatebox{55}{\footnotesize Computer Sci.} & \rotatebox{55}{\footnotesize Chemistry} \\
+\midrule
+Nazarbayev University & \cellcolor{teal!40} 37 & \cellcolor{teal!35} 33 & \cellcolor{teal!23} 21 & \cellcolor{teal!25} 23 & \cellcolor{teal!13} 12 & \cellcolor{teal!8} 7 & \cellcolor{teal!8} 7 \\
+Al-Farabi Kazakh National University & \cellcolor{teal!26} 24 & \cellcolor{teal!23} 21 & \cellcolor{teal!31} 29 & \cellcolor{teal!26} 24 & \cellcolor{teal!13} 12 & \cellcolor{teal!20} 19 & \cellcolor{teal!11} 10 \\
+L. N. Gumilyov Eurasian National University & \cellcolor{teal!38} 35 & \cellcolor{teal!10} 9 & \cellcolor{teal!27} 25 & \cellcolor{teal!8} 7 & \cellcolor{teal!20} 19 & \cellcolor{teal!14} 13 & \cellcolor{teal!9} 8 \\
+Satbayev University & \cellcolor{teal!59} 55 & \cellcolor{teal!12} 11 & \cellcolor{teal!33} 31 & \cellcolor{teal!14} 13 & \cellcolor{teal!25} 23 & \cellcolor{teal!14} 13 & \cellcolor{teal!17} 16 \\
+Kazakh-British Technical University & \cellcolor{teal!44} 41 & \cellcolor{teal!6} 6 & \cellcolor{teal!16} 15 & \cellcolor{teal!6} 6 & \cellcolor{teal!11} 10 & \cellcolor{teal!32} 30 & \cellcolor{teal!17} 16 \\
+Kazakh National Medical University & \cellcolor{teal!9} 8 & \cellcolor{teal!75} 70 & \cellcolor{teal!4} 4 & \cellcolor{teal!31} 29 & \cellcolor{teal!6} 6 &  & \cellcolor{teal!6} 6 \\
+M.Auezov South Kazakhstan State University & \cellcolor{teal!57} 53 & \cellcolor{teal!11} 10 & \cellcolor{teal!19} 18 & \cellcolor{teal!6} 6 & \cellcolor{teal!26} 24 & \cellcolor{teal!8} 7 & \cellcolor{teal!13} 12 \\
+\bottomrule
+\end{tabular}
+\caption{Where each institution's commercial strength lies. Cells count each institution's 100 top commercial-potential outputs by field (Scopus ASJC); darker is more. The pattern is legible at a glance: Nazarbayev spans engineering, medicine, and molecular biology; Satbayev and Gumilyov concentrate in engineering and materials; Al-Farabi leads in materials and chemistry; the medical university in clinical medicine.}
+\label{tab:kz-heatmap}
+\end{table}
+
+Finally, Table~\ref{tab:kz-portfolio} demonstrates Work Package~2 end to end: a
+diversified, decision-ready portfolio of the highest commercial-potential
+Kazakhstan-affiliated research, from which a full licensing brief for any single
+item can be generated on demand.
+
+\footnotesize
+\begin{longtable}{@{}p{0.35cm} p{4.3cm} p{3.4cm} p{2.4cm} c c c c@{}}
+\caption{Sample sovereign deep-technology portfolio: the highest commercial-potential Kazakhstan-affiliated research, diversified across fields and institutions. \textbf{C}/\textbf{S}/\textbf{O}: commercial, scientific, and social potential (0--100).}\label{tab:kz-portfolio}\\
+\toprule
+\# & \textbf{Research output} & \textbf{Kazakh institution} & \textbf{Field} & \textbf{Yr} & \textbf{C} & \textbf{S} & \textbf{O} \\
+\midrule
+\endfirsthead
+\toprule
+\# & \textbf{Research output} & \textbf{Kazakh institution} & \textbf{Field} & \textbf{Yr} & \textbf{C} & \textbf{S} & \textbf{O} \\
+\midrule
+\endhead
+1 & Engineered antigen-specific regulatory T cells for autoimmune skin conditions & Institute of Plant Biology and Biotechnology \textit{(+ Northwestern University)} & Biochemistry, Genetics \& Molecular Biology / Medicine & 2021 & 100 & 99 & 74 \\
+\addlinespace
+2 & The Wasserstein-Fourier Distance for Stationary Time Series & Centre National de la Recherche Scientifique \textit{(+ Institute of Mathematics and Mathematical Modeling)} & Economics \& Finance / Computer Science & 2021 & 100 & 99 & 55 \\
+\addlinespace
+3 & Latest Advances in Endothelial Progenitor Cell-Derived Extracellular Vesicles Translation to the Clinic & Satbayev University \textit{(+ Shonan Kamakura General Hospital)} & Medicine / Biochemistry, Genetics \& Molecular Biology & 2021 & 100 & 99 & 73 \\
+\addlinespace
+4 & Rhinitis associated with asthma is distinct from rhinitis alone: The ARIA--MeDALL hypothesis & Kazakh National Medical University \textit{(+ Centre de recherche en Epidémiologie et Santé des Populations)} & Medicine & 2023 & 100 & 99 & 24 \\
+\addlinespace
+5 & Targeted liquid chromatography--tandem mass spectrometry analysis of proteins: Basic principles, applications, and perspectives & National Center for Biotechnology \textit{(+ University Hospital Heidelberg)} & Chemistry / Biochemistry, Genetics \& Molecular Biology & 2021 & 100 & 98 & 88 \\
+\addlinespace
+6 & Honey: A realistic antimicrobial for disorders of the skin & Nazarbayev University \textit{(+ Queen Margaret University)} & Agricultural \& Biological Sciences / Medicine & 2016 & 100 & 98 & 96 \\
+\addlinespace
+7 & Super homotypic targeting by exosome surface engineering & The University of Tokyo \textit{(+ China Pharmaceutical University)} & Biochemistry, Genetics \& Molecular Biology & 2024 & 100 & 97 & 58 \\
+\addlinespace
+8 & An adjuvanted subunit SARS-CoV-2 spike protein vaccine provides protection against Covid-19 infection and transmission & Kazakh National Agrarian Research University \textit{(+ Kazakh Research Institute of Plant Protection and Quarantine)} & Agricultural \& Biological Sciences / Medicine & 2022 & 100 & 96 & 89 \\
+\addlinespace
+9 & Minimalistic design and rapid-fabrication single-mode fiber biosensors: Review and perspectives & Nazarbayev University \textit{(+ Baylor University)} & Physics \& Astronomy / Engineering & 2022 & 100 & 96 & 96 \\
+\addlinespace
+10 & Novel organometallic chloroquine derivative inhibits tumor growth & Nazarbayev University \textit{(+ University of Vermont)} & Medicine / Materials Science & 2018 & 100 & 96 & 75 \\
+\addlinespace
+11 & Modulating endogenous gene expression of mammalian cells via RNA--small molecule interaction & National Center for Biotechnology \textit{(+ University of California, Davis)} & Biochemistry, Genetics \& Molecular Biology & 2008 & 100 & 95 & 95 \\
+\addlinespace
+12 & Curcumin and Carnosic Acid Cooperate to Inhibit Proliferation and Alter Mitochondrial Function of Metastatic Prostate Cancer Cells & Al-Farabi Kazakh National University \textit{(+ Drexel University)} & Medicine / Biochemistry, Genetics \& Molecular Biology & 2021 & 100 & 95 & 63 \\
+\addlinespace
+13 & Parity-Time Symmetric Nonlocal Metasurfaces: All-Angle Negative Refraction and Volumetric Imaging & Nazarbayev University \textit{(+ The University of Texas at Austin)} & Physics \& Astronomy / Materials Science & 2016 & 100 & 95 & 91 \\
+\addlinespace
+14 & Rational Control of Protein--Protein Interactions with Protein-ATRP-Generated Protease-Sensitive Polymer Cages & Carnegie Mellon University & Biochemistry, Genetics \& Molecular Biology / Chemistry & 2022 & 100 & 91 & 84 \\
+\addlinespace
+15 & Potential of chimeric antigen receptor (CAR)--redirected immune cells in breast cancer therapies: Recent advances & Kazakh National Medical University \textit{(+ Kermanshah University of Medical Sciences)} & Medicine / Immunology \& Microbiology & 2022 & 100 & 84 & 78 \\
+\addlinespace
+16 & Graphene Synthesis Techniques and Environmental Applications & University of the West of Scotland \textit{(+ University of Sharjah)} & Materials Science / Engineering & 2022 & 100 & 71 & 64 \\
+\addlinespace
+17 & Use of retrotransposon-derived genetic markers to analyse genomic variability in plants & National Center for Biotechnology \textit{(+ University of Helsinki)} & Agricultural \& Biological Sciences / Biochemistry, Genetics \& Molecular Biology & 2019 & 100 & 48 & 74 \\
+\addlinespace
+18 & The Approach to Building a Context-Dependent Sentiment Dictionary & Al-Farabi Kazakh National University & Social Sciences / Computer Science & 2022 & 100 & 47 & 63 \\
+\\ \bottomrule
+\end{longtable}
+\normalsize

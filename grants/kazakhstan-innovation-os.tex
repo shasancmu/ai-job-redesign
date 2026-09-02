@@ -1,0 +1,311 @@
+\documentclass[11pt]{article}
+
+% ============================================================================
+% Grant application (draft). Bracketed [ ... ] items are placeholders to fill
+% in or confirm before submission: co-PI name/affiliation, sponsoring ministry,
+% figures, dates, and the exact Masclans et al. citation.
+% Compiles with a standard TeX distribution: pdflatex kazakhstan-innovation-os.tex
+% ============================================================================
+
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.6em}{}
+\setlist{itemsep=2pt,topsep=3pt}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+
+\title{\bfseries A National Innovation Operating System:\\
+Converting Scientific and Human Capital into Economic Value in the Republic of Kazakhstan}
+
+\author{
+  Sharique Hasan\\
+  \small The Fuqua School of Business, Duke University\\[4pt]
+  [Co-Principal Investigator], [Ministry / Institution], Republic of Kazakhstan
+}
+
+\date{[Month Year]}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+Kazakhstan has set the strategic objective of diversifying its economy beyond
+extractive industries toward a knowledge-based economy driven by science,
+technology, and a modernized workforce. The binding constraint on that
+transition is not the absence of scientific or human capital, but the absence of
+an \emph{instrument} that can measure it, identify where it is most valuable, and
+convert it into economic activity at national scale. This proposal delivers that
+instrument. Building on a validated machine-learning approach to identifying
+commercially valuable science (Masclans et al.), a deployed research-scoring
+platform (\texttt{scientifiq.ai}), a workforce-redesign engine developed under an
+OpenAI research grant, and the \texttt{superadditive.app} authoring and delivery
+infrastructure, we propose a \emph{National Innovation Operating System} (NIOS):
+an integrated set of AI instruments that (i) score the commercial, scientific,
+and social potential of the nation's entire research base; (ii) assemble a
+fundable, diversified deep-technology portfolio; (iii) map and reconnect the
+scientific diaspora; (iv) measure and redesign the AI exposure of the national
+workforce; (v) profile the small- and medium-enterprise sector's technology
+readiness; and (vi) simulate the marginal returns to public research investment.
+Crucially, each component already exists in working form; the grant validates the
+system on Kazakhstani data, deploys it on sovereign infrastructure, and stands up
+the closed loop from measurement to policy. We therefore propose not a program of
+promised research but the national deployment of a functioning system.
+\end{abstract}
+
+\section{Motivation and Vision}
+
+Resource-rich economies face a well-documented development trap: the very
+abundance that finances the state can crowd out the institutions and incentives
+required to build a diversified, innovation-driven economy. Kazakhstan's national
+strategy explicitly seeks to escape this trap by cultivating high-value
+knowledge industries, commercializing university research, digitizing government
+and industry, and equipping the workforce for an economy in which artificial
+intelligence is a general-purpose technology. These are the right objectives.
+What has been missing is a way to act on them with precision.
+
+A government seeking to diversify confronts a series of concrete questions.
+Which fields of its national research base are genuinely commercially valuable,
+and which are strong only academically? Which specific inventions, sitting today
+in university laboratories, should a sovereign fund back? Where are the country's
+scientists---at home and in the diaspora---and which collaborations would create
+the most value? Which occupations are most exposed to AI, and how should those
+jobs be redesigned rather than merely eliminated? Which firms are ready to adopt
+new technology, and which require support? And, given a finite research budget,
+where does the next unit of public investment produce the greatest return?
+
+Historically these questions have been answered, if at all, by committee,
+anecdote, or imported consultancy. We propose instead to answer them
+\emph{computationally and continuously}, using instruments that read the
+nation's scientific and economic text at scale and translate it into decisions.
+The scientific premise is that the commercial and social potential of research,
+and the AI exposure of work, are \emph{predictable from text} with useful
+accuracy; the engineering premise is that the instruments to do so already
+exist and can be pointed at Kazakhstan. This proposal joins the two.
+
+\section{Intellectual and Technical Foundations}
+
+The proposed system rests on four foundations that the principal investigators
+have already built and validated.
+
+\subsection{A validated science of commercial potential (Masclans et al.)}
+The intellectual core is a machine-learning approach that predicts the
+commercial, scientific, and social potential of scientific work directly from
+its text, learned from historical relationships between published research and
+downstream outcomes such as patenting, licensing, and firm formation. This body
+of work establishes that ``valuable science'' is identifiable at scale and in
+advance, rather than only in retrospect---the necessary precondition for any
+national commercialization strategy. It supplies both the measures the system
+uses and the scholarly validation that those measures are meaningful.
+
+\subsection{A deployed research-scoring platform (\texttt{scientifiq.ai})}
+These measures are operationalized in \texttt{scientifiq.ai}, a production
+application-programming interface that scores research abstracts along commercial,
+scientific, and social dimensions and supports a suite of higher-order
+instruments: institutional benchmarking, invention scoring and ranking,
+licensing-brief generation, technology-domain scans, collaborator and
+co-founder identification, and portfolio optimization. The platform is backed by
+frozen scientific-language-model embeddings with calibrated predictive heads and
+is served in production; it is, in effect, the measurement layer of the proposed
+system, already engineered and running.
+
+\subsection{A workforce-redesign engine (OpenAI research grant)}
+Under an OpenAI research grant, the investigators developed instruments that
+measure the AI exposure of occupations and guide the \emph{redesign} of work---
+distinguishing what only humans can lead, own, and judge from what AI can search,
+structure, and translate---and deliver this as a structured, hands-on exercise
+rather than a static report. This engine converts the abstract anxiety of
+``automation'' into concrete, occupation-level reskilling and job-redesign plans,
+and is the human-capital counterpart to the science-commercialization layer.
+
+\subsection{An authoring and delivery infrastructure (\texttt{superadditive.app})}
+Finally, \texttt{superadditive.app} provides the delivery and authoring layer: a
+platform through which these instruments are configured, run with real
+populations (cohorts of professionals, civil servants, or students), and
+observed. It already includes multimodal enterprise profiling, live facilitated
+activities, and---critical for a government partner---the ability to route all
+computation through an organization's \emph{own} private models and
+infrastructure (Section~\ref{sec:sovereignty}).
+
+Individually, these are research artifacts and products. Integrated and pointed
+at a single nation, they become an operating system for the innovation economy.
+
+\section{The National Innovation Operating System}
+
+We organize the work into six instruments (work packages, WP1--WP6). Each is
+built on the foundations above and already exists in working form; the grant's
+contribution is validation on Kazakhstani data, sovereign deployment, and
+integration into a closed decision loop. Together they trace the value chain from
+scientific knowledge to economic activity: \emph{measure} the science,
+\emph{select} the bets, \emph{connect} the talent, \emph{redesign} the work,
+\emph{map} the firms, and \emph{allocate} the funds.
+
+\subsection*{WP1 --- The Kazakhstan Science-to-Value Atlas}
+We score the nation's entire research output---every paper, researcher,
+institution, and field for which text is available through open bibliographic
+sources---along the commercial, scientific, and social dimensions. The result is
+a living atlas of where Kazakhstan's commercializable science actually resides:
+its genuine strengths, its overlooked commercial assets, and its gaps relative to
+comparator states. This transforms research-policy debate from opinion to
+evidence and gives ministries a defensible basis for concentrating support.
+
+\subsection*{WP2 --- The Sovereign Deep-Technology Portfolio}
+Applying invention scoring, ranking, and portfolio optimization, we assemble
+from the national research base a \emph{diversified, fundable} portfolio of
+high-potential inventions, each accompanied by an automatically generated
+licensing brief situating it against comparable science and the surrounding
+patent landscape. The deliverable is a decision-ready shortlist for a sovereign
+technology fund or a national tech-transfer office---exactly the artifact such
+bodies currently lack.
+
+\subsection*{WP3 --- The Diaspora and Collaboration Engine}
+We map Kazakhstani-origin scientists worldwide and identify the collaborations
+and co-founder pairings that would create the most value, given the national
+research profile. This directly addresses brain drain: rather than lamenting the
+diaspora, the system provides a concrete plan to reconnect it and to seed
+science-based ventures.
+
+\subsection*{WP4 --- National AI Exposure and Job-Redesign Program}
+Beginning with the civil service and two priority sectors, we measure the AI
+exposure of occupations and deliver, at scale, structured job-redesign and
+reskilling plans. The output is a workforce-modernization blueprint grounded in
+the specific tasks Kazakhstani workers actually perform, positioning AI as a tool
+for augmenting the labor force rather than displacing it.
+
+\subsection*{WP5 --- The Enterprise Innovation Census}
+Using multimodal profiling, we build a living panel of the small- and
+medium-enterprise sector's technology readiness and needs. The panel supports
+targeting of support programs and, because it is longitudinal, the measurement of
+technology diffusion over time---an evaluation capability most innovation
+programs never obtain.
+
+\subsection*{WP6 --- The Research-Allocation Simulator}
+Finally, using value-to-go estimation, we simulate the marginal commercial and
+social return of public research investment across fields, giving policymakers a
+principled answer to the question of where the next unit of funding should go,
+and what reachable ceiling it can be expected to approach. This work package is
+the system's research frontier and its most novel scholarly contribution.
+
+\section{Technical Approach}
+
+Methodologically, the system is built from text. Scientific and occupational
+corpora are embedded using scientific-language models; calibrated predictive
+heads map these embeddings to the commercial, scientific, and social potential
+measures validated in the foundational work. Higher-order instruments compose
+these scores: invention ranking orders disclosures by predicted potential;
+portfolio optimization selects a set that maximizes aggregate potential subject
+to a diversity constraint, so that the recommended portfolio is not merely a list
+of top-scoring items but a genuinely spread set of bets; and value-to-go
+estimation, trained through self-play over sequences of research and
+commercialization decisions, estimates not just an item's current value but the
+value reachable from it---distinguishing already-mature work from work with
+headroom. The workforce instruments apply the same text-first logic to
+occupational descriptions and to the artifacts workers produce.
+
+Two properties make the approach suitable for national deployment. First, it is
+\emph{automatic and continuous}: once pointed at a corpus, it scores it without
+manual review, and re-scores as the corpus grows. Second, it is
+\emph{interpretable at the decision level}: every recommendation is accompanied
+by the evidence---the comparable science, the patent landscape, the specific
+tasks---that a human decision-maker needs in order to act and to be accountable.
+
+\section{Data Sovereignty and Governance}
+\label{sec:sovereignty}
+
+For a government partner, data sovereignty is not a feature but a precondition.
+The delivery infrastructure supports per-organization configuration of the
+underlying AI provider: Kazakhstan can route all computation through its own
+private or self-hosted models, running on national infrastructure, so that
+sensitive research, enterprise, and workforce data never leave the country or
+reach a third-party model. The system defaults to this sovereign configuration
+where the partner requires it and falls back to shared infrastructure only for
+non-sensitive tasks and only by explicit choice. All personal and
+enterprise-level data are governed under an agreed data-protection framework,
+processed for the stated public-policy purposes alone, and retained under the
+partner's control. This architecture allows the system to deliver national-scale
+intelligence while keeping the nation's data within the nation's authority.
+
+\section{Work Plan and Timeline}
+
+The work proceeds in three phases over [24] months. Because the instruments
+already exist, the early phase emphasizes data integration and validation rather
+than construction, allowing decision-ready deliverables within the first two
+quarters.
+
+\begin{center}
+\begin{tabular}{@{}p{2.4cm}p{5.2cm}p{6.2cm}@{}}
+\toprule
+\textbf{Phase} & \textbf{Period} & \textbf{Milestones} \\
+\midrule
+Phase I: Foundation & Months 1--6 &
+Data-sharing and sovereignty agreements; ingestion of the national research
+corpus and institution list; sovereign-model deployment; first Science-to-Value
+Atlas (WP1) and initial deep-technology portfolio (WP2). \\[4pt]
+Phase II: Deployment & Months 7--16 &
+Diaspora and collaboration engine (WP3); AI-exposure measurement and first
+job-redesign cohorts in the civil service and two priority sectors (WP4);
+enterprise census pilot (WP5). \\[4pt]
+Phase III: Integration & Months 17--[24] &
+Research-allocation simulator (WP6); integration of the six instruments into a
+single decision loop; validation study, policy handbook, and capacity transfer to
+the partner institution. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Expected Outcomes and Policy Impact}
+
+The tangible outputs are decision instruments in daily use by the partner
+ministries: an atlas the research-policy body consults, a portfolio the sovereign
+fund draws from, a diaspora plan the talent agency executes, a reskilling
+blueprint the civil-service and labor bodies implement, an enterprise panel the
+SME-support programs target, and an allocation simulator the science-funding body
+consults. The intellectual outputs include peer-reviewed validation of the
+potential and value-to-go measures on a national corpus, and---through WP6---a
+novel contribution to the economics of public research allocation. The strategic
+outcome is a repeatable, sovereign capability: an operating system Kazakhstan
+owns and can run indefinitely, converting its scientific and human capital into
+economic value long after the grant concludes.
+
+\section{Team and Feasibility}
+
+The principal investigator has built the scientific measures, the scoring
+platform, the workforce-redesign engine, and the delivery infrastructure on which
+this proposal depends; the co-principal investigator provides the governmental
+mandate, data access, and institutional pathway to adoption within the Republic of
+Kazakhstan. Feasibility is unusually high for a proposal of this ambition
+precisely because its central risk---whether the instruments can be built---has
+already been retired. What remains is validation on national data and deployment,
+which the team is positioned to execute immediately.
+
+\section{Budget Summary}
+
+We request [amount] over [24] months. Principal categories are: personnel for
+data engineering, validation, and deployment; sovereign compute and model-serving
+infrastructure; data acquisition and integration; fieldwork for the enterprise
+census and workforce cohorts; and dissemination and capacity transfer to the
+partner institution. A detailed budget and justification are provided in the
+supplementary materials.
+
+\begin{thebibliography}{9}
+\bibitem{masclans} Masclans, [Initials], Hasan, S., et al.
+  \emph{[Title: machine-learning identification of commercially valuable
+  science].} Working paper, [Year]. % TODO: confirm exact citation.
+\bibitem{scientifiq} Hasan, S. \emph{scientifiq.ai: a platform for scoring the
+  commercial, scientific, and social potential of research.} Technical report,
+  [Year].
+\bibitem{superadditive} Hasan, S. \emph{superadditive.app: infrastructure for
+  authoring and running AI-based learning and assessment.} Technical report,
+  [Year].
+\bibitem{openai} Hasan, S. et al. \emph{Redesigning work in the age of AI:
+  measuring occupational exposure and guiding job redesign.} OpenAI research
+  grant, [Year].
+\end{thebibliography}
+
+\end{document}

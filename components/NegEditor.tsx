@@ -1,5 +1,6 @@
 "use client";
 
+import { streamSpec } from "@/lib/specStreamClient";
 import SaveState from "@/components/SaveState";
 import { useDraftAutosave } from "@/components/useDraftAutosave";
 import { useState } from "react";
@@ -33,10 +34,8 @@ export default function NegEditor({ me, initial, initialStatus }: { me: string; 
     if (!intent.trim()) return;
     setBusy("copilot"); setMsg(""); setErrors([]);
     try {
-      const res = await fetch("/api/mechanics/negotiation-copilot", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intent, currentSpec: scn }) });
-      const d = await res.json().catch(() => ({}));
-      if (!res.ok || !d.spec) setErrors([d.error || "The copilot couldn't produce a scenario."]);
-      else { setScn(d.spec); setErrors(d.errors || []); setMsg(d.errors?.length ? "Draft ready (warnings below)" : "Draft ready ✓"); setIntent(""); }
+      const draft = await streamSpec("/api/mechanics/negotiation-copilot", { intent, currentSpec: scn });
+      setScn(draft); setErrors([]); setMsg("Draft ready ✓"); setIntent("");
     } catch (e: any) { setErrors([e?.message || "Copilot failed."]); }
     finally { setBusy(""); }
   }
