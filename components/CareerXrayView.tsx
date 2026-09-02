@@ -46,7 +46,7 @@ export default function CareerXrayView({ xray, mode = "resume", code, embedded =
           />
           <div className="mt-4"><Bar label="Bottom-up · your actual tasks" sub="from the tasks below" value={xray.bottomUpExposure} color={SAGE} /></div>
           <p className="mt-4 text-xs text-slate-400">
-            The gap is the point: what the models predict for the occupation vs. what {isJD ? "this role" : "you"} actually does. Exposure ≠ replacement. High exposure means AI can help with the task, and your complements rise in value.
+            The gap is the point: what the models predict for the occupation vs. what {isJD ? "this role actually does" : "you actually do"}. Exposure ≠ replacement. High exposure means AI can help with the task, and your complements rise in value.
           </p>
         </div>
       </section>
