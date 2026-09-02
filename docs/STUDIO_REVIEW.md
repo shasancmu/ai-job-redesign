@@ -236,24 +236,35 @@ Items 6–9 change what the Studio *is*, and are also yours to call.
 
 ## Running the smoke test
 
-Every failure in this flow surfaced only under a real two-minute generation, and
-each one had to be caught by hand in a browser. `scripts/smoke-roleplay.mjs`
-builds a role-play end to end against the live model and asserts on what comes
-back, with no browser, auth, or deploy:
+Every failure in this flow surfaced only under a real generation, and each one
+had to be caught by hand in a browser. `scripts/smoke-modules.mjs` builds one
+module of **every** authorable format against the live model and asserts on what
+comes back — no browser, auth, or deploy:
 
 ```
-npm run smoke:roleplay          # ~2 minutes, reads AI_API_KEY from .env.local
-npm run smoke:roleplay -- --json   # for CI
+npm run smoke                        # all 8 formats, in parallel, ~2 minutes
+npm run smoke -- --only=roleplay     # just one
+npm run smoke -- --json              # for CI
+npm run smoke -- --list              # what it covers
 ```
 
-It reads the prompts out of `app/api/mechanics/copilot/route.ts` and
-`lib/mechanics/specStages.ts` rather than copying them, so a prompt change is
-exercised rather than missed — and it exits 2 if it can't find them, instead of
-quietly checking a stale copy.
+It reads each format's prompts out of its own route rather than copying them, so
+a prompt change is exercised rather than missed — and it exits 2 if it can't find
+them, instead of quietly checking a stale copy. The role-play runs through both
+generation passes, the way it actually ships.
 
-The twelve checks are the bugs this flow actually shipped: a spec that truncates,
-scenarios that come back empty, a hidden truth with no narrative behind it, a
-verdict with no options. Run it before changing generation, not after.
+The checks are properties an author would notice missing: a character with a real
+behavioural contract, scenarios carrying a written narrative rather than a bare
+token, a negotiation with trades worth finding, quiz distractors that aren't
+throwaways, an explainer with one thing to remember. The last check in each list
+mirrors what `lib/draftReview.ts` reads, so the review can never render a step
+with nothing in it.
+
+Its first full run found a real bug: the quiz copilot emits `name`, but
+`coerceConfig` only read `title`, so every AI-authored quiz was silently renamed
+to the default "Logical Reasoning: Diagnostic".
+
+Run it before changing generation, not after.
 
 ---
 

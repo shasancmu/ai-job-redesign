@@ -70,7 +70,10 @@ export function coerceConfig(raw: any): BenchConfig {
     return DEFAULT_CONFIG;
   }
   return {
-    title: String(raw.title || DEFAULT_CONFIG.title),
+    // The authoring copilot emits "name" (see benchmark-copilot's SCHEMA), so a
+    // generated quiz kept its author's title only by accident — it fell through
+    // to DEFAULT_CONFIG and every quiz came out "Logical Reasoning: Diagnostic".
+    title: String(raw.title || raw.name || DEFAULT_CONFIG.title),
     timeLimitSec: Math.max(30, parseInt(raw.timeLimitSec, 10) || DEFAULT_CONFIG.timeLimitSec),
     askConfidence: raw.askConfidence !== false, // default on
     questions: raw.questions.map((q: any, i: number) => ({

@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "smoke:roleplay": "node scripts/smoke-roleplay.mjs"
+    "smoke": "node scripts/smoke-modules.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
