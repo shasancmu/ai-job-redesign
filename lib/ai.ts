@@ -481,10 +481,17 @@ export async function moduleCopilotAI(system: string, user: string): Promise<any
 // doesn't parse we fall back to the non-streamed builder once.
 export async function moduleCopilotStream(system: string, user: string, onToken: (delta: string) => void): Promise<any> {
   const messages: ChatMsg[] = [{ role: "system", content: system }, { role: "user", content: user }];
-  const text = await complete(messages, { json: true, temperature: 0.5, maxTokens: 6000, low: false, timeoutMs: 110000, onToken });
+  // A full module spec runs well past 6k tokens — role-plays land around 4,000
+  // words — and truncation there produced JSON that only sometimes survived
+  // repair. Give it room, and time to use it.
+  const text = await complete(messages, { json: true, temperature: 0.5, maxTokens: 16000, low: false, timeoutMs: 240000, onToken });
   const parsed = extractJson(text);
   if (parsed) return parsed;
-  return moduleCopilotAI(system, user);
+  // Only start over if the stream produced almost nothing. Re-running a whole
+  // generation after two minutes of streaming just guarantees the route dies
+  // before either finishes; better to fail with something the author can act on.
+  if (text.trim().length < 400) return moduleCopilotAI(system, user);
+  throw new Error("The draft came back incomplete. Try again, or shorten the description.");
 }
 export async function moduleCriticAI(system: string, user: string): Promise<any> {
   // Reviews a full spec (up to 30k chars); the default 55s was too tight and, with

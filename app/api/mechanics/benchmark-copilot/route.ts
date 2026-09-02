@@ -6,7 +6,7 @@ import { validateBenchConfig } from "@/lib/mechanics/benchStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+export const maxDuration = 300; // a full spec streams for ~2 minutes; 120 cut it off
 
 const SCHEMA = `A timed multiple-choice quiz as JSON:
 { "slug": "kebab-case", "name": "the quiz name", "timeLimitSec": 300,

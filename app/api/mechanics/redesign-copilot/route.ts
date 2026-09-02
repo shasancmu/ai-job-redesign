@@ -6,7 +6,7 @@ import { validateRedesignSpec } from "@/lib/mechanics/redesignStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+export const maxDuration = 300; // a full spec streams for ~2 minutes; 120 cut it off
 
 const SCHEMA = `A paired-redesign spec (JSON). Two learners interview each other about a subject, then each redesigns the OTHER's subject on an instrument of buckets, then reveal + feedback.
 {

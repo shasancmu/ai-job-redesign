@@ -6,7 +6,7 @@ import { streamSpecResponse } from "@/lib/mechanics/specStream";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+export const maxDuration = 300; // a full spec streams for ~2 minutes; 120 cut it off
 
 const SCHEMA = `A BuilderSpec for an interview-to-artifact module (JSON). The learner names a subject, an AI interviews them, then the AI drafts a structured canvas.
 {

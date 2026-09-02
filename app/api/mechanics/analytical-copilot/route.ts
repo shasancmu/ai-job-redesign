@@ -6,7 +6,7 @@ import { validateAnalyticalSpec } from "@/lib/mechanics/analyticalStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+export const maxDuration = 300; // a full spec streams for ~2 minutes; 120 cut it off
 
 const SCHEMA = `An analytical instrument (X-ray style) as JSON. It decomposes a subject into units and scores each against ordered levels.
 {

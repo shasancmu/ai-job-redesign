@@ -38,6 +38,7 @@ export async function streamSpec(
   let buf = "";
   let spec: any = null;
   let errText = "";
+  let sawContent = false;
 
   for (;;) {
     const { done, value } = await reader.read();
@@ -50,12 +51,22 @@ export async function streamSpec(
       if (!line) continue;
       let evt: any;
       try { evt = JSON.parse(line.slice(5).trim()); } catch { continue; }
-      if (evt.type === "progress") onProgress?.({ chars: evt.chars || 0, name: evt.name || "" });
+      if (evt.type === "progress") { sawContent = true; onProgress?.({ chars: evt.chars || 0, name: evt.name || "" }); }
       else if (evt.type === "done") spec = evt.spec;
       else if (evt.type === "error") errText = evt.error || "";
     }
   }
 
-  if (!spec) throw new Error(errText || "Couldn't build a draft. Try rephrasing.");
+  if (!spec) {
+    // A stream that carried real content and then stopped without a terminal
+    // event was cut off — the server ran out of time, not out of ideas. Say so,
+    // because "try rephrasing" sends the author to fix the one thing that was fine.
+    if (errText) throw new Error(errText);
+    throw new Error(
+      sawContent
+        ? "The draft was cut off before it finished. Try again — or shorten the description."
+        : "Couldn't build a draft. Try rephrasing."
+    );
+  }
   return spec;
 }

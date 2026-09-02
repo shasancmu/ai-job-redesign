@@ -6,7 +6,7 @@ import { validateSpec, type ModuleSpec } from "@/lib/mechanics/roleplay";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+export const maxDuration = 300; // a full spec streams for ~2 minutes; 120 cut it off
 
 const SCHEMA = `A ModuleSpec for a role-play/adversary learning module (JSON):
 {
