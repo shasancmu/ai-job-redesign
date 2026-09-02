@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { streamPost } from "@/lib/streamClient";
 import InterviewHelper from "@/components/InterviewHelper";
 import { SOLO_STEPS } from "@/lib/solo";
 import GridEditor from "@/components/GridEditor";
@@ -40,6 +39,9 @@ export default function SoloRoom({
   });
   const phase = session.phase ?? 0;
   const step = SOLO_STEPS[phase] ?? SOLO_STEPS[0];
+  // A session is created without phase_started_at, so step 1 has no start time.
+  // Fall back to when this room mounted, or the timer would sit frozen at full.
+  const [mountedAt] = useState(() => new Date().toISOString());
 
   // ---- autosave workspace --------------------------------------------------
   const pending = useRef<Record<string, any>>({});
@@ -85,7 +87,7 @@ export default function SoloRoom({
             {t("room.soloTag")}
           </span>
         </div>
-        <Timer startedAt={session.phase_started_at} minutes={step.minutes} onReset={() => goToPhase(phase)} />
+        <Timer startedAt={session.phase_started_at || mountedAt} minutes={step.minutes} onReset={() => goToPhase(phase)} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">
@@ -188,7 +190,6 @@ function Interview({ ws, update, sessionId }: { ws: any; update: (p: any) => voi
   const messages: Msg[] = ws.interview_chat || [];
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
-  const [streaming, setStreaming] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const started = useRef(false);
   const scroller = useRef<HTMLDivElement>(null);
@@ -199,17 +200,25 @@ function Interview({ ws, update, sessionId }: { ws: any; update: (p: any) => voi
     async (history: Msg[]) => {
       setErr(null);
       setBusy(true);
-      setStreaming("");
-      let acc = "";
       try {
-        const reply = await streamPost("/api/interview", { mode: "chat", messages: history, ...job, sessionId }, (d) => { acc += d; setStreaming(acc); });
-        return (reply || acc).trim() || null;
+        // /api/interview answers with plain JSON ({ reply }), not the SSE stream
+        // the other interview routes use. Reading it as a stream silently
+        // yielded "" and the interview never appeared.
+        const res = await fetch("/api/interview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: "chat", messages: history, ...job, sessionId }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(data?.error || t("room.aiUnavailable"));
+        const reply = (data?.reply || "").trim();
+        if (!reply) throw new Error(t("room.aiUnavailable"));
+        return reply;
       } catch (e: any) {
         setErr(e?.message || t("room.aiUnavailable"));
         return null;
       } finally {
         setBusy(false);
-        setStreaming("");
       }
     },
     [job.jobTitle, job.jobDescription]
@@ -229,7 +238,7 @@ function Interview({ ws, update, sessionId }: { ws: any; update: (p: any) => voi
 
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length, busy, streaming]);
+  }, [messages.length, busy]);
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
@@ -260,12 +269,7 @@ function Interview({ ws, update, sessionId }: { ws: any; update: (p: any) => voi
             </div>
           </div>
         ))}
-        {streaming && (
-          <div className="flex justify-start">
-            <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-slate-100 px-4 py-2.5 text-sm leading-relaxed text-slate-800">{streaming}</div>
-          </div>
-        )}
-        {busy && !streaming && messages.length > 0 && (
+        {busy && messages.length > 0 && (
           <div className="flex justify-start">
             <div className="rounded-2xl bg-slate-100 px-4 py-2.5 text-sm text-slate-400">…</div>
           </div>

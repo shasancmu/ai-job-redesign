@@ -634,7 +634,8 @@ export default async function Dashboard({
       ) : (
         <section data-tour="catalog">
           <h2 className="eyebrow">{isOrgLearner ? "Explore more" : t("dash.exercises")}</h2>
-          <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">{t("dash.framing")}</p>
+          {/* The curated view renders no filter controls, so don't tell people to filter. */}
+          <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">{t(orgModules ? "dash.framingCurated" : "dash.framing")}</p>
           {catalogEl}
         </section>
       ))}

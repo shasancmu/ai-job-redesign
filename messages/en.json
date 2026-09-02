@@ -10,6 +10,7 @@
     "greeting": "Hi {name}",
     "exercises": "Exercises",
     "framing": "Hands-on exercises, run by AI. Filter to what you need, then start one. Each ends in something you keep.",
+    "framingCurated": "Hands-on exercises, run by AI. These are the ones picked for you — start any one. Each ends in something you keep.",
     "yourSessions": "Your sessions",
     "recommended": "Recommended for you"
   },

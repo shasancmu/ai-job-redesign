@@ -76,7 +76,7 @@ export default async function Home() {
           <nav className="relative z-10 flex items-center justify-between py-5">
             <Logo />
             <div className="flex items-center gap-2">
-              <Link href="/login" className="hidden text-sm font-semibold text-ink/80 hover:text-ink sm:inline">
+              <Link href="/login" className="px-1 text-sm font-semibold text-ink/80 hover:text-ink">
                 Sign in
               </Link>
               <Link href="/login?mode=signup" className="btn-dark">

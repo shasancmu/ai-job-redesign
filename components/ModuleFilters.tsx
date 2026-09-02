@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { PILLS, FEATURES, modulePills, moduleFeatures, type ModuleDef } from "@/lib/modules";
 
 // Search + two pill rows (Topic / Format) shared by the dashboard catalog and
@@ -27,6 +28,26 @@ export default function ModuleFilters({
   resultCount?: number;
 }) {
   const anyActive = !!(query.trim() || topics.size || features.size);
+  // Filtering collapses the list, which can leave the page scrolled past the
+  // (much shorter) results with the controls off-screen. Bring them back.
+  const bar = useRef<HTMLDivElement>(null);
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return; }
+    const el = bar.current;
+    if (!el) return;
+    // The shorter list has to lay out and the browser has to clamp the now
+    // too-large scroll offset before a target is meaningful — and reveal
+    // animations can shift things again right after. So correct on the next
+    // frame and once more shortly after, instantly rather than smoothly (a
+    // long smooth scroll just races the same layout changes).
+    const pull = () => {
+      if (el.getBoundingClientRect().top < 0) el.scrollIntoView({ block: "start" });
+    };
+    const frame = requestAnimationFrame(pull);
+    const settle = setTimeout(pull, 250);
+    return () => { cancelAnimationFrame(frame); clearTimeout(settle); };
+  }, [topics, features]);
 
   const pill = (on: boolean) =>
     "rounded-full px-3 py-1 text-sm font-medium transition " +
@@ -36,7 +57,7 @@ export default function ModuleFilters({
   const featureCount = (k: string) => modules.filter((m) => moduleFeatures(m.slug).includes(k as any)).length;
 
   return (
-    <div data-tour="filters" className="space-y-3">
+    <div ref={bar} data-tour="filters" className="space-y-3">
       {/* Search */}
       <div className="relative max-w-md">
         <svg className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -59,7 +80,7 @@ export default function ModuleFilters({
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Topic</span>
         {PILLS.map((p) => (topicCount(p.key) === 0 ? null : (
-          <button key={p.key} onClick={() => onToggleTopic(p.key)} className={pill(topics.has(p.key))}>{p.label}</button>
+          <button key={p.key} type="button" aria-pressed={topics.has(p.key)} onClick={() => onToggleTopic(p.key)} className={pill(topics.has(p.key))}>{p.label}</button>
         )))}
       </div>
 
@@ -67,7 +88,7 @@ export default function ModuleFilters({
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Format</span>
         {FEATURES.map((f) => (featureCount(f.key) === 0 ? null : (
-          <button key={f.key} onClick={() => onToggleFeature(f.key)} className={pill(features.has(f.key))}>{f.label}</button>
+          <button key={f.key} type="button" aria-pressed={features.has(f.key)} onClick={() => onToggleFeature(f.key)} className={pill(features.has(f.key))}>{f.label}</button>
         )))}
       </div>
 

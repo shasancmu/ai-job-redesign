@@ -28,12 +28,16 @@ export async function streamPost(
   let buf = "";
   let full = "";
   let errored = "";
+  let sawFrame = false; // did the body ever parse as SSE at all?
+  let sawBytes = false;
   for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
     buf += decoder.decode(value, { stream: true });
+    if (buf) sawBytes = true;
     let sep: number;
     while ((sep = buf.indexOf("\n\n")) >= 0) {
+      sawFrame = true;
       const frame = buf.slice(0, sep);
       buf = buf.slice(sep + 2);
       const line = frame.split("\n").find((l) => l.startsWith("data:"));
@@ -46,5 +50,11 @@ export async function streamPost(
     }
   }
   if (errored) throw new Error(errored);
+  // A route that answers 200 with a non-SSE body (e.g. plain JSON) would parse
+  // as zero frames and return "" — a silent dead end for the caller. Treat that
+  // as the wiring bug it is rather than swallowing it.
+  if (!sawFrame && sawBytes) {
+    throw new Error(`${url} did not return an event stream.`);
+  }
   return full;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -82,6 +82,21 @@ export default function Catalog({
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [detail, setDetail] = useState<string | null>(null); // slug of the module whose "What's this?" is open
+  // Keyboard handling for that dialog: Escape closes it, focus moves into it on
+  // open and back to the card that opened it on close.
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!detail) return;
+    openerRef.current = document.activeElement as HTMLElement | null;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setDetail(null); };
+    document.addEventListener("keydown", onKey);
+    dialogRef.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      openerRef.current?.focus?.();
+    };
+  }, [detail]);
   const [query, setQuery] = useState("");
   const [activePills, setActivePills] = useState<Set<string>>(new Set());
   const [activeFeatures, setActiveFeatures] = useState<Set<string>>(new Set());
@@ -328,9 +343,11 @@ export default function Catalog({
         const close = () => setDetail(null);
         if (typeof document === "undefined") return null;
         return createPortal(
-          <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-6" role="dialog" aria-modal onClick={close}>
+          <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-6" role="dialog" aria-modal aria-labelledby="module-detail-title" onClick={close}>
             <div
-              className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white p-6 shadow-xl sm:rounded-2xl"
+              ref={dialogRef}
+              tabIndex={-1}
+              className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white p-6 shadow-xl outline-none sm:rounded-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-start justify-between gap-3">
@@ -342,7 +359,7 @@ export default function Catalog({
                 </button>
               </div>
 
-              <h3 className="mt-3 text-xl font-bold text-ink">{tf("modules." + m.slug + ".name", m.name)}</h3>
+              <h3 id="module-detail-title" className="mt-3 text-xl font-bold text-ink">{tf("modules." + m.slug + ".name", m.name)}</h3>
 
               <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-ink/45">
                 <span className={"inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium " + pm.chip}>
