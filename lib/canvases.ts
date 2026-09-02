@@ -29,6 +29,10 @@ export type CanvasDef = {
   // rigorous, adversarial cross-examination (an econometrician / referee) that
   // attacks the argument instead of collecting a narrative.
   interviewStyle?: "explore" | "grill";
+  // How many exchanges the interview should run before closing. The prompts
+  // have always said "after about N exchanges" and were never held to it;
+  // this is the number the pacing directive enforces. Defaults to 6.
+  interviewTurns?: number;
   draftSystem: string;
   fields: CanvasField[];
   ratings?: { key: string; label: string }[]; // 0–100 scorecard dimensions (e.g. the 4 A's) → also the cohort heatmap
@@ -164,6 +168,7 @@ const EXPERIMENT: CanvasDef = {
 - Push them from vague ("see if it works") to a specific, measurable, time-boxed test.
 - Do not design it fully yet, just understand the bet.
 After about 5 exchanges, reflect the shape back, ask what you missed, then close.`,
+    interviewTurns: 5,
   draftSystem: `You turn a strategic bet into a clean, runnable business experiment. Make it specific, measurable, and time-boxed, a test someone could start this week.`,
   fields: [
     { key: "hypothesis", label: "Hypothesis", hint: "Stated so it can be proven wrong", kind: "long", group: "The test", accent: "sage" },
@@ -359,6 +364,7 @@ Ground the conversation in this framework:
 - Probe the FUNDER fit implicitly: time to first deployment, time to first revenue, and capital to technical validation.
 Interview craft: ask exactly ONE short, open question at a time and follow their lead; pull concrete detail, not generalities. Do not lecture or fill the canvas yet.
 After about 7 exchanges, reflect the dual-uncertainty picture back, ask what you missed, then close.`,
+    interviewTurns: 7,
   draftSystem: `You fill the Dual Uncertainty Canvas (Duke University) for a deep-tech venture. Apply its logic rigorously:
 - Describe the technology only as it exists today; keep speculation out of Section 1.
 - Everywhere, SEPARATE technical uncertainty ("can we make it work?") from market uncertainty ("will anyone buy it?"). Name which one dominates.

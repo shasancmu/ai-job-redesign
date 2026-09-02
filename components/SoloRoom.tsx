@@ -15,6 +15,9 @@ import type { T } from "@/lib/i18n";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
+// Kept in step with the target passed to pacingDirective for this interview.
+const INTERVIEW_TURNS = 6;
+
 // Translate with a fallback to the passed-in English (for step titles that live
 // in lib/solo.ts): if the key is missing, show the original rather than a key.
 function tf(t: T, key: string, fallback: string) {
@@ -218,6 +221,8 @@ export default function SoloRoom({
 function Interview({ ws, update, sessionId }: { ws: any; update: (p: any) => void; sessionId: string }) {
   const t = useT();
   const messages: Msg[] = ws.interview_chat || [];
+  // Mirrors the pacing budget the interviewer is held to in lib/ai.ts.
+  const asked = messages.filter((m) => m.role === "user").length;
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -307,6 +312,21 @@ function Interview({ ws, update, sessionId }: { ws: any; update: (p: any) => voi
       </div>
 
       {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
+
+      {/* An open-ended chat with no visible end is why people stall here: there
+          was no way to tell a third of the way through from nearly done. */}
+      <div className="mt-2 flex items-center gap-2 text-xs text-slate-400">
+        <span className="flex gap-1" aria-hidden>
+          {Array.from({ length: INTERVIEW_TURNS }).map((_, i) => (
+            <span key={i} className={"h-1 w-4 rounded-full " + (i < asked ? "bg-ai" : "bg-slate-200")} />
+          ))}
+        </span>
+        <span>
+          {asked >= INTERVIEW_TURNS
+            ? "That's everything it needs — build your redesign whenever you're ready."
+            : `Question ${Math.min(asked + 1, INTERVIEW_TURNS)} of about ${INTERVIEW_TURNS}`}
+        </span>
+      </div>
 
       <InterviewHelper module="job" answered={messages.filter((m) => m.role === "user").length} hasDraft={!!input.trim()} onInsert={setInput} />
       <form onSubmit={send} className="mt-3 flex items-center gap-2">
