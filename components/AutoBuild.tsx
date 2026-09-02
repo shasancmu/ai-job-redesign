@@ -206,7 +206,7 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
     const k = one.kind, spec = one.spec;
     return (
       <div>
-        <div className="mb-3 rounded-xl border border-sage/30 bg-sage-soft px-4 py-2.5 text-sm text-sage">Drafted from your materials. Make a few edits, then Publish.</div>
+        <div className="mb-3 rounded-xl border border-sage/30 bg-sage-soft px-4 py-2.5 text-sm text-sage">Saved to Your modules as a draft{source.trim() ? ", drafted from your materials" : ""}. Edit anything here, then Publish.</div>
         {k === "roleplay" && <SpecEditor me={me} initial={spec} initialStatus="draft" />}
         {k === "interview" && <ModuleBuilder initialSpec={spec} canGlobal={canGlobal} orgName={orgName} />}
         {k === "negotiation" && <NegEditor me={me} initial={spec} initialStatus="draft" />}
@@ -302,7 +302,9 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
             );
           })}
         </div>
-        {/* How much license the AI takes: stay faithful to inputs vs. add its own ideas. */}
+        {/* How much license the AI takes: stay faithful to inputs vs. add its own
+            ideas. Meaningless without materials, so don't offer it then. */}
+        {!!source.trim() && (
         <div className="mt-5 rounded-xl border border-line bg-mist/30 p-3">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -315,6 +317,7 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
             </div>
           </div>
         </div>
+        )}
         <button onClick={build} disabled={sel.size === 0} className="btn-primary mt-4 w-full text-base disabled:opacity-50">{sel.size <= 1 ? "Build this module →" : `Build ${sel.size} modules →`}</button>
         {err && <p className="mt-3 text-sm text-red-700">{err}</p>}
         <div className="mt-3 text-center"><button onClick={() => { setPhase("upload"); setOptions([]); }} className="text-sm text-slate-400 hover:text-ink">← Different files</button></div>
@@ -363,11 +366,12 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
               <span className="min-w-0">
                 <span className="block text-sm font-semibold text-ink">{t.title}</span>
                 <span className="mt-0.5 block text-xs leading-snug text-slate-500">{t.concept.split(".")[0]}.</span>
+                <span className="mt-1.5 block text-xs font-semibold text-ai">Build this →</span>
               </span>
             </button>
           ))}
         </div>
-        <p className="mt-2 text-xs text-slate-400">Pick one to build it now — it uses your files too if you added any. Edit everything after.</p>
+        <p className="mt-2 text-xs text-slate-400">Uses your files too, if you added any. Everything is editable after.</p>
       </div>
 
       <p className="mt-5 text-center text-xs text-slate-400">Files are read for this draft only and never stored. Scanned PDFs (images) aren't supported.</p>

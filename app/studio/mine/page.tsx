@@ -49,8 +49,23 @@ export default async function MyModulesPage() {
       </div>
 
       {mods.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-line bg-white p-8 text-center text-slate2">
-          You haven&apos;t built anything yet. <Link href="/studio/create" className="font-medium text-ai hover:underline">Create your first module →</Link>
+        /* A first-timer's most useful next move isn't a link to a page of
+           choices — it's one completed loop. Name the shortest path, and put
+           the guide beside it rather than three cards away. */
+        <div className="mt-8 rounded-2xl border border-dashed border-line bg-white p-8">
+          <h2 className="font-serif text-xl text-ink">Nothing here yet — let&apos;s make one.</h2>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate2">
+            The quickest way in is to hand it something you already teach. Drop in a deck or a reading
+            and it proposes a few modules it could become; you pick one, look over the handful of
+            decisions that matter, and publish. About five minutes.
+          </p>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <Link href="/studio/upload" className="btn-primary text-sm">Start from your materials →</Link>
+            <Link href="/studio/upload?start=interview" className="btn-ghost text-sm">No materials? Talk it through</Link>
+          </div>
+          <p className="mt-4 text-xs text-slate-400">
+            Rather understand it first? <Link href="/studio/guide" className="font-medium text-ai hover:underline">What a module is, and how to build one</Link> — a five-minute read.
+          </p>
         </div>
       ) : (
         <div className="mt-6 overflow-hidden rounded-2xl border border-line">

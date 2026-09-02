@@ -58,7 +58,18 @@ export default async function CreateGallery() {
           <span className="shrink-0 text-lg font-semibold text-ai">→</span>
         </div>
       </Link>
-      <div className="mt-6 text-xs font-semibold uppercase tracking-wide text-slate-400">Or build from a template</div>
+      {/* The two paths above choose the format for you, which is the point: the
+          reason someone is on this page is usually that they don't know which
+          one they want. Everything below assumes they already do, so it waits
+          behind a disclosure instead of competing for the same attention. */}
+      <details className="group mt-10">
+        <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-slate2 hover:text-ink">
+          <span className="transition group-open:rotate-90">›</span> I already know the format I want
+        </summary>
+        <p className="mt-2 max-w-2xl text-sm text-slate-500">
+          Each of these starts a draft in one specific format. Not sure which? Use one of the two paths
+          above, or read <Link href="/studio/guide" className="font-medium text-ai hover:underline">what each format is for</Link>.
+        </p>
 
       {canInterview && (
         <section className="mt-8">
@@ -67,12 +78,12 @@ export default async function CreateGallery() {
           <Link href="/build/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
             <div className="text-2xl">✨</div>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe your idea, and build it</div>
+              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div>
               <div className="text-xs text-slate-500">Name the subject and the framework; the copilot drafts the whole module.</div>
             </div>
             <span className="shrink-0 text-sm font-semibold text-ai">→</span>
           </Link>
-          <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Or start from a shape</div>
+          <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Or pick a starting point</div>
           <div className="mt-2 grid gap-3 sm:grid-cols-3">
             {INTERVIEW_TEMPLATES.map((t) => (
               <Link key={t.type} href={`/build/new?type=${t.type}`} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
@@ -93,12 +104,12 @@ export default async function CreateGallery() {
           <Link href="/studio/roleplay/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
             <div className="text-2xl">✨</div>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe your idea, and build it</div>
+              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div>
               <div className="text-xs text-slate-500">One prompt designs the whole module. You refine from there.</div>
             </div>
             <span className="shrink-0 text-sm font-semibold text-ai">→</span>
           </Link>
-          <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Or start from a template</div>
+          <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Or start from an example</div>
           <div className="mt-2 grid gap-3 sm:grid-cols-3">
             {ROLEPLAY_TEMPLATES.map((t) => (
               <div key={t.id} className="flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
@@ -119,7 +130,6 @@ export default async function CreateGallery() {
               </div>
             ))}
           </div>
-          <div className="mt-2 text-right"><Link href="/studio/roleplay" className="text-xs text-slate2 hover:text-ink">Your role-play modules →</Link></div>
         </section>
       )}
 
@@ -130,12 +140,11 @@ export default async function CreateGallery() {
           <Link href="/studio/negotiation/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
             <div className="text-2xl">🤝</div>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe your negotiation, and build it</div>
+              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div>
               <div className="text-xs text-slate-500">The copilot writes the hidden payoff tables.</div>
             </div>
             <span className="shrink-0 text-sm font-semibold text-ai">→</span>
           </Link>
-          <div className="mt-2 text-right"><Link href="/studio/negotiation" className="text-xs text-slate2 hover:text-ink">Your negotiations →</Link></div>
         </section>
       )}
 
@@ -146,12 +155,11 @@ export default async function CreateGallery() {
           <Link href="/studio/benchmark/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
             <div className="text-2xl">⏱️</div>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe your quiz, and build it</div>
+              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div>
               <div className="text-xs text-slate-500">The copilot writes the questions and the answer key.</div>
             </div>
             <span className="shrink-0 text-sm font-semibold text-ai">→</span>
           </Link>
-          <div className="mt-2 text-right"><Link href="/studio/benchmark" className="text-xs text-slate2 hover:text-ink">Your quizzes →</Link></div>
         </section>
       )}
 
@@ -161,10 +169,9 @@ export default async function CreateGallery() {
           <p className="mt-1 text-sm text-slate-500">Break a subject into units and score each against a scale you define, X-ray style (AI-exposure, risk, evidence strength).</p>
           <Link href="/studio/analytical/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
             <div className="text-2xl">📊</div>
-            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Describe your instrument, and build it</div><div className="text-xs text-slate-500">Name the subject, the units, and the scale.</div></div>
+            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div><div className="text-xs text-slate-500">Name the subject, the units, and the scale.</div></div>
             <span className="shrink-0 text-sm font-semibold text-ai">→</span>
           </Link>
-          <div className="mt-2 text-right"><Link href="/studio/analytical" className="text-xs text-slate2 hover:text-ink">Your instruments →</Link></div>
         </section>
       )}
 
@@ -174,10 +181,9 @@ export default async function CreateGallery() {
           <p className="mt-1 text-sm text-slate-500">Two learners interview each other, then redesign each other's subject on an instrument you define. A live two-person experience.</p>
           <Link href="/studio/redesign/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
             <div className="text-2xl">🤝</div>
-            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Describe your redesign, and build it</div><div className="text-xs text-slate-500">Name the subject and the AI/Human split.</div></div>
+            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div><div className="text-xs text-slate-500">Name the subject and the AI/Human split.</div></div>
             <span className="shrink-0 text-sm font-semibold text-ai">→</span>
           </Link>
-          <div className="mt-2 text-right"><Link href="/studio/redesign" className="text-xs text-slate2 hover:text-ink">Your redesigns →</Link></div>
         </section>
       )}
 
@@ -190,7 +196,6 @@ export default async function CreateGallery() {
             <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Author a live activity</div><div className="text-xs text-slate-500">Pick a type, write the prompt, run it any time.</div></div>
             <span className="shrink-0 text-sm font-semibold text-ai">→</span>
           </Link>
-          <div className="mt-2 text-right"><Link href="/studio/live" className="text-xs text-slate2 hover:text-ink">Your live activities →</Link></div>
         </section>
       )}
 
@@ -203,7 +208,6 @@ export default async function CreateGallery() {
             <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Build an explainer</div><div className="text-xs text-slate-500">Or upload materials and the copilot structures the walkthrough.</div></div>
             <span className="shrink-0 text-sm font-semibold text-ai">→</span>
           </Link>
-          <div className="mt-2 text-right"><Link href="/studio/explainer" className="text-xs text-slate2 hover:text-ink">Your explainers →</Link></div>
         </section>
       )}
 
@@ -213,12 +217,12 @@ export default async function CreateGallery() {
           <p className="mt-1 text-sm text-slate-500">Pick a framework and a news beat. Every run pulls real, current headlines, so learners apply the framework to a story that broke this week. The module never goes stale.</p>
           <Link href="/studio/news/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
             <div className="text-2xl">🗞️</div>
-            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Build a framework desk</div><div className="text-xs text-slate-500">Name the framework and the beat; the AI writes the fields and the call.</div></div>
+            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Build a news module</div><div className="text-xs text-slate-500">Name the framework and the beat; the AI writes the fields and the call.</div></div>
             <span className="shrink-0 text-sm font-semibold text-ai">→</span>
           </Link>
-          <div className="mt-2 text-right"><Link href="/studio/news" className="text-xs text-slate2 hover:text-ink">Your desks →</Link></div>
         </section>
       )}
+      </details>
     </main>
   );
 }
