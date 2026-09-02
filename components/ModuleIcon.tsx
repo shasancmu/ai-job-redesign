@@ -1,4 +1,7 @@
 // Crisp geometric line-icons per module (no emoji). Color via `currentColor`.
+// Modules without a bespoke icon fall back to one per category, below.
+import { moduleCategory } from "@/lib/modules";
+
 export default function ModuleIcon({
   slug,
   className = "",
@@ -176,10 +179,80 @@ export default function ModuleIcon({
         </svg>
       );
     default:
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="8" />
-        </svg>
-      );
+      // Most modules have no bespoke icon, and a single blank circle told you
+      // nothing and made whole categories look identical in the grid. Fall back
+      // to the module's category so a card at least names its family. Each of
+      // these is kept distinct from the bespoke icons above.
+      switch (moduleCategory(slug)) {
+        case "redesign": // a briefcase with a spark — work, reshaped by AI
+          return (
+            <svg {...common}>
+              <rect x="3" y="7" width="18" height="13" rx="2" />
+              <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+              {/* a four-point spark, not a cross — a plus here reads as a first-aid kit */}
+              <path d="M12 10.5l1.05 1.95L15 13.5l-1.95 1.05L12 16.5l-1.05-1.95L9 13.5l1.95-1.05z" />
+            </svg>
+          );
+        case "foundations": // a chip — how the machine actually works
+          return (
+            <svg {...common}>
+              <rect x="8" y="8" width="8" height="8" rx="1.5" />
+              <path d="M10 8V5M14 8V5M10 19v-3M14 19v-3M8 10H5M8 14H5M19 10h-3M19 14h-3" />
+            </svg>
+          );
+        case "strategy": // a fork in the road — a decision with branches
+          return (
+            <svg {...common}>
+              <path d="M12 21v-8M12 13 6.5 8.5M12 13l5.5-4.5" />
+              <circle cx="5.5" cy="7" r="1.6" />
+              <circle cx="18.5" cy="7" r="1.6" />
+            </svg>
+          );
+        case "commercialize": // an atom — science on its way to a venture
+          return (
+            <svg {...common}>
+              <circle cx="12" cy="12" r="1.7" />
+              <ellipse cx="12" cy="12" rx="9.2" ry="3.2" />
+              <ellipse cx="12" cy="12" rx="9.2" ry="3.2" transform="rotate(60 12 12)" />
+              <ellipse cx="12" cy="12" rx="9.2" ry="3.2" transform="rotate(120 12 12)" />
+            </svg>
+          );
+        case "negotiate": // a balance scale — claiming and creating value
+          return (
+            <svg {...common}>
+              <path d="M12 4v16M8 20h8M4 7h16" />
+              <path d="M1.5 12a3.5 3.5 0 0 0 7 0zM15.5 12a3.5 3.5 0 0 0 7 0z" />
+              <path d="M5 7v5M19 7v5" />
+            </svg>
+          );
+        case "live": // a broadcast — the whole room, responding at once
+          return (
+            <svg {...common}>
+              <circle cx="12" cy="12" r="2" />
+              <path d="M8.4 8.4a5 5 0 0 0 0 7.2M15.6 8.4a5 5 0 0 1 0 7.2" />
+              <path d="M5.5 5.5a9 9 0 0 0 0 13M18.5 5.5a9 9 0 0 1 0 13" />
+            </svg>
+          );
+        case "research": // an open book — scholarship
+          return (
+            <svg {...common}>
+              <path d="M12 6.5C10 5 7 4.4 4 5v13c3-.6 6 0 8 1.5 2-1.5 5-2.1 8-1.5V5c-3-.6-6 0-8 1.5z" />
+              <path d="M12 6.5v13" />
+            </svg>
+          );
+        case "phd": // a graduation cap — the path to placement
+          return (
+            <svg {...common}>
+              <path d="M2 9l10-4.5L22 9l-10 4.5z" />
+              <path d="M6 11v4.5c0 1.6 2.7 2.9 6 2.9s6-1.3 6-2.9V11" />
+            </svg>
+          );
+        default:
+          return (
+            <svg {...common}>
+              <circle cx="12" cy="12" r="8" />
+            </svg>
+          );
+      }
   }
 }
