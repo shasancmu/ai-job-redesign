@@ -10,7 +10,15 @@ export const dynamic = "force-dynamic";
 
 // Run/preview an authored negotiation. Only the client-safe scenario is sent;
 // the counterpart's payoff table stays on the server.
-export const metadata = { title: "Negotiation" };
+// Name the tab after the authored module, not its slug. The loader is
+// request-memoised, so this shares the page's query rather than adding one.
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  try {
+    const spec = await getNegScenario(params.slug);
+    if (spec?.name) return { title: spec.name };
+  } catch { /* fall through */ }
+  return { title: "Negotiation" };
+}
 
 export default async function RunNegotiation({ params }: { params: { slug: string } }) {
   const supabase = createClient();

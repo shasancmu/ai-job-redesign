@@ -6,7 +6,15 @@ import { getNewsSpec, publicNewsSpec } from "@/lib/mechanics/newsStore";
 import NewsFrameRunner from "@/components/NewsFrameRunner";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "News frame" };
+// Name the tab after the authored module, not its slug. The loader is
+// request-memoised, so this shares the page's query rather than adding one.
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  try {
+    const spec = await getNewsSpec(params.slug);
+    if (spec?.name) return { title: spec.name };
+  } catch { /* fall through */ }
+  return { title: "News frame" };
+}
 
 export default async function RunNews({ params }: { params: { slug: string } }) {
   const supabase = createClient();

@@ -10,7 +10,15 @@ export const dynamic = "force-dynamic";
 
 // Run/preview any role-play module by slug. Only the client-safe view of the spec
 // is sent; scenarios and answer keys stay on the server.
-export const metadata = { title: "Role play" };
+// Name the tab after the authored module, not its slug. The loader is
+// request-memoised, so this shares the page's query rather than adding one.
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  try {
+    const spec = await getSpec(params.slug);
+    if (spec?.meta?.name) return { title: spec.meta.name };
+  } catch { /* fall through */ }
+  return { title: "Role play" };
+}
 
 export default async function RunModule({ params, searchParams }: { params: { slug: string }; searchParams: { class?: string; cohort?: string } }) {
   const supabase = createClient();

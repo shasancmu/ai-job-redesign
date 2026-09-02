@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ModuleSpec, Role } from "@/lib/mechanics/roleplay";
 import { BUILTIN_SPECS } from "@/lib/mechanics/seed";
@@ -5,7 +6,7 @@ import { MODULES } from "@/lib/modules";
 
 // Load the full spec (with hidden answer keys) — server only. Prefers a stored,
 // published spec; falls back to the built-in reference specs.
-export async function getSpec(slug: string): Promise<ModuleSpec | null> {
+async function getSpecUncached(slug: string): Promise<ModuleSpec | null> {
   const s = String(slug || "").toLowerCase();
   try {
     const admin = createAdminClient();
@@ -21,6 +22,10 @@ export async function getSpec(slug: string): Promise<ModuleSpec | null> {
   if (BUILTIN_SPECS[s]) return BUILTIN_SPECS[s]();
   return null;
 }
+
+// Request-scoped memo: the page and its generateMetadata both need the spec,
+// and cache() collapses that into a single query per request.
+export const getSpec = cache(getSpecUncached);
 
 // The published, author-created role-play modules that can be assigned to a
 // class. Builtins are excluded (they're templates), and any slug that collides

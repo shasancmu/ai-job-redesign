@@ -8,7 +8,15 @@ import BenchRunner from "@/components/BenchRunner";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Quiz" };
+// Name the tab after the authored module, not its slug. The loader is
+// request-memoised, so this shares the page's query rather than adding one.
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  try {
+    const spec = await getBenchConfig(params.slug);
+    if (spec?.title) return { title: spec.title };
+  } catch { /* fall through */ }
+  return { title: "Quiz" };
+}
 
 export default async function RunBenchmark({ params }: { params: { slug: string } }) {
   const supabase = createClient();

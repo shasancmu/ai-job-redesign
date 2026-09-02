@@ -1,10 +1,11 @@
 // Store + hygiene for authored benchmarks. A BenchConfig (timed MCQ + answer
 // key) is already the spec; scoreConfig() scores it. Answers are stripped for
 // the client and scoring happens server-side.
+import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { coerceConfig, type BenchConfig } from "@/lib/benchmark";
 
-export async function getBenchConfig(slug: string): Promise<BenchConfig | null> {
+async function getBenchConfigUncached(slug: string): Promise<BenchConfig | null> {
   try {
     const { data } = await createAdminClient()
       .from("benchmark_specs").select("spec").eq("slug", String(slug || "").toLowerCase())
@@ -13,6 +14,10 @@ export async function getBenchConfig(slug: string): Promise<BenchConfig | null> 
   } catch { /* table missing */ }
   return null;
 }
+
+// Request-scoped memo: the page and its generateMetadata both need the spec,
+// and cache() collapses that into a single query per request.
+export const getBenchConfig = cache(getBenchConfigUncached);
 
 export type BenchCatalogEntry = { slug: string; name: string; count: number };
 export async function listBenchCatalog(ownerId?: string): Promise<BenchCatalogEntry[]> {

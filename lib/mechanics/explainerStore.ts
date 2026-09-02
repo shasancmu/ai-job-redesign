@@ -1,5 +1,6 @@
 // Store + schema for authored explainers: a taught, guided walkthrough of a
 // topic. Sections of explanation, each with optional key points and a check.
+import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type ExplainerSection = { title: string; body: string; key?: string[]; check?: string };
@@ -11,7 +12,7 @@ export type ExplainerSpec = {
   takeaway?: string; // the one thing to remember
 };
 
-export async function getExplainerSpec(slug: string): Promise<ExplainerSpec | null> {
+async function getExplainerSpecUncached(slug: string): Promise<ExplainerSpec | null> {
   try {
     const { data } = await createAdminClient()
       .from("explainer_specs").select("spec").eq("slug", String(slug || "").toLowerCase())
@@ -20,6 +21,10 @@ export async function getExplainerSpec(slug: string): Promise<ExplainerSpec | nu
   } catch { /* table missing */ }
   return null;
 }
+
+// Request-scoped memo: the page and its generateMetadata both need the spec,
+// and cache() collapses that into a single query per request.
+export const getExplainerSpec = cache(getExplainerSpecUncached);
 
 export type ExplainerCatalogEntry = { slug: string; name: string; emoji: string };
 export async function listExplainerCatalog(ownerId?: string): Promise<ExplainerCatalogEntry[]> {

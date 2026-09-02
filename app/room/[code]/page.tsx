@@ -60,7 +60,26 @@ import { canvasByExercise } from "@/lib/canvases";
 import { resolveCanvasDefForUser } from "@/lib/customModules";
 import { scenarioByExercise } from "@/lib/negotiation";
 
-export const metadata = { title: "Exercise" };
+// A room code says nothing about what's in the tab, and people keep several
+// open at once — so name the exercise. One indexed lookup on a single column,
+// and it degrades to the generic title when the session isn't readable.
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  try {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("sessions")
+      .select("exercise")
+      .eq("code", params.code.toUpperCase())
+      .maybeSingle();
+    // Same default the page applies, but only once a row actually came back —
+    // a missing session shouldn't get named after the job module.
+    const mod = data ? moduleByExercise(data.exercise || "job") : null;
+    if (mod) return { title: mod.name };
+  } catch {
+    /* fall through to the generic title */
+  }
+  return { title: "Exercise" };
+}
 
 export default async function RoomPage({
   params,

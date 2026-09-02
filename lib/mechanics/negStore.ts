@@ -2,11 +2,12 @@
 // lib/negotiation) is already the declarative spec — private payoff tables and
 // all — so authoring is: store it, strip the hidden numbers for the client, and
 // run it through the existing counterpartSystem + analyze at runtime.
+import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SCENARIOS, type Scenario } from "@/lib/negotiation";
 import { MODULES } from "@/lib/modules";
 
-export async function getNegScenario(slug: string): Promise<Scenario | null> {
+async function getNegScenarioUncached(slug: string): Promise<Scenario | null> {
   const s = String(slug || "").toLowerCase();
   try {
     const { data } = await createAdminClient()
@@ -16,6 +17,10 @@ export async function getNegScenario(slug: string): Promise<Scenario | null> {
   } catch { /* table missing */ }
   return SCENARIOS.find((x) => x.slug === s) || null;
 }
+
+// Request-scoped memo: the page and its generateMetadata both need the spec,
+// and cache() collapses that into a single query per request.
+export const getNegScenario = cache(getNegScenarioUncached);
 
 export type NegCatalogEntry = { slug: string; name: string; counterpart: string };
 export async function listNegCatalog(ownerId?: string): Promise<NegCatalogEntry[]> {

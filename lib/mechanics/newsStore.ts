@@ -1,5 +1,6 @@
 // Store + schema for "In the News" modules: apply a business framework to a
 // current, real news story fetched live at runtime. Never goes stale.
+import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type NewsField = { key: string; label: string; hint: string };
@@ -13,7 +14,7 @@ export type NewsFrameSpec = {
   grading: string; // how to grade the application
 };
 
-export async function getNewsSpec(slug: string): Promise<NewsFrameSpec | null> {
+async function getNewsSpecUncached(slug: string): Promise<NewsFrameSpec | null> {
   try {
     const { data } = await createAdminClient()
       .from("newsframe_specs").select("spec").eq("slug", String(slug || "").toLowerCase())
@@ -22,6 +23,10 @@ export async function getNewsSpec(slug: string): Promise<NewsFrameSpec | null> {
   } catch { /* table missing */ }
   return null;
 }
+
+// Request-scoped memo: the page and its generateMetadata both need the spec,
+// and cache() collapses that into a single query per request.
+export const getNewsSpec = cache(getNewsSpecUncached);
 
 export function publicNewsSpec(s: NewsFrameSpec): any {
   return { slug: s.slug, name: s.name, emoji: s.emoji, topic: s.topic, framework: s.framework, frameworkLogic: s.frameworkLogic, fields: s.fields, verdict: s.verdict };
