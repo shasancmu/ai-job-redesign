@@ -15,10 +15,16 @@
 // real tasks). This keeps every number either sourced or honestly labeled.
 // ============================================================================
 
+import { EXPOSURE_DATA } from "./exposureData";
+import { OCC_SKILLS } from "./onetSkills";
+
 export type Occupation = { code: string; title: string; keywords: string[] };
 
-// A focused set of common professional occupations (SOC 2018). Extend freely.
-export const OCCUPATIONS: Occupation[] = [
+// Colloquial aliases. O*NET titles are formal ("Market Research Analysts and
+// Marketing Specialists"); nobody writes that on a CV. These map the words
+// people actually use — "revops", "fp&a", "coo" — onto a real SOC code, and
+// are scored ON TOP OF the full title index below, not instead of it.
+export const ALIASES: Occupation[] = [
   { code: "11-1021", title: "General and Operations Managers", keywords: ["operations", "general manager", "gm", "operations manager", "coo"] },
   { code: "11-2021", title: "Marketing Managers", keywords: ["marketing manager", "head of marketing", "brand manager", "demand generation", "growth marketing"] },
   { code: "11-2011", title: "Advertising and Promotions Managers", keywords: ["advertising", "promotions", "campaign manager", "media"] },
@@ -67,30 +73,98 @@ export const OCCUPATIONS: Occupation[] = [
   { code: "43-6014", title: "Secretaries and Administrative Assistants", keywords: ["administrative assistant", "executive assistant", "office assistant", "admin assistant", "secretary", "operations assistant"] },
   { code: "43-4051", title: "Customer Service Representatives", keywords: ["customer service", "customer support", "support representative", "call centre", "call center", "help desk"] },
   { code: "53-7062", title: "Laborers and Freight, Stock, and Material Movers", keywords: ["warehouse associate", "picker", "packer", "material handler", "stock associate"] },
+  // Colloquial titles whose words appear in no O*NET title, so the index alone
+  // can never reach them.
+  { code: "25-2031", title: "Secondary School Teachers", keywords: ["high school teacher", "secondary teacher", "sixth form"] },
+  { code: "25-2021", title: "Elementary School Teachers", keywords: ["primary school teacher", "elementary teacher", "year 3 teacher"] },
+  { code: "35-3023", title: "Fast Food and Counter Workers", keywords: ["barista", "counter staff", "crew member"] },
+  { code: "29-2061", title: "Licensed Practical and Licensed Vocational Nurses", keywords: ["lpn", "lvn", "practical nurse"] },
+  { code: "31-1131", title: "Nursing Assistants", keywords: ["care assistant", "healthcare assistant", "nursing assistant", "hca"] },
   { code: "11-9199", title: "Managers, All Other", keywords: ["manager", "director", "head of", "lead"] },
 ];
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]+/g, " ");
 
 // Words in a role title that say "this person is not the manager of the
-// function". Several managerial occupations carry a bare domain keyword
-// ("marketing", "operations", "administrative"), so without this a Marketing
-// Coordinator matched Marketing Managers — and got benchmarked, and told their
-// exposure, against a job two levels above the one they actually hold.
+// function". Several managerial titles contain a bare domain word, so without
+// this a Marketing Coordinator matched Marketing Managers, and was told its
+// exposure under a job title two levels above the one they hold.
 const JUNIOR_TITLE = /\b(coordinator|assistant|associate|intern|junior|jr|trainee|apprentice|clerk|aide|technician|specialist|analyst|representative|rep|agent|officer|administrator|support|entry level)\b/;
 const SENIOR_TITLE = /\b(manager|director|head|chief|vp|vice president|principal|partner|owner|founder|president|lead|supervisor)\b/;
 const isManagerial = (occ: Occupation) => /\bmanagers?\b|chief executives/i.test(occ.title);
 
-function scoreOccupation(occ: Occupation, hayRole: string, hayText: string): number {
+// Title words that say nothing about WHICH occupation this is.
+const STOP = new Set(["and", "or", "of", "the", "all", "other", "workers", "except", "for", "in", "a", "an", "to", "with"]);
+
+// O*NET titles are plural ("Electricians", "Welders", "Dental Hygienists");
+// people write their own job in the singular. Without this, "Welder" matched
+// nothing at all and "Dental Hygienist" matched Dental Assistants.
+const stem = (w: string) =>
+  w.length > 4 && w.endsWith("ies") ? w.slice(0, -3) + "y"
+  : w.length > 3 && w.endsWith("ses") ? w.slice(0, -2)
+  : w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1)
+  : w;
+
+const tokens = (s: string) => norm(s).split(" ").filter((w) => w.length > 2 && !STOP.has(w)).map(stem);
+
+// Every occupation we can actually benchmark: one that has a real O*NET title
+// AND a computed exposure figure. Built once, at module load.
+//
+// This closes a gap that made most of the analysis a guess. exposureData holds
+// ~800 occupations; the hand-written alias list reached about forty. Everyone
+// else fell through to the model inventing an occupation exposure, shown in the
+// same row, with the same authority, as a computed one. Matching against the
+// full title index means a shift supervisor, a welder or a dental hygienist
+// gets the real number instead.
+type Indexed = { occ: Occupation; toks: string[] };
+const INDEX: Indexed[] = (() => {
+  const out: Indexed[] = [];
+  for (const [code, meta] of Object.entries(OCC_SKILLS)) {
+    const title = (meta as { title?: string })?.title;
+    if (!title || typeof EXPOSURE_DATA[code] !== "number") continue;
+    out.push({ occ: { code, title, keywords: [] }, toks: tokens(title) });
+  }
+  return out;
+})();
+
+// Inverse document frequency, so "hospice" or "welder" outweighs "manager".
+const IDF: Record<string, number> = (() => {
+  const df: Record<string, number> = {};
+  for (const { toks } of INDEX) for (const t of new Set(toks)) df[t] = (df[t] || 0) + 1;
+  const n = Math.max(1, INDEX.length);
+  const out: Record<string, number> = {};
+  for (const [t, c] of Object.entries(df)) out[t] = Math.log(n / (1 + c));
+  return out;
+})();
+
+function titleScore(entry: Indexed, roleToks: Set<string>, hayText: string): number {
+  if (!entry.toks.length) return 0;
+  let hit = 0;
+  let total = 0;
+  for (const t of new Set(entry.toks)) {
+    const w = IDF[t] ?? 1;
+    total += w;
+    if (roleToks.has(t)) hit += w;
+    else if (hayText.includes(" " + t)) hit += w * 0.15; // weak echo from the body
+  }
+  if (!total) return 0;
+  // Both halves matter. Coverage alone lets a short residual title ("Engineers,
+  // All Other") score a perfect 1.0 off one word, while "Welder" matching one
+  // distinctive word of four ("Welders, Cutters, Solderers, and Brazers")
+  // scores 0.25 and falls under the bar. So: coverage, plus the absolute weight
+  // of what actually matched.
+  const score = (hit / total) * 6 + hit * 1.2;
+  // "All Other" occupations are SOC's residual buckets. They should lose to a
+  // named occupation whenever there is one.
+  return /\ball other\b/i.test(entry.occ.title) ? score * 0.6 : score;
+}
+
+function aliasScore(occ: Occupation, hayRole: string, hayText: string): number {
   let score = 0;
   for (const kw of occ.keywords) {
     const k = norm(kw);
     if (hayRole.includes(k)) score += 5 + k.length / 10; // role title match weighs most
     else if (hayText.includes(k)) score += 1;
-  }
-  // light bonus for title-word overlap
-  for (const w of norm(occ.title).split(" ")) {
-    if (w.length > 3 && hayRole.includes(w)) score += 1.5;
   }
   return score;
 }
@@ -98,19 +172,39 @@ function scoreOccupation(occ: Occupation, hayRole: string, hayText: string): num
 // Match a free-text role (+ optional body text) to the nearest SOC occupation.
 export function matchOccupation(role: string, text = ""): Occupation | null {
   const hayRole = norm(role);
-  const hayText = norm(text).slice(0, 2000);
+  const hayText = " " + norm(text).slice(0, 2000);
+  const roleToks = new Set(tokens(role));
 
-  const ranked = OCCUPATIONS
-    .map((occ) => ({ occ, score: scoreOccupation(occ, hayRole, hayText) }))
+  const scores = new Map<string, { occ: Occupation; score: number }>();
+  for (const entry of INDEX) {
+    const sc = titleScore(entry, roleToks, hayText);
+    if (sc > 0) scores.set(entry.occ.code, { occ: entry.occ, score: sc });
+  }
+
+  // An alias hit on the ROLE TITLE is the strongest signal available: a person
+  // wrote that mapping deliberately. It decides the answer rather than
+  // competing with fuzzy title overlap, which otherwise sends "Hospice Nurse"
+  // to Nurse Practitioners and "Software Engineer" to QA Testers. Aliases seen
+  // only in the body text stay a weak nudge.
+  const titleAliases = ALIASES.filter((a) => a.keywords.some((k) => hayRole.includes(norm(k))));
+  const pool = titleAliases.length ? titleAliases : ALIASES;
+  for (const a of pool) {
+    const sc = aliasScore(a, hayRole, hayText);
+    if (sc <= 0) continue;
+    const prev = scores.get(a.code);
+    scores.set(a.code, { occ: prev?.occ ?? a, score: (prev?.score ?? 0) + sc });
+  }
+
+  const allowed = titleAliases.length ? new Set(titleAliases.map((a) => a.code)) : null;
+  const ranked = [...scores.values()]
+    .filter((r) => !allowed || allowed.has(r.occ.code))
     .sort((a, b) => b.score - a.score);
-
   const top = ranked[0];
   if (!top || top.score < 3) return null;
 
-  // A junior title that says nothing managerial shouldn't be benchmarked against
-  // a managers' occupation. Fall to the best non-managerial match that still
-  // clears the bar; if there isn't one, keep the manager rather than lose the
-  // benchmark entirely.
+  // A junior title with nothing managerial in it shouldn't be benchmarked
+  // against a managers' occupation. If there is no non-managerial alternative,
+  // decline rather than quote a number from a job they do not hold.
   const juniorRole = JUNIOR_TITLE.test(hayRole) && !SENIOR_TITLE.test(hayRole);
   if (juniorRole && isManagerial(top.occ)) {
     return ranked.find((r) => !isManagerial(r.occ) && r.score >= 3)?.occ ?? null;
@@ -121,7 +215,6 @@ export function matchOccupation(role: string, text = ""): Occupation | null {
 // Exposure table — SOC code → exposure % (0–100). Populated by generating your
 // OWN table from public O*NET tasks + the Eloundou rubric (see lib/exposureData.ts
 // and scripts/build-exposure.mjs). Empty here until you generate it.
-import { EXPOSURE_DATA } from "./exposureData";
 export const EXPOSURE_INDEX: Record<string, number> = { ...EXPOSURE_DATA };
 
 export function occupationExposure(code?: string): number | null {
