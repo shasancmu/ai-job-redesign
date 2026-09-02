@@ -20,7 +20,7 @@ export type Occupation = { code: string; title: string; keywords: string[] };
 // A focused set of common professional occupations (SOC 2018). Extend freely.
 export const OCCUPATIONS: Occupation[] = [
   { code: "11-1021", title: "General and Operations Managers", keywords: ["operations", "general manager", "gm", "operations manager", "coo"] },
-  { code: "11-2021", title: "Marketing Managers", keywords: ["marketing manager", "marketing", "brand", "demand generation", "growth marketing"] },
+  { code: "11-2021", title: "Marketing Managers", keywords: ["marketing manager", "head of marketing", "brand manager", "demand generation", "growth marketing"] },
   { code: "11-2011", title: "Advertising and Promotions Managers", keywords: ["advertising", "promotions", "campaign manager", "media"] },
   { code: "11-3021", title: "Computer and Information Systems Managers", keywords: ["it manager", "engineering manager", "information systems", "cto", "vp engineering"] },
   { code: "11-3031", title: "Financial Managers", keywords: ["finance manager", "financial manager", "controller", "treasury", "fp&a"] },
@@ -28,7 +28,7 @@ export const OCCUPATIONS: Occupation[] = [
   { code: "11-2032", title: "Public Relations Managers", keywords: ["public relations", "pr manager", "communications manager", "comms"] },
   { code: "11-3012", title: "Administrative Services Managers", keywords: ["administrative", "office manager", "facilities"] },
   { code: "13-1111", title: "Management Analysts", keywords: ["management consultant", "consultant", "strategy", "management analyst", "business analyst"] },
-  { code: "13-1161", title: "Market Research Analysts and Marketing Specialists", keywords: ["market research", "marketing specialist", "insights", "research analyst"] },
+  { code: "13-1161", title: "Market Research Analysts and Marketing Specialists", keywords: ["market research", "marketing specialist", "marketing coordinator", "marketing associate", "marketing assistant", "insights", "research analyst", "content marketing", "social media"] },
   { code: "13-1082", title: "Project Management Specialists", keywords: ["project manager", "program manager", "pmo", "project management", "scrum"] },
   { code: "13-2011", title: "Accountants and Auditors", keywords: ["accountant", "auditor", "accounting", "audit", "cpa"] },
   { code: "13-2051", title: "Financial and Investment Analysts", keywords: ["financial analyst", "investment analyst", "equity research", "investment", "valuation"] },
@@ -58,34 +58,64 @@ export const OCCUPATIONS: Occupation[] = [
   { code: "11-9021", title: "Construction Managers", keywords: ["construction manager", "site manager"] },
   { code: "17-2112", title: "Industrial Engineers", keywords: ["industrial engineer", "operations engineer", "process engineer"] },
   { code: "13-1199", title: "Business Operations Specialists", keywords: ["business operations", "biz ops", "operations specialist", "revenue operations", "revops"] },
+  // Frontline supervision and support — high-headcount occupations that were
+  // unreachable before, so a shift supervisor or an admin assistant got no
+  // benchmark at all.
+  { code: "51-1011", title: "First-Line Supervisors of Production and Operating Workers", keywords: ["shift supervisor", "production supervisor", "line supervisor", "shift lead", "floor supervisor", "warehouse supervisor", "distribution centre", "distribution center"] },
+  { code: "43-1011", title: "First-Line Supervisors of Office and Administrative Support Workers", keywords: ["office supervisor", "admin supervisor", "administrative supervisor", "back office lead"] },
+  { code: "41-1011", title: "First-Line Supervisors of Retail Sales Workers", keywords: ["retail supervisor", "store supervisor", "shift manager retail", "duty manager"] },
+  { code: "43-6014", title: "Secretaries and Administrative Assistants", keywords: ["administrative assistant", "executive assistant", "office assistant", "admin assistant", "secretary", "operations assistant"] },
+  { code: "43-4051", title: "Customer Service Representatives", keywords: ["customer service", "customer support", "support representative", "call centre", "call center", "help desk"] },
+  { code: "53-7062", title: "Laborers and Freight, Stock, and Material Movers", keywords: ["warehouse associate", "picker", "packer", "material handler", "stock associate"] },
   { code: "11-9199", title: "Managers, All Other", keywords: ["manager", "director", "head of", "lead"] },
 ];
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]+/g, " ");
 
+// Words in a role title that say "this person is not the manager of the
+// function". Several managerial occupations carry a bare domain keyword
+// ("marketing", "operations", "administrative"), so without this a Marketing
+// Coordinator matched Marketing Managers — and got benchmarked, and told their
+// exposure, against a job two levels above the one they actually hold.
+const JUNIOR_TITLE = /\b(coordinator|assistant|associate|intern|junior|jr|trainee|apprentice|clerk|aide|technician|specialist|analyst|representative|rep|agent|officer|administrator|support|entry level)\b/;
+const SENIOR_TITLE = /\b(manager|director|head|chief|vp|vice president|principal|partner|owner|founder|president|lead|supervisor)\b/;
+const isManagerial = (occ: Occupation) => /\bmanagers?\b|chief executives/i.test(occ.title);
+
+function scoreOccupation(occ: Occupation, hayRole: string, hayText: string): number {
+  let score = 0;
+  for (const kw of occ.keywords) {
+    const k = norm(kw);
+    if (hayRole.includes(k)) score += 5 + k.length / 10; // role title match weighs most
+    else if (hayText.includes(k)) score += 1;
+  }
+  // light bonus for title-word overlap
+  for (const w of norm(occ.title).split(" ")) {
+    if (w.length > 3 && hayRole.includes(w)) score += 1.5;
+  }
+  return score;
+}
+
 // Match a free-text role (+ optional body text) to the nearest SOC occupation.
 export function matchOccupation(role: string, text = ""): Occupation | null {
   const hayRole = norm(role);
   const hayText = norm(text).slice(0, 2000);
-  let best: Occupation | null = null;
-  let bestScore = 0;
-  for (const occ of OCCUPATIONS) {
-    let score = 0;
-    for (const kw of occ.keywords) {
-      const k = norm(kw);
-      if (hayRole.includes(k)) score += 5 + k.length / 10; // role title match weighs most
-      else if (hayText.includes(k)) score += 1;
-    }
-    // light bonus for title-word overlap
-    for (const w of norm(occ.title).split(" ")) {
-      if (w.length > 3 && hayRole.includes(w)) score += 1.5;
-    }
-    if (score > bestScore) {
-      bestScore = score;
-      best = occ;
-    }
+
+  const ranked = OCCUPATIONS
+    .map((occ) => ({ occ, score: scoreOccupation(occ, hayRole, hayText) }))
+    .sort((a, b) => b.score - a.score);
+
+  const top = ranked[0];
+  if (!top || top.score < 3) return null;
+
+  // A junior title that says nothing managerial shouldn't be benchmarked against
+  // a managers' occupation. Fall to the best non-managerial match that still
+  // clears the bar; if there isn't one, keep the manager rather than lose the
+  // benchmark entirely.
+  const juniorRole = JUNIOR_TITLE.test(hayRole) && !SENIOR_TITLE.test(hayRole);
+  if (juniorRole && isManagerial(top.occ)) {
+    return ranked.find((r) => !isManagerial(r.occ) && r.score >= 3)?.occ ?? null;
   }
-  return bestScore >= 3 ? best : null;
+  return top.occ;
 }
 
 // Exposure table — SOC code → exposure % (0–100). Populated by generating your

@@ -40,7 +40,7 @@ export default function CareerXrayView({ xray, mode = "resume", code, embedded =
         <div className="card p-6">
           <Bar
             label={`Top-down · ${xray.occupation || "occupation"}${xray.occupationCode ? ` (SOC ${xray.occupationCode})` : ""}`}
-            sub={xray.topDownSource === "published" ? "published occupation exposure (Eloundou et al.)" : "occupation estimate, rubric-based"}
+            sub={xray.topDownSource === "published" ? "O*NET tasks scored with the Eloundou rubric" : "no O*NET match — AI's estimate for this occupation"}
             value={xray.topDownExposure}
             color={GOLD}
           />
@@ -164,7 +164,11 @@ export default function CareerXrayView({ xray, mode = "resume", code, embedded =
               <li key={c.authors}><span className="font-semibold text-ink">{c.authors}</span>, <span className="italic">{c.work}</span>: {c.used}</li>
             ))}
           </ul>
-          <p className="mt-2 text-xs text-slate-400">Occupation exposure is a rubric-based estimate (Eloundou et al.) over O*NET-style tasks; treat it as a benchmark, not a verdict.</p>
+          <p className="mt-2 text-xs text-slate-400">
+            The occupation figure is computed here by applying the Eloundou et al. (2023) E0/E1/E2 rubric to
+            public O*NET task statements — not a number published by those authors. Treat it as a benchmark,
+            not a verdict.
+          </p>
         </div>
       </section>
 
