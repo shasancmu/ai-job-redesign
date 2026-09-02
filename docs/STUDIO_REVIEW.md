@@ -242,11 +242,20 @@ module of **every** authorable format against the live model and asserts on what
 comes back — no browser, auth, or deploy:
 
 ```
-npm run smoke                        # all 8 formats, in parallel, ~2 minutes
-npm run smoke -- --only=roleplay     # just one
-npm run smoke -- --json              # for CI
-npm run smoke -- --list              # what it covers
+npm run smoke                          # coverage check + all 8 formats, ~2 minutes
+npm run smoke -- --only=occupations    # offline, instant, needs no API key
+npm run smoke -- --only=roleplay       # just one format
+npm run smoke -- --json                # for CI
+npm run smoke -- --list                # what it covers
 ```
+
+The suite opens with an **occupation-coverage check**: offline, one second, no API
+key. It exists because the Career X-ray can only use a computed exposure figure
+for an occupation it can match from a free-text job title — and when matching
+reached forty of ~800, everyone else silently got a model-invented number
+displayed as though it were computed. It enumerates the whole universe rather
+than sampling, because an 18-role hand-check passed while a third of the
+occupations were mismatched.
 
 It reads each format's prompts out of its own route rather than copying them, so
 a prompt change is exercised rather than missed — and it exits 2 if it can't find

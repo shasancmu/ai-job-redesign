@@ -14,6 +14,7 @@
 // exercised rather than missed. No browser, no auth, no deploy.
 //
 //   node scripts/smoke-modules.mjs                (all formats; reads .env.local)
+//     [--only=occupations]        just the offline coverage check (no API key)
 //     [--only=roleplay,benchmark]   just these
 //     [--list]                      show the formats and exit
 //     [--json]                      machine-readable, for CI
@@ -21,7 +22,11 @@
 // Formats run in parallel; each takes one to two minutes. Exits non-zero if any
 // check a real author would notice fails.
 // ============================================================================
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, rmSync, mkdtempSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const args = process.argv.slice(2);
 const asJson = args.includes("--json");
@@ -57,6 +62,120 @@ function literal(file, name) {
 function prompts(routeFile) {
   const schema = literal(routeFile, "SCHEMA");
   return literal(routeFile, "SYSTEM").replace("${SCHEMA}", schema);
+}
+
+
+// ---------------------------------------------------------------------------
+// Occupation coverage — offline, instant, and the check that actually found the
+// bugs. lib/exposureData.ts carries a computed AI-exposure figure for ~800
+// occupations; the X-ray can only use one it can MATCH from a free-text job
+// title. When matching reached forty of them, everyone else silently got a
+// model-invented number displayed as if it were computed.
+//
+// Two spot-checks are not enough here: an 18-role sample passed while a third
+// of the universe was mismatched, because aliases matched by substring
+// ("underwriters" contains "writer") and the residual "Managers, All Other"
+// bucket swallowed every named manager. Only enumerating the whole universe
+// caught it. So this does both — the universe, and named roles that must land
+// on a specific SOC code.
+// ---------------------------------------------------------------------------
+
+// Roles a person would actually type, and the occupation each must resolve to.
+const ROLE_EXPECTATIONS = [
+  ["Marketing Coordinator", "13-1161"], ["Marketing Manager", "11-2021"],
+  ["Shift Supervisor", "51-1011"], ["Hospice Nurse", "29-1141"],
+  ["Welder", "51-4121"], ["Dental Hygienist", "29-1292"],
+  ["Paralegal", "23-2011"], ["High School Teacher", "25-2031"],
+  ["Electrician", "47-2111"], ["Data Scientist", "15-2051"],
+  ["Executive Assistant", "43-6011"], ["Customer Support Rep", "43-4051"],
+  ["Barista", "35-3023"],
+  // BLS folds CFOs into Chief Executives (11-1011); Financial Managers
+  // (11-3031) is the tier below the C-suite. The matcher is right here — the
+  // expectation in an earlier hand-check was wrong, and only looked correct
+  // because that check fed body text that nudged it.
+  ["Chief Financial Officer", "11-1011"],
+  ["Software Engineer", "15-1252"],
+];
+const MIN_SELF_RETRIEVAL = 0.9; // 93.4% at time of writing
+
+// Compile lib/onet.ts and import it, so this tests the shipping matcher rather
+// than a copy of it that can drift.
+async function loadMatcher() {
+  const out = mkdtempSync(join(tmpdir(), "smoke-onet-"));
+  try {
+    execFileSync(process.execPath, [
+      "node_modules/typescript/bin/tsc", "lib/onet.ts",
+      "--outDir", out, "--module", "es2020", "--target", "es2020",
+      "--moduleResolution", "node", "--skipLibCheck",
+    ], { stdio: "pipe" });
+    // tsc emits extensionless relative imports; Node's ESM loader needs them.
+    for (const f of ["onet.js"]) {
+      const p = join(out, f);
+      writeFileSync(p, readFileSync(p, "utf8").replace(/from "\.\/([A-Za-z]+)"/g, 'from "./$1.js"'));
+    }
+    const onet = await import(pathToFileURL(join(out, "onet.js")).href);
+    const skills = await import(pathToFileURL(join(out, "onetSkills.js")).href);
+    const exposure = await import(pathToFileURL(join(out, "exposureData.js")).href);
+    return { onet, skills, exposure, cleanup: () => rmSync(out, { recursive: true, force: true }) };
+  } catch (e) {
+    rmSync(out, { recursive: true, force: true });
+    throw e;
+  }
+}
+
+async function runOccupationCoverage() {
+  const t0 = Date.now();
+  let loaded;
+  try {
+    loaded = await loadMatcher();
+  } catch (e) {
+    return { id: "occupations", label: "Occupation coverage", seconds: 0, name: null,
+      checks: [{ name: "matcher compiles", ok: false, detail: String(e?.message || e).slice(0, 120) }] };
+  }
+  const { onet, skills, exposure, cleanup } = loaded;
+  try {
+    const universe = Object.entries(skills.OCC_SKILLS)
+      .filter(([code, m]) => m?.title && typeof exposure.EXPOSURE_DATA[code] === "number")
+      .map(([code, m]) => ({ code, title: m.title }));
+
+    let exact = 0;
+    const strays = [];
+    for (const o of universe) {
+      const m = onet.matchOccupation(o.title, "");
+      if (m?.code === o.code) exact++;
+      else if (!m) strays.push(`${o.title} → (none)`);
+    }
+    const rate = universe.length ? exact / universe.length : 0;
+
+    const wrong = [];
+    for (const [role, code] of ROLE_EXPECTATIONS) {
+      const m = onet.matchOccupation(role, "");
+      if (m?.code !== code) wrong.push(`${role} → ${m ? m.code + " " + m.title : "(none)"}, wanted ${code}`);
+    }
+
+    // A benchmark is only usable if the matched occupation has a figure.
+    let missingFigure = 0;
+    for (const [role] of ROLE_EXPECTATIONS) {
+      const m = onet.matchOccupation(role, "");
+      if (m && onet.occupationExposure(m.code) == null) missingFigure++;
+    }
+
+    return {
+      id: "occupations", label: "Occupation coverage",
+      seconds: Math.round((Date.now() - t0) / 1000), name: `${universe.length} occupations`,
+      checks: [
+        ["matcher compiles and loads", true, ""],
+        ["every occupation with a figure is reachable", universe.length >= 700, `${universe.length} in the index`],
+        [`self-retrieval at or above ${Math.round(MIN_SELF_RETRIEVAL * 100)}%`, rate >= MIN_SELF_RETRIEVAL,
+          `${exact}/${universe.length} (${(rate * 100).toFixed(1)}%)`],
+        ["no occupation is unreachable entirely", strays.length === 0, strays.slice(0, 2).join("; ")],
+        ["common job titles map to the right occupation", wrong.length === 0, wrong.slice(0, 2).join("; ")],
+        ["every matched occupation has an exposure figure", missingFigure === 0, `${missingFigure} missing`],
+      ].map(([name, ok, detail]) => ({ name, ok: !!ok, detail: detail == null ? "" : String(detail).slice(0, 110) })),
+    };
+  } finally {
+    cleanup();
+  }
 }
 
 // ---- the formats, and what "usable" means for each -------------------------
@@ -211,10 +330,10 @@ const FORMATS = [
 ];
 
 if (args.includes("--list")) {
+  console.log(`  ${"occupations".padEnd(12)} Occupation coverage  (offline, no API key)`);
   for (const f of FORMATS) console.log(`  ${f.id.padEnd(12)} ${f.label}${f.staged ? "  (two-pass)" : ""}`);
   process.exit(0);
 }
-if (!AI_KEY) { console.error("Set AI_API_KEY (or put it in .env.local)."); process.exit(1); }
 
 // ---- one completion --------------------------------------------------------
 async function complete(system, user, maxTokens = 16000) {
@@ -277,10 +396,17 @@ async function run(fmt) {
 
 // ---- go --------------------------------------------------------------------
 const chosen = only.length ? FORMATS.filter((f) => only.includes(f.id)) : FORMATS;
-if (!chosen.length) { console.error(`No formats matched --only. Try --list.`); process.exit(1); }
-if (!asJson) console.log(`\n  Building ${chosen.length} module${chosen.length === 1 ? "" : "s"} against ${MODEL}. One to two minutes.\n`);
+const wantCoverage = !only.length || only.includes("occupations");
+if (!chosen.length && !wantCoverage) { console.error(`Nothing matched --only. Try --list.`); process.exit(1); }
+// The coverage check is offline and instant, so it never needs a key — and it
+// runs first, because a broken matcher is cheaper to find than a slow one.
+if (chosen.length && !AI_KEY) { console.error("Set AI_API_KEY (or put it in .env.local)."); process.exit(1); }
+if (!asJson && chosen.length) console.log(`\n  Building ${chosen.length} module${chosen.length === 1 ? "" : "s"} against ${MODEL}. One to two minutes.\n`);
 
-const reports = await Promise.all(chosen.map(run));
+const reports = [
+  ...(wantCoverage ? [await runOccupationCoverage()] : []),
+  ...(await Promise.all(chosen.map(run))),
+];
 const failed = reports.filter((r) => r.checks.some((c) => !c.ok));
 
 if (asJson) {
@@ -293,7 +419,7 @@ if (asJson) {
   }
   const total = reports.reduce((n, r) => n + r.checks.length, 0);
   console.log(failed.length
-    ? `\n  ${failed.length} of ${reports.length} formats failed\n`
-    : `\n  all ${reports.length} formats passed (${total} checks)\n`);
+    ? `\n  ${failed.length} of ${reports.length} failed\n`
+    : `\n  all ${reports.length} passed (${total} checks)\n`);
 }
 process.exit(failed.length ? 1 : 0);
