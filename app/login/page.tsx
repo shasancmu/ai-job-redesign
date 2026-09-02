@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
+import ClassCodeEntry from "@/components/ClassCodeEntry";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { titleCaseName } from "@/lib/name";
@@ -107,7 +108,7 @@ function LoginInner() {
       return;
     }
     setCodeSent(true);
-    setMsg(`We sent a 6-digit code to ${email}.`);
+    setMsg(`We sent a 6-digit sign-in code to ${email}.`);
   }
 
   async function verifyCode(e: React.FormEvent) {
@@ -189,7 +190,7 @@ function LoginInner() {
             {busy ? "Working…" : creating ? "Create account" : "Sign in"}
           </button>
           <button type="button" onClick={() => { reset(); setAuthMode("code"); }} className="w-full text-center text-sm text-slate-500 hover:text-ink">
-            Prefer no password? Email me a 6-digit code
+            Prefer no password? Email me a sign-in code
           </button>
         </form>
       ) : !codeSent ? (
@@ -201,7 +202,7 @@ function LoginInner() {
             </label>
           )}
           <Alert err={err} msg={msg} />
-          <button className="btn-primary w-full" disabled={busy || needConsent}>{busy ? "Sending…" : "Email me a code"}</button>
+          <button className="btn-primary w-full" disabled={busy || needConsent}>{busy ? "Sending…" : "Email me a sign-in code"}</button>
           <button type="button" onClick={() => { reset(); setAuthMode("password"); }} className="w-full text-center text-sm text-slate-500 hover:text-ink">
             Use a password instead
           </button>
@@ -209,7 +210,7 @@ function LoginInner() {
       ) : (
         <form onSubmit={verifyCode} className="space-y-4">
           <div>
-            <label className="lbl" htmlFor="code">6-digit code</label>
+            <label className="lbl" htmlFor="code">6-digit sign-in code</label>
             <input
               id="code"
               className="field text-center text-lg tracking-[0.5em]"
@@ -243,6 +244,12 @@ function LoginInner() {
       >
         {creating ? "Already have an account? Sign in" : "New here? Create an account"}
       </button>
+
+      {/* A class code is not the sign-in code above — give it its own door. */}
+      <div className="mt-8 w-full border-t border-line pt-5">
+        <p className="mb-2 text-sm text-slate2">Joining a class or workshop? Enter its code.</p>
+        <ClassCodeEntry />
+      </div>
     </main>
   );
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizeCode } from "@/lib/classes";
@@ -22,7 +22,10 @@ export default async function CodeOrOrgPage({ params }: { params: { code: string
   if (org) return <OrgLandingView org={org} />;
 
   const code = normalizeCode(params.code);
-  if (!code) redirect("/");
+  // This route is the root-level catch-all, so an unknown segment is either a
+  // mistyped class code or a dead link. Either way it deserves an explanation,
+  // not a silent bounce to the marketing homepage.
+  if (!code) notFound();
 
   // Read the class regardless of auth (so a signed-out visitor sees its name).
   let klass: any = null;
@@ -37,7 +40,7 @@ export default async function CodeOrOrgPage({ params }: { params: { code: string
   } catch {
     /* service role not set */
   }
-  if (!klass) redirect("/");
+  if (!klass) notFound();
 
   const supabase = createClient();
   const {

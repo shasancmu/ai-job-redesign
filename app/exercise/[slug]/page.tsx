@@ -11,6 +11,7 @@ import {
   PARTNER_META,
   moduleBySlug,
   moduleCategory,
+  moduleNeeds,
   modulePills,
   pillLabel,
 } from "@/lib/modules";
@@ -47,6 +48,7 @@ export default function ExercisePage({ params }: { params: { slug: string } }) {
   const cat = CATEGORIES.find((c) => c.key === moduleCategory(m.slug));
   const partner = PARTNER_META[m.partner];
   const pills = modulePills(m.slug);
+  const needs = moduleNeeds(m.slug);
   // The same teaching cards the room shows on first entry — but here, where
   // someone is still deciding whether to spend 20 minutes on it.
   const steps = getModuleIntro(m).steps;
@@ -92,6 +94,12 @@ export default function ExercisePage({ params }: { params: { slug: string } }) {
             </span>
           ))}
         </div>
+
+        {needs && (
+          <p className="mt-5 rounded-lg bg-mist px-3 py-2 text-sm text-slate2">
+            <span className="font-semibold text-ink">What you&apos;ll need:</span> {needs}
+          </p>
+        )}
 
         <div className="mt-7 flex flex-wrap items-center gap-4">
           {cohortOnly ? (

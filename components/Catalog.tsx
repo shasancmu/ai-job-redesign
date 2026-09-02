@@ -5,9 +5,10 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { MODULES, PARTNER_META, CATEGORIES, moduleCategory, formatPrice, modulePills, pillLabel, moduleMatches, hasActiveFilters, byCatalogOrder } from "@/lib/modules";
+import { MODULES, PARTNER_META, CATEGORIES, moduleCategory, formatPrice, modulePills, pillLabel, moduleMatches, hasActiveFilters, byCatalogOrder, moduleNeeds } from "@/lib/modules";
 import ModuleIcon from "@/components/ModuleIcon";
 import ModuleFilters from "@/components/ModuleFilters";
+import { useModuleFilters } from "@/components/useModuleFilters";
 import FeatureBadges from "@/components/FeatureBadges";
 import { useT } from "@/components/I18nProvider";
 
@@ -97,18 +98,11 @@ export default function Catalog({
       openerRef.current?.focus?.();
     };
   }, [detail]);
-  const [query, setQuery] = useState("");
-  const [activePills, setActivePills] = useState<Set<string>>(new Set());
-  const [activeFeatures, setActiveFeatures] = useState<Set<string>>(new Set());
-  const toggleIn = (set: (fn: (s: Set<string>) => Set<string>) => void) => (k: string) =>
-    set((s) => {
-      const n = new Set(s);
-      n.has(k) ? n.delete(k) : n.add(k);
-      return n;
-    });
-  const togglePill = toggleIn(setActivePills);
-  const toggleFeature = toggleIn(setActiveFeatures);
-  const clearFilters = () => { setQuery(""); setActivePills(new Set()); setActiveFeatures(new Set()); };
+  const {
+    query, setQuery,
+    topics: activePills, features: activeFeatures,
+    togglePill, toggleFeature, clearFilters,
+  } = useModuleFilters();
   const shown = moduleSlugs
     ? (moduleSlugs.map((s) => MODULES.find((m) => m.slug === s)).filter(Boolean) as typeof MODULES)
     : MODULES.filter((m) => !m.hidden);
@@ -370,6 +364,12 @@ export default function Catalog({
               </div>
 
               <p className="mt-4 text-sm leading-relaxed text-slate-600">{m.description}</p>
+
+              {moduleNeeds(m.slug) && (
+                <p className="mt-4 rounded-lg bg-mist px-3 py-2 text-sm text-slate-600">
+                  <span className="font-semibold text-ink">What you&apos;ll need:</span> {moduleNeeds(m.slug)}
+                </p>
+              )}
 
               {modulePills(m.slug).length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-1.5">

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useModuleFilters } from "@/components/useModuleFilters";
 import {
   MODULES,
   PARTNER_META,
@@ -23,18 +23,11 @@ import FeatureBadges from "@/components/FeatureBadges";
 const VISIBLE = MODULES.filter((m) => !m.hidden);
 
 export default function LandingLibrary() {
-  const [query, setQuery] = useState("");
-  const [activePills, setActivePills] = useState<Set<string>>(new Set());
-  const [activeFeatures, setActiveFeatures] = useState<Set<string>>(new Set());
-  const toggleIn = (set: (fn: (s: Set<string>) => Set<string>) => void) => (k: string) =>
-    set((s) => {
-      const n = new Set(s);
-      n.has(k) ? n.delete(k) : n.add(k);
-      return n;
-    });
-  const togglePill = toggleIn(setActivePills);
-  const toggleFeature = toggleIn(setActiveFeatures);
-  const clearFilters = () => { setQuery(""); setActivePills(new Set()); setActiveFeatures(new Set()); };
+  const {
+    query, setQuery,
+    topics: activePills, features: activeFeatures,
+    togglePill, toggleFeature, clearFilters,
+  } = useModuleFilters();
 
   const grid = "mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3";
 

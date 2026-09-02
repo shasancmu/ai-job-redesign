@@ -1553,6 +1553,36 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "ai-language": "foundations",
   "ai-scale": "foundations",
 };
+// What to have ready before starting. Only for exercises that genuinely need a
+// document or artefact in hand — arriving without one wastes the session. Taken
+// from each module's own description, never guessed: a module with nothing
+// listed here simply renders no line, which is the honest default for the many
+// exercises that start from "a situation you're already working on".
+const NEEDS_OF: Record<string, string> = {
+  "career-x-ray": "Your résumé, ready to paste",
+  "career-roadmap": "Your résumé, ready to paste (or reused from an earlier exercise)",
+  "refresh-resume": "Your current résumé or LinkedIn profile, ready to paste",
+  "refresh-resume-voice": "Your current résumé or LinkedIn profile, ready to paste",
+  "jd-x-ray": "A job description, ready to paste",
+  "understand-a-paper": "A paper to work from (or use the built-in example)",
+  "score-my-invention": "An abstract, ready to paste",
+  "licensing-brief": "An invention's abstract or disclosure, ready to paste",
+  "defense-impact": "An abstract, ready to paste",
+  "impact-optimizer": "An abstract, ready to paste",
+  "explain-ai": "An abstract, ready to paste",
+  "position-my-research": "An abstract, ready to paste",
+  "rank-disclosures": "Several disclosures or abstracts, separated by a line of ---",
+  "diligence-the-science": "A startup's claimed technology, ready to paste (the team, optionally)",
+  "technology-landscape": "The name of a technology or field to scan",
+  "business-consult": "A business you know well, and a phone to photograph the operation",
+};
+
+// The line to show as "what you'll need", or null when the exercise starts from
+// something the person already has in their head.
+export function moduleNeeds(slug: string): string | null {
+  return NEEDS_OF[slug] || null;
+}
+
 export function moduleCategory(slug: string): CategoryKey {
   return CATEGORY_OF[slug] || "strategy";
 }

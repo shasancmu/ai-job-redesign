@@ -5,6 +5,7 @@ import Logo from "@/components/Logo";
 import HeroVisual from "@/components/HeroVisual";
 import LandingLibrary from "@/components/LandingLibrary";
 import ShareApp from "@/components/ShareApp";
+import ClassCodeEntry from "@/components/ClassCodeEntry";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import HomeStory from "@/components/HomeStory";
@@ -103,6 +104,11 @@ export default async function Home() {
               <Link href="/login?mode=signup" className="btn-primary">
                 Sign up free <span aria-hidden>→</span>
               </Link>
+            </div>
+            {/* The only way into a class used to be a URL someone sent you. */}
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <span className="text-sm text-slate2">In a class or workshop?</span>
+              <ClassCodeEntry compact />
             </div>
             <div className="mt-4">
               <Link
