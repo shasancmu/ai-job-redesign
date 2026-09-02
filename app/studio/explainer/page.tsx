@@ -19,7 +19,10 @@ export default async function ExplainerStudio() {
       <header className="mb-6 flex items-center justify-between"><Logo href="/dashboard" /><div className="flex items-center gap-2"><Link href="/studio" className="text-sm text-slate2 hover:text-ink">← Studio</Link><HeaderNav /></div></header>
       <h1 className="text-3xl text-ink">Explainers</h1>
       <p className="mt-1 max-w-2xl text-slate2">A taught, guided walkthrough of a topic, section by section. The clearest way to hand learners a concept, built from your materials.</p>
-      <Link href="/studio/explainer/new" className="btn-primary mt-6 inline-block">+ New explainer</Link>
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <Link href="/studio/explainer/start" className="btn-primary inline-block">+ New explainer</Link>
+        <Link href="/studio/explainer/new" className="text-sm text-slate2 underline hover:text-ink">Or start from a blank one</Link>
+      </div>
       {(mine || []).length > 0 && (
         <div className="mt-8"><div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Your explainers</div><div className="mt-2 space-y-2">
           {(mine || []).map((m: any) => (<div key={m.slug} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-white p-3"><div><span className="font-semibold text-ink">{m.spec?.emoji || "📖"} {m.spec?.name || m.slug}</span><span className="ml-2 rounded-full bg-mist px-2 py-0.5 text-[11px] text-slate-500">{m.status}</span></div><div className="flex items-center gap-2"><Link href={`/studio/explainer/${m.slug}`} className="btn-ghost text-sm">Edit</Link><Link href={`/e/${m.slug}`} className="btn-ghost text-sm">Preview →</Link></div></div>))}

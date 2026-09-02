@@ -203,9 +203,9 @@ export default async function CreateGallery() {
         <section className="mt-8">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Explainer</div>
           <p className="mt-1 text-sm text-slate-500">A taught, guided walkthrough of a topic, section by section. The clearest way to hand learners a concept before the interactive work.</p>
-          <Link href="/studio/explainer/new" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
+          <Link href="/studio/explainer/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
             <div className="text-2xl">📖</div>
-            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Build an explainer</div><div className="text-xs text-slate-500">Or upload materials and the copilot structures the walkthrough.</div></div>
+            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div><div className="text-xs text-slate-500">Name the topic and who it&apos;s for; the copilot structures the walkthrough.</div></div>
             <span className="shrink-0 text-sm font-semibold text-ai">→</span>
           </Link>
         </section>

@@ -9,6 +9,12 @@
 
 \usepackage[margin=1in]{geometry}
 \usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{graphicx}      % \rotatebox for heatmap headers
+\usepackage{xcolor}        % named colors (teal) for map + heatmap
+\usepackage{colortbl}      % \cellcolor for the heatmap
+\usepackage{tikz}          % the schematic map
 \usepackage{enumitem}
 \usepackage{titlesec}
 \usepackage[hidelinks]{hyperref}
@@ -135,6 +141,8 @@ infrastructure (Section~\ref{sec:sovereignty}).
 
 Individually, these are research artifacts and products. Integrated and pointed
 at a single nation, they become an operating system for the innovation economy.
+Section~\ref{sec:demo} demonstrates the measurement layer running live on
+Kazakhstan's own research base.
 
 \section{The National Innovation Operating System}
 
@@ -292,6 +300,10 @@ infrastructure; data acquisition and integration; fieldwork for the enterprise
 census and workforce cohorts; and dissemination and capacity transfer to the
 partner institution. A detailed budget and justification are provided in the
 supplementary materials.
+
+% Live-data results: national map, institutional ranking, field heatmap, and the
+% sample deep-technology portfolio. Generated from the scientifiq.ai API.
+\input{kz-results}
 
 \begin{thebibliography}{9}
 \bibitem{masclans} Masclans, [Initials], Hasan, S., et al.
