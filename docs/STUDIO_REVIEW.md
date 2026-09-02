@@ -234,6 +234,29 @@ Items 6–9 change what the Studio *is*, and are also yours to call.
 
 ---
 
+## Running the smoke test
+
+Every failure in this flow surfaced only under a real two-minute generation, and
+each one had to be caught by hand in a browser. `scripts/smoke-roleplay.mjs`
+builds a role-play end to end against the live model and asserts on what comes
+back, with no browser, auth, or deploy:
+
+```
+npm run smoke:roleplay          # ~2 minutes, reads AI_API_KEY from .env.local
+npm run smoke:roleplay -- --json   # for CI
+```
+
+It reads the prompts out of `app/api/mechanics/copilot/route.ts` and
+`lib/mechanics/specStages.ts` rather than copying them, so a prompt change is
+exercised rather than missed — and it exits 2 if it can't find them, instead of
+quietly checking a stale copy.
+
+The twelve checks are the bugs this flow actually shipped: a spec that truncates,
+scenarios that come back empty, a hidden truth with no narrative behind it, a
+verdict with no options. Run it before changing generation, not after.
+
+---
+
 ## Notes on coverage
 
 Walked: `/studio`, `/studio/create`, `/studio/upload`, `/studio/guide`, `/studio/mine`, `/studio/roleplay/start`, the AutoBuild choose-and-build flow, and the role-play editor. Built one module by each path.
