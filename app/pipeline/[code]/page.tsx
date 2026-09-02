@@ -5,6 +5,8 @@ import { DEFAULT_INPUTS } from "@/lib/pipeline";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Publication pipeline" };
+
 export default async function PipelineView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);
   const result = canvas.result;

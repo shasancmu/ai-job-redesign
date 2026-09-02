@@ -10,6 +10,8 @@ import ExplainerEditor from "@/components/ExplainerEditor";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const BLANK: any = { slug: "", name: "New explainer", emoji: "📖", subject: "", intro: "", sections: [{ title: "", body: "", key: [] }, { title: "", body: "", key: [] }], takeaway: "" };
+export const metadata = { title: "Edit explainer" };
+
 export default async function EditExplainer({ params }: { params: { slug: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

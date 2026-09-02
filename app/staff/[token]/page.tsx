@@ -21,6 +21,8 @@ function Shell({ title, body, cta }: { title: string; body: string; cta?: { href
 
 // Redeem a staff invite link: whoever opens it (signed in, matching the optional
 // email domain) becomes an instructor of the org.
+export const metadata = { title: "Staff invite" };
+
 export default async function StaffInvite({ params }: { params: { token: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

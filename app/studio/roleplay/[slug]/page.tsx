@@ -14,6 +14,8 @@ import SpecEditor from "@/components/SpecEditor";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Edit role play" };
+
 export default async function EditRoleplay({ params, searchParams }: { params: { slug: string }; searchParams: { from?: string; cohort?: string; remix?: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

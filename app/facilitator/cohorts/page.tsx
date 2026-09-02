@@ -18,6 +18,8 @@ const COHORT_TOUR = [
   { sel: '[data-tour="cohort-list"]', title: "Share and track", body: "Once saved, copy the link to share, then open View results to watch the room's work roll up as they go." },
 ];
 
+export const metadata = { title: "Cohorts" };
+
 export default async function Classes() {
   const supabase = createClient();
   const {

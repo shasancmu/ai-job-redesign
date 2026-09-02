@@ -12,6 +12,8 @@ export const dynamic = "force-dynamic";
 // DIRECTS. Directors get their own org's activity; the platform-wide view at
 // /admin/usage stays superadmin-only. All filtering is server-side, so one
 // org can never read another org's users.
+export const metadata = { title: "Usage" };
+
 export default async function TeamUsagePage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

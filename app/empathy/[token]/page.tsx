@@ -7,6 +7,8 @@ export const dynamic = "force-dynamic";
 // PUBLIC, no-auth page: a potential customer opens the owner's shared link and
 // has an AI-run empathy interview. Looked up by a long unguessable token through
 // the service-role client (never RLS-exposed).
+export const metadata = { title: "Customer interview" };
+
 export default async function EmpathyPage({ params }: { params: { token: string } }) {
   const token = params.token;
   let session: any = null;

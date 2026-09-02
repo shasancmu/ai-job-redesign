@@ -8,6 +8,8 @@ import QuizPresenter from "@/components/QuizPresenter";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Quiz · present" };
+
 export default async function QuizPresent({ params }: { params: { code: string } }) {
   const code = String(params.code || "").toUpperCase();
   const supabase = createClient();

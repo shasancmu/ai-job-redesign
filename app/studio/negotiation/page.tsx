@@ -8,6 +8,8 @@ import { SCENARIOS } from "@/lib/negotiation";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Negotiations" };
+
 export default async function NegotiationStudio() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

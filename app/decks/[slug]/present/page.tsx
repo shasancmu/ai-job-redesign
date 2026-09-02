@@ -7,6 +7,8 @@ export const dynamic = "force-dynamic";
 
 // Full-screen presenter. Author-only (they are the host of every embedded
 // activity, so the iframed present views authorize automatically).
+export const metadata = { title: "Present deck" };
+
 export default async function PresentDeckPage({ params }: { params: { slug: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

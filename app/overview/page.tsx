@@ -8,6 +8,8 @@ export const dynamic = "force-dynamic";
 
 // The module-library overview, auto-generated from the registry and played
 // through the deck presenter. For instructors, directors, and superadmins.
+export const metadata = { title: "Overview" };
+
 export default async function OverviewPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

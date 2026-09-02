@@ -6,6 +6,8 @@ import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
 import AccountPrivacy from "@/components/AccountPrivacy";
 
+export const metadata = { title: "Profile" };
+
 export default async function ProfilePage() {
   const supabase = createClient();
   const {

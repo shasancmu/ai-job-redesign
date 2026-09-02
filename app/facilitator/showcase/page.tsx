@@ -9,6 +9,8 @@ import ShowcaseManager from "@/components/ShowcaseManager";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Showcase" };
+
 export default async function FacilitatorShowcase() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

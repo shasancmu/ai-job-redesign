@@ -6,6 +6,8 @@ import PairUp from "@/components/PairUp";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Pair up" };
+
 export default async function PairPage({
   params,
   searchParams,

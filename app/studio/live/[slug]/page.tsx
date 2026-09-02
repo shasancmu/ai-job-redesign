@@ -10,6 +10,8 @@ import LiveEditor from "@/components/LiveEditor";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const BLANK: any = { slug: "", name: "New live activity", emoji: "🌥️", kind: "wordcloud", prompt: "", options: ["", ""], synthesize: true, synthesizePrompt: "" };
+export const metadata = { title: "Edit live module" };
+
 export default async function EditLive({ params }: { params: { slug: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

@@ -4,6 +4,8 @@ import { loadOwnerReport } from "@/lib/reportPage";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Licensing brief" };
+
 export default async function LicensingView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);
   const brief = canvas.brief;

@@ -8,6 +8,8 @@ import CanvasView from "@/components/CanvasView";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Your canvas" };
+
 export default async function CanvasPage({ params }: { params: { code: string } }) {
   const code = params.code.toUpperCase();
   const supabase = createClient();

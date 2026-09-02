@@ -10,6 +10,8 @@ import QuizManager from "@/components/QuizManager";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Quiz" };
+
 export default async function FacilitatorQuiz() {
   const supabase = createClient();
   const {

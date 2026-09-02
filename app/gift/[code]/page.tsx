@@ -10,6 +10,8 @@ export const dynamic = "force-dynamic";
 // The gift you RECEIVE: the reimagined role your partner (the other participant
 // in this paired session) designed for you. Same /gift/[code] URL works for both
 // partners, each seeing what the other made for them.
+export const metadata = { title: "A gift for you" };
+
 export default async function GiftPage({ params }: { params: { code: string } }) {
   const code = params.code.toUpperCase();
   const supabase = createClient();

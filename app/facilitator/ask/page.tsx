@@ -7,6 +7,8 @@ import CohortChat from "@/components/CohortChat";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Ask the cohort" };
+
 export default async function AskCohortPage({ searchParams }: { searchParams?: { cohort?: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

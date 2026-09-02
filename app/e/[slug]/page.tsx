@@ -5,6 +5,8 @@ import { getExplainerSpec } from "@/lib/mechanics/explainerStore";
 import ExplainerRunner from "@/components/ExplainerRunner";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Explainer" };
+
 export default async function RunExplainer({ params }: { params: { slug: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

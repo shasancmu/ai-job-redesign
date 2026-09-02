@@ -8,6 +8,8 @@ import DisclosureReport from "@/components/DisclosureReport";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Disclosure" };
+
 export default async function DisclosureArtifact({ params }: { params: { code: string } }) {
   const code = params.code.toUpperCase();
   const supabase = createClient();

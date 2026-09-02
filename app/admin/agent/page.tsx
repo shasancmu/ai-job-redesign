@@ -12,6 +12,8 @@ export const dynamic = "force-dynamic";
 
 // Quality Assurance: pick modules, run a synthetic-user persona panel, get
 // improvement notes + a Claude-Code-ready brief. Superadmin only.
+export const metadata = { title: "Admin · agent" };
+
 export default async function QAPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

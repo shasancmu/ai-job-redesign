@@ -26,6 +26,8 @@ async function priceMeta(priceId: string | undefined, fallbackLabel: string, fal
   return { label: fallbackLabel, cents: fallbackCents };
 }
 
+export const metadata = { title: "Get more runs" };
+
 export default async function Paywall({
   searchParams,
 }: {

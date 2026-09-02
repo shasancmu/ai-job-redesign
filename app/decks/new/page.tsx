@@ -8,6 +8,8 @@ import DeckBuilder from "@/components/DeckBuilder";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "New deck" };
+
 export default async function NewDeckPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

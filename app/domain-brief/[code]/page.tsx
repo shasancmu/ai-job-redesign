@@ -4,6 +4,8 @@ import { loadOwnerReport } from "@/lib/reportPage";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Domain brief" };
+
 export default async function DomainBriefView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);
   const brief = canvas.brief;

@@ -11,6 +11,8 @@ import Footer from "@/components/Footer";
 export const dynamic = "force-dynamic";
 
 // Every saved report/artifact this person has, in one place.
+export const metadata = { title: "Your reports" };
+
 export default async function Reports() {
   const supabase = createClient();
   const {

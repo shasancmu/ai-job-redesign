@@ -7,7 +7,7 @@ import DeckPresenter from "@/components/DeckPresenter";
 // every other deck on the app. Narrative: motivation → Scientifiq.AI core & APIs →
 // the potential measures → the Superadditive modules (what each does, how it pulls
 // data, the problem it solves, and for whom).
-export const metadata: Metadata = { title: "Scientifiq DeepTech — Superadditive" };
+export const metadata: Metadata = { title: "Scientifiq DeepTech" };
 
 const SLIDES: Slide[] = [
   // ── Motivation ──────────────────────────────────────────────────────────

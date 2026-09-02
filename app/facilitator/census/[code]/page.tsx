@@ -11,6 +11,8 @@ import CensusMap from "@/components/CensusMap";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Census cohort" };
+
 export default async function CensusDashboard({ params }: { params: { code: string } }) {
   const code = String(params.code || "").toUpperCase();
   const supabase = createClient();

@@ -10,6 +10,8 @@ export const dynamic = "force-dynamic";
 
 // Run/preview an authored negotiation. Only the client-safe scenario is sent;
 // the counterpart's payoff table stays on the server.
+export const metadata = { title: "Negotiation" };
+
 export default async function RunNegotiation({ params }: { params: { slug: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

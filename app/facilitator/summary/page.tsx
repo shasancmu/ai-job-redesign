@@ -12,6 +12,8 @@ const SUPPORTED: Record<string, SummaryExercise> = { job: "job", workflow: "work
 
 // The auto-generated "what the room did" summary deck for a cohort's run of a
 // paired exercise. Facilitator/director/superadmin only, scoped to their cohorts.
+export const metadata = { title: "Cohort summary" };
+
 export default async function CohortSummary({
   searchParams,
 }: {

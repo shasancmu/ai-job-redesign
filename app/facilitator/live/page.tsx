@@ -7,6 +7,8 @@ import Cockpit from "@/components/Cockpit";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Live activities" };
+
 export default async function LivePage({
   searchParams,
 }: {

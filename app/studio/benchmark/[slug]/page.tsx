@@ -13,6 +13,8 @@ export const dynamic = "force-dynamic";
 
 const BLANK: any = { slug: "", name: "New quiz", timeLimitSec: 300, questions: [{ id: 1, prompt: "", options: [{ key: "A", text: "" }, { key: "B", text: "" }, { key: "C", text: "" }, { key: "D", text: "" }], answer: "A" }] };
 
+export const metadata = { title: "Edit benchmark" };
+
 export default async function EditBenchmark({ params }: { params: { slug: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

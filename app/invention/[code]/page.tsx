@@ -4,6 +4,8 @@ import { loadOwnerReport } from "@/lib/reportPage";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Invention score" };
+
 export default async function InventionView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);
   const read = canvas.read;

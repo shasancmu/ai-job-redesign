@@ -9,6 +9,8 @@ import AutoBuild from "@/components/AutoBuild";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Upload material" };
+
 export default async function UploadPage({ searchParams }: { searchParams?: { start?: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

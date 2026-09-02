@@ -10,6 +10,8 @@ import { DEFAULT_SPEC } from "@/lib/moduleBuilder";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Edit module" };
+
 export default async function EditModulePage({ params }: { params: { slug: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

@@ -4,6 +4,8 @@ import { loadOwnerReport } from "@/lib/reportPage";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Explainer" };
+
 export default async function ExplainView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);
   const read = canvas.read;

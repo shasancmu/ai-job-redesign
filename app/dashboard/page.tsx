@@ -46,6 +46,8 @@ const DASHBOARD_TOUR = [
   { sel: '[data-tour="reports"]', title: "Your account", body: "This menu holds your reports, profile, and sign out. Everything you generate is saved under Reports, ready to reopen or share anytime." },
 ];
 
+export const metadata = { title: "Dashboard" };
+
 export default async function Dashboard({
   searchParams,
 }: {

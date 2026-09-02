@@ -8,6 +8,8 @@ import Logo from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Admin · usage" };
+
 export default async function AdminUsagePage() {
   const supabase = createClient();
   const {

@@ -8,6 +8,8 @@ import ShareGift from "@/components/ShareGift";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Your plan" };
+
 export default async function PlanPage({ params }: { params: { code: string } }) {
   const code = params.code.toUpperCase();
   const supabase = createClient();

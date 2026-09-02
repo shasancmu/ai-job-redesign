@@ -9,6 +9,8 @@ import IntentStart from "@/components/IntentStart";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "New role play" };
+
 export default async function StartRoleplay() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

@@ -4,6 +4,8 @@ import { loadOwnerReport } from "@/lib/reportPage";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Disclosure ranking" };
+
 export default async function DisclosuresRankView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);
   const ranked = canvas.ranked;

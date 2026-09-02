@@ -7,6 +7,8 @@ export const dynamic = "force-dynamic";
 
 // PUBLIC, no sign-in. Reads the question via the service role (RLS otherwise
 // hides the host's session from anonymous visitors).
+export const metadata = { title: "Word cloud" };
+
 export default async function CloudJoin({ params }: { params: { code: string } }) {
   const code = String(params.code || "").toUpperCase();
 

@@ -8,6 +8,8 @@ import { ROLEPLAY_TEMPLATES } from "@/lib/mechanics/templates";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Role plays" };
+
 export default async function RoleplayStudio() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

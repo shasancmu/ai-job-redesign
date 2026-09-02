@@ -7,6 +7,8 @@ export const dynamic = "force-dynamic";
 
 // PUBLIC, no sign-in: a respondent completes a business profile. A ?firm=CODE
 // link attaches the response as a new wave of an existing business.
+export const metadata = { title: "Business census" };
+
 export default async function CensusJoin({ params, searchParams }: { params: { code: string }; searchParams: { firm?: string } }) {
   const code = String(params.code || "").toUpperCase();
   const firmCode = String(searchParams.firm || "").toUpperCase();

@@ -4,6 +4,8 @@ import { loadOwnerReport } from "@/lib/reportPage";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Your blind spots" };
+
 export default async function MyopiaView({ params }: { params: { code: string } }) {
   const { code, session, canvas } = await loadOwnerReport(params.code);
   const domain = session.exercise === "myopia-career" ? "career" : "business";

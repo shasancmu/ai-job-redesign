@@ -7,6 +7,8 @@ export const dynamic = "force-dynamic";
 
 // The saved artifact: the canvas plus a reproduced in-silico run (same seed as
 // the room, at the AI's estimated sample and effect).
+export const metadata = { title: "Your experiment" };
+
 export default async function ExperimentView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);
   const exp: ExperimentCanvas = { ...DEFAULT_CANVAS, ...(canvas.exp || {}) };

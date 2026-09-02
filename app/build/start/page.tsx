@@ -9,6 +9,8 @@ import InterviewIntentStart from "@/components/InterviewIntentStart";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Build a module" };
+
 export default async function StartInterview() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

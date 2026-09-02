@@ -24,6 +24,8 @@ function NotFound({ title, body }: { title: string; body: string }) {
 // The hierarchical launch: /ORG/CLASS/COHORT/MODULE. Validates the whole chain,
 // enrolls the learner in the cohort, then forwards to the module's runner with
 // the cohort attached (so the run is scoped to it). Flat URLs still work.
+export const metadata = { title: "Class exercise" };
+
 export default async function HierarchicalRun({ params }: { params: { code: string; klass: string; cohort: string; mod: string } }) {
   const orgSlug = params.code.toLowerCase();
   const classSlug = params.klass.toLowerCase();

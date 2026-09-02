@@ -17,6 +17,8 @@ const BLANK: any = {
   issues: [{ key: "issue1", label: "", options: [{ label: "", you: 0, them: 0 }, { label: "", you: 0, them: 0 }] }],
 };
 
+export const metadata = { title: "Edit negotiation" };
+
 export default async function EditNegotiation({ params }: { params: { slug: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

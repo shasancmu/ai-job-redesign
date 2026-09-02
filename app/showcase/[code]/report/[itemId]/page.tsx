@@ -6,6 +6,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // PUBLIC (link-shared): a presenter opens their feedback report.
+export const metadata = { title: "Showcase entry" };
+
 export default async function ShowcaseReportPage({ params }: { params: { code: string; itemId: string } }) {
   const code = String(params.code || "").toUpperCase();
   const itemId = String(params.itemId || "");

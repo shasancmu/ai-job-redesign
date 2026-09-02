@@ -9,6 +9,8 @@ import OrgAdmin from "@/components/OrgAdmin";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Admin · orgs" };
+
 export default async function OrgsAdminPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

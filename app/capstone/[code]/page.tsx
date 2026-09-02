@@ -9,6 +9,8 @@ export const dynamic = "force-dynamic";
 
 // The shared team room. Everyone signs in (the cohort follows the sign-in); the
 // captain who created the team gets the phase controls.
+export const metadata = { title: "Capstone" };
+
 export default async function CapstonePage({ params }: { params: { code: string } }) {
   const code = String(params.code || "").toUpperCase();
   const supabase = createClient();

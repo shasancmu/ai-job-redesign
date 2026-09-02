@@ -6,6 +6,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // PUBLIC, no sign-in.
+export const metadata = { title: "Quiz" };
+
 export default async function QuizJoin({ params }: { params: { code: string } }) {
   const code = String(params.code || "").toUpperCase();
 

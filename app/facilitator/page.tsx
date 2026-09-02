@@ -29,6 +29,8 @@ const HUB_TOUR = [
   { sel: '[data-tour="fac-admin"]', title: "Admin tools", body: "Usage, experiments, and cost dashboards live here. (Directors: manage your people and instructors from the Organization page in your account menu.)" },
 ];
 
+export const metadata = { title: "Facilitator" };
+
 export default async function Facilitator({
   searchParams,
 }: {

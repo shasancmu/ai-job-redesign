@@ -34,6 +34,8 @@ const FINISH = [
   { title: "Observe and improve", body: "Watch results and insights come in, then revise. History keeps a snapshot of every save, so you can always restore a prior version." },
 ];
 
+export const metadata = { title: "Studio guide" };
+
 export default async function GuidePage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

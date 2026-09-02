@@ -5,6 +5,8 @@ import { DEFAULT_IDEA } from "@/lib/interaction";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Your interaction" };
+
 export default async function InteractionView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);
   const idea = { ...DEFAULT_IDEA, ...(canvas.idea || {}) };

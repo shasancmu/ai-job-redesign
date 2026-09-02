@@ -11,6 +11,8 @@ export const dynamic = "force-dynamic";
 
 // Author your own LIVE templates — the frontier of the template library: an
 // instructor writes a live prompt the room answers, saved as a reusable module.
+export const metadata = { title: "Live modules" };
+
 export default async function StudioLive() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

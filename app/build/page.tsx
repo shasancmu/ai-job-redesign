@@ -8,6 +8,8 @@ import { listAuthoredBy } from "@/lib/customModules";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Build a module" };
+
 export default async function BuildIndexPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

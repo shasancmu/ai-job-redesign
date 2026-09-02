@@ -10,6 +10,8 @@ export const dynamic = "force-dynamic";
 
 // The reflective portrait — a person, in their own words. Read under their own
 // session so they only ever see their own (RLS).
+export const metadata = { title: "Your portrait" };
+
 export default async function PortraitPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

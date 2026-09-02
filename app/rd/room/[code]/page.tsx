@@ -9,6 +9,8 @@ export const dynamic = "force-dynamic";
 
 // Runtime for an authored paired redesign. Reuses the proven sessions +
 // workspaces join path (cloned from app/room/[code]).
+export const metadata = { title: "Redesign" };
+
 export default async function RedesignRoomPage({ params }: { params: { code: string } }) {
   const code = params.code.toUpperCase();
   const supabase = createClient();

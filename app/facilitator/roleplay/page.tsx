@@ -13,6 +13,8 @@ export const dynamic = "force-dynamic";
 
 // Per-cohort results for one role-play module: the aggregate the author sees in
 // the editor, plus every participant's run, for a facilitator reviewing a class.
+export const metadata = { title: "Role play" };
+
 export default async function RoleplayResults({ searchParams }: { searchParams: { cohort?: string; slug?: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

@@ -8,7 +8,7 @@ import Reveal from "@/components/Reveal";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "The Relationship OS — Superadditive",
+  title: "The Relationship OS",
   description: "A program is a transaction. The Relationship OS turns it into a lifelong, high-value relationship with every learner — at fixed cost.",
 };
 

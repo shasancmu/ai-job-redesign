@@ -17,6 +17,8 @@ const INTERVIEW_TEMPLATES = [
   { type: "verdict", emoji: "⚖️", name: "Interview → verdict", domain: "Decision", whenToUse: "The interview drives to a labeled decision or recommendation the learner walks away with." },
 ];
 
+export const metadata = { title: "Create a module" };
+
 export default async function CreateGallery() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

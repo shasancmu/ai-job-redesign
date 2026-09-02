@@ -7,6 +7,8 @@ import { isDirectorOrAdmin } from "@/lib/orgs";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Defense impact" };
+
 export default async function DefenseView({ params }: { params: { code: string } }) {
   // Defense Impact is superadmin-only.
   const { data: { user } } = await createClient().auth.getUser();

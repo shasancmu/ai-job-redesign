@@ -60,6 +60,8 @@ import { canvasByExercise } from "@/lib/canvases";
 import { resolveCanvasDefForUser } from "@/lib/customModules";
 import { scenarioByExercise } from "@/lib/negotiation";
 
+export const metadata = { title: "Exercise" };
+
 export default async function RoomPage({
   params,
 }: {

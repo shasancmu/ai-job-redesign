@@ -6,6 +6,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // PUBLIC, no sign-in. Reads the topic via the service role.
+export const metadata = { title: "Open floor" };
+
 export default async function ForumJoinPage({ params }: { params: { code: string } }) {
   const code = String(params.code || "").toUpperCase();
 

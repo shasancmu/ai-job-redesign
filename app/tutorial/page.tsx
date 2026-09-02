@@ -8,6 +8,8 @@ export const dynamic = "force-dynamic";
 
 // The built-in facilitator tour, played through the deck presenter. Open to
 // instructors, directors, and superadmins.
+export const metadata = { title: "Tutorial" };
+
 export default async function TutorialPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

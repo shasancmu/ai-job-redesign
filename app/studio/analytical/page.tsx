@@ -5,6 +5,8 @@ import HeaderNav from "@/components/HeaderNav";
 import Logo from "@/components/Logo";
 import { roleFor } from "@/lib/orgs";
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Analytical modules" };
+
 export default async function AnalyticalStudio() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

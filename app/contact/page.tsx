@@ -4,7 +4,7 @@ import Footer from "@/components/Footer";
 import ContactForm from "@/components/ContactForm";
 
 export const metadata = {
-  title: "Contact · Superadditive",
+  title: "Contact",
   description: "Get in touch about bringing Superadditive to your team, program, or organization.",
 };
 

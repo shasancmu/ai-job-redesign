@@ -9,6 +9,8 @@ export const dynamic = "force-dynamic";
 // PUBLIC, no-auth page: a vendor completes a disclosure via the link the buyer
 // shared. Looked up by a long unguessable token, through the service-role
 // client (never RLS-exposed).
+export const metadata = { title: "Disclosure" };
+
 export default async function DisclosePage({ params }: { params: { token: string } }) {
   const token = params.token;
   let session: any = null;

@@ -7,6 +7,8 @@ import { roleFor } from "@/lib/orgs";
 import AnalyticalIntentStart from "@/components/AnalyticalIntentStart";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const metadata = { title: "New analytical module" };
+
 export default async function StartAnalytical() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

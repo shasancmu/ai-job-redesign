@@ -7,6 +7,8 @@ import { roleFor } from "@/lib/orgs";
 import RedesignIntentStart from "@/components/RedesignIntentStart";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const metadata = { title: "New redesign" };
+
 export default async function StartRedesign() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

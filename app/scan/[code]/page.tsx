@@ -6,6 +6,8 @@ export const dynamic = "force-dynamic";
 
 // Shared artifact page for the four landscape scans; the eyebrow/title come
 // from what the room saved.
+export const metadata = { title: "Technology scan" };
+
 export default async function ScanView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);
   const read = canvas.read;

@@ -8,6 +8,8 @@ export const dynamic = "force-dynamic";
 
 // Research Agent — one natural-language entry over the Scientifiq platform:
 // find collaborators, score an idea's potential, or map a field.
+export const metadata = { title: "Agent" };
+
 export default async function AgentPage() {
   const { data: { user } } = await createClient().auth.getUser();
   if (!user) redirect("/login?next=/agent");

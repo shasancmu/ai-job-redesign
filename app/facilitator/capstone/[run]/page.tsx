@@ -11,6 +11,8 @@ import LiveRunBoard from "@/components/LiveRunBoard";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Capstone run" };
+
 export default async function CapstoneRunBoard({ params }: { params: { run: string } }) {
   const runCode = String(params.run || "").toUpperCase();
   const supabase = createClient();

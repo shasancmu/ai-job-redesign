@@ -9,6 +9,8 @@ import { makeT } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Your career roadmap" };
+
 export default async function RoadmapPage({ params }: { params: { code: string } }) {
   const code = params.code.toUpperCase();
   const supabase = createClient();

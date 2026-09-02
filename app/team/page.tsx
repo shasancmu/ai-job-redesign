@@ -21,6 +21,8 @@ export type TeamPerson = { userId: string; name: string; email: string; role: Or
 export type TeamInvite = { email: string; role: OrgRole };
 
 // The Director console: manage the people in YOUR org — nothing outside it.
+export const metadata = { title: "Team" };
+
 export default async function TeamPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

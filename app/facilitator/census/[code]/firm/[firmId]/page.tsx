@@ -11,6 +11,8 @@ export const dynamic = "force-dynamic";
 
 const AREAS = ["operations", "monitoring", "targets", "people"];
 
+export const metadata = { title: "Census firm" };
+
 export default async function FirmHistory({ params }: { params: { code: string; firmId: string } }) {
   const code = String(params.code || "").toUpperCase();
   const supabase = createClient();

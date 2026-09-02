@@ -8,6 +8,8 @@ import CensusManager from "@/components/CensusManager";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Business census" };
+
 export default async function FacilitatorCensus() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

@@ -6,6 +6,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // PUBLIC, no sign-in. Reads the prompt via the service role.
+export const metadata = { title: "Photo wall" };
+
 export default async function PhotoJoin({ params }: { params: { code: string } }) {
   const code = String(params.code || "").toUpperCase();
 

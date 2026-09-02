@@ -11,6 +11,8 @@ export const dynamic = "force-dynamic";
 // Studio: everything for creating and running learning experiences, in one
 // place, so the account menu stays lean. Open to instructors, directors, and
 // superadmins; individual tools gate by role.
+export const metadata = { title: "Studio" };
+
 export default async function StudioPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

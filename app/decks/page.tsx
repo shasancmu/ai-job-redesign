@@ -9,6 +9,8 @@ import { ACTIVITY_TYPE_SET } from "@/lib/deckTypes";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Decks" };
+
 export default async function DecksPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

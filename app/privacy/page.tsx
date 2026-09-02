@@ -2,7 +2,7 @@ import Link from "next/link";
 import Logo from "@/components/Logo";
 import Footer from "@/components/Footer";
 
-export const metadata = { title: "Privacy Policy · Superadditive" };
+export const metadata = { title: "Privacy Policy" };
 
 // NOTE: This is a working draft grounded in how the app actually processes data.
 // Have it reviewed and finalized by privacy counsel before relying on it.

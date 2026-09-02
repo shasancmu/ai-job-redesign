@@ -7,6 +7,8 @@ import PhotoPresenter from "@/components/PhotoPresenter";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Photo wall · present" };
+
 export default async function PhotoPresent({ params }: { params: { code: string } }) {
   const code = String(params.code || "").toUpperCase();
   const supabase = createClient();

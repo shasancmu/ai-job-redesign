@@ -9,6 +9,8 @@ import BenchIntentStart from "@/components/BenchIntentStart";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "New benchmark" };
+
 export default async function StartBenchmark() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

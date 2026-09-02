@@ -8,6 +8,8 @@ import ForumManager from "@/components/ForumManager";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Open floor" };
+
 export default async function FacilitatorForum() {
   const supabase = createClient();
   const {

@@ -14,6 +14,8 @@ export const dynamic = "force-dynamic";
 // The promotion review queue. Curators (superadmin) see global nominations and
 // approved-global modules (with decay flags). Directors see org nominations for
 // their orgs.
+export const metadata = { title: "Review" };
+
 export default async function ReviewPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

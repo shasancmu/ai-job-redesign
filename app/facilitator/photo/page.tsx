@@ -8,6 +8,8 @@ import PhotoManager from "@/components/PhotoManager";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Photo wall" };
+
 export default async function FacilitatorPhoto() {
   const supabase = createClient();
   const {

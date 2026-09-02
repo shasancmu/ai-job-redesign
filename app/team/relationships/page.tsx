@@ -60,6 +60,8 @@ function CarerRow({ c }: { c: Carer }) {
 // viewer's OWN span (a director sees the whole tree; a program director their
 // programs; an instructor their cohorts) and asks one question: is every person
 // here known by a human? Then it helps that human be helpful.
+export const metadata = { title: "Relationships" };
+
 export default async function RelationshipsPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

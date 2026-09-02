@@ -32,6 +32,8 @@ function usd(n: number): string {
   return n >= 1 ? `$${n.toFixed(2)}` : `$${n.toFixed(4)}`;
 }
 
+export const metadata = { title: "Admin · AI" };
+
 export default async function AdminAiPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

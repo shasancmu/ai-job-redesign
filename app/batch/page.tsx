@@ -10,6 +10,8 @@ export const dynamic = "force-dynamic";
 // Batch scorer — upload a set of abstracts, get the full impact fingerprint for
 // each (commercial / scientific / social / defense / complex / interdisciplinary),
 // downloadable as CSV. Superadmin only (bulk tool, includes the gated Defense model).
+export const metadata = { title: "Batch" };
+
 export default async function BatchPage() {
   const { data: { user } } = await createClient().auth.getUser();
   if (!user) redirect("/login?next=/batch");

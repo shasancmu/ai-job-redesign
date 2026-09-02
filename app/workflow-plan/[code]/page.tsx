@@ -7,6 +7,8 @@ import WorkflowPlanView from "@/components/WorkflowPlanView";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Your workflow plan" };
+
 export default async function WorkflowPlanPage({ params }: { params: { code: string } }) {
   const code = params.code.toUpperCase();
   const supabase = createClient();

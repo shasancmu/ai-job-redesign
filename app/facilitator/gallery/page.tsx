@@ -10,6 +10,8 @@ export const dynamic = "force-dynamic";
 
 // Photo Gallery: like the Photo Wall, but the actual (scaled-down) photos appear
 // on the shared screen with captions. Reuses the photo activity with show_photos.
+export const metadata = { title: "Gallery" };
+
 export default async function FacilitatorGallery() {
   const supabase = createClient();
   const {

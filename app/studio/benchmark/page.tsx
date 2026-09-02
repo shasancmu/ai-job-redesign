@@ -7,6 +7,8 @@ import { roleFor } from "@/lib/orgs";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Benchmarks" };
+
 export default async function BenchmarkStudio() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

@@ -11,6 +11,8 @@ import Logo from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Admin · costs" };
+
 export default async function AdminCostsPage() {
   const supabase = createClient();
   const {

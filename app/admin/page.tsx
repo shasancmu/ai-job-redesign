@@ -10,6 +10,8 @@ export const dynamic = "force-dynamic";
 
 // Admin: oversight, in one place. Your-organization tools for directors; the
 // platform panel for superadmins. Keeps the account menu lean.
+export const metadata = { title: "Admin" };
+
 export default async function AdminPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

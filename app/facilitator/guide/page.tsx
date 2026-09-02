@@ -51,6 +51,8 @@ function Track({ steps, tint }: { steps: typeof DIRECTOR; tint: string }) {
   );
 }
 
+export const metadata = { title: "Facilitator guide" };
+
 export default async function FacilitatorGuide() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

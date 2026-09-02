@@ -10,6 +10,8 @@ export const dynamic = "force-dynamic";
 
 // Run/preview any role-play module by slug. Only the client-safe view of the spec
 // is sent; scenarios and answer keys stay on the server.
+export const metadata = { title: "Role play" };
+
 export default async function RunModule({ params, searchParams }: { params: { slug: string }; searchParams: { class?: string; cohort?: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

@@ -9,6 +9,8 @@ import { DEFAULT_SPEC } from "@/lib/moduleBuilder";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "New module" };
+
 export default async function NewModulePage({ searchParams }: { searchParams: { type?: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

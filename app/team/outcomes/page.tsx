@@ -21,6 +21,8 @@ function Stat({ value, label, hint }: { value: string; label: string; hint?: str
 
 // The director outcomes report: an org-scoped proof surface. Private to the org's
 // directors (and the superadmin managing it).
+export const metadata = { title: "Outcomes" };
+
 export default async function OutcomesPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

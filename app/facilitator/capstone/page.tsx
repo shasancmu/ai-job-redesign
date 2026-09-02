@@ -9,6 +9,8 @@ import CapstoneRunManager from "@/components/CapstoneRunManager";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Capstone runs" };
+
 export default async function CapstoneRuns() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

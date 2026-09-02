@@ -10,6 +10,8 @@ import RedesignEditor from "@/components/RedesignEditor";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const BLANK: any = { slug: "", name: "New paired redesign", emoji: "🤝", subject: "job", setupPrompt: "Write your own in a line or two.", interviewPrompt: "Draw out what they actually do and what matters in it.", splitTitle: "The AI × Human split", splitIntro: "Delegate to AI what is search/structure/draft; keep human what needs judgment, ownership, and relationships.", buckets: [{ key: "search", label: "Search", role: "ai", hint: "find and surface" }, { key: "draft", label: "Draft", role: "ai", hint: "produce first versions" }, { key: "judge", label: "Judge", role: "human", hint: "decide what's good" }, { key: "own", label: "Own", role: "human", hint: "stand behind it" }] };
+export const metadata = { title: "Edit redesign" };
+
 export default async function EditRedesign({ params }: { params: { slug: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

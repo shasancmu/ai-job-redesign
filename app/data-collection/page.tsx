@@ -9,6 +9,8 @@ export const dynamic = "force-dynamic";
 
 // Data collection: gather structured field data via shareable links. Only
 // directors and the superadmin can run collections.
+export const metadata = { title: "Data collection" };
+
 export default async function DataCollection() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

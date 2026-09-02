@@ -10,6 +10,8 @@ import AnalyticalEditor from "@/components/AnalyticalEditor";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const BLANK: any = { slug: "", name: "New instrument", emoji: "📊", subject: "", unitLabel: "task", setupLabel: "", setupPlaceholder: "", decompose: "", lens: "", aggregateLabel: "Overall", levels: [{ key: "L0", label: "None", desc: "", value: 0 }, { key: "L1", label: "Some", desc: "", value: 50 }, { key: "L2", label: "High", desc: "", value: 100 }] };
+export const metadata = { title: "Edit analytical module" };
+
 export default async function EditAnalytical({ params }: { params: { slug: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

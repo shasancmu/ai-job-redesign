@@ -7,6 +7,8 @@ import RedesignLobby from "@/components/RedesignLobby";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Redesign" };
+
 export default async function RedesignLanding({ params }: { params: { slug: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

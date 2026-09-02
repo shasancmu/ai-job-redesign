@@ -6,6 +6,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // PUBLIC, no account needed: a participant joins a live activity by code.
+export const metadata = { title: "Live activity" };
+
 export default async function LiveJoin({ params }: { params: { code: string } }) {
   const found = await getLiveSession(params.code);
   if (!found) {

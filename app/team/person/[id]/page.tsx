@@ -29,6 +29,8 @@ function ago(d: number | null): string {
   return `last here ${Math.round(d / 365)}y ago`;
 }
 
+export const metadata = { title: "Team member" };
+
 export default async function PersonPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

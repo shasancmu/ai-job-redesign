@@ -4,6 +4,8 @@ import VisionReport from "@/components/VisionReport";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Your vision" };
+
 export default async function VisionReportPage({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);
   const report = canvas.report;

@@ -9,6 +9,8 @@ import BenchmarkEditor from "@/components/BenchmarkEditor";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Edit benchmark" };
+
 export default async function EditBenchmark() {
   const supabase = createClient();
   const {

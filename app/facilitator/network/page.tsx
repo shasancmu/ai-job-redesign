@@ -13,6 +13,8 @@ import CohortChooser from "@/components/CohortChooser";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Network map" };
+
 export default async function FacilitatorNetwork({
   searchParams,
 }: {

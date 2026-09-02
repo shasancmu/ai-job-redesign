@@ -6,6 +6,8 @@ import AggregateView from "@/components/AggregateView";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Aggregate results" };
+
 export default async function AggregatePage({
   searchParams,
 }: {

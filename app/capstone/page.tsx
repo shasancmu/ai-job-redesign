@@ -9,6 +9,8 @@ export const dynamic = "force-dynamic";
 // The team lobby for The Number. A signed-in student either starts a team (and
 // gets a team code to share) or joins one. The cohort/org code is auto-assigned
 // from their sign-in so the run rolls up to their cohort.
+export const metadata = { title: "Capstone" };
+
 export default async function CapstoneLobbyPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

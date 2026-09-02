@@ -8,6 +8,8 @@ import CareerXrayView from "@/components/CareerXrayView";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Your career X-ray" };
+
 export default async function CareerPage({ params }: { params: { code: string } }) {
   const code = params.code.toUpperCase();
   const supabase = createClient();

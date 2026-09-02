@@ -8,6 +8,8 @@ import AdminMessages, { type ContactMessage } from "@/components/AdminMessages";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Admin · messages" };
+
 export default async function MessagesPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

@@ -7,6 +7,8 @@ import ForumPresenter from "@/components/ForumPresenter";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Open floor · present" };
+
 export default async function ForumPresent({ params }: { params: { code: string } }) {
   const code = String(params.code || "").toUpperCase();
   const supabase = createClient();

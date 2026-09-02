@@ -8,6 +8,8 @@ import CloudManager from "@/components/CloudManager";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Word cloud" };
+
 export default async function FacilitatorCloud() {
   const supabase = createClient();
   const {

@@ -8,6 +8,8 @@ import NetworkRosterEditor from "@/components/NetworkRosterEditor";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Edit network map" };
+
 export default async function EditRoster({
   searchParams,
 }: {

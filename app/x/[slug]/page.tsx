@@ -8,6 +8,8 @@ import AnalyticalRunner from "@/components/AnalyticalRunner";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Exercise" };
+
 export default async function RunAnalytical({ params }: { params: { slug: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

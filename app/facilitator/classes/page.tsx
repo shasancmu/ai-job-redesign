@@ -11,6 +11,8 @@ import { listAuthoredModules } from "@/lib/moduleCatalog";
 export const dynamic = "force-dynamic";
 
 // The CLASS tier: school/company > CLASS (dept/course) > COHORT (section).
+export const metadata = { title: "Classes" };
+
 export default async function ClassesPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

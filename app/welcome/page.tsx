@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { titleCaseName } from "@/lib/name";
 import Onboarding from "@/components/Onboarding";
 
+export const metadata = { title: "Welcome" };
+
 export default async function WelcomePage() {
   const supabase = createClient();
   const {

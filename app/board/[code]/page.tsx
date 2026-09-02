@@ -5,6 +5,8 @@ import BoardVerdict from "@/components/BoardVerdict";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Your AI board" };
+
 export default async function BoardView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);
   const decision: string = canvas.decision || "";

@@ -9,6 +9,8 @@ export const dynamic = "force-dynamic";
 
 // Host-only presenter view. Fullscreen-able; shows the question, the join QR,
 // the live cloud, and the AI summary.
+export const metadata = { title: "Word cloud · present" };
+
 export default async function CloudPresent({ params }: { params: { code: string } }) {
   const code = String(params.code || "").toUpperCase();
   const supabase = createClient();

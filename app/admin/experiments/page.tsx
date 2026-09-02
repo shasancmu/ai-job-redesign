@@ -8,6 +8,8 @@ import ExperimentsBoard from "@/components/ExperimentsBoard";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Admin · experiments" };
+
 export default async function AdminExperimentsPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

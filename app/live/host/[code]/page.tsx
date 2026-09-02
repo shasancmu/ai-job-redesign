@@ -8,6 +8,8 @@ import LivePresenter from "@/components/LivePresenter";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Host the room" };
+
 export default async function LiveHost({ params }: { params: { code: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

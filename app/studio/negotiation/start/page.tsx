@@ -9,6 +9,8 @@ import NegIntentStart from "@/components/NegIntentStart";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "New negotiation" };
+
 export default async function StartNegotiation() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

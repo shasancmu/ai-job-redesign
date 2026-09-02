@@ -5,7 +5,7 @@ import Logo from "@/components/Logo";
 import Footer from "@/components/Footer";
 import DpaAccept, { type DpaOrgRow } from "@/components/DpaAccept";
 
-export const metadata = { title: "Data Processing Agreement · Superadditive" };
+export const metadata = { title: "Data Processing Agreement" };
 export const dynamic = "force-dynamic";
 
 // NOTE: Working draft of a processor DPA. Have it reviewed and finalized by

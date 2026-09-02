@@ -10,6 +10,8 @@ import NewsFrameEditor from "@/components/NewsFrameEditor";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const BLANK: any = { slug: "", name: "New framework desk", emoji: "🗞️", topic: "", framework: "", frameworkLogic: "", fields: [{ key: "f1", label: "", hint: "" }, { key: "f2", label: "", hint: "" }], verdict: { label: "", options: [] }, grading: "" };
+export const metadata = { title: "Edit news frame" };
+
 export default async function EditNews({ params }: { params: { slug: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

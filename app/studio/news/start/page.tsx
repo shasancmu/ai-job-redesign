@@ -7,6 +7,8 @@ import { roleFor } from "@/lib/orgs";
 import NewsFrameIntentStart from "@/components/NewsFrameIntentStart";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const metadata = { title: "New news frame" };
+
 export default async function StartNews() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

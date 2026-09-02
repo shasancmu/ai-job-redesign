@@ -7,6 +7,8 @@ import ShowcasePresenter from "@/components/ShowcasePresenter";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Showcase · present" };
+
 export default async function ShowcasePresent({ params }: { params: { code: string } }) {
   const code = String(params.code || "").toUpperCase();
   const supabase = createClient();

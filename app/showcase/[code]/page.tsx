@@ -6,6 +6,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // PUBLIC, no sign-in: the audience gives feedback on the current presentation.
+export const metadata = { title: "Showcase" };
+
 export default async function ShowcaseJoin({ params }: { params: { code: string } }) {
   const code = String(params.code || "").toUpperCase();
 
