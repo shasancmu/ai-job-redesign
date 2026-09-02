@@ -1,10 +1,13 @@
 import MyopiaReport from "@/components/MyopiaReport";
 import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Your blind spots" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Your blind spots");
+}
 
 export default async function MyopiaView({ params }: { params: { code: string } }) {
   const { code, session, canvas } = await loadOwnerReport(params.code);

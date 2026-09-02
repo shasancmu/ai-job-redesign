@@ -4,10 +4,13 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import WorkflowPlanView from "@/components/WorkflowPlanView";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Your workflow plan" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Your workflow plan");
+}
 
 export default async function WorkflowPlanPage({ params }: { params: { code: string } }) {
   const code = params.code.toUpperCase();

@@ -1,10 +1,13 @@
 import CollaboratorsReport from "@/components/CollaboratorsReport";
 import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Co-founder search" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Co-founder search");
+}
 
 export default async function CofounderView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);

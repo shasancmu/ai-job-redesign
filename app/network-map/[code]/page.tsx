@@ -1,10 +1,13 @@
 import PersonalNetworkReport from "@/components/PersonalNetworkReport";
 import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Your network map" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Your network map");
+}
 
 export default async function NetworkMapView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);

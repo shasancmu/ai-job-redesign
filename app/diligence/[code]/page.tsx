@@ -1,10 +1,13 @@
 import DiligenceScienceReport from "@/components/DiligenceScienceReport";
 import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Science diligence" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Science diligence");
+}
 
 export default async function DiligenceView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);

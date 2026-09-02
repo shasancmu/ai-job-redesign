@@ -1,10 +1,13 @@
 import DomainBriefReport from "@/components/DomainBriefReport";
 import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Domain brief" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Domain brief");
+}
 
 export default async function DomainBriefView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);

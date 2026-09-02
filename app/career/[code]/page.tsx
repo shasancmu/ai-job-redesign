@@ -5,10 +5,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import { hasXray } from "@/lib/careerXray";
 import CareerXrayView from "@/components/CareerXrayView";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Your career X-ray" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Your career X-ray");
+}
 
 export default async function CareerPage({ params }: { params: { code: string } }) {
   const code = params.code.toUpperCase();

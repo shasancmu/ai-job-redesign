@@ -1,12 +1,15 @@
 import DomainInsightReport from "@/components/DomainInsightReport";
 import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
 // Shared artifact page for the four landscape scans; the eyebrow/title come
 // from what the room saved.
-export const metadata = { title: "Technology scan" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Technology scan");
+}
 
 export default async function ScanView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);

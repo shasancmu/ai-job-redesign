@@ -5,10 +5,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import { resolveCanvasDefForUser } from "@/lib/customModules";
 import CanvasView from "@/components/CanvasView";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Your canvas" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Your canvas");
+}
 
 export default async function CanvasPage({ params }: { params: { code: string } }) {
   const code = params.code.toUpperCase();

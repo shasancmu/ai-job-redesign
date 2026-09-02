@@ -1,10 +1,13 @@
 import ScoreInventionReport from "@/components/ScoreInventionReport";
 import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Invention score" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Invention score");
+}
 
 export default async function InventionView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);

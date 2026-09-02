@@ -1,10 +1,13 @@
 import ImpactOptimizerReport from "@/components/ImpactOptimizerReport";
 import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Impact optimizer" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Impact optimizer");
+}
 
 export default async function OptimizeView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);

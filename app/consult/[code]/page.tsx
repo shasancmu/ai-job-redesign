@@ -1,10 +1,13 @@
 import ConsultReport from "@/components/ConsultReport";
 import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Your diagnosis" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Your diagnosis");
+}
 
 export default async function ConsultView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);

@@ -5,10 +5,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import PlanView from "@/components/PlanView";
 import ShareGift from "@/components/ShareGift";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Your plan" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Your plan");
+}
 
 export default async function PlanPage({ params }: { params: { code: string } }) {
   const code = params.code.toUpperCase();

@@ -1,10 +1,13 @@
 import PaperStudyReport from "@/components/PaperStudyReport";
 import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Paper study" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Paper study");
+}
 
 export default async function PaperStudyView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);

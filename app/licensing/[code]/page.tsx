@@ -1,10 +1,13 @@
 import LicensingBriefReport from "@/components/LicensingBriefReport";
 import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Licensing brief" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Licensing brief");
+}
 
 export default async function LicensingView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);

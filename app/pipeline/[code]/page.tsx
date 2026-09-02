@@ -2,10 +2,13 @@ import PipelineReport from "@/components/PipelineReport";
 import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
 import { DEFAULT_INPUTS } from "@/lib/pipeline";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Publication pipeline" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Publication pipeline");
+}
 
 export default async function PipelineView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);

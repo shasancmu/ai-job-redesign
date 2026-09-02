@@ -6,10 +6,13 @@ import { isAdmin } from "@/lib/admin";
 import RoadmapFullView from "@/components/RoadmapFullView";
 import { getServerLocale } from "@/lib/i18n-server";
 import { makeT } from "@/lib/i18n";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Your career roadmap" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Your career roadmap");
+}
 
 export default async function RoadmapPage({ params }: { params: { code: string } }) {
   const code = params.code.toUpperCase();

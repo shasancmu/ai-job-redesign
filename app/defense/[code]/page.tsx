@@ -4,10 +4,13 @@ import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
 import { createClient } from "@/lib/supabase/server";
 import { isDirectorOrAdmin } from "@/lib/orgs";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Defense impact" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Defense impact");
+}
 
 export default async function DefenseView({ params }: { params: { code: string } }) {
   // Defense Impact is superadmin-only.

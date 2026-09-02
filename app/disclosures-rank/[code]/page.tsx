@@ -1,10 +1,13 @@
 import RankDisclosuresReport from "@/components/RankDisclosuresReport";
 import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Disclosure ranking" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Disclosure ranking");
+}
 
 export default async function DisclosuresRankView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);

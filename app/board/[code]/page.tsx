@@ -2,10 +2,13 @@ import { boardMember, type BoardEntry } from "@/lib/board";
 import { loadOwnerReport } from "@/lib/reportPage";
 import ReportShell from "@/components/ReportShell";
 import BoardVerdict from "@/components/BoardVerdict";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Your AI board" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Your AI board");
+}
 
 export default async function BoardView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);

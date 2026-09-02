@@ -1,10 +1,13 @@
 import ResumeReport from "@/components/ResumeReport";
 import ReportShell from "@/components/ReportShell";
 import { loadOwnerReport } from "@/lib/reportPage";
+import { reportTitle } from "@/lib/reportTitle";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Your résumé review" };
+export async function generateMetadata({ params }: { params: { code: string } }) {
+  return reportTitle(params.code, "Your résumé review");
+}
 
 export default async function ResumeView({ params }: { params: { code: string } }) {
   const { code, canvas } = await loadOwnerReport(params.code);
