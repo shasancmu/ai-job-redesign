@@ -11,7 +11,7 @@ import OrgSwitcher from "@/components/OrgSwitcher";
 import AccountMenu from "@/components/AccountMenu";
 import FacilitatorWelcome from "@/components/FacilitatorWelcome";
 import { titleCaseName } from "@/lib/name";
-import { MODULES, moduleBySlug } from "@/lib/modules";
+import { MODULES, moduleBySlug, CATEGORIES, moduleCategory } from "@/lib/modules";
 import { levelFor, loadBundles, bundlesFor, bundlesForSlug, nextCertificateStep } from "@/lib/credentials";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { viewAsTarget } from "@/lib/viewAs";
@@ -348,6 +348,13 @@ export default async function Dashboard({
   // ninety-five cards, nineteen screens. The library is somewhere you go, not
   // the thing you land in, so past the first exercise it collapses.
   const returning = completedCount > 0;
+  // What the library actually holds, for the door that opens onto it.
+  const visibleModules = MODULES.filter((m) => !m.hidden);
+  const visibleCount = visibleModules.length;
+  const libraryCategories = CATEGORIES.map((c) => ({
+    ...c,
+    n: visibleModules.filter((m) => moduleCategory(m.slug) === c.key).length,
+  })).filter((c) => c.n > 0);
   const startHere = isConsumer
     ? recommended.map((s) => moduleBySlug(s)).filter((m): m is NonNullable<typeof m> => !!m && m.partner !== "group").slice(0, 3)
     : [];
@@ -657,9 +664,29 @@ export default async function Dashboard({
           {/* The curated view renders no filter controls, so don't tell people to filter. */}
           <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">{t(orgModules ? "dash.framingCurated" : "dash.framing")}</p>
           {returning && !orgModules ? (
+            // Collapsed, this used to be a 13px chevron link — which hid the
+            // thing the library is for. The door should show what's behind it:
+            // the count at report scale, and every category it spans.
             <details className="group">
-              <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-slate2 hover:text-ink">
-                <span className="transition group-open:rotate-90">›</span> Browse all {MODULES.filter((m) => !m.hidden).length} exercises
+              <summary className="card flex cursor-pointer list-none flex-wrap items-center gap-x-6 gap-y-4 p-6 transition hover:shadow-lift">
+                <span className="flex items-baseline gap-2">
+                  <span className="display text-4xl text-ink">{visibleCount}</span>
+                  <span className="text-sm font-semibold text-slate2">exercises</span>
+                </span>
+                <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5">
+                  {libraryCategories.map((c) => (
+                    <span key={c.key} className="inline-flex items-center gap-1.5 text-xs font-medium text-slate2">
+                      <span className="h-1.5 w-1.5 rounded-full" style={{ background: c.dot }} aria-hidden />
+                      {c.title}
+                      <span className="text-slate-300">{c.n}</span>
+                    </span>
+                  ))}
+                </span>
+                <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-ink">
+                  <span className="group-open:hidden">Browse them all</span>
+                  <span className="hidden group-open:inline">Hide</span>
+                  <span className="text-slate-400 transition-transform group-open:rotate-90" aria-hidden>›</span>
+                </span>
               </summary>
               <div className="mt-5">{catalogEl}</div>
             </details>

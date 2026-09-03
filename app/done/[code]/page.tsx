@@ -30,54 +30,67 @@ export default async function Done({ params }: { params: { code: string } }) {
     <main className="mx-auto flex min-h-[100svh] max-w-xl flex-col px-6 py-8">
       <Logo href="/dashboard" />
 
+      {/* The one earned celebration in the product. joy-pop lands on a small
+          mark rather than the headline — a 0.6→1.12 bounce on two lines of
+          40px serif reads as a cartoon; on a 32px dot it reads as arrival.
+          The rest rises in behind it via the existing stagger. Both are off
+          under prefers-reduced-motion, globally. */}
       <div className="flex flex-1 flex-col justify-center py-12">
-        <div className="eyebrow">{mod?.name || "Finished"}</div>
+        <span className="joy-pop mb-5 flex h-9 w-9 items-center justify-center rounded-full bg-sage-soft text-sage" aria-hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+        </span>
 
-        {/* The artifact leads. If the room didn't produce one, the module's own
-            name carries the sentence instead of a blank space. */}
-        <h1 className="display mt-2 text-3xl leading-tight text-ink sm:text-4xl">
-          {made || "That's finished."}
-        </h1>
-        <p className="mt-4 text-lg leading-relaxed text-slate2">
-          {made
-            ? "That's yours to keep — open it any time from your reports."
-            : "Your work is saved. You can open it any time from your reports."}
-        </p>
+        <div className="stagger-in">
+          <div className="eyebrow">{mod?.name || "Finished"}</div>
 
-        <div className="mt-8 flex flex-wrap items-center gap-3">
-          {hasReport && (
-            <Link href={href} className="btn-primary">
-              Open your report →
-            </Link>
-          )}
-          <Link href="/reports" className={hasReport ? "btn-ghost text-sm" : "btn-primary"}>
-            All your reports
-          </Link>
-        </div>
+          {/* The artifact leads. If the room didn't produce one, the module's own
+              name carries the sentence instead of a blank space. */}
+          <h1 className="display mt-2 text-3xl leading-tight text-ink sm:text-4xl">
+            {made || "That's finished."}
+          </h1>
+          <p className="mt-4 text-lg leading-relaxed text-slate2">
+            {made
+              ? "That's yours to keep — open it any time from your reports."
+              : "Your work is saved. You can open it any time from your reports."}
+          </p>
 
-        {/* One suggestion, never a grid. */}
-        {next && (
-          <div className="mt-12 border-t border-line pt-6">
-            <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">What usually comes next</div>
-            <Link
-              href={`/start/${next.slug}`}
-              className="card mt-3 flex items-center gap-4 p-5 transition hover:shadow-lift"
-            >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-mist text-ink">
-                <ModuleIcon slug={next.slug} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-semibold text-ink">{next.name}</div>
-                <div className="mt-0.5 line-clamp-2 text-xs text-slate-400">{next.tagline}</div>
-              </div>
-              <span className="shrink-0 text-slate-400" aria-hidden>→</span>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            {hasReport && (
+              <Link href={href} className="btn-primary">
+                Open your report →
+              </Link>
+            )}
+            <Link href="/reports" className={hasReport ? "btn-ghost text-sm" : "btn-primary"}>
+              All your reports
             </Link>
           </div>
-        )}
 
-        <Link href="/dashboard" className="mt-8 self-start text-sm text-slate-400 hover:text-ink">
-          ← Back to everything
-        </Link>
+          {/* One suggestion, never a grid. */}
+          {next && (
+            <div className="mt-12 border-t border-line pt-6">
+              <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">What usually comes next</div>
+              <Link
+                href={`/start/${next.slug}`}
+                className="card mt-3 flex items-center gap-4 p-5 transition hover:shadow-lift"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-mist text-ink">
+                  <ModuleIcon slug={next.slug} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold text-ink">{next.name}</div>
+                  <div className="mt-0.5 line-clamp-2 text-xs text-slate-400">{next.tagline}</div>
+                </div>
+                <span className="shrink-0 text-slate-400" aria-hidden>→</span>
+              </Link>
+            </div>
+          )}
+
+          <Link href="/dashboard" className="mt-8 inline-block text-sm text-slate-400 hover:text-ink">
+            ← Back to everything
+          </Link>
+        </div>
       </div>
     </main>
   );
