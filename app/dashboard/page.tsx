@@ -433,19 +433,6 @@ export default async function Dashboard({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2 ml-auto">
-          {/* The same visible workspace entries the rest of the app now has. */}
-          {facAccess.ok && (
-            <Link href="/studio" title="Studio" className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-mist hover:text-ink">
-              <span aria-hidden>🎬</span>
-              <span className="hidden sm:inline">Studio</span>
-            </Link>
-          )}
-          {facAccess.orgIds.length > 0 && (
-            <Link href="/team" title="Organization" className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-mist hover:text-ink">
-              <span aria-hidden>🏢</span>
-              <span className="hidden lg:inline">Organization</span>
-            </Link>
-          )}
           {myOrgs.length > 0 && (
             <OrgSwitcher
               orgs={myOrgs.map((m) => ({ slug: m.org.slug, name: m.org.name, logoUrl: m.org.logo_url, role: m.role }))}
@@ -455,6 +442,7 @@ export default async function Dashboard({
           {I18N_ENABLED && <LanguagePicker me={user.id} initial={(profile as any)?.language} />}
           <AccountMenu
             name={profile?.display_name || "You"}
+            facilitator={facAccess.ok}
             director={facAccess.orgIds.length > 0}
             superadmin={facAccess.superadmin}
             dataTour="reports"
@@ -564,10 +552,10 @@ export default async function Dashboard({
         </section>
       )}
 
-      {/* Studio and Organization are in the header on every page now, so the
-          only thing worth a card here is the action the header doesn't carry:
-          starting a new module. Repeating the two destinations directly below
-          the header was the same pair of links twice on one screen. */}
+      {/* Studio, Cohorts and Organization are destinations and live in the
+          account menu. What earns a place on the dashboard is the one thing a
+          director actually comes here to do, which the menu doesn't carry:
+          start a module. */}
       {(facAccess.superadmin || facAccess.orgIds.length > 0) && (
         <a href="/studio/create" className="card group mb-8 flex items-center gap-3 p-4 transition hover:shadow-lift sm:max-w-md">
           <span className="text-xl" aria-hidden>🧩</span>
