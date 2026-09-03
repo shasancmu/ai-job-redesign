@@ -126,7 +126,7 @@ export default function NetworkRoom({ me, session, myName = "" }: { me: string; 
   return (
     <main className="mx-auto max-w-lg px-5 py-8 pb-28">
       <div className="mb-5 flex items-center justify-between">
-        <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
+        <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">
           ← {t("room.exit")}
         </Link>
         <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{t("group.netTag")}</span>

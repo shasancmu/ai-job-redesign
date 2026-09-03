@@ -2361,8 +2361,8 @@ Method (follow it):
 Return STRICT JSON only, no prose, no fences:
 {
  "occupation": "the standard occupation you benchmarked against",
- "headline": "one honest, non-alarmist sentence",
- "summary": "3-4 sentences, second person for resume / about the role for jd",
+ "headline": "a 3-6 word NAME for what this role becomes, in the shape of a job title — not a sentence, no verb phrase, no punctuation at the end",
+ "summary": "3-4 sentences, second person for resume / about the role for jd. This carries the argument; the headline only names it.",
  "topDownExposure": integer 0-100,
  "bottomUpExposure": integer 0-100,
  "automateShare": integer, "augmentShare": integer, "humanShare": integer,
@@ -2382,7 +2382,7 @@ Rules: 8-14 tasks covering the real role; be discerning with exposure (spread E0
     return {
       occupation: opts.occupation?.title || String(p.occupation || ""),
       occupationCode: opts.occupation?.code || "",
-      headline: String(p.headline || ""),
+      headline: String(p.headline || "").replace(/[.\s]+$/, "").slice(0, 60),
       summary: String(p.summary || ""),
       topDownExposure: typeof opts.topDown === "number" ? clampPct(opts.topDown) : clampPct(p.topDownExposure),
       topDownSource: typeof opts.topDown === "number" ? "published" : "estimate",

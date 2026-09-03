@@ -15,8 +15,8 @@ export default async function PaperStudyView({ params }: { params: { code: strin
   return (
     <ReportShell
       code={code}
-      eyebrow="Understand a Paper"
-      title="Paper deconstruction"
+      eyebrow="Paper deconstruction"
+      title={study?.title || "Understand a Paper"}
       backLabel="← Back to the exercise"
       shareTitle="A paper deconstruction"
       shareText="Here's how I broke down this paper with Superadditive:"

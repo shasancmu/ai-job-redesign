@@ -3,6 +3,8 @@
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import PrintButton from "@/components/PrintButton";
+import ShareReport from "@/components/ShareReport";
 
 type Human = { task: string; value: string; excel: string };
 type AI = { task: string; how: string; look?: string; prompt: string; cadence: string; check: string };
@@ -45,9 +47,12 @@ export default function PlanView({
           {!embedded && (
             <div className="flex items-center justify-between">
               <Logo href="/dashboard" />
-              <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
-                ← Done
-              </Link>
+              <div className="flex items-center gap-2">
+                {code && <ShareReport code={code} title="Your reimagined role" text="Here's my reimagined role from Superadditive:" />}
+                <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">
+                  ← Done
+                </Link>
+              </div>
             </div>
           )}
           <div className={embedded ? "" : "mt-10"}>
@@ -137,9 +142,12 @@ export default function PlanView({
         </div>
 
         <div className="mt-12 text-center text-sm text-slate2">
-          <button onClick={() => window.print()} className="btn-ghost">
-            ↧ Save as PDF / print
-          </button>
+          <PrintButton />
+          {code && (
+            <div className="mt-3">
+              <Link href={`/room/${code}`} className="text-slate2 hover:text-ink">← Back to the exercise</Link>
+            </div>
+          )}
         </div>
       </section>
     </main>

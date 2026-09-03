@@ -160,7 +160,7 @@ function Opened({
       <section className="border-b border-line">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-5">
           <Logo href="/dashboard" />
-          <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
+          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">
             ← Done
           </Link>
         </div>

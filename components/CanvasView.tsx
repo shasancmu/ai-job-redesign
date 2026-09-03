@@ -6,6 +6,7 @@ import ShareReport from "@/components/ShareReport";
 import { accentColor, scoreColor, type CanvasDef } from "@/lib/canvases";
 import FrontierPlot, { complexityLevel, QuadrantPlot } from "@/components/FrontierPlot";
 import UnitEconomics from "@/components/UnitEconomics";
+import PrintButton from "@/components/PrintButton";
 
 const SAGE = "#3F7A52";
 const GOLD = "#CE8F2C";
@@ -37,7 +38,7 @@ export default function CanvasView({
               <Logo href="/dashboard" />
               <div className="flex items-center gap-2">
                 {code && <ShareReport code={code} title={def?.name || "A strategy canvas"} text={`Here's my ${def?.name || "canvas"} from Superadditive:`} />}
-                <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Done</Link>
+                <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Done</Link>
               </div>
             </div>
           )}
@@ -189,7 +190,7 @@ export default function CanvasView({
 
         {!embedded && (
           <div className="mt-10 text-center text-sm text-slate2">
-            <button onClick={() => window.print()} className="btn-ghost">↧ Save as PDF / print</button>
+            <PrintButton />
             {code && (
               <div className="mt-3">
                 <Link href={`/room/${code}`} className="text-slate2 hover:text-ink">← Back to the exercise</Link>

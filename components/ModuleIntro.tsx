@@ -38,7 +38,7 @@ export default function ModuleIntro({ slug, name, steps }: { slug: string; name:
     return (
       <button
         onClick={replay}
-        className="fixed bottom-4 left-4 z-40 inline-flex items-center gap-1.5 rounded-full border border-line bg-white/95 px-3 py-1.5 text-xs font-medium text-slate-500 shadow-soft backdrop-blur transition hover:text-ink"
+        className="fixed bottom-4 left-4 z-40 inline-flex items-center gap-1.5 rounded-full border border-line bg-white/95 px-3 py-2 text-xs font-medium text-slate-500 shadow-soft backdrop-blur transition hover:text-ink lg:bottom-auto lg:top-20"
       >
         <span aria-hidden>💡</span> How this works
       </button>

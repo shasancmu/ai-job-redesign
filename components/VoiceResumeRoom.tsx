@@ -26,7 +26,7 @@ export default function VoiceResumeRoom({ session, initialWorkspace, prefill, pr
     return (
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <div className="mb-6 flex items-center justify-between">
-          <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Exit</Link>
+          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">Talk Through Your Résumé</span>
         </div>
         <ResumeIntake prefill={prefill} prefillFrom={prefillFrom} onStart={startInterview} cta="Start the spoken interview" />

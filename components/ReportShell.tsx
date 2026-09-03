@@ -52,6 +52,7 @@ export default function ReportShell({
           {hasReport && <PrintButton />}
           {hasReport && <ShareReport code={code} title={shareTitle} text={shareText} />}
           <Link href={`/room/${code}`} className="btn-ghost text-sm">{backLabel}</Link>
+          <Link href="/dashboard" className="btn-ghost text-sm">← Done</Link>
         </div>
       </header>
 

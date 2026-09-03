@@ -141,7 +141,7 @@ export default function ChatInterview({
     <div className="mx-auto flex h-[100dvh] max-w-2xl flex-col">
       {gate.modal}
       <header className="flex items-center justify-between border-b border-line px-4 py-3">
-        <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Exit</Link>
+        <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
         <span className="text-sm font-semibold text-ink">{chatTitle}</span>
         <button onClick={gate.start} disabled={answered < 3 || building} className="btn-dark px-3 py-1.5 text-xs disabled:opacity-40">{building ? buildingLabel : answered < 3 ? "Keep going" : buildLabel}</button>
       </header>

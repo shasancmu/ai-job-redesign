@@ -101,7 +101,7 @@ export default function BenchmarkRoom({ me, session }: { me: string; session: an
   return (
     <main className="mx-auto max-w-3xl px-5 py-8 sm:px-6">
       <div className="mb-6 flex items-center justify-between">
-        <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
+        <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">
           ← {t("room.exit")}
         </Link>
         <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{t("group.benchTag")}</span>

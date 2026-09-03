@@ -390,7 +390,7 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
     <div className="relative flex min-h-screen flex-col bg-paper">
       {gate.modal}
       <header className="flex items-center justify-between px-6 py-3">
-        <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Exit</Link>
+        <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
         <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{cfg.headerPill}</span>
         <button onClick={toggleMute} className="btn-ghost text-sm" title={muted ? `Unmute ${cfg.speaker}` : `Mute ${cfg.speaker}`}>{muted ? "🔇" : "🔊"}</button>
       </header>

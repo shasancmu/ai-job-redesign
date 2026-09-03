@@ -6,6 +6,7 @@ import ShareReport from "@/components/ShareReport";
 import WorkflowFlow from "@/components/WorkflowFlow";
 import TradeoffPlan from "@/components/TradeoffPlan";
 import { STEP_ROLES } from "@/lib/workflow";
+import PrintButton from "@/components/PrintButton";
 
 const SAGE = "#3F7A52";
 const GOLD = "#CE8F2C";
@@ -33,7 +34,7 @@ export default function WorkflowPlanView({ doc, code, embedded = false }: { doc:
               <Logo href="/dashboard" />
               <div className="flex items-center gap-2">
                 {code && <ShareReport code={code} title="A redesigned workflow" text="Here's my redesigned workflow from Superadditive:" />}
-                <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">
+                <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">
                   ← Done
                 </Link>
               </div>
@@ -106,9 +107,7 @@ export default function WorkflowPlanView({ doc, code, embedded = false }: { doc:
 
       {!embedded && (
         <section className="mx-auto max-w-4xl px-6 py-14 text-center text-sm text-slate2">
-          <button onClick={() => window.print()} className="btn-ghost">
-            ↧ Save as PDF / print
-          </button>
+          <PrintButton />
           {code && (
             <div className="mt-3">
               <Link href={`/room/${code}`} className="text-slate2 hover:text-ink">

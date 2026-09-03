@@ -4,6 +4,7 @@ import Link from "next/link";
 import Logo from "@/components/Logo";
 import ShareReport from "@/components/ShareReport";
 import { EXPOSURE_META, MODE_META, CITATIONS } from "@/lib/careerXray";
+import PrintButton from "@/components/PrintButton";
 
 const SAGE = "#3F7A52";
 const GOLD = "#CE8F2C";
@@ -22,7 +23,7 @@ export default function CareerXrayView({ xray, mode = "resume", code, embedded =
               <Logo href="/dashboard" />
               <div className="flex items-center gap-2">
                 {code && <ShareReport code={code} title="A Job & AI X-ray" text="Here's my Job & AI X-ray from Superadditive:" />}
-                <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Done</Link>
+                <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Done</Link>
               </div>
             </div>
           )}
@@ -173,7 +174,7 @@ export default function CareerXrayView({ xray, mode = "resume", code, embedded =
       </section>
 
       <section className="mx-auto max-w-4xl px-6 py-12 text-center text-sm text-slate2">
-        {!embedded && <button onClick={() => window.print()} className="btn-ghost">↧ Save as PDF / print</button>}
+        {!embedded && <PrintButton />}
         {!embedded && code && <div className="mt-3"><Link href={`/room/${code}`} className="text-slate2 hover:text-ink">← Back to the exercise</Link></div>}
       </section>
     </main>
