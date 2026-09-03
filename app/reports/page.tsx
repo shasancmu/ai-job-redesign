@@ -147,7 +147,7 @@ export default async function Reports({ searchParams }: { searchParams?: { modul
         <HeaderNav />
       </header>
 
-      {reports.length === 0 && gifts.length === 0 ? (
+      {reports.length === 0 && (only || gifts.length === 0) ? (
         <div className="card p-8 text-center">
           <p className="text-slate-600">No reports yet.</p>
           <p className="mx-auto mt-1 max-w-md text-sm text-slate2">
@@ -157,7 +157,7 @@ export default async function Reports({ searchParams }: { searchParams?: { modul
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {gifts.map((g) => (
+          {(only ? [] : gifts).map((g) => (
             <div key={`gift-${g.code}`} className="card flex flex-col overflow-hidden p-0 transition hover:shadow-lift">
               <div className="h-1.5" style={{ background: "linear-gradient(90deg, #3F7A52, #CE8F2C)" }} />
               <div className="flex flex-1 flex-col p-5">
