@@ -107,12 +107,6 @@ export default function CanvasRoom({
       <div className="pb-24">
         {step.key === "setup" && (
           <div className="space-y-4">
-            {def.about && (
-              <div className="rounded-2xl border border-line bg-mist p-5 text-sm leading-relaxed text-slate-600">
-                <span className="font-semibold text-ink">{t("canvas.aboutLabel")}</span>
-                {def.about}
-              </div>
-            )}
             <div className="card p-5">
               <label className="lbl">{def.setupTitle}</label>
               <textarea
@@ -123,6 +117,22 @@ export default function CanvasRoom({
               />
               <p className="mt-2 text-sm text-slate-500">{def.setupHint}</p>
             </div>
+            {/* The framing used to sit above the input: a dense paragraph (38
+                words at the median, 68 at the worst) between someone and the
+                one thing step one asks them to do, on a two-minute clock, right
+                after they dismissed the intro cards that also explained the
+                module. Three explanations before one action. It's good writing
+                in the wrong place — so it moves below the box and opens on
+                demand. */}
+            {def.about && (
+              <details className="group rounded-2xl border border-line bg-mist px-5 py-4">
+                <summary className="flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-ink">
+                  <span className="text-slate-400 transition-transform group-open:rotate-90" aria-hidden>›</span>
+                  {t("canvas.aboutLabel").replace(/[.\s]+$/, "")}
+                </summary>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">{def.about}</p>
+              </details>
+            )}
           </div>
         )}
 
