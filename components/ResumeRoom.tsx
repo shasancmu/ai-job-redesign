@@ -47,6 +47,7 @@ export default function ResumeRoom({
       session={session}
       ws={ws}
       apiPath="/api/resume"
+      turns={6}
       helpKey="resume"
       guideKey="resume"
       extraBody={{ source }}

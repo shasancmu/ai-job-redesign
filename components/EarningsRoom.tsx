@@ -8,6 +8,7 @@ import RoleplayChat, { type Msg } from "@/components/RoleplayChat";
 import { streamPost } from "@/lib/streamClient";
 import { SURFACE, OPENING_REMARKS } from "@/lib/earnings";
 import EarningsReport from "@/components/EarningsReport";
+import StepHeader from "./StepHeader";
 
 const BUDGET = 7;
 
@@ -78,7 +79,8 @@ export default function EarningsRoom({ me, session, initialWorkspace }: { me: st
           <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Exit</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">The Earnings Call · Verita Ingredients</span>
         </div>
-        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())} />
+        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
+          onAdvance={phase < STEPS.length - 1 ? () => go(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">
@@ -87,10 +89,7 @@ export default function EarningsRoom({ me, session, initialWorkspace }: { me: st
         ))}
       </div>
 
-      <div className="mb-5">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Step {phase + 1} of {STEPS.length} · {step.minutes} min</div>
-        <h1 className="mt-1 text-2xl font-bold">{step.title}</h1>
-      </div>
+      <StepHeader n={phase + 1} total={STEPS.length} minutes={step.minutes} title={step.title} />
 
       <div className="pb-24">
         {step.key === "brief" && <Brief />}

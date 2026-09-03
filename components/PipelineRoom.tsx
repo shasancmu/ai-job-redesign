@@ -8,6 +8,7 @@ import { usePredictGate } from "@/components/usePredictGate";
 import Timer from "@/components/Timer";
 import PipelineReport from "@/components/PipelineReport";
 import { PIPELINE_STEPS, PIPELINE_STAGES, FUNNEL_NOTE, QUALITY, DEFAULT_INPUTS, simulate, type PipelineInputs } from "@/lib/pipeline";
+import StepHeader from "./StepHeader";
 
 export default function PipelineRoom({ session, initialWorkspace }: { me: string; session: any; initialWorkspace: any }) {
   const supabase = createClient();
@@ -51,7 +52,8 @@ export default function PipelineRoom({ session, initialWorkspace }: { me: string
           <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Exit</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">Publication Pipeline</span>
         </div>
-        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())} />
+        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
+          onAdvance={phase < PIPELINE_STEPS.length - 1 ? () => go(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">
@@ -60,10 +62,7 @@ export default function PipelineRoom({ session, initialWorkspace }: { me: string
         ))}
       </div>
 
-      <div className="mb-5">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Step {phase + 1} of {PIPELINE_STEPS.length}</div>
-        <h1 className="mt-1 text-2xl font-bold">{step.title}</h1>
-      </div>
+      <StepHeader n={phase + 1} total={PIPELINE_STEPS.length} title={step.title} />
 
       <div className="pb-24">
         {step.key === "process" && <Process />}

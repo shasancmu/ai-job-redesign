@@ -15,6 +15,8 @@ import FrontierPlot, { complexityLevel, QuadrantPlot } from "@/components/Fronti
 import UnitEconomics from "@/components/UnitEconomics";
 import { useT } from "@/components/I18nProvider";
 import type { T } from "@/lib/i18n";
+import StepHeader from "./StepHeader";
+import InterviewProgress from "@/components/InterviewProgress";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -86,7 +88,8 @@ export default function CanvasRoom({
             </span>
           )}
         </div>
-        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())} />
+        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
+          onAdvance={phase < CANVAS_STEPS.length - 1 ? () => go(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">
@@ -99,12 +102,7 @@ export default function CanvasRoom({
         ))}
       </div>
 
-      <div className="mb-5">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          {t("room.step", { n: phase + 1, total: CANVAS_STEPS.length })} · {t("catalog.min", { n: step.minutes })}
-        </div>
-        <h1 className="mt-1 text-2xl font-bold">{step.title}</h1>
-      </div>
+      <StepHeader n={phase + 1} total={CANVAS_STEPS.length} minutes={step.minutes} title={step.title} />
 
       <div className="pb-24">
         {step.key === "setup" && (
@@ -251,6 +249,7 @@ function Interview({
         )}
       </div>
       {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
+      <InterviewProgress msgs={chat} />
       <InterviewHelper module={def.exercise} answered={chat.filter((m) => m.role === "user").length} hasDraft={!!input.trim()} onInsert={setInput} />
       <form onSubmit={send} className="mt-3 flex items-center gap-2">
         <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t("room.typeAnswer")} disabled={busy} />

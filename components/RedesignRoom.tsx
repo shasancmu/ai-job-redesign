@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useCohortPing } from "@/components/useCohortLive";
 import { REDESIGN_PHASES } from "@/lib/mechanics/redesignStore";
 import { moduleBeacon } from "@/lib/clientBeacon";
+import StepHeader from "./StepHeader";
 
 // A spec-driven PAIRED redesign, on the proven realtime path: phase lives on the
 // `sessions` row (already realtime), each partner's canvas on their own
@@ -106,9 +107,7 @@ export default function RedesignRoom({ me, spec, initialSession, initialWorkspac
         {REDESIGN_PHASES.map((p, i) => <div key={p.key} className={"h-1.5 flex-1 rounded-full " + (i < phaseIdx ? "bg-ink" : i === phaseIdx ? "bg-ai" : "bg-slate-200")} />)}
       </div>
       <div className="mb-4">
-        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Step {phaseIdx + 1} of {REDESIGN_PHASES.length}</div>
-        <h1 className="mt-1 text-2xl font-bold text-ink">{phase.title}</h1>
-        <p className="mt-1 text-sm text-slate-500">{phase.subtitle}</p>
+        <StepHeader n={phaseIdx + 1} total={REDESIGN_PHASES.length} title={phase.title} subtitle={phase.subtitle} />
       </div>
 
       {!partnerId && (

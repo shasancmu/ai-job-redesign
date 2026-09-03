@@ -16,6 +16,7 @@ import FinalPanel from "@/components/phases/FinalPanel";
 import Timer from "@/components/Timer";
 import PairWaiting from "@/components/PairWaiting";
 import { useT } from "@/components/I18nProvider";
+import StepHeader from "./StepHeader";
 
 export type Session = any;
 export type Workspace = any;
@@ -366,13 +367,13 @@ export default function Room({
       </div>
 
       {/* Phase header */}
-      <div className="mb-5">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          {t("room.step", { n: session.phase + 1, total: PHASES.length })} · {phase.minutes} min
-        </div>
-        <h1 className="mt-1 text-2xl font-bold">{phase.title}</h1>
-        <p className="mt-1 max-w-3xl text-slate-500">{phase.subtitle}</p>
-      </div>
+      <StepHeader
+        n={session.phase + 1}
+        total={PHASES.length}
+        minutes={phase.minutes}
+        title={phase.title}
+        subtitle={phase.subtitle}
+      />
 
       {!partnerHere && (
         <div className="mb-5 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">

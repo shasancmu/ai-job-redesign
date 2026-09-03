@@ -12,6 +12,8 @@ import PredictReveal from "@/components/PredictReveal";
 import { reportGuide } from "@/lib/reportGuide";
 import { useT } from "@/components/I18nProvider";
 import type { T } from "@/lib/i18n";
+import StepHeader from "./StepHeader";
+import InterviewProgress from "./InterviewProgress";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -106,7 +108,8 @@ export default function SoloRoom({
             {t("room.soloTag")}
           </span>
         </div>
-        <Timer startedAt={session.phase_started_at || mountedAt} minutes={step.minutes} onReset={() => goToPhase(phase)} />
+        <Timer startedAt={session.phase_started_at || mountedAt} minutes={step.minutes} onReset={() => goToPhase(phase)}
+          onAdvance={phase < SOLO_STEPS.length - 1 ? () => goToPhase(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">
@@ -122,13 +125,13 @@ export default function SoloRoom({
         ))}
       </div>
 
-      <div className="mb-5">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          {t("room.step", { n: phase + 1, total: SOLO_STEPS.length })} · {t("catalog.min", { n: step.minutes })}
-        </div>
-        <h1 className="mt-1 text-2xl font-bold">{tf(t, "steps.solo." + step.key + ".title", step.title)}</h1>
-        <p className="mt-1 max-w-3xl text-slate-500">{tf(t, "steps.solo." + step.key + ".subtitle", step.subtitle)}</p>
-      </div>
+      <StepHeader
+        n={phase + 1}
+        total={SOLO_STEPS.length}
+        minutes={step.minutes}
+        title={tf(t, "steps.solo." + step.key + ".title", step.title)}
+        subtitle={tf(t, "steps.solo." + step.key + ".subtitle", step.subtitle)}
+      />
 
       {predicting && guide?.predictPrompt && (
         <PredictReveal
@@ -313,20 +316,11 @@ function Interview({ ws, update, sessionId }: { ws: any; update: (p: any) => voi
 
       {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
 
-      {/* An open-ended chat with no visible end is why people stall here: there
-          was no way to tell a third of the way through from nearly done. */}
-      <div className="mt-2 flex items-center gap-2 text-xs text-slate-400">
-        <span className="flex gap-1" aria-hidden>
-          {Array.from({ length: INTERVIEW_TURNS }).map((_, i) => (
-            <span key={i} className={"h-1 w-4 rounded-full " + (i < asked ? "bg-ai" : "bg-slate-200")} />
-          ))}
-        </span>
-        <span>
-          {asked >= INTERVIEW_TURNS
-            ? "That's everything it needs — build your redesign whenever you're ready."
-            : `Question ${Math.min(asked + 1, INTERVIEW_TURNS)} of about ${INTERVIEW_TURNS}`}
-        </span>
-      </div>
+      <InterviewProgress
+        msgs={messages}
+        turns={INTERVIEW_TURNS}
+        doneNote="That's everything it needs — build your redesign whenever you're ready."
+      />
 
       <InterviewHelper module="job" answered={messages.filter((m) => m.role === "user").length} hasDraft={!!input.trim()} onInsert={setInput} />
       <form onSubmit={send} className="mt-3 flex items-center gap-2">

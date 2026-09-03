@@ -12,6 +12,7 @@ import WorkflowFlow from "@/components/WorkflowFlow";
 import TradeoffPlan from "@/components/TradeoffPlan";
 import { useT } from "@/components/I18nProvider";
 import type { T } from "@/lib/i18n";
+import StepHeader from "./StepHeader";
 
 type Doc = any;
 
@@ -363,14 +364,14 @@ export default function WorkflowRoom({
         })}
       </div>
 
-      <div className="mb-5">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          {t("room.step", { n: session.phase + 1, total: WORKFLOW_STEPS.length })} ·{" "}
-          {t("catalog.min", { n: step.minutes })} · {t("workflow.sharedCanvas")}
-        </div>
-        <h1 className="mt-1 text-2xl font-bold">{tf(t, "steps.workflow." + step.key + ".title", step.title)}</h1>
-        <p className="mt-1 max-w-3xl text-slate-500">{tf(t, "steps.workflow." + step.key + ".subtitle", step.subtitle)}</p>
-      </div>
+      <StepHeader
+        n={session.phase + 1}
+        total={WORKFLOW_STEPS.length}
+        minutes={step.minutes}
+        note={t("workflow.sharedCanvas")}
+        title={tf(t, "steps.workflow." + step.key + ".title", step.title)}
+        subtitle={tf(t, "steps.workflow." + step.key + ".subtitle", step.subtitle)}
+      />
 
       {!partnerHere && (
         <div className="mb-5 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">

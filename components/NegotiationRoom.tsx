@@ -9,6 +9,7 @@ import RoleplayChat, { type Msg } from "@/components/RoleplayChat";
 import { streamPost } from "@/lib/streamClient";
 import { useT } from "@/components/I18nProvider";
 import type { T } from "@/lib/i18n";
+import StepHeader from "./StepHeader";
 
 // Streams the counterpart's reply token by token. Errors propagate so the chat
 // can show a retry message rather than a silent dead end.
@@ -78,7 +79,8 @@ export default function NegotiationRoom({ me, session, initialWorkspace }: { me:
           <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{scn.name} · {t("nego.negotiationTag")}</span>
         </div>
-        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())} />
+        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
+          onAdvance={phase < STEPS.length - 1 ? () => go(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">
@@ -87,10 +89,7 @@ export default function NegotiationRoom({ me, session, initialWorkspace }: { me:
         ))}
       </div>
 
-      <div className="mb-5">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("room.step", { n: phase + 1, total: STEPS.length })} · {t("catalog.min", { n: step.minutes })}</div>
-        <h1 className="mt-1 text-2xl font-bold">{step.title}</h1>
-      </div>
+      <StepHeader n={phase + 1} total={STEPS.length} minutes={step.minutes} title={step.title} />
 
       <div className="pb-24">
         {step.key === "brief" && <Brief scn={scn} />}

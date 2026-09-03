@@ -11,6 +11,8 @@ import WorkflowFlow from "@/components/WorkflowFlow";
 import TradeoffPlan from "@/components/TradeoffPlan";
 import { useT } from "@/components/I18nProvider";
 import type { T } from "@/lib/i18n";
+import StepHeader from "./StepHeader";
+import InterviewProgress from "./InterviewProgress";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -129,7 +131,8 @@ export default function SoloWorkflowRoom({
           </Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{t("sworkflow.tag")}</span>
         </div>
-        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())} />
+        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
+          onAdvance={phase < SOLO_WORKFLOW_STEPS.length - 1 ? () => go(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">
@@ -145,13 +148,13 @@ export default function SoloWorkflowRoom({
         ))}
       </div>
 
-      <div className="mb-5">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          {t("room.step", { n: phase + 1, total: SOLO_WORKFLOW_STEPS.length })} · {t("catalog.min", { n: step.minutes })}
-        </div>
-        <h1 className="mt-1 text-2xl font-bold">{tf(t, "steps.sworkflow." + step.key + ".title", step.title)}</h1>
-        <p className="mt-1 max-w-3xl text-slate-500">{tf(t, "steps.sworkflow." + step.key + ".subtitle", step.subtitle)}</p>
-      </div>
+      <StepHeader
+        n={phase + 1}
+        total={SOLO_WORKFLOW_STEPS.length}
+        minutes={step.minutes}
+        title={tf(t, "steps.sworkflow." + step.key + ".title", step.title)}
+        subtitle={tf(t, "steps.sworkflow." + step.key + ".subtitle", step.subtitle)}
+      />
 
       <div className="pb-24">
         {step.key === "name" && (
@@ -378,6 +381,7 @@ function WorkflowInterview({
           ✓ You&apos;ve covered the workflow — build my map →
         </button>
       )}
+      <InterviewProgress msgs={chat} />
       <form onSubmit={send} className="mt-3 flex items-center gap-2">
         <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t("room.typeAnswer")} disabled={busy} />
         <button className="btn-primary" disabled={busy || !input.trim()}>{t("room.send")}</button>

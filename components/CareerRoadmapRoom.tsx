@@ -11,6 +11,8 @@ import { CAREER_ROADMAP_STEPS } from "@/lib/careerRoadmap";
 import Timer from "@/components/Timer";
 import CareerRoadmapView from "@/components/CareerRoadmapView";
 import { useT } from "@/components/I18nProvider";
+import StepHeader from "./StepHeader";
+import InterviewProgress from "@/components/InterviewProgress";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -99,7 +101,8 @@ export default function CareerRoadmapRoom({
           <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{t("roadmap.tag")}</span>
         </div>
-        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())} />
+        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
+          onAdvance={phase < CAREER_ROADMAP_STEPS.length - 1 ? () => go(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">
@@ -108,10 +111,7 @@ export default function CareerRoadmapRoom({
         ))}
       </div>
 
-      <div className="mb-5">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("room.step", { n: phase + 1, total: CAREER_ROADMAP_STEPS.length })}</div>
-        <h1 className="mt-1 text-2xl font-bold">{t(STEP_KEY[step.key] || "roadmap.stepInput")}</h1>
-      </div>
+      <StepHeader n={phase + 1} total={CAREER_ROADMAP_STEPS.length} title={t(STEP_KEY[step.key] || "roadmap.stepInput")} />
 
       <div className="pb-24">
         {step.key === "input" && (
@@ -221,6 +221,7 @@ function Interview({ state, setState, role, intent, onSkip }: { state: any; setS
           {busy && !streaming && messages.length > 0 && <div className="flex justify-start"><div className="rounded-2xl bg-slate-100 px-4 py-2.5 text-sm text-slate-400">…</div></div>}
         </div>
         {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
+        <InterviewProgress msgs={messages} />
         <InterviewHelper module="career-roadmap" answered={messages.filter((m) => m.role === "user").length} hasDraft={!!input.trim()} onInsert={setInput} />
         <form onSubmit={send} className="mt-3 flex items-center gap-2">
           <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t("room.typeAnswer")} disabled={busy} />

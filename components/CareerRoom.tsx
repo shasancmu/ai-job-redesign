@@ -8,6 +8,7 @@ import Timer from "@/components/Timer";
 import CareerXrayView from "@/components/CareerXrayView";
 import { useT } from "@/components/I18nProvider";
 import type { T } from "@/lib/i18n";
+import StepHeader from "./StepHeader";
 
 function tf(t: T, key: string, fallback: string) { const v = t(key); return v === key ? fallback : v; }
 
@@ -80,7 +81,8 @@ export default function CareerRoom({ me, session, mode, initialWorkspace, savedR
           <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{isJD ? t("career.roleTag") : t("career.careerTag")}</span>
         </div>
-        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())} />
+        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
+          onAdvance={phase < CAREER_STEPS.length - 1 ? () => go(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">
@@ -89,10 +91,7 @@ export default function CareerRoom({ me, session, mode, initialWorkspace, savedR
         ))}
       </div>
 
-      <div className="mb-5">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("room.step", { n: phase + 1, total: CAREER_STEPS.length })} · {t("catalog.min", { n: step.minutes })}</div>
-        <h1 className="mt-1 text-2xl font-bold">{tf(t, "steps.career." + step.key + ".title", step.title)}</h1>
-      </div>
+      <StepHeader n={phase + 1} total={CAREER_STEPS.length} minutes={step.minutes} title={tf(t, "steps.career." + step.key + ".title", step.title)} />
 
       <div className="pb-24">
         {step.key === "input" && (

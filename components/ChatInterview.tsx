@@ -8,6 +8,7 @@ import ShareReport from "@/components/ShareReport";
 import InterviewHelper from "@/components/InterviewHelper";
 import ReportReveal from "@/components/ReportReveal";
 import { usePredictGate } from "@/components/usePredictGate";
+import InterviewProgress from "@/components/InterviewProgress";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -30,6 +31,7 @@ export default function ChatInterview({
   buildLabel,
   buildingLabel,
   bottomHint,
+  turns,
 }: {
   session: any;
   ws: any;
@@ -45,6 +47,7 @@ export default function ChatInterview({
   buildLabel: string;
   buildingLabel: string;
   bottomHint: string;
+  turns?: number; // set only when lib/ai.ts holds this interview to a budget
 }) {
   const supabase = createClient();
   const [messages, setMessages] = useState<Msg[]>(ws.canvas?.interview_chat || []);
@@ -159,6 +162,7 @@ export default function ChatInterview({
           <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} rows={1} placeholder="Type your answer…" className="field max-h-32 flex-1 resize-none py-2.5" disabled={waiting} />
           <button onClick={send} disabled={waiting || !input.trim()} className="btn-primary shrink-0 px-4 py-2.5 disabled:opacity-40">Send</button>
         </div>
+        {turns ? <InterviewProgress msgs={messages} turns={turns} /> : null}
         <InterviewHelper module={helpKey} answered={answered} hasDraft={!!input.trim()} onInsert={setInput} />
         {answered >= 3 && <p className="mt-2 text-center text-[11px] text-slate-400">{bottomHint}</p>}
       </div>

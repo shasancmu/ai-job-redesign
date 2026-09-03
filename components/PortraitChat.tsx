@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import InterviewProgress from "@/components/InterviewProgress";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Stage = "intro" | "chat" | "done";
@@ -118,6 +119,7 @@ export default function PortraitChat({ existingReflection = null }: { existingRe
 
       {err && <p className="mt-2 text-sm text-red-700">{err}</p>}
 
+      <InterviewProgress msgs={msgs} />
       <div className="mt-4 flex items-end gap-2">
         <textarea
           className="field min-h-[52px] flex-1 resize-none"

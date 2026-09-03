@@ -6,6 +6,7 @@ import RoleplayChat, { type Msg } from "@/components/RoleplayChat";
 import { streamPost } from "@/lib/streamClient";
 import GenericRoleplayReport from "@/components/GenericRoleplayReport";
 import { WARM_LOADING, pick } from "@/lib/warmth";
+import StepHeader from "./StepHeader";
 
 // Runs ANY role-play ModuleSpec (the public view). Self-contained: a run code
 // drives the hidden scenario server-side; transcript lives in client state.
@@ -69,10 +70,7 @@ export default function RoleplaySpecRoom({ spec, cohort }: { spec: any; cohort?:
         {flow.map((p, i) => <button key={p.key} onClick={() => setPhase(i)} className={"h-1.5 flex-1 rounded-full transition " + (i < phase ? "bg-ink" : i === phase ? "bg-ai" : "bg-slate-200 hover:bg-slate-300")} />)}
       </div>
 
-      <div className="mb-4">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Step {phase + 1} of {flow.length}{step.minutes ? ` · ${step.minutes} min` : ""}</div>
-        <h1 className="mt-1 text-2xl font-bold">{step.title}</h1>
-      </div>
+      <StepHeader n={phase + 1} total={flow.length} minutes={step.minutes} title={step.title} />
 
       <div className="pb-24">
         {step.kind === "brief" && (

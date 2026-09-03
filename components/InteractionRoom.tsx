@@ -9,6 +9,7 @@ import Timer from "@/components/Timer";
 import InteractionPlot from "@/components/InteractionPlot";
 import InteractionReport from "@/components/InteractionReport";
 import { INTERACTION_STEPS, DEFAULT_IDEA, ideaSentence, ideaComplete, type IdeaInputs, type Direction } from "@/lib/interaction";
+import StepHeader from "./StepHeader";
 
 export default function InteractionRoom({ session, initialWorkspace }: { me: string; session: any; initialWorkspace: any }) {
   const supabase = createClient();
@@ -54,7 +55,8 @@ export default function InteractionRoom({ session, initialWorkspace }: { me: str
           <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Exit</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">The Anatomy of an Idea</span>
         </div>
-        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())} />
+        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
+          onAdvance={phase < INTERACTION_STEPS.length - 1 ? () => go(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">
@@ -63,10 +65,7 @@ export default function InteractionRoom({ session, initialWorkspace }: { me: str
         ))}
       </div>
 
-      <div className="mb-5">
-        <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Step {phase + 1} of {INTERACTION_STEPS.length}</div>
-        <h1 className="mt-1 text-2xl font-bold">{step.title}</h1>
-      </div>
+      <StepHeader n={phase + 1} total={INTERACTION_STEPS.length} title={step.title} />
 
       <div className="pb-24">
         {step.key === "frame" && <Frame idea={idea} setIdea={setIdea} />}
