@@ -152,26 +152,17 @@ carry the paper's own title.
 
 ### 7. The first screen front-loads theory
 
-Canvas step 1 opens with a five-sentence paragraph on the GAS framework —
-generality, accuracy, simplicity, where advantage comes from — sitting directly
-above the single text box, on a two-minute clock, immediately after the learner
-dismissed a three-card intro that also explained the module.
+Step one of a canvas opens with the framing paragraph sitting directly above the
+single text box, on a two-minute clock, immediately after the learner dismissed a
+three-card intro that also explained the module. That is three explanations
+before one action — and running the module myself, I hit `0:00` having done
+nothing but read it.
 
-That is three explanations before one action. The framing is good writing; it is
-in the wrong place. Move it behind the "How this works" chip or under the input,
-and let the learner type the workflow first.
+It is not one module: **21 of the 25 canvas defs carry an `about`**, at a median
+of 38 words and up to 68.
 
----
-
-## P3 — smaller
-
-### 8. Two chrome affordances are hard to reach
-`← Exit` renders at 20px tall, below any reasonable target size, and it is the
-one irreversible-feeling control on the screen. `How this works` is pinned
-bottom-left, which is not where someone who is stuck looks — they look at the top
-of the page, near the title.
-
----
+The framing is good writing in the wrong place. The input should come first and
+the framing should sit below it, available on demand.
 
 ## Order to do them
 
@@ -183,7 +174,7 @@ of the page, near the title.
 | 4 | Route the 21 silent rooms through `t()` | 21 | Largest job here, but nine locales are shipping today |
 | 5 | One report footer, one label per action | 4 | Adds the missing `← Done` |
 | 6 | Report `<h1>` convention: name the artifact | 4 | |
-| 7 | Demote the theory paragraph below the input | canvas defs | |
+| 7 | ~~Demote the theory paragraph below the input~~ | canvas defs | **Done** — `ba2a445`, covers 21 modules |
 | 8 | Exit target size; move the help chip up | 2 | |
 
 Items 1–3 are done in `2198bfc` and account for most of what a learner would
