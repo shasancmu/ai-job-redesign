@@ -531,6 +531,27 @@ export async function benchmarkNoteAI(system: string, user: string): Promise<str
   return String(text || "").replace(/\s+/g, " ").trim();
 }
 
+// Turn an old report headline into a name.
+//
+// The headline prompts used to ask for "one honest sentence" and got thirty-word
+// theses, which rendered as the report's h1 with the summary saying the same
+// thing underneath. New runs ask for a name; this is for what is already stored.
+export async function reportNameAI(sentence: string): Promise<string> {
+  const text = await complete(
+    [
+      {
+        role: "system",
+        content: `Turn a sentence about someone's role into a NAME for it.
+
+Rules: 3 to 6 words. Shaped like a job title, the way "Floor Leader, Amplified by Data" names a role. No verb phrase, no full sentence, no trailing punctuation, no quotes. Use the sentence's own vocabulary. Reply with the name and nothing else.`,
+      },
+      { role: "user", content: sentence.slice(0, 600) },
+    ],
+    { temperature: 0.3, maxTokens: 40, low: true, timeoutMs: 30000, flow: "admin:report-name" },
+  );
+  return String(text || "").replace(/\s+/g, " ").trim();
+}
+
 // The memory-prosthetic draft: help a teacher write a SHORT, genuine check-in to
 // one student they know — grounded in what that person last worked on. It is
 // never sent automatically; the human edits it and sends it in their own voice.

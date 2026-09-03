@@ -564,38 +564,19 @@ export default async function Dashboard({
         </section>
       )}
 
-      {/* For a director, authoring a module and configuring the org are the
-          product. They rendered as 14px text links, quieter than the exercise
-          chips underneath them. */}
+      {/* Studio and Organization are in the header on every page now, so the
+          only thing worth a card here is the action the header doesn't carry:
+          starting a new module. Repeating the two destinations directly below
+          the header was the same pair of links twice on one screen. */}
       {(facAccess.superadmin || facAccess.orgIds.length > 0) && (
-        <section className="mb-8">
-          <h2 className="eyebrow mb-3">Yours to run</h2>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <a href="/studio/create" className="card group flex items-center gap-3 p-4 transition hover:shadow-lift">
-              <span className="text-xl" aria-hidden>🧩</span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold text-ink group-hover:text-ai">Create a module</span>
-                <span className="block text-xs text-slate-400">From your materials, or just describe it</span>
-              </span>
-            </a>
-            <a href="/studio" className="card group flex items-center gap-3 p-4 transition hover:shadow-lift">
-              <span className="text-xl" aria-hidden>🎬</span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold text-ink group-hover:text-ai">Studio</span>
-                <span className="block text-xs text-slate-400">Create, run, observe, improve</span>
-              </span>
-            </a>
-            {facAccess.orgIds.length > 0 && (
-              <a href="/org/settings" className="card group flex items-center gap-3 p-4 transition hover:shadow-lift">
-                <span className="text-xl" aria-hidden>⚙️</span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold text-ink group-hover:text-ai">Organization</span>
-                  <span className="block text-xs text-slate-400">Logo, hero image, and text</span>
-                </span>
-              </a>
-            )}
-          </div>
-        </section>
+        <a href="/studio/create" className="card group mb-8 flex items-center gap-3 p-4 transition hover:shadow-lift sm:max-w-md">
+          <span className="text-xl" aria-hidden>🧩</span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold text-ink group-hover:text-ai">Create a module</span>
+            <span className="block text-xs text-slate-400">From your materials, or just describe it</span>
+          </span>
+          <span className="shrink-0 text-slate-300 transition group-hover:text-ink" aria-hidden>→</span>
+        </a>
       )}
 
       {(classAssignments.length > 0 || isOrgLearner) && (
