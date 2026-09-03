@@ -81,7 +81,7 @@ export default function ExperimentRoom({ session, initialWorkspace }: { me: stri
           {phase < EXPERIMENT_STEPS.length - 1 ? (
             <button onClick={() => go(phase + 1)} disabled={!ready} className="btn-primary disabled:opacity-40">Run it in silico →</button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
+            <Link href={`/done/${session.code}`} className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>

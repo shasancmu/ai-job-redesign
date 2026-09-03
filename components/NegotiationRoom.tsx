@@ -113,7 +113,7 @@ export default function NegotiationRoom({ me, session, initialWorkspace }: { me:
           {phase < STEPS.length - 1 ? (
             <button onClick={() => go(phase + 1)} className="btn-primary">{step.key === "deal" ? t("nego.seeScore") : t("room.next")} →</button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
+            <Link href={`/done/${session.code}`} className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>

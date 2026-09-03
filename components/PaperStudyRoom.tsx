@@ -77,7 +77,7 @@ export default function PaperStudyRoom({ session, initialWorkspace }: { me: stri
           {phase < PAPER_STUDY_STEPS.length - 1 ? (
             <button onClick={() => go(phase + 1)} disabled={!canStudy} className="btn-primary disabled:opacity-40">Deconstruct it →</button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
+            <Link href={`/done/${session.code}`} className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>

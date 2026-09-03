@@ -99,7 +99,7 @@ export default function HardConvoRoom({ me, session, initialWorkspace }: { me: s
           {phase < STEPS.length - 1 ? (
             <button onClick={() => go(phase + 1)} disabled={phase === 0 && !convo} className="btn-primary">{step.key === "rehearse" ? "See feedback" : "Next"} →</button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
+            <Link href={`/done/${session.code}`} className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>

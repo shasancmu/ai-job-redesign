@@ -89,7 +89,7 @@ export default function SuperpowerRoom({
           {phase < SUPERPOWER_STEPS.length - 1 ? (
             <button onClick={() => go(phase + 1)} className="btn-primary">Next →</button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
+            <Link href={`/done/${session.code}`} className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>

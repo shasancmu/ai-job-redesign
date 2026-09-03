@@ -130,7 +130,7 @@ export default function EarningsRoom({ me, session, initialWorkspace }: { me: st
               {step.key === "call" ? "Commit a verdict" : step.key === "verdict" ? "Grade my call" : "Next"} →
             </button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
+            <Link href={`/done/${session.code}`} className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>

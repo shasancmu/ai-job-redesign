@@ -122,7 +122,7 @@ export default function CareerRoom({ me, session, mode, initialWorkspace, savedR
           {phase < CAREER_STEPS.length - 1 ? (
             <button onClick={() => go(phase + 1)} className="btn-primary">{t("career.runXray")} →</button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
+            <Link href={`/done/${session.code}`} className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>

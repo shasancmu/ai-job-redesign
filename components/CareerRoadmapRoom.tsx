@@ -160,7 +160,7 @@ export default function CareerRoadmapRoom({
               {step.key === "interview" ? `${t("roadmap.buildNav")} →` : `${t("roadmap.next")} →`}
             </button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
+            <Link href={`/done/${session.code}`} className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>

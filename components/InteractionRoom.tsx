@@ -80,7 +80,7 @@ export default function InteractionRoom({ session, initialWorkspace }: { me: str
           {phase < INTERACTION_STEPS.length - 1 ? (
             <button onClick={() => go(phase + 1)} disabled={!canFrame} className="btn-primary disabled:opacity-40">Next →</button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
+            <Link href={`/done/${session.code}`} className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>
