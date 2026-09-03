@@ -6,7 +6,7 @@ import { isAdmin } from "@/lib/admin";
 // Shared loader for report pages: the owner sees their own; a facilitator (admin)
 // can view anyone's (for the usage dashboard drill-down), read via the service
 // role. Redirects (throws) if not allowed, so callers can destructure directly.
-export async function loadOwnerReport(rawCode: string): Promise<{ code: string; session: any; canvas: any }> {
+export async function loadOwnerReport(rawCode: string): Promise<{ code: string; session: any; canvas: any; plan: any }> {
   const code = String(rawCode || "").toUpperCase();
   const supabase = createClient();
   const {
@@ -23,10 +23,10 @@ export async function loadOwnerReport(rawCode: string): Promise<{ code: string; 
 
   const { data: ws } = await db
     .from("workspaces")
-    .select("canvas")
+    .select("canvas, plan")
     .eq("session_id", session.id)
     .eq("author_id", session.host_id)
     .maybeSingle();
 
-  return { code, session, canvas: (ws?.canvas as any) || {} };
+  return { code, session, canvas: (ws?.canvas as any) || {}, plan: (ws as any)?.plan || null };
 }

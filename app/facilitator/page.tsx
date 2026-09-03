@@ -126,7 +126,10 @@ async function Overview({ admin, allowedCohorts, classes, superadmin, orgName }:
     <Shell>
       {/* Header: identity + account, kept slick. Actions live on the page. */}
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-        <div>
+        {/* min-w-0 flex-1 so the title block compresses instead of shoving the
+            nav onto a line of its own — the header grew when Studio and
+            Organization became visible. */}
+        <div className="min-w-0 flex-1">
           <div className="text-sm font-medium text-slate-400">{orgName || "Teaching"}</div>
           <h1 className="mt-0.5 text-3xl text-ink">Cohorts</h1>
           <p className="mt-1 max-w-lg text-sm text-slate2">
@@ -134,7 +137,7 @@ async function Overview({ admin, allowedCohorts, classes, superadmin, orgName }:
           </p>
           <Link href="/facilitator/guide" className="mt-2 inline-block text-sm font-semibold text-sky hover:underline">How this works for your role →</Link>
         </div>
-        <HeaderNav tour />
+        <div className="shrink-0"><HeaderNav tour /></div>
       </div>
 
       <div data-tour="fac-cohorts" className="mb-3 flex flex-wrap items-center justify-between gap-3">

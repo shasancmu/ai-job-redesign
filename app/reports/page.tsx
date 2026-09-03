@@ -53,9 +53,15 @@ export default async function Reports({ searchParams }: { searchParams?: { modul
   if (newestCodes.length) {
     const { data: wss } = await supabase
       .from("workspaces")
-      .select("session_id, canvas")
+      // A job redesign files its artifact in the `plan` column rather than
+      // inside `canvas`, and a paired session holds a row per person — so take
+      // this user's own row and merge the two shapes before reading a title.
+      .select("session_id, canvas, plan")
+      .eq("author_id", user.id)
       .in("session_id", newestCodes.slice(0, 100));
-    for (const w of ((wss as any[]) || [])) canvasBySession.set(w.session_id, w.canvas);
+    for (const w of ((wss as any[]) || [])) {
+      canvasBySession.set(w.session_id, { ...(w.canvas || {}), plan: w.plan ?? (w.canvas || {}).plan });
+    }
   }
 
   const reports: R[] = [];

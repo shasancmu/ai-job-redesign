@@ -18,9 +18,10 @@ export const metadata = { title: "Nicely done" };
 //
 // So: name the artifact, hand it over, and offer exactly one next thing.
 export default async function Done({ params }: { params: { code: string } }) {
-  const { code, session, canvas } = await loadOwnerReport(params.code);
+  const { code, session, canvas, plan } = await loadOwnerReport(params.code);
   const mod = moduleByExercise(session.exercise);
-  const made = artifactTitle(canvas);
+  // A job redesign keeps its artifact in the `plan` column, not in `canvas`.
+  const made = artifactTitle({ ...(canvas || {}), plan: plan ?? (canvas || {}).plan });
   const href = artifactHref(session.exercise, code);
   const hasReport = href !== `/room/${code}`;
   const next = recommendedNext(session.exercise);
