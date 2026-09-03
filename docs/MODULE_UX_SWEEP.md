@@ -28,37 +28,27 @@ Two findings are defects rather than inconsistencies, and they lead.
 
 ## P0 — defects
 
-### 1. Most rooms are English-only, and the app ships nine languages
+### 1. ~~Most rooms are English-only, and the app ships nine languages~~ — WRONG
 
-`messages/` carries `ar, de, en, es, fr, hi, it, pt-BR, zh`. Locale comes from
-`profiles.language`, so an org can set it and get a translated shell.
+**This finding was wrong and is withdrawn.** I reported it as the top defect. It
+is not a defect at all.
 
-Inside that shell:
+`lib/flags.ts` has carried `I18N_ENABLED = false` all along, with a comment
+saying the machine translations were low-value and everything renders in English.
+`getServerLocale()` returns `"en"` unconditionally while that flag is off, the
+language picker is hidden on the dashboard and in the class manager, and
+`getUserLanguage()` short-circuits so AI output stays English too. No learner has
+ever seen the half-translated state I described.
 
-| | rooms |
-|---|---|
-| never call `t()` at all | **21 of 44** |
-| call it four times or fewer | 13 more |
-| genuinely localised | ~10 |
+What I actually checked was that nine `messages/*.json` files ship and that 21
+room components never call `t()`. Both are true. I never checked whether the
+feature was reachable — I verified the mechanism and not the switch, then wrote
+up a defect that could not occur. The line "an org can set it and get a
+translated shell" was an assumption presented as a finding.
 
-The 21 with no `t()` call: `DefenseImpact, DiligenceScience, DomainBrief,
-DomainScan, Experiment, Explain, FindCofounder, FindCollaborators,
-ImpactOptimizer, Interaction, LicensingBrief, Myopia, PaperStudy,
-PositionResearch, Quiz, RankDisclosures, Resume, ScoreInvention, VoiceConsult,
-VoiceResume, VoiceVision`.
-
-Thirteen rooms also print the step counter as a hard-coded English literal —
-`Step {phase + 1} of {STEPS.length}` — bypassing the `t("room.step")` the other
-eight use.
-
-A Spanish-speaking learner therefore gets Spanish navigation wrapped around an
-English exercise. That reads worse than an all-English product, because it looks
-like the translation broke.
-
-*Verified from source, not the browser: switching locale means changing the
-user's own profile language, which is an account setting I did not want to touch.
-The source evidence is conclusive — a file with zero `t()` calls cannot render
-Spanish.*
+The consistency point underneath it still stands on its own terms and is folded
+into finding 3: the step counter existed in four hand-rolled dialects, which is
+worth fixing whether or not anything is ever translated.
 
 ### 2. The countdown timer has no way out
 
@@ -171,16 +161,15 @@ the framing should sit below it, available on demand.
 | 1 | ~~Pass `onAdvance` to `<Timer>`~~ | 19 | **Done** — `2198bfc` |
 | 2 | ~~Lift the turn marker into the shared chat~~ | 12 | **Done** — `2198bfc`, all 11 budgeted interviews |
 | 3 | ~~One `<StepHeader>`~~ | 21 | **Done** — `2198bfc`; the localisation half is item 4 |
-| 4 | Route the 21 silent rooms through `t()` | 21 | Largest job here, but nine locales are shipping today |
-| 5 | One report footer, one label per action | 4 | Adds the missing `← Done` |
-| 6 | Report `<h1>` convention: name the artifact | 4 | |
+| 4 | ~~Route the 21 silent rooms through `t()`~~ | 43 | **Moot** — the feature is flagged off. Chrome routed anyway in `4d9a7c7` as hygiene; the 309 remaining strings are not worth extracting until translation is a real plan |
+| 5 | ~~One report footer, one label per action~~ | 30 | **Done** — `e97c82c`; the missing `← Done` was on all 25 `ReportShell` pages, not just paper-study |
+| 6 | ~~Report `<h1>` convention: name the artifact~~ | 3 | **Done** — `e97c82c` |
 | 7 | ~~Demote the theory paragraph below the input~~ | canvas defs | **Done** — `ba2a445`, covers 21 modules |
-| 8 | Exit target size; move the help chip up | 2 | |
+| 8 | ~~Exit target size; move the help chip up~~ | 45 | **Done** — `e97c82c` |
 
-Items 1–3 are done in `2198bfc` and account for most of what a learner would
-describe as "inconsistent." Item 4 is the big one and is worth scoping
-separately; `StepHeader` gives every room a localised counter, but the body copy
-of the 21 silent rooms is untouched.
+Everything here is done except item 4, which turned out to be moot: the
+multi-language feature it rested on has been flagged off since before this sweep
+began. See the withdrawal under finding 1.
 
 ## What this sweep did not cover
 
