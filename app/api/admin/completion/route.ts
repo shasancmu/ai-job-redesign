@@ -18,7 +18,13 @@ export const maxDuration = 120;
 // drop-out. Eight rooms never mark done at all, so their runs can only ever
 // count as incomplete.
 //
-// This measures the thing itself: did a run produce an artifact? Read-only.
+// This measures the thing itself: did a run produce an artifact?
+//
+// And it segments, because the platform-wide figure is meaningless while the
+// person building it is also its heaviest user: 37 accounts against 654 runs is
+// seventeen runs each, which is a developer testing, not a cohort learning. A
+// builder abandons runs constantly and on purpose. Only the "others" block below
+// is evidence of anything. Read-only.
 
 // Real content, not an empty scaffold the room wrote on first save.
 function hasArtifact(canvas: any, plan: any): boolean {
@@ -48,7 +54,7 @@ export async function GET() {
   const db = createAdminClient();
   const { data: sessions } = await db
     .from("sessions")
-    .select("id, exercise, status")
+    .select("id, exercise, status, host_id")
     .limit(5000);
   const { data: wss } = await db
     .from("workspaces")
@@ -64,6 +70,10 @@ export async function GET() {
 
   type Row = { runs: number; marked: number; real: number };
   const per = new Map<string, Row>();
+  const seg = {
+    you: { runs: 0, real: 0, users: new Set<string>() },
+    others: { runs: 0, real: 0, users: new Set<string>() },
+  };
   let runs = 0, marked = 0, real = 0, undercounted = 0;
 
   for (const s of ((sessions as any[]) || [])) {
@@ -73,6 +83,12 @@ export async function GET() {
     runs++; if (isDone) marked++; if (made) real++;
     if (made && !isDone) undercounted++;
 
+    const bucket = s.host_id === user.id ? seg.you : seg.others;
+    bucket.runs++; if (made) bucket.real++;
+    if (s.host_id) bucket.users.add(s.host_id);
+
+    // Per-module rates are only meaningful for people who aren't building it.
+    if (s.host_id === user.id) continue;
     const key = s.exercise || "(none)";
     const r = per.get(key) || { runs: 0, marked: 0, real: 0 };
     r.runs++; if (isDone) r.marked++; if (made) r.real++;
@@ -81,7 +97,7 @@ export async function GET() {
 
   const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
   const modules = [...per.entries()]
-    .filter(([, r]) => r.runs >= 5)
+    .filter(([, r]) => r.runs >= 3)
     .map(([exercise, r]) => ({
       module: moduleByExercise(exercise)?.name || exercise,
       runs: r.runs,
@@ -92,12 +108,24 @@ export async function GET() {
     .sort((a, b) => b.hiddenRuns - a.hiddenRuns);
 
   return NextResponse.json({
-    headline: {
+    note: "Platform totals include the builder's own runs and are not evidence. Read `others`.",
+    allAccounts: {
       runs,
       countedComplete: `${pct(marked, runs)}%`,
       producedAnArtifact: `${pct(real, runs)}%`,
       runsFinishedButNotCounted: undercounted,
     },
-    modules,
+    you: {
+      runs: seg.you.runs,
+      producedAnArtifact: `${pct(seg.you.real, seg.you.runs)}%`,
+      shareOfAllRuns: `${pct(seg.you.runs, runs)}%`,
+    },
+    others: {
+      people: seg.others.users.size,
+      runs: seg.others.runs,
+      producedAnArtifact: `${pct(seg.others.real, seg.others.runs)}%`,
+      runsPerPerson: seg.others.users.size ? +(seg.others.runs / seg.others.users.size).toFixed(1) : 0,
+    },
+    modulesExcludingYou: modules,
   });
 }
