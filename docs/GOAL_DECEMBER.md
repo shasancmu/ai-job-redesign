@@ -24,9 +24,32 @@ From `/admin/usage`, all time:
 
 1,000 by December is a **27× increase in four months**.
 
-The 15% is real behaviour, not a tracking gap — I checked. Rooms mark a session
-`done` when the learner reaches the final step. So 654 people started something
-and 99 got to the end.
+The 15% is real behaviour, and it was tested twice.
+
+The obvious objection is that completion is under-counted: rooms mark a session
+`done` when the learner reaches the *last step*, and several modules build their
+artifact one step earlier (SoloRoom makes the reimagined role at step 3 of 4 and
+marks done at step 4, "Make it real"). Someone who finished the work and closed
+the tab would look like a drop-out.
+
+That theory is wrong. Measuring the thing itself — did this run produce an
+artifact — `/api/admin/completion` returns **8 runs out of 654** that finished
+without being counted. On the flagship modules the two measures agree exactly:
+
+| module | counted | actually made something |
+|---|---|---|
+| Redesign Your Job with AI | 9% | **9%** |
+| Analyze Your Career's AI Exposure | 18% | **18%** |
+| Find Where AI Fits a Workflow | 5% | **5%** |
+| Plan a Deep-Tech Venture | 3% | **3%** |
+
+That agreement is the strong result. **People are not finishing and failing to be
+counted — they are leaving before they make anything at all.** The drop-off is in
+the setup and the interview, not at a trailing step.
+
+(The platform-wide artifact figure reads 10% rather than 15% because group
+activities — the live benchmark, the network map — are marked done by design and
+produce no personal artifact. For individual modules, use the per-module rows.)
 
 Per module it's worse than the average suggests:
 
