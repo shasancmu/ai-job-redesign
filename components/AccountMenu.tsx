@@ -14,7 +14,6 @@ type Labels = { reports: string; achievements: string; profile: string; signOut:
 // later content no matter its z-index. A body-level portal escapes all of that.
 export default function AccountMenu({
   name,
-  facilitator = false,
   director = false,
   superadmin = false,
   labels,
@@ -23,7 +22,6 @@ export default function AccountMenu({
   tour = true,
 }: {
   name: string;
-  facilitator?: boolean; // has facilitator access → show the Cohorts link
   director?: boolean; // runs an org → show the Organization console
   superadmin?: boolean; // platform owner → also show the Orgs console
   labels: Labels;
@@ -82,14 +80,11 @@ export default function AccountMenu({
             <a href="/profile" className={item}>{labels.profile}</a>
             {tour && <button onClick={() => { setOpen(false); window.dispatchEvent(new Event("app:start-tour")); }} className={item}>{labels.tour}</button>}
 
-            {(facilitator || director || superadmin) && (
+            {(director || superadmin) && (
               <>
                 <div className="my-1 border-t border-line" />
-                <a href="/studio" className={item}>🎬 Studio</a>
-                <a href="/facilitator" className={item}>👥 Cohorts</a>
-                {(director || superadmin) && <a href="/team" className={item}>🏢 Organization</a>}
-                {(director || superadmin) && <a href="/data-collection" className={item}>📊 Data collection</a>}
-                {(director || superadmin) && <a href="/admin" className={item}>⚙️ Admin</a>}
+                <a href="/data-collection" className={item}>📊 Data collection</a>
+                <a href="/admin" className={item}>⚙️ Admin</a>
               </>
             )}
 

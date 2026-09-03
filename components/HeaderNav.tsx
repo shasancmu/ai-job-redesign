@@ -35,6 +35,30 @@ export default async function HeaderNav({ showDashboard = true, tour = false }: 
           <span className="hidden sm:inline">Dashboard</span>
         </Link>
       )}
+      {/* Someone's workplace shouldn't live behind their own avatar. Studio is
+          the instructor's front door (it owns Create / Run / Observe / Improve),
+          so it belongs in the header as a place you can see, not one you have to
+          remember. */}
+      {access.ok && (
+        <Link
+          href="/studio"
+          title="Studio"
+          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-mist hover:text-ink"
+        >
+          <span aria-hidden>🎬</span>
+          <span className="hidden sm:inline">Studio</span>
+        </Link>
+      )}
+      {access.orgIds.length > 0 && (
+        <Link
+          href="/team"
+          title="Organization"
+          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-mist hover:text-ink"
+        >
+          <span aria-hidden>🏢</span>
+          <span className="hidden lg:inline">Organization</span>
+        </Link>
+      )}
       {myOrgs.length > 0 && (
         <OrgSwitcher
           orgs={myOrgs.map((m) => ({ slug: m.org.slug, name: m.org.name, logoUrl: m.org.logo_url, role: m.role }))}
@@ -43,7 +67,6 @@ export default async function HeaderNav({ showDashboard = true, tour = false }: 
       )}
       <AccountMenu
         name={name}
-        facilitator={access.ok}
         director={access.orgIds.length > 0}
         superadmin={access.superadmin}
         dashboard={showDashboard}

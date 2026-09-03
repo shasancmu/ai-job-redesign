@@ -38,6 +38,7 @@ import { makeT } from "@/lib/i18n";
 import Footer from "@/components/Footer";
 import Logo from "@/components/Logo";
 import Tour from "@/components/Tour";
+import Link from "next/link";
 
 const DASHBOARD_TOUR = [
   { sel: '[data-tour="your-work"]', title: "Jump back in", body: "Your recent exercises and reports live here, so you can pick up right where you left off." },
@@ -341,6 +342,12 @@ export default async function Dashboard({
   const runsBalance = Math.max(0, wallet.balance);
   const completedCount = MODULES.filter((m) => m.partner !== "group" && completed[m.slug]).length;
   const isNewConsumer = isConsumer && completedCount === 0;
+  // Someone who has finished something has a reason to be here other than
+  // shopping: continue what they were doing, or open what they made. Both sit in
+  // the top 500px, and the catalogue below them ran to fifteen thousand pixels —
+  // ninety-five cards, nineteen screens. The library is somewhere you go, not
+  // the thing you land in, so past the first exercise it collapses.
+  const returning = completedCount > 0;
   const startHere = isConsumer
     ? recommended.map((s) => moduleBySlug(s)).filter((m): m is NonNullable<typeof m> => !!m && m.partner !== "group").slice(0, 3)
     : [];
@@ -426,6 +433,19 @@ export default async function Dashboard({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2 ml-auto">
+          {/* The same visible workspace entries the rest of the app now has. */}
+          {facAccess.ok && (
+            <Link href="/studio" title="Studio" className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-mist hover:text-ink">
+              <span aria-hidden>🎬</span>
+              <span className="hidden sm:inline">Studio</span>
+            </Link>
+          )}
+          {facAccess.orgIds.length > 0 && (
+            <Link href="/team" title="Organization" className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-mist hover:text-ink">
+              <span aria-hidden>🏢</span>
+              <span className="hidden lg:inline">Organization</span>
+            </Link>
+          )}
           {myOrgs.length > 0 && (
             <OrgSwitcher
               orgs={myOrgs.map((m) => ({ slug: m.org.slug, name: m.org.name, logoUrl: m.org.logo_url, role: m.role }))}
@@ -435,7 +455,6 @@ export default async function Dashboard({
           {I18N_ENABLED && <LanguagePicker me={user.id} initial={(profile as any)?.language} />}
           <AccountMenu
             name={profile?.display_name || "You"}
-            facilitator={facAccess.ok}
             director={facAccess.orgIds.length > 0}
             superadmin={facAccess.superadmin}
             dataTour="reports"
@@ -545,23 +564,38 @@ export default async function Dashboard({
         </section>
       )}
 
-      {/* Staff authoring — demoted to a slim secondary link, not a hero card. */}
+      {/* For a director, authoring a module and configuring the org are the
+          product. They rendered as 14px text links, quieter than the exercise
+          chips underneath them. */}
       {(facAccess.superadmin || facAccess.orgIds.length > 0) && (
-        <a href="/studio/upload" className="group mb-4 flex items-center gap-2 text-sm text-slate2 transition hover:text-ai">
-          <span aria-hidden>📎</span>
-          <span className="font-medium text-ink group-hover:text-ai">Turn your materials into a module</span>
-          <span className="text-slate-400">· or open the Studio</span>
-          <span className="text-ai">→</span>
-        </a>
-      )}
-
-      {facAccess.orgIds.length > 0 && (
-        <a href="/org/settings" className="group mb-8 flex items-center gap-2 text-sm text-slate2 transition hover:text-ai">
-          <span aria-hidden>⚙️</span>
-          <span className="font-medium text-ink group-hover:text-ai">Organization settings</span>
-          <span className="text-slate-400">· logo, hero image, and text</span>
-          <span className="text-ai">→</span>
-        </a>
+        <section className="mb-8">
+          <h2 className="eyebrow mb-3">Yours to run</h2>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <a href="/studio/create" className="card group flex items-center gap-3 p-4 transition hover:shadow-lift">
+              <span className="text-xl" aria-hidden>🧩</span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold text-ink group-hover:text-ai">Create a module</span>
+                <span className="block text-xs text-slate-400">From your materials, or just describe it</span>
+              </span>
+            </a>
+            <a href="/studio" className="card group flex items-center gap-3 p-4 transition hover:shadow-lift">
+              <span className="text-xl" aria-hidden>🎬</span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold text-ink group-hover:text-ai">Studio</span>
+                <span className="block text-xs text-slate-400">Create, run, observe, improve</span>
+              </span>
+            </a>
+            {facAccess.orgIds.length > 0 && (
+              <a href="/org/settings" className="card group flex items-center gap-3 p-4 transition hover:shadow-lift">
+                <span className="text-xl" aria-hidden>⚙️</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-ink group-hover:text-ai">Organization</span>
+                  <span className="block text-xs text-slate-400">Logo, hero image, and text</span>
+                </span>
+              </a>
+            )}
+          </div>
+        </section>
       )}
 
       {(classAssignments.length > 0 || isOrgLearner) && (
@@ -653,7 +687,16 @@ export default async function Dashboard({
           <h2 className="eyebrow">{isOrgLearner ? "Explore more" : t("dash.exercises")}</h2>
           {/* The curated view renders no filter controls, so don't tell people to filter. */}
           <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">{t(orgModules ? "dash.framingCurated" : "dash.framing")}</p>
-          {catalogEl}
+          {returning && !orgModules ? (
+            <details className="group">
+              <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-slate2 hover:text-ink">
+                <span className="transition group-open:rotate-90">›</span> Browse all {MODULES.filter((m) => !m.hidden).length} exercises
+              </summary>
+              <div className="mt-5">{catalogEl}</div>
+            </details>
+          ) : (
+            catalogEl
+          )}
           {/* An org's curated list replaces the library rather than sitting beside
               it, so without this the rest of the catalog is unreachable from an
               org context — even for staff and for members the org opted into

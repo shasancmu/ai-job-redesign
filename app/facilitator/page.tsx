@@ -130,73 +130,11 @@ async function Overview({ admin, allowedCohorts, classes, superadmin, orgName }:
           <div className="text-sm font-medium text-slate-400">{orgName || "Teaching"}</div>
           <h1 className="mt-0.5 text-3xl text-ink">Cohorts</h1>
           <p className="mt-1 max-w-lg text-sm text-slate2">
-            Run a live activity, open a cohort to teach or review the work, or set up a new one.
+            Open a cohort to teach or review the work, set up a new one, or run something live.
           </p>
           <Link href="/facilitator/guide" className="mt-2 inline-block text-sm font-semibold text-sky hover:underline">How this works for your role →</Link>
         </div>
         <HeaderNav tour />
-      </div>
-
-      {/* Run something live, right now. */}
-      <h2 className="eyebrow mb-3">Run something live</h2>
-      <div data-tour="fac-live" className="mb-9 grid gap-3 sm:grid-cols-2">
-        <Link href="/facilitator/cloud" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-soft text-2xl">🌥️</div>
-          <div className="min-w-0 flex-1">
-            <div className="font-bold text-ink">Live word cloud</div>
-            <div className="text-sm text-slate2">Ask a question. Answers build into a cloud, live. No sign-in.</div>
-          </div>
-          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
-        </Link>
-        <Link href="/facilitator/photo" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sage-soft text-2xl">📷</div>
-          <div className="min-w-0 flex-1">
-            <div className="font-bold text-ink">Photo wall</div>
-            <div className="text-sm text-slate2">The room photographs something. AI reads each; photos never stored.</div>
-          </div>
-          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
-        </Link>
-        <Link href="/facilitator/gallery" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-soft text-2xl">🖼️</div>
-          <div className="min-w-0 flex-1">
-            <div className="font-bold text-ink">Photo gallery</div>
-            <div className="text-sm text-slate2">The actual photos appear on screen with captions, then AI summarizes them.</div>
-          </div>
-          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
-        </Link>
-        <Link href="/facilitator/quiz" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-clay-soft text-2xl">⏱️</div>
-          <div className="min-w-0 flex-1">
-            <div className="font-bold text-ink">The Benchmark</div>
-            <div className="text-sm text-slate2">A timed test. The room vs. the machine, scored live. No sign-in.</div>
-          </div>
-          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
-        </Link>
-        <Link href="/facilitator/network" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-soft text-2xl">🕸️</div>
-          <div className="min-w-0 flex-1">
-            <div className="font-bold text-ink">The Network</div>
-            <div className="text-sm text-slate2">Map the room's real network, live and anonymous.</div>
-          </div>
-          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
-        </Link>
-        <Link href="/facilitator/forum" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-clay-soft text-2xl">💬</div>
-          <div className="min-w-0 flex-1">
-            <div className="font-bold text-ink">Open floor</div>
-            <div className="text-sm text-slate2">A big open group chat; AI reads the whole room and adjudicates it live.</div>
-          </div>
-          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
-        </Link>
-
-        <Link href="/facilitator/showcase" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-soft text-2xl">🎤</div>
-          <div className="min-w-0 flex-1">
-            <div className="font-bold text-ink">Showcase</div>
-            <div className="text-sm text-slate2">Back-to-back short presentations; collect feedback on each; every presenter gets an AI report.</div>
-          </div>
-          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
-        </Link>
       </div>
 
       <div data-tour="fac-cohorts" className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -205,19 +143,21 @@ async function Overview({ admin, allowedCohorts, classes, superadmin, orgName }:
           {rows.length > 0 && (
             <span className="text-xs text-slate-400">{totalPeople.size} people across {rows.length} {rows.length === 1 ? "group" : "groups"}</span>
           )}
-          <Link href="/facilitator/cohorts" className="btn-primary text-sm">+ New cohort</Link>
+          {/* The empty state carries its own call to action; two on screen at
+              once is one too many. */}
+          {rows.length > 0 && <Link href="/facilitator/cohorts" className="btn-primary text-sm">+ New cohort</Link>}
         </div>
       </div>
 
       {rows.length === 0 ? (
         <div className="card p-8 text-center">
-          <div className="text-slate-600">No sessions yet.</div>
+          <div className="text-slate-600">No cohorts yet.</div>
           <p className="mx-auto mt-1 max-w-md text-sm text-slate2">
-            Create a cohort, or share a tagged link like{" "}
-            <code className="rounded bg-slate-100 px-1">/dashboard?cohort=EXECED-XYZ-DATE</code>{" "}
-            so participants' rooms group here.
+            A cohort is one class or session. Create one and you get a join link to
+            share; everyone who uses it is grouped here, and their results roll up
+            together.
           </p>
-          <Link href="/facilitator/cohorts" className="btn-primary mt-4 inline-block text-sm">New cohort</Link>
+          <Link href="/facilitator/cohorts" className="btn-primary mt-4 inline-block text-sm">Create your first cohort</Link>
         </div>
       ) : (
         <ul className="space-y-2.5">
@@ -278,11 +218,83 @@ async function Overview({ admin, allowedCohorts, classes, superadmin, orgName }:
         </ul>
       )}
 
-      {/* Admin tools — moved here from the header. */}
-      <section data-tour="fac-admin" className="mt-12">
-        <h2 className="eyebrow mb-3">Admin tools</h2>
-        <AdminTools superadmin={superadmin} />
-      </section>
+      {/* Below the cohorts now: these are what you reach for during a
+          session, not what you came to the page for. */}
+      <h2 id="live" className="eyebrow mb-3 scroll-mt-6">Run something live</h2>
+      <div data-tour="fac-live" className="mb-9 grid gap-3 sm:grid-cols-2">
+        <Link href="/facilitator/cloud" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-soft text-2xl">🌥️</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-ink">Live word cloud</div>
+            <div className="text-sm text-slate2">Ask a question. Answers build into a cloud, live. No sign-in.</div>
+          </div>
+          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
+        </Link>
+        <Link href="/facilitator/photo" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sage-soft text-2xl">📷</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-ink">Photo wall</div>
+            <div className="text-sm text-slate2">The room photographs something. AI reads each; photos never stored.</div>
+          </div>
+          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
+        </Link>
+        <Link href="/facilitator/gallery" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-soft text-2xl">🖼️</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-ink">Photo gallery</div>
+            <div className="text-sm text-slate2">The actual photos appear on screen with captions, then AI summarizes them.</div>
+          </div>
+          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
+        </Link>
+        <Link href="/facilitator/quiz" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-clay-soft text-2xl">⏱️</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-ink">The Benchmark</div>
+            <div className="text-sm text-slate2">A timed test. The room vs. the machine, scored live. No sign-in.</div>
+          </div>
+          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
+        </Link>
+        <Link href="/facilitator/network" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-soft text-2xl">🕸️</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-ink">The Network</div>
+            <div className="text-sm text-slate2">Map the room's real network, live and anonymous.</div>
+          </div>
+          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
+        </Link>
+        <Link href="/facilitator/forum" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-clay-soft text-2xl">💬</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-ink">Open floor</div>
+            <div className="text-sm text-slate2">A big open group chat; AI reads the whole room and adjudicates it live.</div>
+          </div>
+          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
+        </Link>
+
+        <Link href="/facilitator/showcase" className="card group flex items-center gap-4 p-5 transition hover:shadow-lift">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-soft text-2xl">🎤</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-ink">Showcase</div>
+            <div className="text-sm text-slate2">Back-to-back short presentations; collect feedback on each; every presenter gets an AI report.</div>
+          </div>
+          <span className="shrink-0 text-slate-300 transition group-hover:text-ink">→</span>
+        </Link>
+      </div>
+
+
+      {/* /admin already carries Usage, Costs and A/B testing and sits in the
+          account menu, so this is a duplicate on a teaching page. Folded away
+          rather than deleted — the capstone link and the dev seeding live here
+          and have no other home. */}
+      <details data-tour="fac-admin" className="group mt-12">
+        <summary className="flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-slate-400 hover:text-ink">
+          <span className="transition-transform group-open:rotate-90" aria-hidden>›</span>
+          Admin tools
+        </summary>
+        <div className="mt-3">
+          <AdminTools superadmin={superadmin} />
+        </div>
+      </details>
 
       <Tour
         steps={HUB_TOUR}
