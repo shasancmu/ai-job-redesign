@@ -155,22 +155,28 @@ They are currently styled like footnotes.
 
 ---
 
-## Order
+## Order — all done
 
-| # | change | who | why it's first |
+| # | change | where | commit |
 |---|---|---|---|
-| 1 | A finish screen: name the artifact, link the report, one next step | students | The best moment in the product currently ends on a catalogue |
-| 2 | Report cards titled by artifact, not exercise | students | Half-done already; the `h1` was fixed and the card wasn't |
-| 3 | Persistent nav; split account from workspace | both | Removes the "where do I go" tax from every session |
-| 4 | Make Studio the instructor front door; fold live activities into "2 · Run" | instructors | Two doors to one room is the deepest structural confusion |
-| 5 | Dashboard leads with continue / your work / assigned; catalogue behind "Browse all" | students | 19 screens of scroll on the page you see most |
-| 6 | Lead `/facilitator` with cohorts; move admin tools out | instructors | The `h1` should describe the page |
-| 7 | Replace the hand-built cohort URL with a copy-link button; drop a duplicate CTA | instructors | Nobody should assemble a query string |
-| 8 | Promote Studio + Org settings on the director's dashboard | directors | Their core tools are styled as footnotes |
-| 9 | Keep report history, or say "3 versions" on the card | students | Silent data loss from the user's point of view |
+| 1 | A finish screen: name the artifact, link the report, one next step | `app/done/[code]`, 15 rooms | `832421a` |
+| 2 | Report cards titled by artifact, not exercise | `lib/artifactTitle.ts`, `/reports` | `832421a` |
+| 3 | Persistent nav; account split from workspace | `HeaderNav`, `AccountMenu`, dashboard | `0f2554e` |
+| 4 | Studio is the instructor front door; live activities folded into "2 · Run" | `/studio` | `0f2554e` |
+| 5 | Dashboard collapses the catalogue once you've finished anything | `/dashboard` | `0f2554e` |
+| 6 | `/facilitator` leads with cohorts; admin tools folded away | `/facilitator` | `0f2554e` |
+| 7 | Cohort empty state explains itself; one CTA, no hand-built URL | `/facilitator` | `0f2554e` |
+| 8 | Director's tools promoted from footnote links to cards | `/dashboard` | `0f2554e` |
+| 9 | Report history kept and reachable — "3 versions →" | `/reports` | `832421a` |
 
-Items 1 and 2 are small and account for most of what a student would feel. Items
-3 and 4 are the structural ones and deserve a design pass before code.
+Two things worth recording about the build:
+
+- **`recommendedNext()` already existed** in `lib/momentum.ts`, with a comment
+  reading *"a single 'what to run next' suggestion for the completion moment"* —
+  and no caller. The finish screen didn't need new logic, it needed to exist.
+- **`/admin` already carried** Usage, Costs and A/B testing, so `/facilitator`'s
+  Admin tools section was a duplicate rather than a misplacement. That changed
+  the fix from "move these" to "stop showing them twice".
 
 ## What this did not cover
 
