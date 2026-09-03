@@ -6,21 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import DomainInsightReport from "@/components/DomainInsightReport";
 import { useT } from "@/components/I18nProvider";
 
-export type ScanVariant = {
-  mode: "landscape" | "deal-sourcing" | "scorecard" | "trajectory";
-  title: string;
-  blurb: string;
-  inputLabel: string;
-  placeholder: string;
-  needsOrg?: boolean; // scorecard scopes to one institution
-};
-
-export const SCAN_VARIANTS: Record<string, ScanVariant> = {
-  "tech-landscape": { mode: "landscape", title: "Technology Landscape Scan", blurb: "Name a technology or field and see who leads it, who's commercializing it, and where the white space is.", inputLabel: "Technology or field", placeholder: "e.g. solid-state batteries" },
-  "deal-sourcing": { mode: "deal-sourcing", title: "Deep-Tech Deal Sourcing", blurb: "Name your thesis and surface labs whose science is high-quality and commercializing, spin-out candidates before they raise.", inputLabel: "Your thesis or field", placeholder: "e.g. gene therapy delivery vectors" },
-  "commercialization-scorecard": { mode: "scorecard", title: "University Commercialization Scorecard", blurb: "Pick an institution and a field to score how commercially oriented its research is, its strengths, and its gaps.", inputLabel: "Field to score", placeholder: "e.g. microbiome therapeutics", needsOrg: true },
-  "field-trajectory": { mode: "trajectory", title: "Where Is My Field Going?", blurb: "Name a field and see which subfields are rising, where value is concentrating, and what to bet on.", inputLabel: "Field", placeholder: "e.g. computational materials discovery" },
-};
+import type { ScanVariant } from "@/lib/scanVariants";
 
 const SCOPES = [
   { key: "global", label: "Worldwide", kind: "global", orgQuery: "" },
