@@ -18,7 +18,7 @@ type Opt = { id: string; name: string };
 // or go global. Transparent about what is actually being queried.
 export default function ScientifiqScopePicker({ initial, onChange }: { initial?: Partial<Scope>; onChange: (s: Scope) => void }) {
   const [kind, setKind] = useState<Scope["kind"]>(initial?.kind || "org");
-  const [orgQuery, setOrgQuery] = useState(initial?.orgQuery || "Duke University");
+  const [orgQuery, setOrgQuery] = useState(initial?.orgQuery || "");
   const [orgOptions, setOrgOptions] = useState<Opt[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set(initial?.orgIds || []));
   const [countryQuery, setCountryQuery] = useState("");

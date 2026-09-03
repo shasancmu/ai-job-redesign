@@ -5,50 +5,30 @@
 // BigQuery firms lookup) so each module route stays thin. Server-only.
 
 import {
-  searchPapers, searchResearchers, searchPatents, searchOrganizations, getFields, type SciField,
+  searchPapers, searchResearchers, searchPatents, getFields, type SciField,
 } from "@/lib/scientifiq";
-import { buildDomainBriefData, NC_UNIVERSITIES, type DomainBriefData } from "@/lib/domainBrief";
+import { buildDomainBriefData, type DomainBriefData } from "@/lib/domainBrief";
 
 let fieldsCache: SciField[] | null = null;
-const orgIdCache = new Map<string, string | null>();
-
-async function resolveOrg(name: string): Promise<string | null> {
-  const key = name.toLowerCase();
-  if (orgIdCache.has(key)) return orgIdCache.get(key) || null;
-  try {
-    const orgs = await searchOrganizations(name, 15);
-    const q = name.trim().toLowerCase();
-    const hit = orgs.find((o) => o.name.trim().toLowerCase() === q) || orgs.find((o) => o.name.trim().toLowerCase().startsWith(q)) || [...orgs].sort((a, b) => a.name.length - b.name.length)[0] || null;
-    const id = hit ? hit.id : null;
-    orgIdCache.set(key, id);
-    return id;
-  } catch { orgIdCache.set(key, null); return null; }
-}
 
 export type GatherResult = { data: DomainBriefData; scopeLabel: string } | { error: string; status: number };
 
-export async function gatherDomainData(input: { domain: string; scopeKind: "org" | "region" | "global"; orgQuery?: string }): Promise<GatherResult> {
+// Scope is already RESOLVED by the client scope picker (real Scientifiq ids), so
+// there is no fragile name-matching here: orgIds are the chosen institution(s),
+// countryId a two-letter country, or neither for global.
+export async function gatherDomainData(input: { domain: string; orgIds?: string[]; countryId?: string; scopeLabel?: string }): Promise<GatherResult> {
   const domain = (input.domain || "").trim().slice(0, 200);
   if (!domain) return { error: "Enter a technology or field.", status: 400 };
 
-  let orgIds: string[] = [];
-  let scopeLabel = "Global (all institutions)";
-  if (input.scopeKind === "org") {
-    const id = await resolveOrg((input.orgQuery || "").trim() || "Duke University");
-    if (!id) return { error: `Couldn't find "${input.orgQuery}" in Scientifiq. Try the full institution name.`, status: 404 };
-    orgIds = [id];
-    scopeLabel = (input.orgQuery || "").trim() || "Duke University";
-  } else if (input.scopeKind === "region") {
-    const ids = (await Promise.all(NC_UNIVERSITIES.map(resolveOrg))).filter(Boolean) as string[];
-    if (!ids.length) return { error: "Couldn't resolve the North Carolina institutions.", status: 404 };
-    orgIds = ids;
-    scopeLabel = "North Carolina universities";
-  }
-
+  const orgIds = (input.orgIds || []).map((s) => String(s)).filter(Boolean).slice(0, 12);
+  const countryId = (input.countryId || "").trim();
   const orgParam = orgIds.length ? orgIds : undefined;
+  const countryParam = countryId ? [countryId] : undefined;
+  const scopeLabel = (input.scopeLabel || "").trim() || (orgIds.length ? "Selected institution(s)" : countryId ? `Country: ${countryId.toUpperCase()}` : "Global (all institutions)");
+
   const [papersRes, researchersRes, fields, patentsRes] = await Promise.all([
-    searchPapers({ search: domain, organizations: orgParam, limit: 80 }),
-    searchResearchers({ search: domain, organizations: orgParam, limit: 50 }),
+    searchPapers({ search: domain, organizations: orgParam, countries: countryParam, limit: 80 }),
+    searchResearchers({ search: domain, organizations: orgParam, countries: countryParam, limit: 50 }),
     fieldsCache ? Promise.resolve(fieldsCache) : getFields().then((f) => (fieldsCache = f)),
     searchPatents({ search: domain, limit: 10 }).catch(() => ({ total: 0, patents: [] })),
   ]);
