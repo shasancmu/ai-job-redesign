@@ -23,11 +23,17 @@ export const maxDuration = 300;
 const MAX_NAME = 60; // matches the cap the x-ray now applies at generation time
 const TOO_LONG = 90; // a name nobody would write; treat as a sentence
 
-// Where each kind of report keeps its headline.
+// Only headlines that are rendered as a TITLE.
+//
+// The dry run made the distinction plain. xray.headline and plan.headline are
+// each set in an <h1>, and their prompts ask for a name — those are the ones a
+// thirty-word sentence breaks. report.headline is rendered as a <p> in all seven
+// report components: it is the verdict paragraph, deliberately a sentence
+// ("You see the hidden structure in a mess and know exactly which noise to strip
+// away"), and renaming it would delete the writing rather than fix a title.
 const SLOTS: { path: string[]; }[] = [
   { path: ["xray", "headline"] },
   { path: ["plan", "headline"] },
-  { path: ["report", "headline"] },
 ];
 
 function get(o: any, path: string[]): any {
