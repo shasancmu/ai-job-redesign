@@ -5,12 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import CollaboratorsReport from "@/components/CollaboratorsReport";
 import { useT } from "@/components/I18nProvider";
-
-const SCOPES = [
-  { key: "duke", label: "Duke University", kind: "org", orgQuery: "Duke University" },
-  { key: "nc", label: "NC universities", kind: "region", orgQuery: "" },
-  { key: "other", label: "Another institution", kind: "org", orgQuery: "" },
-] as const;
+import ScientifiqScopePicker, { type Scope } from "@/components/ScientifiqScopePicker";
 
 const NEEDS = [
   "Deep in my core technology",
@@ -28,13 +23,11 @@ export default function FindCofounderRoom({ session, initialWorkspace }: { sessi
   const saved = state.input || {};
 
   const [focus, setFocus] = useState<string>(saved.focus || "");
-  const [scopeKey, setScopeKey] = useState<string>(saved.scopeKey || "duke");
-  const [orgQuery, setOrgQuery] = useState<string>(saved.scopeKey === "other" ? saved.orgQuery || "" : "");
+  const [scope, setScope] = useState<Scope>(saved.scope || { kind: "org", orgIds: [], countryId: "", scopeLabel: "", orgQuery: "" });
   const [needs, setNeeds] = useState<string[]>(saved.needs || []);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const scope = SCOPES.find((s) => s.key === scopeKey) || SCOPES[0];
   const report = state.report ? { report: state.report, scopeLabel: state.scopeLabel } : null;
 
   const persist = useCallback(async (canvas: any) => {
@@ -48,16 +41,17 @@ export default function FindCofounderRoom({ session, initialWorkspace }: { sessi
   async function run() {
     const f = focus.trim();
     if (f.length < 40) { setErr("Describe your venture's technology in a sentence or two."); return; }
-    if (scope.key === "other" && !orgQuery.trim()) { setErr("Name the institution."); return; }
+    if (scope.kind === "org" && scope.orgIds.length === 0) { setErr("Pick an institution."); return; }
+    if (scope.kind === "country" && !scope.countryId) { setErr("Pick a country."); return; }
     setBusy(true); setErr(null);
     try {
       const res = await fetch("/api/scientifiq/find-cofounder", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ focus: f, scopeKind: scope.kind, orgQuery: scope.key === "other" ? orgQuery.trim() : scope.orgQuery, needs }),
+        body: JSON.stringify({ focus: f, scopeKind: scope.kind, orgIds: scope.orgIds, countryId: scope.countryId, scopeLabel: scope.scopeLabel, needs }),
       });
       const j = await res.json();
       if (!res.ok) { setErr(j.error || "Couldn't find candidates."); setBusy(false); return; }
-      await persist({ ...state, input: { focus: f, scopeKey, orgQuery, needs }, report: j.report, scopeLabel: j.scopeLabel });
+      await persist({ ...state, input: { focus: f, scope, needs }, report: j.report, scopeLabel: j.scopeLabel });
     } catch { setErr("Couldn't reach the service."); }
     setBusy(false);
   }
@@ -85,12 +79,7 @@ export default function FindCofounderRoom({ session, initialWorkspace }: { sessi
         </div>
         <div>
           <div className="lbl mb-1">Where to look</div>
-          <div className="flex flex-wrap gap-1.5">
-            {SCOPES.map((s) => (
-              <button key={s.key} onClick={() => setScopeKey(s.key)} className={"rounded-full px-3 py-1.5 text-sm font-medium transition " + (scopeKey === s.key ? "bg-ink text-white" : "bg-mist text-slate2 hover:bg-slate-200")}>{s.label}</button>
-            ))}
-          </div>
-          {scope.key === "other" && <input className="field mt-2" value={orgQuery} onChange={(e) => setOrgQuery(e.target.value)} placeholder="Full institution name, e.g. Stanford University" />}
+          <ScientifiqScopePicker initial={saved.scope || { kind: "org" }} onChange={setScope} />
         </div>
         <div>
           <div className="lbl mb-1">What matters most? <span className="font-normal text-slate-400">(optional)</span></div>

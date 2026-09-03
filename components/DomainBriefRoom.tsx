@@ -23,7 +23,7 @@ export default function DomainBriefRoom({ session, initialWorkspace }: { session
   const savedInput = state.input || {};
 
   const [domain, setDomain] = useState<string>(savedInput.domain || "");
-  const [scope, setScope] = useState<Scope>(savedInput.scope || { kind: "org", orgIds: [], countryId: "", scopeLabel: "Duke University", orgQuery: "Duke University" });
+  const [scope, setScope] = useState<Scope>(savedInput.scope || { kind: "org", orgIds: [], countryId: "", scopeLabel: "", orgQuery: "" });
   const [purpose, setPurpose] = useState<string>(savedInput.purpose || "assess");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);

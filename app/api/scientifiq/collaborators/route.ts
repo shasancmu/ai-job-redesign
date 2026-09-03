@@ -1,32 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, collaboratorsAI } from "@/lib/ai";
-import { SCIENTIFIQ_ENABLED, ScientifiqError, searchResearchers, searchOrganizations } from "@/lib/scientifiq";
-import { summarizeExpert, NC_UNIVERSITIES } from "@/lib/domainBrief";
+import { SCIENTIFIQ_ENABLED, ScientifiqError, searchResearchers } from "@/lib/scientifiq";
+import { summarizeExpert } from "@/lib/domainBrief";
 
 export const runtime = "nodejs";
 import { setFlow } from "@/lib/aiflow";
 export const dynamic = "force-dynamic";
 
-const orgIdCache = new Map<string, string | null>();
-async function resolveOrg(name: string): Promise<string | null> {
-  const key = name.toLowerCase();
-  if (orgIdCache.has(key)) return orgIdCache.get(key) || null;
-  try {
-    const orgs = await searchOrganizations(name, 15);
-    const q = name.trim().toLowerCase();
-    const hit = orgs.find((o) => o.name.trim().toLowerCase() === q) || orgs.find((o) => o.name.trim().toLowerCase().startsWith(q)) || [...orgs].sort((a, b) => a.name.length - b.name.length)[0] || null;
-    const id = hit ? hit.id : null;
-    orgIdCache.set(key, id);
-    return id;
-  } catch {
-    orgIdCache.set(key, null);
-    return null;
-  }
-}
-
-// Find Collaborators — semantic search for related researchers at the person's
-// institution, then the LLM ranks by COMPLEMENTARITY. (authorSearch is too
-// loose to resolve a person by name, so we key off their described work.)
+// Find Collaborators — semantic search for related researchers within the chosen
+// scope, then the LLM ranks by COMPLEMENTARITY. (authorSearch is too loose to
+// resolve a person by name, so we key off their described work.) Scope arrives
+// already resolved by the client scope picker: real Scientifiq org ids, a
+// two-letter country, or neither for global.
 export async function POST(request: Request) {
   setFlow("collaborators");
   if (!SCIENTIFIQ_ENABLED) return Response.json({ error: "Scientifiq is not configured." }, { status: 503 });
@@ -40,24 +25,22 @@ export async function POST(request: Request) {
   try { body = await request.json(); } catch { return Response.json({ error: "bad request" }, { status: 400 }); }
 
   const focus = String(body.focus || "").trim().slice(0, 5000);
-  const orgQuery = String(body.orgQuery || "Duke University").trim().slice(0, 120);
-  const scopeKind = body.scopeKind === "region" ? "region" : "org";
+  const scopeKind = ["org", "country", "global"].includes(body.scopeKind) ? body.scopeKind : "org";
+  const orgIds: string[] = Array.isArray(body.orgIds) ? body.orgIds.map((x: any) => String(x)).slice(0, 12) : [];
+  const countryId = String(body.countryId || "").trim().slice(0, 8);
+  const scopeLabel = String(body.scopeLabel || "").trim().slice(0, 160) || (orgIds.length ? "Selected institution(s)" : countryId ? `Country: ${countryId.toUpperCase()}` : "Global (all institutions)");
   const connectionKinds: string[] = Array.isArray(body.connectionKinds) ? body.connectionKinds.slice(0, 8).map((x: any) => String(x)) : [];
   if (focus.length < 40) return Response.json({ error: "Describe your work in a sentence or two first." }, { status: 400 });
+  if (scopeKind === "org" && orgIds.length === 0) return Response.json({ error: "Pick an institution." }, { status: 400 });
+  if (scopeKind === "country" && !countryId) return Response.json({ error: "Pick a country." }, { status: 400 });
 
   try {
-    let orgIds: string[] = [];
-    let scopeLabel = orgQuery;
-    if (scopeKind === "region") {
-      orgIds = (await Promise.all(NC_UNIVERSITIES.map(resolveOrg))).filter(Boolean) as string[];
-      scopeLabel = "North Carolina universities";
-    } else {
-      const id = await resolveOrg(orgQuery);
-      if (!id) return Response.json({ error: `Couldn't find "${orgQuery}" in Scientifiq. Try the full institution name.` }, { status: 404 });
-      orgIds = [id];
-    }
-
-    const { researchers } = await searchResearchers({ search: focus, organizations: orgIds, limit: 30 });
+    const { researchers } = await searchResearchers({
+      search: focus,
+      organizations: scopeKind === "org" ? orgIds : undefined,
+      countries: scopeKind === "country" ? [countryId] : undefined,
+      limit: 30,
+    });
     if (!researchers.length) return Response.json({ error: `No related researchers found at ${scopeLabel}. Try describing your work differently.` }, { status: 404 });
 
     const candidates = researchers.map((r, i) => {

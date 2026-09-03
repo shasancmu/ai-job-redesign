@@ -24,13 +24,17 @@ export async function POST(request: Request) {
   const m = MODES.has(String(body.mode)) ? String(body.mode) : "landscape";
   setFlow(`domain-scan:${m}`);
   const domain = String(body.domain || "").trim().slice(0, 200);
-  const scopeKind = ["org", "region", "global"].includes(body.scopeKind) ? body.scopeKind : (m === "scorecard" ? "org" : "global");
-  const orgQuery = String(body.orgQuery || "").trim().slice(0, 120);
+  // Scope arrives already resolved by the scope picker (real Scientifiq ids).
+  const scopeKind = ["org", "country", "global"].includes(body.scopeKind) ? body.scopeKind : (m === "scorecard" ? "org" : "global");
+  const orgIds: string[] = Array.isArray(body.orgIds) ? body.orgIds.map((x: any) => String(x)).slice(0, 12) : [];
+  const countryId = String(body.countryId || "").trim().slice(0, 8);
+  const scopeLabel = String(body.scopeLabel || "").trim().slice(0, 160);
   if (domain.length < 2) return Response.json({ error: "Enter a technology or field." }, { status: 400 });
-  if (scopeKind === "org" && !orgQuery) return Response.json({ error: "Name the institution." }, { status: 400 });
+  if (scopeKind === "org" && orgIds.length === 0) return Response.json({ error: "Pick an institution." }, { status: 400 });
+  if (scopeKind === "country" && !countryId) return Response.json({ error: "Pick a country." }, { status: 400 });
 
   try {
-    const g = await gatherDomainData({ domain, scopeKind, orgQuery });
+    const g = await gatherDomainData({ domain, orgIds: scopeKind === "org" ? orgIds : [], countryId: scopeKind === "country" ? countryId : "", scopeLabel });
     if ("error" in g) return Response.json({ error: g.error }, { status: g.status });
     const read = await domainScanAI({ mode: m, dataText: domainDataForPrompt(g.data) });
     if (!read) return Response.json({ error: "Gathered the data but couldn't write the read. Try again." }, { status: 502 });

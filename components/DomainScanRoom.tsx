@@ -7,13 +7,7 @@ import DomainInsightReport from "@/components/DomainInsightReport";
 import { useT } from "@/components/I18nProvider";
 
 import type { ScanVariant } from "@/lib/scanVariants";
-
-const SCOPES = [
-  { key: "global", label: "Worldwide", kind: "global", orgQuery: "" },
-  { key: "duke", label: "Duke University", kind: "org", orgQuery: "Duke University" },
-  { key: "nc", label: "NC universities", kind: "region", orgQuery: "" },
-  { key: "other", label: "An institution", kind: "org", orgQuery: "" },
-] as const;
+import ScientifiqScopePicker, { type Scope } from "@/components/ScientifiqScopePicker";
 
 export default function DomainScanRoom({ session, initialWorkspace, variant }: { session: any; initialWorkspace: any; variant: ScanVariant }) {
   const t = useT();
@@ -23,12 +17,10 @@ export default function DomainScanRoom({ session, initialWorkspace, variant }: {
   const saved = state.input || {};
 
   const [domain, setDomain] = useState<string>(saved.domain || "");
-  const [scopeKey, setScopeKey] = useState<string>(saved.scopeKey || (variant.needsOrg ? "duke" : "global"));
-  const [orgQuery, setOrgQuery] = useState<string>(saved.orgQuery || "");
+  const [scope, setScope] = useState<Scope>(saved.scope || { kind: variant.needsOrg ? "org" : "global", orgIds: [], countryId: "", scopeLabel: variant.needsOrg ? "" : "Global (all institutions)", orgQuery: "" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const scope = SCOPES.find((s) => s.key === scopeKey) || SCOPES[0];
   const report = state.read ? { read: state.read, data: state.data } : null;
 
   const persist = useCallback(async (canvas: any) => {
@@ -37,21 +29,20 @@ export default function DomainScanRoom({ session, initialWorkspace, variant }: {
     await supabase.from("sessions").update({ status: "done" }).eq("id", session.id);
   }, [supabase, ws.id, session.id]);
 
-  const scopes = variant.needsOrg ? SCOPES.filter((s) => s.kind !== "global") : SCOPES;
-
   async function run() {
     const dq = domain.trim();
     if (dq.length < 2) { setErr("Enter a technology or field."); return; }
-    if (scope.kind === "org" && scope.key === "other" && !orgQuery.trim()) { setErr("Name the institution."); return; }
+    if (scope.kind === "org" && scope.orgIds.length === 0) { setErr("Pick an institution."); return; }
+    if (scope.kind === "country" && !scope.countryId) { setErr("Pick a country."); return; }
     setBusy(true); setErr(null);
     try {
       const res = await fetch("/api/scientifiq/domain-scan", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: variant.mode, domain: dq, scopeKind: scope.kind, orgQuery: scope.key === "other" ? orgQuery.trim() : scope.orgQuery }),
+        body: JSON.stringify({ mode: variant.mode, domain: dq, scopeKind: scope.kind, orgIds: scope.orgIds, countryId: scope.countryId, scopeLabel: scope.scopeLabel }),
       });
       const j = await res.json();
       if (!res.ok) { setErr(j.error || "Couldn't run the scan."); setBusy(false); return; }
-      await persist({ ...state, input: { domain: dq, scopeKey, orgQuery }, read: j.read, data: j.data, eyebrow: variant.title, title: dq });
+      await persist({ ...state, input: { domain: dq, scope }, read: j.read, data: j.data, eyebrow: variant.title, title: dq });
     } catch { setErr("Couldn't reach the service."); }
     setBusy(false);
   }
@@ -74,12 +65,7 @@ export default function DomainScanRoom({ session, initialWorkspace, variant }: {
         </div>
         <div>
           <div className="lbl mb-1">Scope</div>
-          <div className="flex flex-wrap gap-1.5">
-            {scopes.map((s) => (
-              <button key={s.key} onClick={() => setScopeKey(s.key)} className={"rounded-full px-3 py-1.5 text-sm font-medium transition " + (scopeKey === s.key ? "bg-ink text-white" : "bg-mist text-slate2 hover:bg-slate-200")}>{s.label}</button>
-            ))}
-          </div>
-          {scope.key === "other" && <input className="field mt-2" value={orgQuery} onChange={(e) => setOrgQuery(e.target.value)} placeholder="Full institution name, e.g. Stanford University" />}
+          <ScientifiqScopePicker initial={saved.scope || { kind: variant.needsOrg ? "org" : "global" }} onChange={setScope} />
         </div>
 
         {err && <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
