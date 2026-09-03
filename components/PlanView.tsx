@@ -48,7 +48,7 @@ export default function PlanView({
             <div className="flex items-center justify-between">
               <Logo href="/dashboard" />
               <div className="flex items-center gap-2">
-                {code && <ShareReport code={code} title="Your reimagined role" text="Here's my reimagined role from Superadditive:" />}
+                {code && !topSlot && <ShareReport code={code} title="Your reimagined role" text="Here's my reimagined role from Superadditive:" />}
                 <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">
                   ← Done
                 </Link>
