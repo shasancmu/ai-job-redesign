@@ -101,19 +101,23 @@ One shared `<StepHeader n total minutes />` replaces all of it and fixes finding
 
 ### 4. The interview turn counter exists in exactly one room
 
-Twelve rooms run an AI interview: `Canvas, CareerRoadmap, Consult, Earnings,
-HardConvo, HotSeat, Negotiation, PersonalNetwork, RoleplaySpec, SoloWorkflow,
-Superpower, Vision`. All of them are now held to the six-turn budget by the
-enforcement in `lib/ai.ts`.
+Eleven functions in `lib/ai.ts` hold an interview to a six-turn budget:
+`interviewReply, workflowInterviewReply, businessInterviewReply,
+superpowerInterviewReply, personalNetworkInterviewReply, canvasInterviewReply,
+careerRoadmapInterview, empathyInterviewReply, resumeInterviewReply,
+portraitInterviewReply, visionInterviewReply`.
 
-Only `SoloRoom` tells the learner that. It renders six dots and
+Only `SoloRoom` tells the learner about it. It renders six dots and
 `Question 3 of about 6`.
 
-In the other twelve, the learner is in an open-ended conversation with no idea
-whether it ends in two more questions or twenty. That uncertainty is the single
-most common complaint an interview mechanic generates, the budget already exists,
-and the marker is about fifteen lines. Lifting it into the shared chat component
-is the cheapest real improvement in this document.
+In the other ten, the learner is in a conversation with a known end and no way
+to see it — and an open-ended chat with no visible end is why people stall,
+because there is no telling a third of the way through from nearly done. The
+budget already exists and the marker is about fifteen lines.
+
+*Not in that set, and correctly so: `Negotiation, Earnings, HardConvo, HotSeat,
+RoleplaySpec`. Those are role-plays and negotiations, not budgeted interviews, and
+a turn counter would misdescribe them.*
 
 ---
 
@@ -173,17 +177,19 @@ of the page, near the title.
 
 | # | change | files | why now |
 |---|---|---|---|
-| 1 | Pass `onAdvance` to `<Timer>` | 17 | A built affordance is dark; learners are stuck at 0:00 today |
-| 2 | Lift the turn marker into the shared chat | ~2 + 12 | Six-turn budget already ships; learners can't see it |
-| 3 | One `<StepHeader>`, localised | ~21 | Kills the four dialects and the hard-coded English together |
+| 1 | ~~Pass `onAdvance` to `<Timer>`~~ | 19 | **Done** — `2198bfc` |
+| 2 | ~~Lift the turn marker into the shared chat~~ | 12 | **Done** — `2198bfc`, all 11 budgeted interviews |
+| 3 | ~~One `<StepHeader>`~~ | 21 | **Done** — `2198bfc`; the localisation half is item 4 |
 | 4 | Route the 21 silent rooms through `t()` | 21 | Largest job here, but nine locales are shipping today |
 | 5 | One report footer, one label per action | 4 | Adds the missing `← Done` |
 | 6 | Report `<h1>` convention: name the artifact | 4 | |
 | 7 | Demote the theory paragraph below the input | canvas defs | |
 | 8 | Exit target size; move the help chip up | 2 | |
 
-Items 1–3 are a day's work and account for most of what a learner would describe
-as "inconsistent." Item 4 is the big one and is worth scoping separately.
+Items 1–3 are done in `2198bfc` and account for most of what a learner would
+describe as "inconsistent." Item 4 is the big one and is worth scoping
+separately; `StepHeader` gives every room a localised counter, but the body copy
+of the 21 silent rooms is untouched.
 
 ## What this sweep did not cover
 
