@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isAdmin } from "@/lib/admin";
+import { roleFor } from "@/lib/orgs";
 import { reportNameAI } from "@/lib/ai";
 
 export const runtime = "nodejs";
@@ -46,7 +46,11 @@ async function nameFor(sentence: string): Promise<string | null> {
 export async function GET(req: Request) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user || !isAdmin(user.email)) return NextResponse.json({ error: "Not allowed" }, { status: 403 });
+  if (!user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  // The same gate /admin uses. isAdmin() is the older ADMIN_EMAILS allowlist and
+  // is not how platform access is decided any more.
+  const role = await roleFor(user);
+  if (!role.superadmin) return NextResponse.json({ error: "Superadmin only" }, { status: 403 });
 
   const url = new URL(req.url);
   const commit = url.searchParams.get("commit") === "1";
