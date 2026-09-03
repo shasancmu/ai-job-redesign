@@ -5,12 +5,14 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import EmpathyAggregate from "@/components/EmpathyAggregate";
 import ShareReport from "@/components/ShareReport";
+import { useT } from "@/components/I18nProvider";
 
 type Interview = { id: string; respondent: string; transcript: any[]; profile: any; created_at: string };
 
 // Owner-side room for Understand Your Customer: set up the study, share one link,
 // watch empathy profiles arrive, and synthesize across them.
 export default function EmpathyRoom({ session, token, initialWorkspace }: { session: any; token: string; initialWorkspace: any }) {
+  const t = useT();
   const supabase = createClient();
   const [ws, setWs] = useState<any>({ canvas: {}, ...initialWorkspace });
   const state = ws.canvas || {};
@@ -95,7 +97,7 @@ export default function EmpathyRoom({ session, token, initialWorkspace }: { sess
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
+          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">Understand Your Customer</span>
           {study && <span className="text-sm text-slate-400">· {study}</span>}
         </div>

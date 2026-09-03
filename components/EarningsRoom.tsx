@@ -9,6 +9,7 @@ import { streamPost } from "@/lib/streamClient";
 import { SURFACE, OPENING_REMARKS } from "@/lib/earnings";
 import EarningsReport from "@/components/EarningsReport";
 import StepHeader from "./StepHeader";
+import { useT } from "@/components/I18nProvider";
 
 const BUDGET = 7;
 
@@ -26,6 +27,7 @@ async function earningsReply(code: string, history: Msg[], onChunk?: (d: string)
 }
 
 export default function EarningsRoom({ me, session, initialWorkspace }: { me: string; session: any; initialWorkspace: any }) {
+  const t = useT();
   const supabase = createClient();
   const code = String(session.code || "").toUpperCase();
   const STEPS = [
@@ -76,7 +78,7 @@ export default function EarningsRoom({ me, session, initialWorkspace }: { me: st
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
+          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">The Earnings Call · Verita Ingredients</span>
         </div>
         <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
@@ -122,13 +124,13 @@ export default function EarningsRoom({ me, session, initialWorkspace }: { me: st
 
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">Back</button>
+          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">{t("room.back")}</button>
           {phase < STEPS.length - 1 ? (
             <button onClick={() => go(phase + 1)} disabled={step.key === "verdict" && !verdict.call} className="btn-primary">
               {step.key === "call" ? "Commit a verdict" : step.key === "verdict" ? "Grade my call" : "Next"} →
             </button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">Finish</Link>
+            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>

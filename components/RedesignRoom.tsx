@@ -7,6 +7,7 @@ import { useCohortPing } from "@/components/useCohortLive";
 import { REDESIGN_PHASES } from "@/lib/mechanics/redesignStore";
 import { moduleBeacon } from "@/lib/clientBeacon";
 import StepHeader from "./StepHeader";
+import { useT } from "@/components/I18nProvider";
 
 // A spec-driven PAIRED redesign, on the proven realtime path: phase lives on the
 // `sessions` row (already realtime), each partner's canvas on their own
@@ -14,6 +15,7 @@ import StepHeader from "./StepHeader";
 // per session, postgres_changes on sessions + workspaces, echo-guard on own row,
 // reveal = read the partner's row.
 export default function RedesignRoom({ me, spec, initialSession, initialWorkspaces, initialProfiles }: { me: string; spec: any; initialSession: any; initialWorkspaces: any[]; initialProfiles: any[] }) {
+  const t = useT();
   const supabase = createClient();
   const [session, setSession] = useState<any>(initialSession);
   const [wss, setWss] = useState<any[]>(initialWorkspaces);
@@ -196,7 +198,7 @@ export default function RedesignRoom({ me, spec, initialSession, initialWorkspac
 
       <div className="fixed inset-x-0 bottom-0 border-t border-line bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <button onClick={() => goToPhase(phaseIdx - 1)} disabled={phaseIdx === 0} className="btn-ghost">Back</button>
+          <button onClick={() => goToPhase(phaseIdx - 1)} disabled={phaseIdx === 0} className="btn-ghost">{t("room.back")}</button>
           <span className="text-xs text-slate-400">Either partner can advance the room</span>
           {phaseIdx < REDESIGN_PHASES.length - 1 ? <button onClick={() => goToPhase(phaseIdx + 1)} className="btn-primary">Next →</button> : <Link href={`/dashboard?done=${spec.slug || 1}`} className="btn-primary">Done</Link>}
         </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useT } from "@/components/I18nProvider";
 
 function beacon(slug: string, stage: string) {
   try { fetch("/api/module-event", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug, kind: "explainer", stage }), keepalive: true }).catch(() => {}); } catch { /* ignore */ }
@@ -10,6 +11,7 @@ function beacon(slug: string, stage: string) {
 // A taught walkthrough: paginated sections, key points, an optional check, and
 // the takeaway at the end.
 export default function ExplainerRunner({ spec }: { spec: any }) {
+  const t = useT();
   const sections: any[] = spec.sections || [];
   const total = sections.length + 1; // + takeaway/intro handled inline
   const [i, setI] = useState(0);
@@ -50,7 +52,7 @@ export default function ExplainerRunner({ spec }: { spec: any }) {
       )}
 
       <div className="mt-4 flex items-center justify-between">
-        <button onClick={() => setI((x) => Math.max(0, x - 1))} disabled={i === 0} className="btn-ghost disabled:opacity-40">Back</button>
+        <button onClick={() => setI((x) => Math.max(0, x - 1))} disabled={i === 0} className="btn-ghost disabled:opacity-40">{t("room.back")}</button>
         {!done ? <button onClick={() => setI((x) => x + 1)} className="btn-primary">Next →</button> : <Link href="/dashboard?done=1" className="btn-primary">Done</Link>}
       </div>
     </div>

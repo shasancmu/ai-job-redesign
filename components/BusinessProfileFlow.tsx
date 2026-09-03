@@ -7,6 +7,7 @@ import CensusVoiceInterview from "@/components/CensusVoiceInterview";
 import { streamPost } from "@/lib/streamClient";
 import CensusReport from "@/components/CensusReport";
 import { EMPLOYEE_BANDS, REVENUE_BANDS, CUSTOMER_TYPES, OWNERSHIP_TYPES, TIE_TYPES, shotsFor, type NetworkEdge } from "@/lib/census";
+import { useT } from "@/components/I18nProvider";
 
 async function jpost(path: string, body: any) {
   const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -25,6 +26,7 @@ async function fileToDataUrl(file: File, max = 1100, q = 0.72): Promise<string> 
 const STEPS = ["Consent", "Your business", "The basics", "Show us", "How you run it", "Who you work with", "Your profile"];
 
 export default function BusinessProfileFlow({ code, firmCode }: { code: string; firmCode?: string }) {
+  const t = useT();
   const [step, setStep] = useState(0);
   const [rec, setRec] = useState<any>({ network: [], photos: [], mgmtChat: [] as Msg[], wmsAnswers: {} });
   const set = (patch: any) => setRec((r: any) => ({ ...r, ...patch }));
@@ -89,7 +91,7 @@ export default function BusinessProfileFlow({ code, firmCode }: { code: string; 
       {step < 6 && (
         <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
           <div className="mx-auto flex max-w-lg items-center justify-between gap-3 px-4 py-3 sm:px-6">
-            <button onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0} className="btn-ghost">Back</button>
+            <button onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0} className="btn-ghost">{t("room.back")}</button>
             <button onClick={() => setStep((s) => s + 1)} disabled={!canNext} className="btn-primary disabled:opacity-50">Next →</button>
           </div>
         </div>

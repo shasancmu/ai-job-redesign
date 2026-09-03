@@ -12,6 +12,7 @@ import Timer from "@/components/Timer";
 import ConsultReport from "@/components/ConsultReport";
 import StepHeader from "./StepHeader";
 import InterviewProgress from "@/components/InterviewProgress";
+import { useT } from "@/components/I18nProvider";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -24,6 +25,7 @@ export default function ConsultRoom({
   session: any;
   initialWorkspace: any;
 }) {
+  const t = useT();
   const supabase = createClient();
   const [phase, setPhase] = useState<number>(session.phase || 0);
   const [startedAt, setStartedAt] = useState(session.phase_started_at || new Date().toISOString());
@@ -63,7 +65,7 @@ export default function ConsultRoom({
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
+          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">The 30-Minute Consult</span>
         </div>
         <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
@@ -89,11 +91,11 @@ export default function ConsultRoom({
 
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">Back</button>
+          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">{t("room.back")}</button>
           {phase < CONSULT_STEPS.length - 1 ? (
             <button onClick={() => go(phase + 1)} disabled={!canAdvance} className="btn-primary">Next →</button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">Finish</Link>
+            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>
@@ -132,6 +134,7 @@ function Intake({ intake, setIntake }: { intake: any; setIntake: (p: any) => voi
 }
 
 function Interview({ state, setState, ctx, sessionId, onSkip }: { state: any; setState: (p: any) => void; ctx: any; sessionId: string; onSkip: () => void }) {
+  const t = useT();
   const messages: Msg[] = state.interview_chat || [];
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -186,8 +189,8 @@ function Interview({ state, setState, ctx, sessionId, onSkip }: { state: any; se
         <InterviewProgress msgs={messages} />
         <InterviewHelper module="consult" answered={messages.filter((m) => m.role === "user").length} hasDraft={!!input.trim()} onInsert={setInput} />
         <form onSubmit={send} className="mt-3 flex items-center gap-2">
-          <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type your answer…" disabled={busy} />
-          <button className="btn-primary" disabled={busy || !input.trim()}>Send</button>
+          <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t("room.typeAnswer")} disabled={busy} />
+          <button className="btn-primary" disabled={busy || !input.trim()}>{t("room.send")}</button>
         </form>
       </div>
     </div>

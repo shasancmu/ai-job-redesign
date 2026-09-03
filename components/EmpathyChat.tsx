@@ -6,6 +6,7 @@ import IntakeNotice from "@/components/IntakeNotice";
 import { streamPost } from "@/lib/streamClient";
 import InterviewHelper from "@/components/InterviewHelper";
 import InterviewProgress from "@/components/InterviewProgress";
+import { useT } from "@/components/I18nProvider";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -13,6 +14,7 @@ type Msg = { role: "user" | "assistant"; content: string };
 // Holds the running transcript in state and posts it each turn; on finish it
 // synthesizes the profile server-side. No account, mobile-first.
 export default function EmpathyChat({ token, business }: { token: string; business: string }) {
+  const t = useT();
   const [phase, setPhase] = useState<"intro" | "chat" | "done">("intro");
   const [name, setName] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -157,11 +159,11 @@ export default function EmpathyChat({ token, business }: { token: string; busine
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
             rows={1}
-            placeholder="Type your answer…"
+            placeholder={t("room.typeAnswer")}
             className="field max-h-32 flex-1 resize-none py-2.5"
             disabled={waiting}
           />
-          <button onClick={send} disabled={waiting || !input.trim()} className="btn-primary shrink-0 px-4 py-2.5 disabled:opacity-40">Send</button>
+          <button onClick={send} disabled={waiting || !input.trim()} className="btn-primary shrink-0 px-4 py-2.5 disabled:opacity-40">{t("room.send")}</button>
         </div>
         <InterviewProgress msgs={messages} />
         <InterviewHelper module="empathy" answered={answered} hasDraft={!!input.trim()} onInsert={setInput} />

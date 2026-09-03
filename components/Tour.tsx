@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useT } from "@/components/I18nProvider";
 
 export type TourStep = { sel: string; title: string; body: string };
 
@@ -13,6 +14,7 @@ export function TourButton({ className = "btn-ghost text-sm", label = "Take a to
 // a time via a box-shadow cutout, and floats a tooltip next to it. Auto-runs
 // once (localStorage), and replays when any element dispatches "app:start-tour".
 export default function Tour({ steps, storageKey, welcomeTitle, welcomeBody, auto = true }: { steps: TourStep[]; storageKey: string; welcomeTitle: string; welcomeBody: string; auto?: boolean }) {
+  const t = useT();
   const [stage, setStage] = useState<"off" | "welcome" | number>("off");
   const [rect, setRect] = useState<DOMRect | null>(null);
 
@@ -128,7 +130,7 @@ export default function Tour({ steps, storageKey, welcomeTitle, welcomeBody, aut
         <div className="mt-4 flex items-center justify-between">
           <button onClick={finish} className="text-xs text-slate-400 hover:text-ink">Skip</button>
           <div className="flex items-center gap-2">
-            {stage > 0 && <button onClick={() => goto(stage - 1)} className="btn-ghost text-sm">Back</button>}
+            {stage > 0 && <button onClick={() => goto(stage - 1)} className="btn-ghost text-sm">{t("room.back")}</button>}
             <button onClick={() => goto(stage + 1)} className="btn-primary text-sm">{stage === steps.length - 1 ? "Done" : "Next →"}</button>
           </div>
         </div>

@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { IntroStep } from "@/lib/moduleIntros";
+import { useT } from "@/components/I18nProvider";
 
 // The first-run teaching moment for a module: a few quick cards, then it steps
 // aside. Shows once (localStorage), and a discreet "How this works" chip lets
 // anyone replay it. Fast to dismiss — Skip or Esc starts the exercise.
 export default function ModuleIntro({ slug, name, steps }: { slug: string; name: string; steps: IntroStep[] }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [i, setI] = useState(0);
   const key = "intro-seen:" + slug;
@@ -63,7 +65,7 @@ export default function ModuleIntro({ slug, name, steps }: { slug: string; name:
         <div className="mt-6 flex items-center justify-between">
           <button onClick={close} className="text-sm text-slate-400 hover:text-ink">Skip</button>
           <div className="flex items-center gap-2">
-            {i > 0 && <button onClick={() => setI(i - 1)} className="btn-ghost text-sm">Back</button>}
+            {i > 0 && <button onClick={() => setI(i - 1)} className="btn-ghost text-sm">{t("room.back")}</button>}
             <button onClick={next} className="btn-primary text-sm">{last ? "Start →" : "Next →"}</button>
           </div>
         </div>

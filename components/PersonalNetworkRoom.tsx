@@ -12,6 +12,7 @@ import PersonalNetworkReport from "@/components/PersonalNetworkReport";
 import { DOMAINS, STRENGTHS, ENERGY, domainMeta, tieKey, hasTie, computeEgoMetrics, type Contact, type Domain, type Energy, type Strength, type Ties } from "@/lib/egonet";
 import StepHeader from "./StepHeader";
 import InterviewProgress from "@/components/InterviewProgress";
+import { useT } from "@/components/I18nProvider";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -38,6 +39,7 @@ export default function PersonalNetworkRoom({
   session: any;
   initialWorkspace: any;
 }) {
+  const t = useT();
   const supabase = createClient();
   const [phase, setPhase] = useState<number>(session.phase || 0);
   const [startedAt, setStartedAt] = useState(session.phase_started_at || new Date().toISOString());
@@ -77,7 +79,7 @@ export default function PersonalNetworkRoom({
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
+          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">Map Your Personal Network</span>
         </div>
         <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
@@ -102,11 +104,11 @@ export default function PersonalNetworkRoom({
 
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">Back</button>
+          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">{t("room.back")}</button>
           {phase < STEPS.length - 1 ? (
             <button onClick={() => go(phase + 1)} className="btn-primary">Next →</button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">Finish</Link>
+            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>
@@ -257,6 +259,7 @@ function Connections({ contacts, ties, setTies }: { contacts: Contact[]; ties: T
 }
 
 function Interview({ state, setState, contacts, sessionId, onSkip }: { state: any; setState: (p: any) => void; contacts: Contact[]; sessionId: string; onSkip: () => void }) {
+  const t = useT();
   const messages: Msg[] = state.interview_chat || [];
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -312,8 +315,8 @@ function Interview({ state, setState, contacts, sessionId, onSkip }: { state: an
         <InterviewProgress msgs={messages} />
         <InterviewHelper module="personal-network" answered={messages.filter((m) => m.role === "user").length} hasDraft={!!input.trim()} onInsert={setInput} />
         <form onSubmit={send} className="mt-3 flex items-center gap-2">
-          <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type your answer…" disabled={busy} />
-          <button className="btn-primary" disabled={busy || !input.trim()}>Send</button>
+          <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t("room.typeAnswer")} disabled={busy} />
+          <button className="btn-primary" disabled={busy || !input.trim()}>{t("room.send")}</button>
         </form>
       </div>
     </div>

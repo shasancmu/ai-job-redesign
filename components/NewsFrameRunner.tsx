@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { scoreColor } from "@/lib/canvases";
+import { useT } from "@/components/I18nProvider";
 
 // Apply a framework to a CURRENT news story: pull fresh stories, pick one, fill
 // the framework's fields, make the call, get graded on the application.
 export default function NewsFrameRunner({ spec }: { spec: any }) {
+  const t = useT();
   const [phase, setPhase] = useState<"pick" | "analyze" | "verdict" | "report">("pick");
   const [stories, setStories] = useState<any[] | null>(null);
   const [story, setStory] = useState<any>(null);
@@ -123,7 +125,7 @@ export default function NewsFrameRunner({ spec }: { spec: any }) {
             <div className="mt-3"><div className="text-xs text-slate-500">How confident?</div><input type="range" min={0} max={100} step={5} value={verdict.confidence ?? 60} onChange={(e) => setVerdict((v) => ({ ...v, confidence: Number(e.target.value) }))} className="mt-1 w-full accent-[color:var(--ink)]" /><div className="text-right text-sm font-bold text-ink">{verdict.confidence ?? 60}%</div></div>
           </div>
           <div className="flex justify-between">
-            <button onClick={() => setPhase("analyze")} className="btn-ghost">Back</button>
+            <button onClick={() => setPhase("analyze")} className="btn-ghost">{t("room.back")}</button>
             <button onClick={grade} disabled={busy} className="btn-primary">{busy ? "Grading…" : "Grade my analysis"}</button>
           </div>
           {err && <p className="text-sm text-red-700">{err}</p>}

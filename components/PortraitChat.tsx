@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import InterviewProgress from "@/components/InterviewProgress";
+import { useT } from "@/components/I18nProvider";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Stage = "intro" | "chat" | "done";
@@ -9,6 +10,7 @@ type Stage = "intro" | "chat" | "done";
 // The portrait interview — a calm, unhurried conversation that draws the person
 // out and reflects them back. It's theirs: framed openly, deletable anytime.
 export default function PortraitChat({ existingReflection = null }: { existingReflection?: string | null }) {
+  const t = useT();
   const [stage, setStage] = useState<Stage>(existingReflection ? "done" : "intro");
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
@@ -129,7 +131,7 @@ export default function PortraitChat({ existingReflection = null }: { existingRe
           placeholder="Take your time…"
           disabled={busy}
         />
-        <button onClick={send} disabled={busy || !draft.trim()} className="btn-dark text-sm">Send</button>
+        <button onClick={send} disabled={busy || !draft.trim()} className="btn-dark text-sm">{t("room.send")}</button>
       </div>
       {userTurns >= 4 && (
         <button onClick={finish} disabled={busy} className="mt-3 text-sm font-medium text-sage hover:underline">I&apos;m ready to wrap up →</button>

@@ -10,8 +10,10 @@ import InteractionPlot from "@/components/InteractionPlot";
 import InteractionReport from "@/components/InteractionReport";
 import { INTERACTION_STEPS, DEFAULT_IDEA, ideaSentence, ideaComplete, type IdeaInputs, type Direction } from "@/lib/interaction";
 import StepHeader from "./StepHeader";
+import { useT } from "@/components/I18nProvider";
 
 export default function InteractionRoom({ session, initialWorkspace }: { me: string; session: any; initialWorkspace: any }) {
+  const t = useT();
   const supabase = createClient();
   const [phase, setPhase] = useState<number>(session.phase || 0);
   const [startedAt, setStartedAt] = useState(session.phase_started_at || new Date().toISOString());
@@ -52,7 +54,7 @@ export default function InteractionRoom({ session, initialWorkspace }: { me: str
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
+          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">The Anatomy of an Idea</span>
         </div>
         <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
@@ -74,11 +76,11 @@ export default function InteractionRoom({ session, initialWorkspace }: { me: str
 
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">Back</button>
+          <button onClick={() => go(phase - 1)} disabled={phase === 0} className="btn-ghost">{t("room.back")}</button>
           {phase < INTERACTION_STEPS.length - 1 ? (
             <button onClick={() => go(phase + 1)} disabled={!canFrame} className="btn-primary disabled:opacity-40">Next →</button>
           ) : (
-            <Link href="/dashboard" className="btn-primary">Finish</Link>
+            <Link href="/dashboard" className="btn-primary">{t("room.finish")}</Link>
           )}
         </div>
       </div>

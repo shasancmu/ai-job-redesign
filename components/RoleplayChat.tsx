@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useT } from "@/components/I18nProvider";
 
 export type Msg = { role: "user" | "assistant"; content: string };
 
@@ -40,6 +41,7 @@ export default function RoleplayChat({
   disabled?: boolean; // no more input allowed (e.g. a question budget is spent)
   disabledHint?: React.ReactNode; // shown in place of the composer when disabled
 }) {
+  const t = useT();
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -279,7 +281,7 @@ export default function RoleplayChat({
       ) : (
         <form onSubmit={sendText} className="mt-3 flex items-center gap-2">
           <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={placeholder} disabled={busy} />
-          <button className="btn-primary" disabled={busy || !input.trim()}>Send</button>
+          <button className="btn-primary" disabled={busy || !input.trim()}>{t("room.send")}</button>
         </form>
       )}
     </div>

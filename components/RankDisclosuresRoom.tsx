@@ -4,8 +4,10 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import RankDisclosuresReport from "@/components/RankDisclosuresReport";
+import { useT } from "@/components/I18nProvider";
 
 export default function RankDisclosuresRoom({ session, initialWorkspace }: { me?: string; session: any; initialWorkspace: any }) {
+  const t = useT();
   const supabase = createClient();
   const [ws, setWs] = useState<any>({ canvas: {}, ...initialWorkspace });
   const state = ws.canvas || {};
@@ -38,7 +40,7 @@ export default function RankDisclosuresRoom({ session, initialWorkspace }: { me?
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
+          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">Rank Our Disclosures</span>
         </div>
       </div>

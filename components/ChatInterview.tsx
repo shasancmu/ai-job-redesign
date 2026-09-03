@@ -9,6 +9,7 @@ import InterviewHelper from "@/components/InterviewHelper";
 import ReportReveal from "@/components/ReportReveal";
 import { usePredictGate } from "@/components/usePredictGate";
 import InterviewProgress from "@/components/InterviewProgress";
+import { useT } from "@/components/I18nProvider";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -49,6 +50,7 @@ export default function ChatInterview({
   bottomHint: string;
   turns?: number; // set only when lib/ai.ts holds this interview to a budget
 }) {
+  const t = useT();
   const supabase = createClient();
   const [messages, setMessages] = useState<Msg[]>(ws.canvas?.interview_chat || []);
   const [report, setReport] = useState<any>(ws.canvas?.report || null);
@@ -141,7 +143,7 @@ export default function ChatInterview({
     <div className="mx-auto flex h-[100dvh] max-w-2xl flex-col">
       {gate.modal}
       <header className="flex items-center justify-between border-b border-line px-4 py-3">
-        <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
+        <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
         <span className="text-sm font-semibold text-ink">{chatTitle}</span>
         <button onClick={gate.start} disabled={answered < 3 || building} className="btn-dark px-3 py-1.5 text-xs disabled:opacity-40">{building ? buildingLabel : answered < 3 ? "Keep going" : buildLabel}</button>
       </header>
@@ -159,8 +161,8 @@ export default function ChatInterview({
 
       <div className="border-t border-line px-3 py-3">
         <div className="flex items-end gap-2">
-          <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} rows={1} placeholder="Type your answer…" className="field max-h-32 flex-1 resize-none py-2.5" disabled={waiting} />
-          <button onClick={send} disabled={waiting || !input.trim()} className="btn-primary shrink-0 px-4 py-2.5 disabled:opacity-40">Send</button>
+          <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} rows={1} placeholder={t("room.typeAnswer")} className="field max-h-32 flex-1 resize-none py-2.5" disabled={waiting} />
+          <button onClick={send} disabled={waiting || !input.trim()} className="btn-primary shrink-0 px-4 py-2.5 disabled:opacity-40">{t("room.send")}</button>
         </div>
         {turns ? <InterviewProgress msgs={messages} turns={turns} /> : null}
         <InterviewHelper module={helpKey} answered={answered} hasDraft={!!input.trim()} onInsert={setInput} />

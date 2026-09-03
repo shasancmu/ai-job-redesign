@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { boardMember, BOARD_MEMBERS, type BoardEntry } from "@/lib/board";
 import BoardVerdict from "@/components/BoardVerdict";
 import BoardMaterials, { type Material } from "@/components/BoardMaterials";
+import { useT } from "@/components/I18nProvider";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -17,6 +18,7 @@ export default function BoardRoom({
   session: any;
   initialWorkspace: any;
 }) {
+  const t = useT();
   const supabase = createClient();
   const [ws] = useState<any>({ canvas: {}, ...initialWorkspace });
   const [decision, setDecision] = useState<string>(ws.canvas?.decision || "");
@@ -165,7 +167,7 @@ export default function BoardRoom({
     return (
       <main className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
         <div className="mb-5 flex items-center gap-3">
-          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
+          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">Your AI Board</span>
         </div>
 

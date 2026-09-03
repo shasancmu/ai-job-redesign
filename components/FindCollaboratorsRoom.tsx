@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import CollaboratorsReport from "@/components/CollaboratorsReport";
+import { useT } from "@/components/I18nProvider";
 
 const SCOPES = [
   { key: "duke", label: "Duke University", kind: "org", orgQuery: "Duke University" },
@@ -21,6 +22,7 @@ const KINDS = [
 ];
 
 export default function FindCollaboratorsRoom({ session, initialWorkspace }: { session: any; initialWorkspace: any }) {
+  const t = useT();
   const supabase = createClient();
   const [ws, setWs] = useState<any>({ canvas: {}, ...initialWorkspace });
   const state = ws.canvas || {};
@@ -66,7 +68,7 @@ export default function FindCollaboratorsRoom({ session, initialWorkspace }: { s
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
+          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">Find Collaborators</span>
         </div>
         {report && <Link href={`/collaborators/${session.code}`} className="btn-ghost text-sm">Open full list →</Link>}

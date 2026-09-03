@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { streamPost } from "@/lib/streamClient";
 import { pickBestVoice } from "@/lib/voices";
+import { useT } from "@/components/I18nProvider";
 
 type Msg = { role: "user" | "assistant"; content: string };
 const API = "/api/mechanics/authoring-interview";
@@ -18,6 +19,7 @@ export default function AuthoringInterview({ sourceText, onDone, onCancel }: {
   onDone: (options: any[], transcript: string) => void;
   onCancel: () => void;
 }) {
+  const t = useT();
   const [mode, setMode] = useState<"pick" | "text" | "voice">("pick");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [streaming, setStreaming] = useState("");
@@ -243,8 +245,8 @@ export default function AuthoringInterview({ sourceText, onDone, onCancel }: {
       </div>
       <div className="border-t border-line px-3 py-3">
         <div className="flex items-end gap-2">
-          <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} rows={1} placeholder="Type your answer…" className="field max-h-32 flex-1 resize-none py-2.5" disabled={waiting} />
-          <button onClick={send} disabled={waiting || !input.trim()} className="btn-primary shrink-0 px-4 py-2.5 disabled:opacity-40">Send</button>
+          <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} rows={1} placeholder={t("room.typeAnswer")} className="field max-h-32 flex-1 resize-none py-2.5" disabled={waiting} />
+          <button onClick={send} disabled={waiting || !input.trim()} className="btn-primary shrink-0 px-4 py-2.5 disabled:opacity-40">{t("room.send")}</button>
         </div>
       </div>
     </div>

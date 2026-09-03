@@ -6,8 +6,10 @@ import { createClient } from "@/lib/supabase/client";
 import { MYOPIA_DOMAINS, type MyopiaDomain } from "@/lib/myopia";
 import MyopiaReport from "@/components/MyopiaReport";
 import ChatInterview from "@/components/ChatInterview";
+import { useT } from "@/components/I18nProvider";
 
 export default function MyopiaRoom({ session, initialWorkspace, domain }: { session: any; initialWorkspace: any; domain: MyopiaDomain }) {
+  const t = useT();
   const supabase = createClient();
   const d = MYOPIA_DOMAINS[domain];
   const [ws] = useState<any>({ canvas: {}, ...initialWorkspace });
@@ -27,7 +29,7 @@ export default function MyopiaRoom({ session, initialWorkspace, domain }: { sess
     return (
       <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
         <div className="mb-6 flex items-center justify-between">
-          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
+          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{domain === "career" ? "Your Career's Blind Spots" : "Your Business's Blind Spots"}</span>
         </div>
         <h1 className="text-2xl font-bold text-ink">What got you here won&apos;t always keep you here</h1>

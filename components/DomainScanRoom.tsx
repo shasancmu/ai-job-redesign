@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import DomainInsightReport from "@/components/DomainInsightReport";
+import { useT } from "@/components/I18nProvider";
 
 export type ScanVariant = {
   mode: "landscape" | "deal-sourcing" | "scorecard" | "trajectory";
@@ -29,6 +30,7 @@ const SCOPES = [
 ] as const;
 
 export default function DomainScanRoom({ session, initialWorkspace, variant }: { session: any; initialWorkspace: any; variant: ScanVariant }) {
+  const t = useT();
   const supabase = createClient();
   const [ws, setWs] = useState<any>({ canvas: {}, ...initialWorkspace });
   const state = ws.canvas || {};
@@ -72,7 +74,7 @@ export default function DomainScanRoom({ session, initialWorkspace, variant }: {
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
+          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{variant.title}</span>
         </div>
         {report && <Link href={`/scan/${session.code}`} className="btn-ghost text-sm">Open full report →</Link>}

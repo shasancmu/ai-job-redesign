@@ -7,12 +7,14 @@ import { streamPost } from "@/lib/streamClient";
 import GenericRoleplayReport from "@/components/GenericRoleplayReport";
 import { WARM_LOADING, pick } from "@/lib/warmth";
 import StepHeader from "./StepHeader";
+import { useT } from "@/components/I18nProvider";
 
 // Runs ANY role-play ModuleSpec (the public view). Self-contained: a run code
 // drives the hidden scenario server-side; transcript lives in client state.
 function makeCode() { let s = ""; for (let i = 0; i < 6; i++) s += "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)]; return s; }
 
 export default function RoleplaySpecRoom({ spec, cohort }: { spec: any; cohort?: string }) {
+  const t = useT();
   const [code] = useState(makeCode);
   const [phase, setPhase] = useState(0);
   const [chat, setChat] = useState<Msg[]>([]);
@@ -138,7 +140,7 @@ export default function RoleplaySpecRoom({ spec, cohort }: { spec: any; cohort?:
 
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <button onClick={() => setPhase((p) => Math.max(0, p - 1))} disabled={phase === 0} className="btn-ghost">Back</button>
+          <button onClick={() => setPhase((p) => Math.max(0, p - 1))} disabled={phase === 0} className="btn-ghost">{t("room.back")}</button>
           {phase < flow.length - 1 ? <button onClick={() => setPhase((p) => p + 1)} className="btn-primary">Next →</button> : <Link href="/studio/roleplay" className="btn-primary">Done</Link>}
         </div>
       </div>

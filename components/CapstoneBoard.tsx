@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { COMPANY, GAP_CENTS, LEVERS, ROLES, CEO_PRESSURE, LEVER_BY_KEY, type Role } from "@/lib/capstone";
 import CapstoneReport from "@/components/CapstoneReport";
+import { useT } from "@/components/I18nProvider";
 
 type Member = { name: string; role: string; user_id?: string | null };
 type Pick = { lever_key: string; note: string; by_name: string };
@@ -18,6 +19,7 @@ async function api(path: string, body: any) {
 }
 
 export default function CapstoneBoard({ code, isHost, myName = "", cohort = "", userId = "" }: { code: string; isHost: boolean; myName?: string; cohort?: string; userId?: string }) {
+  const t = useT();
   const [me, setMe] = useState<{ name: string; role: Role } | null>(null);
   const [state, setState] = useState<State | null>(null);
   const meRef = useRef(me); meRef.current = me;
@@ -68,7 +70,7 @@ export default function CapstoneBoard({ code, isHost, myName = "", cohort = "", 
     <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
       <header className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
+          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">The Number · {COMPANY.name}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -274,6 +276,7 @@ function PlanBoard({ code, me, picks, cents, epsNow, isHost, onNext, onChange }:
 }
 
 function CallRoom({ code, me, transcript, isHost, onNext, onPosted, selectedKeys }: { code: string; me: { name: string; role: Role }; transcript: Turn[]; isHost: boolean; onNext: () => void; onPosted: () => void; selectedKeys: Set<string> }) {
+  const t = useT();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const feedRef = useRef<HTMLDivElement>(null);
@@ -310,7 +313,7 @@ function CallRoom({ code, me, transcript, isHost, onNext, onPosted, selectedKeys
       ) : (
         <form onSubmit={(e) => { e.preventDefault(); if (text.trim() && !busy) send(text.trim()); }} className="flex items-center gap-2">
           <input className="field" value={text} onChange={(e) => setText(e.target.value)} placeholder="Answer as the CFO..." disabled={busy} />
-          <button className="btn-primary" disabled={busy || !text.trim()}>Send</button>
+          <button className="btn-primary" disabled={busy || !text.trim()}>{t("room.send")}</button>
         </form>
       )}
 

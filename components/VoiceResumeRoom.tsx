@@ -7,10 +7,12 @@ import type { ResumeSource } from "@/lib/resume";
 import ResumeIntake from "@/components/ResumeIntake";
 import ResumeReport from "@/components/ResumeReport";
 import VoiceInterview from "@/components/VoiceInterview";
+import { useT } from "@/components/I18nProvider";
 
 // Talk Through Your Résumé: the résumé refresh as a hands-free voice interview.
 // Intake first (paste the résumé), then the shared VoiceInterview engine.
 export default function VoiceResumeRoom({ session, initialWorkspace, prefill, prefillFrom }: { session: any; initialWorkspace: any; prefill?: string; prefillFrom?: string }) {
+  const t = useT();
   const supabase = createClient();
   const [ws] = useState<any>({ canvas: {}, ...initialWorkspace });
   const [source, setSource] = useState<ResumeSource | null>(ws.canvas?.source || null);
@@ -26,7 +28,7 @@ export default function VoiceResumeRoom({ session, initialWorkspace, prefill, pr
     return (
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <div className="mb-6 flex items-center justify-between">
-          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← Exit</Link>
+          <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">Talk Through Your Résumé</span>
         </div>
         <ResumeIntake prefill={prefill} prefillFrom={prefillFrom} onStart={startInterview} cta="Start the spoken interview" />
