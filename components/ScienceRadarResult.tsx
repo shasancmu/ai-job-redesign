@@ -21,9 +21,9 @@ export default function ScienceRadarResult({ report, narrate }: { report: any; n
 
       {mode === "company" && footprint?.found && (
         <div className="card p-5">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Your science footprint</div>
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Your science footprint <span className="font-normal normal-case text-slate-400">· {footprint.patentCount} patents</span></div>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {footprint.keywords.slice(0, 12).map((k: string) => <span key={k} className="rounded-full bg-mist px-2.5 py-1 text-xs font-medium text-slate2">{k}</span>)}
+            {((footprint.terms && footprint.terms.length ? footprint.terms : footprint.keywords) || []).slice(0, 12).map((k: string) => <span key={k} className="rounded-full bg-mist px-2.5 py-1 text-xs font-medium text-slate2">{k}</span>)}
           </div>
         </div>
       )}

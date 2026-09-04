@@ -39,16 +39,19 @@ function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: num
 }
 
 function toExpert(r: SciResearcher): Expert {
-  const rep = (r.top20RecentTitles || r.top20CitedTitles || "").split(/\s*[;|]\s*/).map((s) => s.trim()).filter(Boolean).slice(0, 2);
+  const repRaw = (r.top20RecentTitles || r.top20CitedTitles || "").trim();
+  const parts = repRaw.split(/\s*[;|\n]\s*/).map((s) => s.trim()).filter(Boolean);
+  const representative = parts.length > 1 ? parts.slice(0, 1) : repRaw ? [repRaw.slice(0, 130) + (repRaw.length > 130 ? "…" : "")] : [];
+  const fields = (r.subfieldsString || (r.subFields || []).join(", ")).split(",").map((s) => s.trim()).filter(Boolean).slice(0, 6).join(", ");
   return {
     id: r.id,
     name: r.name,
     org: (r.orgsNames && r.orgsNames[0]) || "",
     compot: Math.round(Number(r.compot) || 0),
     scipot: Math.round(Number(r.scipot) || 0),
-    fields: r.subfieldsString || (r.subFields || []).join(", "),
+    fields,
     keywords: r.keywordsString || (r.keywords || []).join(", "),
-    representative: rep,
+    representative,
   };
 }
 
@@ -78,12 +81,12 @@ async function geoForOrgs(names: string[]): Promise<Map<string, Geo>> {
   if (!uniq.length) return map;
   try {
     const rows = await bqQuery(
-      `SELECT display_name, geo.city AS city, geo.region AS region, geo.country AS country, geo.latitude AS lat, geo.longitude AS lng
+      `SELECT LOWER(display_name) AS dn, geo.city AS city, geo.region AS region, geo.country AS country, geo.latitude AS lat, geo.longitude AS lng
        FROM \`com-sci-2.openalex.institutions\`
-       WHERE display_name IN UNNEST(@o) AND geo.latitude IS NOT NULL`,
-      [{ name: "o", type: "STRING", array: true, values: uniq }], { maxBytesBilled: GEO_CAP }
+       WHERE LOWER(display_name) IN UNNEST(@o) AND geo.latitude IS NOT NULL`,
+      [{ name: "o", type: "STRING", array: true, values: uniq.map((n) => n.toLowerCase()) }], { maxBytesBilled: GEO_CAP }
     );
-    for (const r of rows) map.set(r.display_name, { city: r.city, region: r.region, country: r.country, lat: r.lat ? Number(r.lat) : undefined, lng: r.lng ? Number(r.lng) : undefined });
+    for (const r of rows) map.set(r.dn, { city: r.city, region: r.region, country: r.country, lat: r.lat ? Number(r.lat) : undefined, lng: r.lng ? Number(r.lng) : undefined });
   } catch { /* geo optional; degrade to no-distance */ }
   return map;
 }
@@ -120,7 +123,7 @@ export async function nearestExperts(input: { queries: string[]; countryId?: str
 
   // geo-enrich everyone in one small query
   const geo = await geoForOrgs([...globalExperts, ...nationalExperts].map((e) => e.org));
-  const enrich = (e: Expert) => { const g = geo.get(e.org); if (g) { e.city = g.city; e.region = g.region; e.country = g.country; e.lat = g.lat; e.lng = g.lng; } };
+  const enrich = (e: Expert) => { const g = geo.get((e.org || "").toLowerCase()); if (g) { e.city = g.city; e.region = g.region; e.country = g.country; e.lat = g.lat; e.lng = g.lng; } };
   globalExperts.forEach(enrich);
   nationalExperts.forEach(enrich);
 

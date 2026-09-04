@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       narrate = await scienceRadarNarrateAI({
         mode: r.mode,
         subject: company || r.domainQuery,
-        footprint: r.footprint?.found ? `${r.footprint.patentCount} patents; keywords: ${r.footprint.keywords.slice(0, 8).join(", ")}` : `domain: ${r.domainQuery}`,
+        footprint: r.footprint?.found ? `${r.footprint.patentCount} patents in: ${(r.footprint.terms?.length ? r.footprint.terms : r.footprint.keywords).slice(0, 8).join(", ")}${r.footprint.areas?.length ? ` (${r.footprint.areas.join("; ")})` : ""}` : `domain: ${r.domainQuery}`,
         fields: (r.data.subfieldBreakdown || []).slice(0, 6).map((s: any) => s.name).join(", "),
         topExperts: experts,
         firms,

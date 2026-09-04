@@ -12,37 +12,65 @@
 import { searchPatents } from "./scientifiq";
 import { gatherDomainData } from "./domainScan";
 import { firmsBuildingOnScience } from "./citingFirms";
-import { normalizeDoi, citedDoisByPatents, BIGQUERY_ENABLED } from "./bigquery";
+import { companyRadarTermsAI } from "./ai";
+import { normalizeDoi, citedDoisByPatents, bqQuery, BIGQUERY_ENABLED } from "./bigquery";
 
 export type Footprint = {
   found: boolean;
   company: string;
   patentCount: number;
   keywords: string[];
-  subfields: { name: string; count: number }[];
+  areas: string[];
+  terms: string[];
   sampleTitles: string[];
-  patentIds: string[];
+  titles: string[];
+  patentIds: string[]; // RoS form, e.g. US-4985915
 };
 
-export async function companyFootprint(company: string): Promise<Footprint> {
-  const res = await searchPatents({ search: company, limit: 80 } as any).catch(() => ({ total: 0, patents: [] as any[] }));
-  const tok = company.toLowerCase().replace(/\b(inc|ltd|co|corp|llc|gmbh|plc|company|technologies|electronics)\b/g, "").trim().split(/\s+/)[0] || company.toLowerCase();
+const STOP = new Set("a an and the of for to in on with using method system device apparatus process based having between within said same into from by or via at least one more high low new improved".split(" "));
+
+function titleKeywords(titles: string[]): string[] {
+  const c = new Map<string, number>();
+  for (const t of titles) for (const w of (t || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/)) if (w.length > 3 && !STOP.has(w)) c.set(w, (c.get(w) || 0) + 1);
+  return [...c.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([k]) => k);
+}
+
+// The company's REAL patents from PatentsView (by assignee), not a semantic guess.
+async function realPatents(company: string): Promise<{ id: string; title: string }[]> {
+  const like = "%" + company.toLowerCase().replace(/[%_]/g, "") + "%";
+  const rows = await bqQuery(
+    `SELECT p.id AS id, p.title AS title
+     FROM \`com-sci-2.patentsview.patent_assignee\` pa
+     JOIN \`com-sci-2.patentsview.assignee\` a ON a.id = pa.assignee_id
+     JOIN \`com-sci-2.patentsview.patent\` p ON p.id = pa.patent_id
+     WHERE LOWER(a.organization) LIKE @co
+     LIMIT 200`,
+    [{ name: "co", type: "STRING", value: like }], { maxBytesBilled: 3 * 1024 ** 3 }
+  );
+  return rows.map((r) => ({ id: r.id, title: r.title }));
+}
+
+// Fallback footprint from the semantic patent API (used when BigQuery is off or
+// PatentsView has no assignee match). Semantically biased, but better than none.
+async function apiFootprint(company: string): Promise<Footprint> {
+  const res = await searchPatents({ search: company, limit: 60 } as any).catch(() => ({ total: 0, patents: [] as any[] }));
+  const tok = company.toLowerCase().replace(/\b(inc|ltd|co|corp|llc|gmbh|plc|company)\b/g, "").trim().split(/\s+/)[0] || company.toLowerCase();
   const mine = (res.patents as any[]).filter((p) => (p.assigneeNames || []).some((a: string) => a.toLowerCase().includes(tok)));
-  const kw = new Map<string, number>();
-  const sub = new Map<string, number>();
-  for (const p of mine) {
-    (p.keywords || []).forEach((k: any) => { const s = String(k).trim(); if (s) kw.set(s, (kw.get(s) || 0) + 1); });
-    (p.subfields || []).forEach((s: any) => { const v = String(s).trim(); if (v) sub.set(v, (sub.get(v) || 0) + 1); });
+  const titles = mine.map((p) => p.title);
+  return { found: mine.length >= 5, company, patentCount: mine.length, keywords: titleKeywords(titles), areas: [], terms: [], sampleTitles: titles.slice(0, 8), titles, patentIds: mine.map((p) => p.id) };
+}
+
+export async function companyFootprint(company: string): Promise<Footprint> {
+  if (BIGQUERY_ENABLED) {
+    try {
+      const pats = await realPatents(company);
+      if (pats.length >= 10) {
+        const titles = pats.map((p) => p.title).filter(Boolean);
+        return { found: true, company, patentCount: pats.length, keywords: titleKeywords(titles), areas: [], terms: [], sampleTitles: titles.slice(0, 8), titles, patentIds: pats.map((p) => "US-" + p.id) };
+      }
+    } catch { /* fall through to API */ }
   }
-  return {
-    found: mine.length >= 5,
-    company,
-    patentCount: mine.length,
-    keywords: [...kw.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([k]) => k),
-    subfields: [...sub.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([name, count]) => ({ name, count })),
-    sampleTitles: mine.slice(0, 5).map((p) => p.title),
-    patentIds: mine.map((p) => p.id),
-  };
+  return apiFootprint(company);
 }
 
 export type RadarResult = {
@@ -63,8 +91,15 @@ export async function radarReport(input: { company?: string; domain?: string }):
 
   if (company) {
     footprint = await companyFootprint(company);
-    if (footprint.found) domainQuery = footprint.keywords.slice(0, 6).join(", ") || footprint.subfields[0]?.name || company;
-    else { mode = "domain"; domainQuery = domainQuery || company; }
+    if (footprint.found) {
+      // Derive the domain from the REAL patent titles (short topical terms match
+      // the frontier search far better than a keyword bag).
+      try {
+        const t = await companyRadarTermsAI(company, footprint.titles);
+        if (Array.isArray(t?.terms) && t.terms.length) { footprint.terms = t.terms.map((x: any) => String(x)).slice(0, 5); footprint.areas = (t.areas || []).map((x: any) => String(x)); }
+      } catch { /* keyword fallback below */ }
+      domainQuery = (footprint.terms.length ? footprint.terms : footprint.keywords).slice(0, 5).join(", ") || company;
+    } else { mode = "domain"; domainQuery = domainQuery || company; }
   }
   if (!domainQuery) return { error: "Enter a company name or a technology domain.", status: 400 };
 
