@@ -36,7 +36,7 @@ export default function ScienceRadarResult({ report, narrate }: { report: any; n
             <div key={e.id} className="flex flex-wrap items-baseline justify-between gap-x-3 border-b border-line/60 pb-2">
               <div><span className="font-semibold text-ink">{e.name}</span> <span className="text-sm text-slate2">· {e.org}</span></div>
               <div className="text-[11px] tabular-nums text-slate-400">commercial potential <span className="font-semibold text-sage">{Math.round(e.compot)}</span></div>
-              {e.subfields && <div className="w-full text-xs text-slate-400">{e.subfields}</div>}
+              {e.subfields && <div className="w-full text-xs text-slate-400">{String(e.subfields).split(",").map((s: string) => s.trim()).filter(Boolean).slice(0, 6).join(", ")}</div>}
             </div>
           ))}
         </div>
