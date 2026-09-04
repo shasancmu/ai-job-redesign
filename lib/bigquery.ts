@@ -62,30 +62,72 @@ async function getAccessToken(): Promise<string> {
 
 type Param = { name: string; type: "STRING"; array?: boolean; values?: string[]; value?: string };
 
-// Run a parameterized standard-SQL query and return rows as objects.
-export async function bqQuery(sql: string, params: Param[] = [], timeoutMs = 30000): Promise<Record<string, string>[]> {
-  const accessToken = await getAccessToken();
-  const queryParameters = params.map((p) =>
+// Hard cap on bytes a single query may BILL. A query that would scan more than
+// this simply fails ("exceeded limit for bytes billed") instead of running up a
+// surprise bill, so cost is bounded by construction. Override per-query (tighter
+// on hot paths) or globally via BQ_MAX_BYTES_BILLED. Default ~10 GiB — generous
+// for the slim clustered tables, but a wall against an accidental full scan of a
+// 250M-row table like openalex.works.
+const MAX_BYTES_BILLED = process.env.BQ_MAX_BYTES_BILLED || String(10 * 1024 ** 3);
+
+function toQueryParameters(params: Param[]) {
+  return params.map((p) =>
     p.array
       ? { name: p.name, parameterType: { type: "ARRAY", arrayType: { type: p.type } }, parameterValue: { arrayValues: (p.values || []).map((v) => ({ value: v })) } }
       : { name: p.name, parameterType: { type: p.type }, parameterValue: { value: p.value } }
   );
+}
 
+async function bqPost(body: Record<string, unknown>) {
+  const accessToken = await getAccessToken();
   const res = await fetch(`https://bigquery.googleapis.com/bigquery/v2/projects/${BQ_PROJECT}/queries`, {
     method: "POST",
     headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ query: sql, useLegacySql: false, parameterMode: "NAMED", queryParameters, timeoutMs, maxResults: 5000 }),
+    body: JSON.stringify(body),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(`BigQuery query failed: ${data?.error?.message || res.status}`);
+  if (!res.ok) throw new Error(`BigQuery ${data?.error?.message || res.status}`);
+  return data;
+}
 
+// Run a parameterized standard-SQL query and return rows as objects. Every query
+// is capped by maximumBytesBilled; pass a tighter `maxBytesBilled` on hot paths
+// (e.g. a few hundred MB) so a slim-table lookup can never silently become a full
+// scan.
+export async function bqQuery(
+  sql: string,
+  params: Param[] = [],
+  opts: { timeoutMs?: number; maxBytesBilled?: string | number } = {}
+): Promise<Record<string, string>[]> {
+  const data = await bqPost({
+    query: sql,
+    useLegacySql: false,
+    parameterMode: "NAMED",
+    queryParameters: toQueryParameters(params),
+    timeoutMs: opts.timeoutMs ?? 30000,
+    maxResults: 5000,
+    maximumBytesBilled: String(opts.maxBytesBilled ?? MAX_BYTES_BILLED),
+  });
   const fields: string[] = (data.schema?.fields || []).map((f: any) => f.name);
-  const rows: Record<string, string>[] = (data.rows || []).map((r: any) => {
+  return (data.rows || []).map((r: any) => {
     const o: Record<string, string> = {};
     (r.f || []).forEach((cell: any, i: number) => { o[fields[i]] = cell.v; });
     return o;
   });
-  return rows;
+}
+
+// Estimate the bytes a query WOULD scan, for free (a dry run bills nothing). Use
+// it to vet any new query shape before shipping, or to refuse a query whose
+// estimate exceeds a budget. Returns bytes.
+export async function bqDryRunBytes(sql: string, params: Param[] = []): Promise<number> {
+  const data = await bqPost({
+    query: sql,
+    useLegacySql: false,
+    parameterMode: "NAMED",
+    queryParameters: toQueryParameters(params),
+    dryRun: true,
+  });
+  return Number(data.totalBytesProcessed || 0);
 }
 
 // ---- Reliance on Science: patents citing a set of papers (by DOI) -----------
@@ -113,6 +155,21 @@ export async function citingRowsByDoi(dois: string[]): Promise<{ doi: string; pa
       AND wherefound IN ('frontonly', 'both')
       AND patent IS NOT NULL
     GROUP BY doi, patent`;
-  const rows = await bqQuery(sql, [{ name: "dois", type: "STRING", array: true, values: clean }]);
+  const rows = await bqQuery(sql, [{ name: "dois", type: "STRING", array: true, values: clean }], { maxBytesBilled: 3 * 1024 ** 3 });
   return rows.map((r) => ({ doi: r.doi, patent: r.patent, filingYear: r.filing_year ? Number(r.filing_year) : undefined }));
+}
+
+// Reverse: the scientific papers a set of patents CITE (patent -> DOI). Normalize
+// patent ids to the RoS form (strip kind code): 'US-10507916-B2' -> 'US-10507916'.
+export async function citedDoisByPatents(patents: string[]): Promise<{ patent: string; doi: string }[]> {
+  const clean = [...new Set(patents.map((p) => (p || "").trim().replace(/-[A-Z]\d?$/, "")).filter(Boolean))].slice(0, 400);
+  if (clean.length === 0) return [];
+  const sql = `
+    SELECT patent, LOWER(doi) AS doi
+    FROM \`${ROS_TABLE}\`
+    WHERE patent IN UNNEST(@patents)
+      AND doi IS NOT NULL AND wherefound IN ('frontonly', 'both')
+    GROUP BY patent, doi`;
+  const rows = await bqQuery(sql, [{ name: "patents", type: "STRING", array: true, values: clean }], { maxBytesBilled: 3 * 1024 ** 3 });
+  return rows.map((r) => ({ patent: r.patent, doi: r.doi }));
 }
