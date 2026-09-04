@@ -98,7 +98,9 @@ export async function radarReport(input: { company?: string; domain?: string }):
         const t = await companyRadarTermsAI(company, footprint.titles);
         if (Array.isArray(t?.terms) && t.terms.length) { footprint.terms = t.terms.map((x: any) => String(x)).slice(0, 5); footprint.areas = (t.areas || []).map((x: any) => String(x)); }
       } catch { /* keyword fallback below */ }
-      domainQuery = (footprint.terms.length ? footprint.terms : footprint.keywords).slice(0, 5).join(", ") || company;
+      // A single focused topical phrase (the dominant area) scans fast; a long
+      // multi-term query makes the semantic search time out.
+      domainQuery = (footprint.terms[0] || footprint.keywords[0] || company);
     } else { mode = "domain"; domainQuery = domainQuery || company; }
   }
   if (!domainQuery) return { error: "Enter a company name or a technology domain.", status: 400 };
