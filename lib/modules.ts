@@ -51,6 +51,7 @@ export type ModuleDef = {
     | "disclosure-haip"
     | "consult"
     | "earnings-call"
+    | "star-hire"
     | "hot-seat"
     | "capstone"
     | "superpower"
@@ -842,6 +843,22 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_EARNINGS",
   },
   {
+    slug: "star-hire",
+    exercise: "star-hire",
+    name: "Star Hire",
+    tagline: "Four candidates, all impressive on paper. Interview them, hire one, and find out how much of each one's success was really theirs, not their old firm's platform.",
+    description:
+      "A hiring simulation built on human capital theory. Pick a context and difficulty, and the app invents a firm, an open role, and four candidates, each with a strong but ambiguous track record. You interrogate the candidates one by one, an AI plays each as a polished, self-promoting interviewee who concedes ground only to a sharp, well-aimed question and spins a vague one, and you work against a shared question budget because evaluation, not search, is the real bottleneck. The hidden truth is how much of each candidate's success is portable human capital (general, strategic, industry, and relationship capital that travels with them) versus stuck to their old context (company-specific knowledge and the firm effect, the platform, brand, and team that inflated their results). Exactly one candidate is a dazzling star whose record will not travel; another is the quieter best fit for what this role actually needs. You commit a hire, a confidence, and the one fact that would change your mind, and the report grades your decision against the true value to the role, the diagnostic quality of your questions, and the calibration of your confidence, then reveals what was really portable and why the star was a trap. Every run is a fresh slate.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 25,
+    ai: true,
+    emoji: "🎯",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_STARHIRE",
+    forSale: false,
+  },
+  {
     slug: "regression-detective",
     exercise: "regression-detective",
     name: "Regression Detective",
@@ -1619,7 +1636,7 @@ const CATALOG_ORDER: string[] = [
   "good-business", "customer-empathy", "opportunity-capability", "test-the-bet",
   "ai-canvas", "balanced-scorecard", "execution-4a", "business-consult", "voice-consult",
   "ai-board", "business-myopia", "define-vision", "define-vision-voice", "deeptech-canvas",
-  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "earnings-call", "hot-seat", "the-number", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
+  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "earnings-call", "star-hire", "hot-seat", "the-number", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
   // Negotiate
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
   "lease-the-space", "rehearse-hard-conversation",
