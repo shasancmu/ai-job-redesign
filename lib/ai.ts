@@ -4201,3 +4201,54 @@ The underlying principle: ${input.principle}`;
   ], { json: true, temperature: 0.5, maxTokens: 700, low: true });
   return extractJson(raw);
 }
+
+// Nearest Expert — turn a plain-language problem into 2-3 SHORT topical search
+// terms (short terms match the researcher index far better than a long sentence)
+// plus a brief framing. Fast/low model.
+export async function nearestExpertPlanAI(problem: string): Promise<any> {
+  const system = `You help a company or founder find academic experts for a concrete technical problem. Turn their problem into search terms for a researcher database. The database matches SHORT topical phrases (2-4 words, the scientific concept), NOT long sentences or product names. Strip brand/product words; name the underlying science. Do not use em dashes.
+
+Return STRICT JSON only:
+{
+  "terms": ["2 to 3 short topical search phrases, each 2-4 words, naming the science, not the product"],
+  "areas": ["the scientific fields/disciplines this problem lives in, plain English"],
+  "framing": "1-2 sentences restating their problem as the scientific areas an expert would recognize"
+}
+Example: problem "our ice cream machine makes grainy ice cream and wastes energy" -> terms ["ice crystallization", "scraped surface heat exchanger", "refrigeration cycle efficiency"].`;
+  const raw = await complete([
+    { role: "system", content: system },
+    { role: "user", content: `PROBLEM: ${problem.slice(0, 1200)}` },
+  ], { json: true, temperature: 0.4, maxTokens: 400, low: true });
+  return extractJson(raw);
+}
+
+// Science Radar — a short read over the assembled data (footprint, frontier,
+// competitors, whitespace). Fast/low model; fed compact aggregates only.
+export async function scienceRadarNarrateAI(input: {
+  mode: string; subject: string; footprint: string; fields: string;
+  topExperts: string; firms: string; whitespaceCount: number; avgCommPot: number;
+}): Promise<any> {
+  const system = `You are a technology-scouting analyst briefing a company on where the relevant science lives. Be concrete and specific; name fields, people, and firms from the data. Do not use em dashes.
+
+Return STRICT JSON only:
+{
+  "headline": "one sentence on the state of this company's science frontier",
+  "footprint_read": "1-2 sentences on what the company works on and the science under it",
+  "frontier_read": "1-2 sentences on the highest-potential researchers/labs to know",
+  "competitor_read": "1-2 sentences on who else is building on this science (name firms if given)",
+  "action": "1-2 sentences: the single most valuable move (a lab to engage, a whitespace to enter)"
+}`;
+  const user = `MODE: ${input.mode}
+SUBJECT: ${input.subject}
+FOOTPRINT: ${input.footprint}
+FIELDS: ${input.fields}
+AVERAGE COMMERCIAL POTENTIAL of this science: ${input.avgCommPot}/100
+TOP RESEARCHERS: ${input.topExperts}
+FIRMS ALREADY BUILDING ON THIS SCIENCE: ${input.firms || "(none resolved)"}
+FRONTIER PAPERS THE COMPANY DOES NOT ALREADY CITE: ${input.whitespaceCount}`;
+  const raw = await complete([
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ], { json: true, temperature: 0.5, maxTokens: 700, low: true });
+  return extractJson(raw);
+}

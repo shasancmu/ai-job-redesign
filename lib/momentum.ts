@@ -68,6 +68,8 @@ export function artifactHref(exercise: string, code: string): string {
   if (exercise === "regression-detective") return `/regression/${code}`;
   if (exercise === "star-hire") return `/starhire/${code}`;
   if (exercise === "incentive-lab") return `/incentive/${code}`;
+  if (exercise === "nearest-expert") return `/nearest/${code}`;
+  if (exercise === "science-radar") return `/radar/${code}`;
   if (exercise === "disclosure" || exercise === "disclosure-haip") return `/disclosure/${code}`;
   return `/room/${code}`;
 }

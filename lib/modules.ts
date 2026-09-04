@@ -78,6 +78,8 @@ export type ModuleDef = {
     | "deal-sourcing"
     | "commercialization-scorecard"
     | "field-trajectory"
+    | "nearest-expert"
+    | "science-radar"
     | "voice-consult"
     | "paper-idea"
     | "paper-structure"
@@ -829,6 +831,38 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_LICENSING",
   },
   {
+    slug: "nearest-expert",
+    exercise: "nearest-expert",
+    name: "Nearest Expert",
+    tagline: "Describe your technical problem and where you are, and get the researchers who can help, nearest first: someone you could visit, then the best in your country, then the world leaders.",
+    description:
+      "A science-scouting tool for any company or founder with a hard technical problem, built on Scientifiq.AI plus a global map of research institutions. Describe your problem in plain language and your location; an AI reads it, names the underlying scientific areas, and turns it into the right search terms. It then finds the researchers who actually work on it, scored for commercial potential, and arranges them as a ladder by distance: a local expert you could realistically drive to and partner with, the strongest people in your own country, and the global frontier for licensing or benchmarking. Especially built for small and mid-size manufacturers who have no R&D department: it becomes the science-scouting function they never had, and it puts the nearest useful expert, not just the most famous one, first.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 5,
+    ai: true,
+    emoji: "🧭",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_NEAREST",
+    forSale: false,
+  },
+  {
+    slug: "science-radar",
+    exercise: "science-radar",
+    name: "Science Radar",
+    tagline: "Name a company and see the science its patents build on, the highest-potential researchers at the frontier of its fields, who else is building on the same science, and the work it isn't using yet.",
+    description:
+      "A science-scouting report for a company, built on Scientifiq.AI and the Reliance-on-Science patent-citation data. Enter a company and it looks up the company's patents, derives its technology footprint automatically, and maps the scientific frontier of those fields: the highest commercial-potential researchers and labs, the standout papers, and, from the citation graph, who else is building on the same science (your hidden collaborators and rivals) and the high-potential work your patents do not already cite. For a company without patents, describe the technology instead and get the same scored frontier. The engine is cost-engineered: the footprint and frontier come from the API and the citation edges from a slim, capped BigQuery join, so a full report scans only a few megabytes.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 5,
+    ai: true,
+    emoji: "📡",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RADAR",
+    forSale: false,
+  },
+  {
     slug: "earnings-call",
     exercise: "earnings-call",
     name: "The Earnings Call",
@@ -1558,6 +1592,8 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "explain-ai": "commercialize",
   "position-my-research": "research",
   "regression-detective": "research",
+  "nearest-expert": "research",
+  "science-radar": "research",
   "rank-disclosures": "commercialize",
   "find-a-cofounder": "commercialize",
   "diligence-the-science": "commercialize",
@@ -1653,7 +1689,7 @@ const CATALOG_ORDER: string[] = [
   "good-business", "customer-empathy", "opportunity-capability", "test-the-bet",
   "ai-canvas", "balanced-scorecard", "execution-4a", "business-consult", "voice-consult",
   "ai-board", "business-myopia", "define-vision", "define-vision-voice", "deeptech-canvas",
-  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "earnings-call", "star-hire", "incentive-lab", "hot-seat", "the-number", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
+  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "nearest-expert", "science-radar", "earnings-call", "star-hire", "incentive-lab", "hot-seat", "the-number", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
   // Negotiate
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
   "lease-the-space", "rehearse-hard-conversation",

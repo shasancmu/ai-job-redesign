@@ -45,6 +45,8 @@ import { SCAN_VARIANTS } from "@/lib/scanVariants";
 import RegressionRoom from "@/components/RegressionRoom";
 import StarHireRoom from "@/components/StarHireRoom";
 import IncentiveRoom from "@/components/IncentiveRoom";
+import NearestExpertRoom from "@/components/NearestExpertRoom";
+import ScienceRadarRoom from "@/components/ScienceRadarRoom";
 import PipelineRoom from "@/components/PipelineRoom";
 import PaperStudyRoom from "@/components/PaperStudyRoom";
 import InteractionRoom from "@/components/InteractionRoom";
@@ -312,6 +314,22 @@ export default async function RoomPage({
     return session.exercise === "diligence-science"
       ? <DiligenceScienceRoom session={session} initialWorkspace={iw} />
       : <FindCofounderRoom session={session} initialWorkspace={iw} />;
+  }
+
+  // Science Radar: single-user, host only. Company/domain -> science frontier.
+  if (session.exercise === "science-radar") {
+    if (!amHost) redirect("/dashboard");
+    await supabase.from("workspaces").upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase.from("workspaces").select("*").eq("session_id", session.id).eq("author_id", user.id).maybeSingle();
+    return <ScienceRadarRoom me={user.id} session={session} initialWorkspace={workspace || { session_id: session.id, author_id: user.id }} />;
+  }
+
+  // Nearest Expert: single-user, host only. Problem + location -> expert ladder.
+  if (session.exercise === "nearest-expert") {
+    if (!amHost) redirect("/dashboard");
+    await supabase.from("workspaces").upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase.from("workspaces").select("*").eq("session_id", session.id).eq("author_id", user.id).maybeSingle();
+    return <NearestExpertRoom me={user.id} session={session} initialWorkspace={workspace || { session_id: session.id, author_id: user.id }} />;
   }
 
   // The Incentive Lab: single-user, host only. Design a reward system; AI
