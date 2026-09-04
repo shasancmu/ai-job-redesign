@@ -80,6 +80,7 @@ export type ModuleDef = {
     | "field-trajectory"
     | "nearest-expert"
     | "science-radar"
+    | "science-intel"
     | "voice-consult"
     | "paper-idea"
     | "paper-structure"
@@ -863,6 +864,22 @@ export const MODULES: ModuleDef[] = [
     forSale: false,
   },
   {
+    slug: "science-intel",
+    exercise: "science-intel",
+    name: "Science Intelligence",
+    tagline: "Three warehouse-powered reads on the science frontier: a talent map of a field (who's the best, and who they patent for), a country's research strengths, and the firms quietly building on your company's science.",
+    description:
+      "A science-intelligence console built on Scientifiq.AI plus a global research warehouse. Three reports in one. TALENT MAP: name a technology and see the top researchers scored for commercial potential, where they are, and crucially who they already patent for, so the ones inside competitors are flagged and the strong unaffiliated academics are marked hireable. NATIONAL CAPABILITY: pick a country and see its research strengths ranked by commercial potential and the people who drive them, the kind of read an economic-development body pays for. EMERGING COMPETITORS: name a company and, via the patent-to-science citation graph, see the other firms building on the exact science it cites, with the recent entrants flagged. Cost-engineered with capped warehouse queries; heavier reports are cached and get near-free once the slim scored tables are materialized.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 5,
+    ai: true,
+    emoji: "🛰️",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_INTEL",
+    forSale: false,
+  },
+  {
     slug: "earnings-call",
     exercise: "earnings-call",
     name: "The Earnings Call",
@@ -1594,6 +1611,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "regression-detective": "research",
   "nearest-expert": "research",
   "science-radar": "research",
+  "science-intel": "research",
   "rank-disclosures": "commercialize",
   "find-a-cofounder": "commercialize",
   "diligence-the-science": "commercialize",
@@ -1689,7 +1707,7 @@ const CATALOG_ORDER: string[] = [
   "good-business", "customer-empathy", "opportunity-capability", "test-the-bet",
   "ai-canvas", "balanced-scorecard", "execution-4a", "business-consult", "voice-consult",
   "ai-board", "business-myopia", "define-vision", "define-vision-voice", "deeptech-canvas",
-  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "nearest-expert", "science-radar", "earnings-call", "star-hire", "incentive-lab", "hot-seat", "the-number", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
+  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "nearest-expert", "science-radar", "science-intel", "earnings-call", "star-hire", "incentive-lab", "hot-seat", "the-number", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
   // Negotiate
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
   "lease-the-space", "rehearse-hard-conversation",
