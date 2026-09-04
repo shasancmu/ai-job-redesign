@@ -112,9 +112,11 @@ export async function nearestExperts(input: { queries: string[]; countryId?: str
   const queries = [...new Set(input.queries.map((q) => q.trim()).filter((q) => q.length >= 2))].slice(0, 3);
   if (!queries.length) queries.push("");
 
-  const globalCalls = queries.map((q) => searchResearchers({ search: q, limit: 20 }).then((r) => r.researchers).catch(() => []));
+  // Wide national pool so genuinely-nearby experts (not just the top-N elite
+  // labs) can surface for the local ranking; a tighter global pool for the frontier.
+  const globalCalls = queries.map((q) => searchResearchers({ search: q, limit: 25 }).then((r) => r.researchers).catch(() => []));
   const nationalCalls = input.countryId
-    ? queries.map((q) => searchResearchers({ search: q, countries: [input.countryId!], limit: 20 }).then((r) => r.researchers).catch(() => []))
+    ? queries.map((q) => searchResearchers({ search: q, countries: [input.countryId!], limit: 60 }).then((r) => r.researchers).catch(() => []))
     : [];
   const [globalLists, nationalLists] = await Promise.all([Promise.all(globalCalls), Promise.all(nationalCalls)]);
 
@@ -132,21 +134,29 @@ export async function nearestExperts(input: { queries: string[]; countryId?: str
   if (input.city) { const a = await anchorForCity(input.city, input.countryId); if (a) anchor = { ...a, label: input.city }; }
 
   const byCompot = (a: Expert, b: Expert) => b.compot - a.compot;
+  // Keep the strongest person per institution, so a tier shows distinct PLACES
+  // (not six people from one lab).
+  const dedupeByOrg = (list: Expert[]) => {
+    const seen = new Set<string>();
+    const out: Expert[] = [];
+    for (const e of list) { const k = (e.org || e.id).toLowerCase(); if (!seen.has(k)) { seen.add(k); out.push(e); } }
+    return out;
+  };
 
-  // local: national experts with geo, nearest first (only if we have an anchor)
+  // local: the nearest DISTINCT institutions to the anchor (only if we resolved one)
   let local: Expert[] = [];
   if (anchor) {
-    local = nationalExperts
+    const withKm = nationalExperts
       .filter((e) => e.lat != null && e.lng != null)
       .map((e) => ({ ...e, km: haversineKm(anchor!, { lat: e.lat!, lng: e.lng! }) }))
-      .sort((a, b) => (a.km! - b.km!))
-      .slice(0, 6);
+      .sort((a, b) => a.km! - b.km! || b.compot - a.compot);
+    local = dedupeByOrg(withKm).slice(0, 6);
   }
   const localIds = new Set(local.map((e) => e.id));
 
-  const national = nationalExperts.filter((e) => !localIds.has(e.id)).sort(byCompot).slice(0, 8);
+  const national = dedupeByOrg(nationalExperts.filter((e) => !localIds.has(e.id)).sort(byCompot)).slice(0, 8);
   const usedIds = new Set([...localIds, ...national.map((e) => e.id)]);
-  const global = globalExperts.filter((e) => !usedIds.has(e.id)).sort(byCompot).slice(0, 8);
+  const global = dedupeByOrg(globalExperts.filter((e) => !usedIds.has(e.id)).sort(byCompot)).slice(0, 8);
 
   return { local, national, global, anchor, countryName: input.countryName };
 }
