@@ -46,6 +46,7 @@ function resultHref(exercise: string, code: string) {
   if (exercise === "board") return `/board/${code}`;
   if (exercise === "regression-detective") return `/regression/${code}`;
   if (exercise === "star-hire") return `/starhire/${code}`;
+  if (exercise === "incentive-lab") return `/incentive/${code}`;
   return `/room/${code}`;
 }
 

@@ -4090,3 +4090,114 @@ Rules: at most 4 positions and 3 tensions, the most represented. Ground everythi
     Array.isArray(v) ? v.slice(0, n).map((x: any) => ({ title: String(x?.title || ""), detail: String(x?.detail || "") })).filter((x: any) => x.title || x.detail) : [];
   return { headline: String(raw?.headline || ""), positions: arr(raw?.positions, 4), tensions: arr(raw?.tensions, 3), verdict: String(raw?.verdict || "") };
 }
+
+// ============================================================================
+// The Incentive Lab — design a reward system, then watch AI worker-agents game
+// it. The main model invents the world; the FAST/low model runs the tournament
+// (cheap, many small calls). Code owns the true-value scoring.
+// ============================================================================
+
+// Invent the scenario: a firm's true objective, the measurable metrics (one of
+// which is deliberately hard to game), and a menu of worker actions with hidden
+// true-value effects. There must EXIST a good incentive design to discover.
+export async function incentiveScenarioAI(input: { context: string; difficulty: "easy" | "hard" }): Promise<any> {
+  const easy = input.difficulty === "easy";
+  const system = `You design incentive-gaming puzzles for a strategy course (Goodhart's law, the multitasking principal-agent problem, Wells Fargo). Invent a firm, a frontline role, the firm's TRUE objective, a set of measurable METRICS a manager could reward, and a menu of concrete worker ACTIONS. Some actions create real value, some only inflate metrics (gaming), some inflate a metric while destroying real value (harmful), and some create real value that no metric captures (neglected work). The point: a student will design an incentive, and AI workers will game it. Do not use em dashes.
+
+Return STRICT JSON only:
+{
+  "firm": { "name": "...", "oneLiner": "..." },
+  "role": { "title": "...", "brief": "2-3 sentences: the honest purpose of this job" },
+  "trueObjective": "1-2 sentences: what the firm actually wants, in plain terms",
+  "metrics": [ { "key": "snake", "label": "...", "unit": "optional" } ],
+  "trueDims": [ { "key": "snake", "label": "a dimension of real value", "weight": 0-1 } ],
+  "leisure": 15-25,
+  "principle": "the lesson this scenario teaches, 1-2 sentences",
+  "actions": [
+    { "key": "snake", "label": "...", "description": "one line",
+      "effort": 0.2-1.0,
+      "kind": "productive" | "gaming" | "harmful" | "unmeasured_good",
+      "metricEffect": { "<metricKey>": 0-100 },   // per full unit of effort; how the DASHBOARD moves. Workers can see this.
+      "valueEffect": { "<trueDimKey>": -100..100 } // per full unit; the HIDDEN true value. gaming ~ 0, harmful negative, productive high.
+    }
+  ]
+}
+
+HARD RULES (a violation makes the puzzle unteachable):
+- 3 to 5 metrics. Include AT LEAST ONE "obvious volume metric" (throughput, sales count, tickets closed) that gaming actions inflate cheaply, AND AT LEAST ONE "gaming-resistant quality metric" (an audit score, a verified-outcome rate, a mystery-shopper score) that the PRODUCTIVE actions dominate and gaming actions barely move. The quality metric is the lever a smart designer will find.
+- 3 true-value dimensions, weights sum ~1. At least one dimension must be barely captured by any metric (the neglected value).
+- 5 to 7 actions: at least 2 productive (real value AND they move the quality metric best), at least 2 gaming (inflate the obvious metrics, near-zero true value), at least 1 harmful (inflates a metric but NEGATIVE on a true dimension), at least 1 unmeasured_good (high true value, almost no metric effect).
+- CALIBRATE so both are true: (a) rewarding the obvious metric alone gets gamed to near-zero true value; (b) there EXISTS a design (rewarding the quality metric, possibly with floors) under which the worker's best play yields high true value. The productive action should be the best way to move the quality metric.
+- effort: gaming/harmful actions are usually CHEAP (0.2-0.5); productive actions cost more (0.6-1.0). Leisure is the worker's outside option, so cheap gaming that pays well is tempting.
+
+DIFFICULTY = ${input.difficulty}:
+${easy
+  ? "- One clear gaming-resistant quality metric, 5 actions, gaming is obvious once revealed. The good design is discoverable in a round or two."
+  : "- Multiple tempting gaming actions, a quality metric that is only PARTLY gaming-resistant, and a heavily-weighted true dimension that no single metric captures well (so the designer must combine metrics and floors). Subtle."}`;
+  const user = `CONTEXT (industry / kind of frontline role): ${input.context}\nDIFFICULTY: ${input.difficulty}\nInvent a fresh, specific scenario. Vary the firm, role, metrics, and actions.`;
+  const raw = await complete([
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ], { json: true, temperature: easy ? 0.85 : 0.95, maxTokens: 3000 });
+  return extractJson(raw);
+}
+
+// One worker-agent's move in the tournament. Runs on the FAST/low model. The
+// agent sees the incentive rules and each action's effect on the DASHBOARD (not
+// the true value), and returns an effort allocation to maximize its own payoff.
+export async function incentiveAgentTurn(input: {
+  firm: string; role: string; disposition: string; dispositionNote: string; leisure: number;
+  rewardRules: string; actionsText: string; currentBest?: string;
+}): Promise<any> {
+  const system = `You are a frontline worker deciding how to spend your effort to MAXIMIZE YOUR OWN PAY under the incentive plan your manager set. You care about your bonus and your free time, not the company's unstated goals. ${input.dispositionNote} You can see exactly how each action moves the metrics you're paid on. Split one unit of effort across the actions to maximize your reward (plus the value of any effort you don't spend, since your time is worth ${input.leisure} to you). Be cunning: if a cheap action spikes a rewarded metric, exploit it.
+
+Return STRICT JSON only: { "alloc": { "<actionKey>": 0.0-1.0, ... }, "tactic": "one sentence naming your angle in plain, human terms" }
+The allocations are the SHARE of your effort on each action; they should not require more effort than you have.`;
+  const user = `FIRM: ${input.firm}
+ROLE: ${input.role}
+YOUR PAY IS DETERMINED BY (the incentive plan): ${input.rewardRules}
+YOUR TIME (unspent effort) is worth: ${input.leisure} out of 100.
+ACTIONS YOU CAN TAKE (effort cost, and how each moves the metrics you're paid on):
+${input.actionsText}
+${input.currentBest ? `\nA coworker is currently winning the most pay with this play: ${input.currentBest}\nBeat it if you can.` : ""}`;
+  const raw = await complete([
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ], { json: true, temperature: 0.7, maxTokens: 500, low: true });
+  return extractJson(raw);
+}
+
+// Narrate the result: the winning exploit in-character, what real value broke,
+// and a nudge toward a better design. Fast model.
+export async function incentiveNarrateAI(input: {
+  firm: string; role: string; trueObjective: string; designText: string;
+  winnerTactic: string; winnerActions: string; reward: number; trueValue: number; pctOfOptimum: number;
+  dashboard: string; brokenDims: string; neglected: string; principle: string; firstRun: boolean;
+}): Promise<any> {
+  const system = `You are a sharp operations professor debriefing a student who just designed an incentive system and watched AI workers game it. Be vivid and specific but concise. Explain, in human terms, how the workers exploited the plan, what real value quietly broke, and nudge the student toward a better design WITHOUT handing them the full answer. Do not use em dashes.
+
+Return STRICT JSON only:
+{
+  "headline": "one punchy sentence on what happened",
+  "exploit_story": "2-3 sentences: how a rational worker gamed this plan, in plain language, naming the moves",
+  "what_broke": "1-2 sentences: which parts of the true objective collapsed while the dashboard looked fine",
+  "missing_lever": "1-2 sentences nudging toward what a better design would reward or cap, without spelling out the exact weights",
+  "coach": "1-2 sentences of direct advice for the redesign",
+  "principle": "one sentence lifting the general lesson"
+}`;
+  const user = `FIRM: ${input.firm}
+ROLE: ${input.role}
+WHAT THE FIRM ACTUALLY WANTS: ${input.trueObjective}
+THE STUDENT'S INCENTIVE DESIGN: ${input.designText}
+THE WORKERS' WINNING PLAY: ${input.winnerActions} (their words: "${input.winnerTactic}")
+RESULT: the dashboard the manager sees = ${input.dashboard}. But true value delivered = ${input.trueValue}/100 (that is ${input.pctOfOptimum}% of what a good design could get). The worker earned ${input.reward}/100 in pay.
+WHAT BROKE (true dimensions that scored low): ${input.brokenDims}
+NEGLECTED VALUABLE WORK (no one bothered): ${input.neglected}
+${input.firstRun ? "This is their first attempt." : "They are iterating on an earlier design."}
+The underlying principle: ${input.principle}`;
+  const raw = await complete([
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ], { json: true, temperature: 0.5, maxTokens: 700, low: true });
+  return extractJson(raw);
+}
