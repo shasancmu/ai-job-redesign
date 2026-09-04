@@ -4262,3 +4262,19 @@ Return STRICT JSON only: { "terms": ["3 to 5 short topical technology areas"], "
   const raw = await complete([{ role: "system", content: system }, { role: "user", content: user }], { json: true, temperature: 0.4, maxTokens: 400, low: true });
   return extractJson(raw);
 }
+
+// Science Intelligence — a short read over one of the three reports. Fast model.
+export async function scienceIntelNarrateAI(input: { mode: string; subject: string; summary: string }): Promise<any> {
+  const framing: Record<string, string> = {
+    talent: "You are a talent-intelligence analyst. Read the map of experts in a field: where they are and who they already patent for. Point out where the talent concentrates, who employs the best, and which strong people are unaffiliated (hireable).",
+    national: "You are a science-policy analyst briefing an economic-development body on a country's research strengths: which fields it leads on commercial potential and who drives them.",
+    competitors: "You are a competitive-intelligence analyst. Read the firms building on the same science a company cites: name the rivals, flag the recent/emerging entrants.",
+  };
+  const system = `${framing[input.mode] || framing.talent} Be concrete; name people, places, and firms from the data. Do not use em dashes.
+Return STRICT JSON only: { "headline": "one punchy sentence", "read": "2-3 sentences of the key insight", "action": "1-2 sentences: the single most valuable move" }`;
+  const raw = await complete([
+    { role: "system", content: system },
+    { role: "user", content: `SUBJECT: ${input.subject}\nDATA:\n${input.summary.slice(0, 4000)}` },
+  ], { json: true, temperature: 0.5, maxTokens: 600, low: true });
+  return extractJson(raw);
+}

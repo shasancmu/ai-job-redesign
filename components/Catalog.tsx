@@ -49,6 +49,7 @@ function resultHref(exercise: string, code: string) {
   if (exercise === "incentive-lab") return `/incentive/${code}`;
   if (exercise === "nearest-expert") return `/nearest/${code}`;
   if (exercise === "science-radar") return `/radar/${code}`;
+  if (exercise === "science-intel") return `/intel/${code}`;
   return `/room/${code}`;
 }
 
