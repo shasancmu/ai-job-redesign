@@ -229,7 +229,7 @@ export default function RegressionRoom({ session, initialWorkspace }: { me?: str
                 value={cmd}
                 onChange={(e) => setCmd(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") run(cmd); }}
-                placeholder={`e.g. reg(${outcomeName} ~ ${challenge.variables[0]?.name} + ${challenge.variables[1]?.name})`}
+                placeholder={`e.g. reg(${outcomeName} ~ x1 + log(x2))  ·  cor(x1, x2)  ·  binscatter(x1, ${outcomeName})`}
                 spellCheck={false}
               />
               <button onClick={() => run(cmd)} className="btn-ghost">Run</button>
