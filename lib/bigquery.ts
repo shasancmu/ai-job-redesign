@@ -89,7 +89,15 @@ async function bqPost(body: Record<string, unknown>) {
   });
   const text = await res.text();
   let data: any;
-  try { data = JSON.parse(text); } catch { throw new Error(`BigQuery returned a non-JSON response (${res.status}): ${text.slice(0, 160)}`); }
+  try { data = JSON.parse(text); }
+  catch (e: any) {
+    // Show the failing region, not just the (valid-looking) head, so a body that
+    // parses fine for 2KB then has trailing junk is actually diagnosable.
+    const m = /position (\d+)/.exec(e?.message || "");
+    const pos = m ? Number(m[1]) : 0;
+    const window = text.slice(Math.max(0, pos - 60), pos + 60);
+    throw new Error(`BigQuery non-JSON (${res.status}, len ${text.length}) near ${pos}: …${window}…`);
+  }
   if (!res.ok) throw new Error(`BigQuery ${data?.error?.message || res.status}`);
   return data;
 }
