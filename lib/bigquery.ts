@@ -85,7 +85,9 @@ async function bqPost(body: Record<string, unknown>) {
     headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const data = await res.json();
+  const text = await res.text();
+  let data: any;
+  try { data = JSON.parse(text); } catch { throw new Error(`BigQuery returned a non-JSON response (${res.status}): ${text.slice(0, 160)}`); }
   if (!res.ok) throw new Error(`BigQuery ${data?.error?.message || res.status}`);
   return data;
 }
