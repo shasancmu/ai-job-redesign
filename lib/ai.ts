@@ -1479,6 +1479,139 @@ ${(input.writeup || "(no write-up provided)").slice(0, 4000)}`;
   return extractJson(raw);
 }
 
+// Star Hire — invent a hiring scenario grounded in human capital theory. The AI
+// owns realism (a firm, a role, and a slate of candidates whose observable
+// records look strong); CODE owns the truth (portable vs. non-portable capital)
+// and grades against it. No case-study references; pure human-capital theory.
+export async function starHireScenarioAI(input: { context: string; difficulty: "easy" | "hard" }): Promise<any> {
+  const easy = input.difficulty === "easy";
+  const system = `You design hiring puzzles for a strategy course built on HUMAN CAPITAL THEORY. Invent a firm, an open role, and EXACTLY 4 candidates. Every candidate's OBSERVABLE record looks strong; the hidden truth is how much of their success is PORTABLE human capital versus stuck to their old context. Do not reference any real case study, company, or HBS material. Do not use em dashes.
+
+Four TRANSFERABLE human-capital types the role weights:
+- general: broadly transferable skills (analysis, communication, judgment)
+- strategic: skills aligned with THIS firm's strategy and long-term goals
+- industry: industry-specific expertise
+- relationship: social capital, networks, client relationships
+Two things that do NOT transfer with the person: company-specific human capital (knowledge of the OLD firm's culture/processes) and the firm effect (the old firm's platform, brand, team, and resources that inflated their results).
+
+Return STRICT JSON only:
+{
+  "firm": { "name": "...", "sector": "...", "oneLiner": "one line on the firm" },
+  "role": { "title": "...", "brief": "2-4 sentences: the strategic objective of this seat and what success looks like" },
+  "roleWeights": { "general": 0-1, "strategic": 0-1, "industry": 0-1, "relationship": 0-1 },
+  "principle": "the human-capital lesson this scenario teaches, 1-2 sentences",
+  "candidates": [
+    {
+      "id": "kebab", "name": "realistic fictional name",
+      "headline": "one impressive line",
+      "resume": ["3-5 track-record bullets: rankings, wins, tenure, current employer, awards"],
+      "ask": "compensation expectation, phrased naturally",
+      "archetype": "star_trap" | "best_fit" | "solid" | "specialist" | "internal" | "journeyman",
+      "hc": { "general": 0-100, "strategic": 0-100, "industry": 0-100, "relationship": 0-100 },
+      "companyPrior": 0-100, "firmEffect": 0-100, "portableFraction": 0-1,
+      "matchEffect": -30..30, "wage": number (same scale across candidates), "tailRisk": 0-1,
+      "observedRating": 0-100,
+      "tell": "the single diagnostic fact a sharp question would surface",
+      "probes": [ { "q": "a diagnostic question", "value": "high" | "med" | "low" } ]
+    }
+  ]
+}
+
+Structure rules (a violation makes the puzzle unfair):
+- EXACTLY 4 candidates, each a DISTINCT archetype, built around real hiring tensions (portability, fit, tail risk, loyalty, potential vs history).
+- EXACTLY ONE "star_trap": the flashiest resume (observedRating 85-95) whose success is mostly NON-portable (high firmEffect and/or companyPrior, portableFraction 0.2-0.4, only moderate portable hc), usually a high wage. Their TRUE value must NOT be the highest.
+- EXACTLY ONE "best_fit": a more modest resume (observedRating 55-72) but portable hc strongly aligned with roleWeights, positive matchEffect, sensible wage, low tailRisk. Their TRUE value must be the HIGHEST.
+- The value model grades on: sum(roleWeights * hc) + matchEffect - wagePenalty - tailRisk*45. Set the numbers so best_fit clearly beats star_trap on this, while star_trap looks better on paper.
+- The other two: a mix (a specialist strong in ONE hc type the role only partly needs; an internal candidate with high companyPrior + matchEffect but thin experience; or a journeyman job-hopper with a loyalty/consistency tail risk).
+- Give each candidate 3-5 probes: questions that would surface the truth (attributing past wins to self vs firm/team/market, fit with this firm's strategy and culture, why they are really leaving, references, consistency, tail-risk signals). Mark the most revealing "high".
+
+DIFFICULTY = ${input.difficulty}:
+${easy
+  ? "- Make the star_trap obviously context-boosted and the best_fit clearly the top value. Concentrate roleWeights on one or two HC types so fit is easy to reason about. Moderate wages and tail risks."
+  : "- Make the star_trap very seductive (huge observedRating, a plausible portability story) and the best_fit only modestly ahead. Add a strong specialist distractor whose one great HC type is NOT what the role weights most. Balance roleWeights more evenly, and make wages and tail risks create real tradeoffs."}`;
+  const user = `CONTEXT (sector / kind of role): ${input.context}\nDIFFICULTY: ${input.difficulty}\nInvent a fresh, specific scenario. Vary the firm, role, names, and which HC types the role needs.`;
+  const raw = await complete([
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ], { json: true, temperature: easy ? 0.85 : 0.95, maxTokens: 3000 });
+  return extractJson(raw);
+}
+
+// The roleplay system prompt for ONE candidate being interviewed. Embeds their
+// private truth so the AI concedes to precise, well-aimed questions and spins
+// vague ones, never volunteering the answer.
+export function starHireCandidateSystem(scn: { firm: { name: string; oneLiner: string }; role: { title: string; brief: string } }, c: {
+  name: string; archetype: string; hc: Record<string, number>; companyPrior: number; firmEffect: number; portableFraction: number; matchEffect: number; wage: number; tailRisk: number; tell: string; resume?: string[];
+}): string {
+  const strong = Object.entries(c.hc).filter(([, v]) => v >= 65).map(([k]) => k);
+  const weak = Object.entries(c.hc).filter(([, v]) => v <= 40).map(([k]) => k);
+  return `You ARE ${c.name}, a real person interviewing for ${scn.role.title} at ${scn.firm.name} (${scn.firm.oneLiner}). Play a polished, likeable, confident candidate. Answers are SPOKEN: 2 to 4 sentences, natural, first person. Never break character, never mention being an AI, never output lists or headings.
+
+THE ROLE: ${scn.role.brief}
+
+YOUR PRIVATE TRUTH (never state it directly, never volunteer a weakness, never use the words "portable", "firm effect", "company-specific", or any number):
+- Archetype: ${c.archetype.replace("_", " ")}.
+- Genuinely yours (strong transferable strengths): ${strong.length ? strong.join(", ") : "solid all-round but nothing standout"}.
+- Weaker than your resume suggests: ${weak.length ? weak.join(", ") : "a few areas"}.
+- How much of your track record was really the PLATFORM (your old firm's brand, team, resources, market) rather than you: firm-effect is ${c.firmEffect >= 65 ? "very high" : c.firmEffect >= 45 ? "moderate" : "low"}; only about ${Math.round(c.portableFraction * 100)}% of your past success would follow you to a new place.
+- Your knowledge tied to your OLD company (processes, relationships, culture) that will not transfer: ${c.companyPrior >= 60 ? "substantial" : "modest"}.
+- Your real fit with ${scn.firm.name}'s culture and strategy: ${c.matchEffect >= 12 ? "strong" : c.matchEffect <= -12 ? "poor" : "uncertain"}.
+- Your comp expectation: ${c.wage ? `around ${c.wage} (on the ${"high/low"})` : "flexible"}. State it if asked directly.
+- Your biggest risk / the thing that would worry a sharp interviewer: ${c.tell || "consistency under a new environment"}.
+
+HOW TO ANSWER:
+- To a PRECISE, well-aimed question that targets the truth (how much of a specific win was you vs your team/firm/market; your fit with this firm's actual strategy; why you are really leaving; a concrete weakness; references; consistency across roles), concede ground HONESTLY but reluctantly. Give a real, revealing answer, in character, that a careful listener could use.
+- To a VAGUE, leading, or flattering question ("are you a hard worker?", "tell me about yourself"), stay confident and sell yourself; reveal nothing.
+- Stay consistent with your resume: ${(c.resume || []).slice(0, 5).join(" | ") || "(as summarized above)"}.`;
+}
+
+// Grade the hire. The grader knows the full hidden truth and the code-computed
+// value ranking, so it can judge the pick, the diagnostic quality of the
+// questions, and the calibration, in human-capital terms.
+export async function starHireGradeAI(input: {
+  firm: string; role: string; roleWeights: Record<string, number>;
+  candidates: { id: string; name: string; archetype: string; trueRank: number; value: number; hc: Record<string, number>; portableFraction: number; firmEffect: number; companyPrior: number; matchEffect: number; wage: number; tailRisk: number; observedRating: number; tell: string }[];
+  bestId: string; decisionScore: number;
+  pick: { id: string; name: string; confidence: number; flip: string };
+  transcripts: string; principle: string;
+}): Promise<any> {
+  const roster = input.candidates
+    .map((c) => `- ${c.name} [${c.id}] archetype=${c.archetype} TRUE_RANK=${c.trueRank} value=${c.value.toFixed(1)} looksLike=${c.observedRating}/100 portable=${Math.round(c.portableFraction * 100)}% firmEffect=${c.firmEffect} companyPrior=${c.companyPrior} match=${c.matchEffect} wage=${c.wage} tailRisk=${c.tailRisk.toFixed(2)} hc(g/s/i/r)=${c.hc.general}/${c.hc.strategic}/${c.hc.industry}/${c.hc.relationship}; tell: ${c.tell}`)
+    .join("\n");
+  const system = `You are a rigorous strategy professor grading a student's HIRE, in the language of HUMAN CAPITAL THEORY (portable vs non-portable capital, firm effect, match effect, selection vs treatment, tail risk). You know the full hidden truth and the code-computed true-value ranking. The objective decision score is already computed; do not restate it as the headline. Judge the QUALITY of their questions and reasoning and the CALIBRATION of their confidence. The single most important idea: the flashiest record is often the least portable, so the right hire is the best FIT for this role's specific human-capital needs, not the biggest name. Do not use em dashes.
+
+Return STRICT JSON only:
+{
+  "headline": "one sentence read of their hire",
+  "best_hire": { "id": "...", "name": "..." },
+  "your_pick": { "read": "1-2 sentences on why their pick was or was not the best value, in HC terms" },
+  "calibration": "well-calibrated" | "overconfident" | "underconfident",
+  "calibration_note": "one sentence weighing their confidence against what their questions actually justified",
+  "question_quality": { "score": 0-100, "note": "did they probe attribution/portability/fit/tail-risk, or ask surface questions? reference specific questions" },
+  "candidates": [ { "id": "...", "name": "...", "archetype": "...", "reveal": "the true story: what was genuinely theirs vs borrowed from their old platform, and their real fit here" } ],
+  "best_question_missed": "the single highest-value question they never asked any candidate, and what it would have surfaced",
+  "principle": "the lesson, two sentences"
+}
+"candidates" must include ALL candidates from the roster, in true-rank order (best first).`;
+  const user = `FIRM: ${input.firm}
+ROLE: ${input.role}
+ROLE HC WEIGHTS (importance): general ${input.roleWeights.general?.toFixed(2)}, strategic ${input.roleWeights.strategic?.toFixed(2)}, industry ${input.roleWeights.industry?.toFixed(2)}, relationship ${input.roleWeights.relationship?.toFixed(2)}
+THE TRUE BEST HIRE (highest value): ${input.bestId}
+CANDIDATES (hidden truth):
+${roster}
+
+THE STUDENT HIRED: ${input.pick.name} [${input.pick.id}] at confidence ${input.pick.confidence}%. Objective decision score: ${input.decisionScore}/100.
+"The one fact that would change my mind": ${JSON.stringify(input.pick.flip || "")}
+
+INTERVIEW TRANSCRIPTS (the questions they asked each candidate):
+${(input.transcripts || "(no questions asked)").slice(0, 9000)}`;
+  const raw = await complete([
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ], { json: true, temperature: 0.4, maxTokens: 2200 });
+  return extractJson(raw);
+}
+
 // The Hot Seat examiner: the student played the CEO. Grade whether they stayed
 // truthful and non-misleading under pressure (the legal line), how well they
 // hedged versus over-disclosed or stonewalled, and their composure. The grader
