@@ -4252,3 +4252,13 @@ FRONTIER PAPERS THE COMPANY DOES NOT ALREADY CITE: ${input.whitespaceCount}`;
   ], { json: true, temperature: 0.5, maxTokens: 700, low: true });
   return extractJson(raw);
 }
+
+// Science Radar company mode: turn a sample of a company's real patent titles
+// into a few topical search terms for the frontier search. Fast/low model.
+export async function companyRadarTermsAI(company: string, titles: string[]): Promise<any> {
+  const system = `You read a company's patent titles and name its core technology areas as SHORT topical search terms (2-4 words each, the science/technology, not the company). The database matches short phrases, not sentences. Do not use em dashes.
+Return STRICT JSON only: { "terms": ["3 to 5 short topical technology areas"], "areas": ["plain-English description of what this company builds"] }`;
+  const user = `COMPANY: ${company}\nA SAMPLE OF ITS PATENT TITLES:\n${titles.slice(0, 40).map((t) => `- ${t}`).join("\n")}`;
+  const raw = await complete([{ role: "system", content: system }, { role: "user", content: user }], { json: true, temperature: 0.4, maxTokens: 400, low: true });
+  return extractJson(raw);
+}
