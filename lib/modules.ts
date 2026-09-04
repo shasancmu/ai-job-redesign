@@ -84,6 +84,7 @@ export type ModuleDef = {
     | "field-experiment"
     | "pipeline"
     | "paper-study"
+    | "regression-detective"
     | "research-quality"
     | "reg-tables"
     | "research-graphs"
@@ -841,6 +842,22 @@ export const MODULES: ModuleDef[] = [
     priceEnv: "STRIPE_PRICE_EARNINGS",
   },
   {
+    slug: "regression-detective",
+    exercise: "regression-detective",
+    name: "Regression Detective",
+    tagline: "A dataset with a hidden truth. Explore it in a bare-bones stats console, then submit the model you think generated the data. You're graded against the real data-generating process.",
+    description:
+      "A hands-on regression puzzle. Pick a context (sports, people, customer, healthcare, and more) and a difficulty, and the app invents a realistic scenario and a hidden data-generating process, then simulates a dataset from it. You work in a simulated R-style console: summary stats, a correlation matrix, histograms, scatter and binned-scatter plots, multiple regression with real standard errors and p-values, and variable transformations (logs, square roots, interactions, any expression you write). Some variables truly drive the outcome, sometimes through a log or an interaction; others are realistic red herrings, often correlated with a real driver so a naive regression makes them look significant. Your job is to recover the true model. When you submit a final specification and your reasoning, it is graded objectively against the real process, whether you found the right terms, dropped the distractors, got the functional forms and signs right, and an AI instructor gives specific feedback on your process. Every run is a fresh challenge.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 25,
+    ai: true,
+    emoji: "🔎",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_REGRESSION",
+    forSale: false,
+  },
+  {
     slug: "hot-seat",
     exercise: "hot-seat",
     name: "The Hot Seat",
@@ -1506,6 +1523,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "impact-optimizer": "commercialize",
   "explain-ai": "commercialize",
   "position-my-research": "research",
+  "regression-detective": "research",
   "rank-disclosures": "commercialize",
   "find-a-cofounder": "commercialize",
   "diligence-the-science": "commercialize",
@@ -1608,7 +1626,7 @@ const CATALOG_ORDER: string[] = [
   // Research & scholarship (the curriculum sequence: idea → writing → data → publish → ops)
   "publication-pipeline", "read-the-interaction", "strategy-experiment", "good-research", "theory-section",
   "understand-a-paper", "paper-structure", "making-points", "abstract-title", "literature-reviews",
-  "data-moat", "data-strategy", "identification", "regression-tables", "research-graphs",
+  "data-moat", "data-strategy", "identification", "regression-detective", "regression-tables", "research-graphs",
   "the-referee", "revise-resubmit", "journal-fit",
   "research-system", "research-team", "position-my-research",
   // The PhD path
