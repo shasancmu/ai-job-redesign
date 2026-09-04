@@ -52,6 +52,7 @@ export type ModuleDef = {
     | "consult"
     | "earnings-call"
     | "star-hire"
+    | "incentive-lab"
     | "hot-seat"
     | "capstone"
     | "superpower"
@@ -859,6 +860,22 @@ export const MODULES: ModuleDef[] = [
     forSale: false,
   },
   {
+    slug: "incentive-lab",
+    exercise: "incentive-lab",
+    name: "The Incentive Lab",
+    tagline: "Design a reward system, then watch AI workers red-team it by self-play, discovering every way to hit your numbers while the real goal quietly rots. Redesign until they can't.",
+    description:
+      "A mechanism-design sandbox that makes Goodhart's law visceral. Pick a context and the app invents a firm, its true objective, the metrics a manager could reward, and a menu of things workers can actually do, some productive, some pure metric-gaming, some that inflate a number while destroying real value, and some valuable work no metric captures. You design the incentive: split a bonus across the metrics and set floors and caps. Then a tournament of AI worker-agents with different dispositions, the honest pro, the opportunist, the cynic, plays against your design by self-play, escalating each other's exploits to find the highest-paying strategy. Code scores every strategy against the hidden true-value model, so you see the split-screen that matters: the dashboard the manager sees looks great, while the true objective quietly collapses. The report shows exactly how they gamed it, which real value broke, and the lever you are missing, then you redesign and re-run, closing loopholes until even a ruthless optimizer has to do the right thing to get paid. The lesson lands the hard way: when a measure becomes a target, it stops being a good measure.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 25,
+    ai: true,
+    emoji: "🎰",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_INCENTIVE",
+    forSale: false,
+  },
+  {
     slug: "regression-detective",
     exercise: "regression-detective",
     name: "Regression Detective",
@@ -1636,7 +1653,7 @@ const CATALOG_ORDER: string[] = [
   "good-business", "customer-empathy", "opportunity-capability", "test-the-bet",
   "ai-canvas", "balanced-scorecard", "execution-4a", "business-consult", "voice-consult",
   "ai-board", "business-myopia", "define-vision", "define-vision-voice", "deeptech-canvas",
-  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "earnings-call", "star-hire", "hot-seat", "the-number", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
+  "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "earnings-call", "star-hire", "incentive-lab", "hot-seat", "the-number", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
   // Negotiate
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
   "lease-the-space", "rehearse-hard-conversation",
