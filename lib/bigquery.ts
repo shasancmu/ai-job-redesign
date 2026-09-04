@@ -23,7 +23,19 @@ let creds: { client_email: string; private_key: string } | null = null;
 function getCreds() {
   if (creds) return creds;
   if (!RAW) throw new Error("BigQuery not configured (GOOGLE_CREDENTIALS).");
-  const j = JSON.parse(RAW);
+  let j: any;
+  try { j = JSON.parse(RAW); }
+  catch (e: any) {
+    // Secret-safe diagnostic: never echo key material, only shape. A malformed
+    // GOOGLE_CREDENTIALS (e.g. a duplicated or truncated paste in the host env)
+    // is the classic cause of a JSON.parse throw at a fixed offset.
+    const m = /position (\d+)/.exec(e?.message || "");
+    const pos = m ? Number(m[1]) : 0;
+    const braces = (RAW.match(/}/g) || []).length;
+    const keys = (RAW.match(/"private_key"/g) || []).length;
+    const tail = JSON.stringify(RAW.slice(Math.max(0, RAW.length - 24)));
+    throw new Error(`GOOGLE_CREDENTIALS is not valid JSON (len ${RAW.length}, parse fails at ${pos}, "}" count ${braces}, private_key count ${keys}, tail ${tail}). It looks duplicated/truncated in the host env — re-paste the service-account JSON as a single object.`);
+  }
   creds = { client_email: j.client_email, private_key: j.private_key };
   return creds;
 }
