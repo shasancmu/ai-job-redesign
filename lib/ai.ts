@@ -1429,6 +1429,7 @@ HARD RULES (a violation makes the puzzle unfair or impossible):
 - Any variable used inside log() or sqrt() MUST be strictly positive — give it dist lognormal, or uniform with min>0.
 - Interactions should be between two drivers (a binary x continuous interaction is ideal for heterogeneity).
 - Keep every number realistic for the context and on a sane scale.
+- Keep coefficients readable: avoid |beta| < 0.01. If a variable's values (or an interaction's product) are large in magnitude, give that variable a smaller-scale distribution rather than compensating with a microscopic coefficient, so no term's coefficient would round to zero when displayed.
 
 DIFFICULTY = ${input.difficulty}:
 ${easy

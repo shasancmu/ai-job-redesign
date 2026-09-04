@@ -24,9 +24,16 @@ export type GradeBreakdown = {
   error?: string;
 };
 
-function num(x: number, d = 2): string {
+// Format a coefficient for the equation. Uses enough precision that a small but
+// real coefficient never collapses to "0" (a near-zero display on a large-scale
+// interaction product would read as a bug).
+function num(x: number): string {
   if (!isFinite(x)) return "?";
-  return x.toFixed(d).replace(/\.?0+$/, (m) => (m.includes(".") ? "" : m));
+  if (x === 0) return "0";
+  const a = Math.abs(x);
+  let s = a >= 1 ? x.toFixed(2) : a >= 0.0001 ? x.toFixed(5) : x.toExponential(1);
+  if (s.includes(".") && !s.includes("e")) s = s.replace(/0+$/, "").replace(/\.$/, "");
+  return s;
 }
 
 // Human-readable ground-truth equation.
