@@ -12,13 +12,16 @@ import { companyFootprint } from "./scienceRadar";
 import { citedDoisByPatents } from "./bigquery";
 import { firmsBuildingOnScience } from "./citingFirms";
 
-const CAP = 4 * 1024 ** 3;
+const CAP = 8 * 1024 ** 3; // keyword scans over the 11M-row scored table are inherently multi-GB
 const KW_STOP = new Set("management systems technology control design based using system method process engineering science analysis application development general the and for".split(" "));
 
 function kwClauseAndParams(field: string, col: string): { clause: string; params: any[] } {
   const toks = [...new Set(field.toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter((w) => w.length > 3 && !KW_STOP.has(w)))].slice(0, 5);
   const list = toks.length ? toks : [field.toLowerCase().trim()];
-  return { clause: "(" + list.map((_, i) => `LOWER(${col}) LIKE @kw${i}`).join(" OR ") + ")", params: list.map((t, i) => ({ name: `kw${i}`, type: "STRING" as const, value: `%${t}%` })) };
+  // AND across the distinctive tokens: "solid-state batteries" must match a
+  // researcher whose keywords contain solid AND state AND batter, not just any
+  // one (which pulled in solid-state LASERS). Falls back to the raw phrase.
+  return { clause: "(" + list.map((_, i) => `LOWER(${col}) LIKE @kw${i}`).join(" AND ") + ")", params: list.map((t, i) => ({ name: `kw${i}`, type: "STRING" as const, value: `%${t}%` })) };
 }
 
 let fieldMap: Map<string, string> | null = null;
@@ -39,19 +42,18 @@ export async function talentMap(field: string) {
            r.res_orgs_names[SAFE_OFFSET(0)] org,
            r.res_current_assignee[SAFE_OFFSET(0)] employer,
            r.res_countries[SAFE_OFFSET(0)] country,
-           r.res_subfields_string fields,
            ANY_VALUE(i.geo.city) city, ANY_VALUE(i.geo.latitude) lat, ANY_VALUE(i.geo.longitude) lng
     FROM \`com-sci-2.scientifiq_prod.researchers\` r
     LEFT JOIN \`com-sci-2.openalex.institutions\` i ON LOWER(i.display_name)=LOWER(r.res_orgs_names[SAFE_OFFSET(0)])
     WHERE ${clause} AND r.res_compot >= 68 AND r.res_last_publication_year >= 2020
-    GROUP BY id, name, compot, org, employer, country, fields
+    GROUP BY id, name, compot, org, employer, country
     ORDER BY compot DESC LIMIT 40`;
   const rows = await bqQuery(sql, params, { maxBytesBilled: CAP });
   const experts = rows.map((r) => ({
     id: r.id, name: r.name, compot: Number(r.compot) || 0, org: r.org || "",
     employer: r.employer || "", academic: isAcademic(r.employer), country: r.country,
     city: r.city, lat: r.lat != null ? Number(r.lat) : undefined, lng: r.lng != null ? Number(r.lng) : undefined,
-    fields: (r.fields || "").split(",").map((s: string) => s.trim()).filter(Boolean).slice(0, 5).join(", "),
+    fields: "",
   }));
   // employer breakdown (companies only)
   const byEmployer = new Map<string, number>();
