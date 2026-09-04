@@ -6,7 +6,6 @@
 // Costs (measured, capped): talent ~2GB, national ~2-3GB, competitors RoS+API.
 // Cacheable; materialize the slim scored tables later for near-zero cost.
 
-import { getFields, type SciField } from "./scientifiq";
 import { bqQuery } from "./bigquery";
 import { companyFootprint } from "./scienceRadar";
 import { citedDoisByPatents } from "./bigquery";
@@ -24,11 +23,16 @@ function kwClauseAndParams(field: string, col: string): { clause: string; params
   return { clause: "(" + list.map((_, i) => `LOWER(${col}) LIKE @kw${i}`).join(" AND ") + ")", params: list.map((t, i) => ({ name: `kw${i}`, type: "STRING" as const, value: `%${t}%` })) };
 }
 
+// ASJC subfield code -> name. The Scientifiq /fields API returns empty, so we
+// read the tiny (~190-row) warehouse lookup directly and cache it in-process.
 let fieldMap: Map<string, string> | null = null;
 async function fieldNames(): Promise<Map<string, string>> {
   if (fieldMap) return fieldMap;
-  const f: SciField[] = await getFields().catch(() => []);
-  fieldMap = new Map(f.map((x) => [String(x.code), x.name]));
+  const rows = await bqQuery(
+    "SELECT code, name FROM `com-sci-2.scientifiq_prod.subfields`",
+    [], { maxBytesBilled: 64 * 1024 ** 2 }
+  ).catch(() => [] as Record<string, string>[]);
+  fieldMap = new Map(rows.map((r) => [String(r.code), r.name]));
   return fieldMap;
 }
 
