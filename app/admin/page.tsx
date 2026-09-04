@@ -31,6 +31,7 @@ export default async function AdminPage() {
     { icon: "💵", title: "Module unit costs", desc: "What each module costs to run.", href: "/admin/costs" },
     { icon: "🧪", title: "A/B testing", desc: "Run and adopt experiments on your AI interviews.", href: "/admin/experiments" },
     { icon: "🤖", title: "Quality Assurance", desc: "A synthetic-user persona panel runs the modules and reports what would improve each, with a Claude-Code-ready brief — the quality loop.", href: "/admin/agent" },
+    { icon: "🧩", title: "Module registry", desc: "Every runnable module: the built-in catalog plus author-built custom modules.", href: "/admin/modules" },
     { icon: "🏢", title: "Organizations", desc: "Create and manage white-label organizations.", href: "/admin/orgs" },
     { icon: "🏅", title: "Certificates", desc: "Platform-wide certificate definitions.", href: "/admin/certificates" },
     { icon: "✉️", title: "Contact messages", desc: "Feedback and messages from users.", href: "/admin/messages" },

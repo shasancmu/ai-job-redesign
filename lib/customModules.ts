@@ -82,6 +82,22 @@ export async function listCustomModulesForUser(userId: string): Promise<CustomMo
   });
 }
 
+// Every custom module in the system, UNSCOPED — no visibility filter. Platform
+// superadmin oversight only; callers must gate on isSuperadmin first.
+export type CustomModuleAdminRow = {
+  slug: string; exercise: string; name: string; super_type: string;
+  org_id: string | null; status: string; author_id: string | null; updated_at: string | null;
+};
+export async function listAllCustomModules(): Promise<CustomModuleAdminRow[]> {
+  let admin;
+  try { admin = createAdminClient(); } catch { return []; }
+  const { data } = await admin
+    .from("custom_modules")
+    .select("slug, exercise, name, super_type, org_id, status, author_id, updated_at")
+    .order("updated_at", { ascending: false });
+  return ((data || []) as any[]) as CustomModuleAdminRow[];
+}
+
 // Published interview modules an instructor can assign to a class (card meta).
 export type InterviewCatalogEntry = { slug: string; name: string; emoji: string };
 export async function listAssignableInterviewModules(userId: string): Promise<InterviewCatalogEntry[]> {
