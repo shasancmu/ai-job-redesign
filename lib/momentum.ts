@@ -65,6 +65,7 @@ export function artifactHref(exercise: string, code: string): string {
   if (exercise === "board") return `/board/${code}`;
   if (exercise === "pipeline") return `/pipeline/${code}`;
   if (exercise === "paper-study") return `/paper-study/${code}`;
+  if (exercise === "regression-detective") return `/regression/${code}`;
   if (exercise === "disclosure" || exercise === "disclosure-haip") return `/disclosure/${code}`;
   return `/room/${code}`;
 }

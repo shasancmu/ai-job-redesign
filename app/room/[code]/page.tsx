@@ -42,6 +42,7 @@ import FindCofounderRoom from "@/components/FindCofounderRoom";
 import DiligenceScienceRoom from "@/components/DiligenceScienceRoom";
 import DomainScanRoom from "@/components/DomainScanRoom";
 import { SCAN_VARIANTS } from "@/lib/scanVariants";
+import RegressionRoom from "@/components/RegressionRoom";
 import PipelineRoom from "@/components/PipelineRoom";
 import PaperStudyRoom from "@/components/PaperStudyRoom";
 import InteractionRoom from "@/components/InteractionRoom";
@@ -309,6 +310,15 @@ export default async function RoomPage({
     return session.exercise === "diligence-science"
       ? <DiligenceScienceRoom session={session} initialWorkspace={iw} />
       : <FindCofounderRoom session={session} initialWorkspace={iw} />;
+  }
+
+  // Regression Detective: single-user, host only. Simulated stats console over a
+  // hidden data-generating process; the sealed answer key rides in the workspace.
+  if (session.exercise === "regression-detective") {
+    if (!amHost) redirect("/dashboard");
+    await supabase.from("workspaces").upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
+    const { data: workspace } = await supabase.from("workspaces").select("*").eq("session_id", session.id).eq("author_id", user.id).maybeSingle();
+    return <RegressionRoom me={user.id} session={session} initialWorkspace={workspace || { session_id: session.id, author_id: user.id }} />;
   }
 
   // Scientifiq landscape family (four domain scans, one shared room). Host only.

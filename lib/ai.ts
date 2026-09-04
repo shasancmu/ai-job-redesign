@@ -1396,6 +1396,88 @@ ${(input.transcript || "(no questions asked)").slice(0, 9000)}`;
   return extractJson(raw);
 }
 
+// Regression Detective — invent a realistic data-generating process for the
+// chosen context + difficulty. The AI owns realism (variable names, scenario,
+// which effects are real vs. red herrings); CODE simulates the data from this
+// spec and grades against it, so the "true model" is genuinely known.
+export async function regressionDgpAI(input: { context: string; difficulty: "easy" | "hard" }): Promise<any> {
+  const easy = input.difficulty === "easy";
+  const system = `You design realistic teaching datasets for a regression course. Given a real-world CONTEXT, invent an outcome to explain and a set of predictor variables, then specify a TRUE data-generating process. Some predictors are genuine DRIVERS (they appear in the true model, possibly through a transform or interaction); others are realistic DISTRACTORS that do NOT belong in the model but look plausible — often correlated with a driver so a naive regression makes them look significant. The student will only see the data and the variable names; your job is to make discovering the true model a genuine, fair puzzle.
+
+Return STRICT JSON only, no prose outside it:
+{
+  "scenario": "2-4 sentences setting up the outcome and what the analyst is trying to explain, in this context",
+  "outcome": { "name": "snake_case_name", "label": "Human label with units" },
+  "vars": [
+    { "name": "snake_case", "label": "Human label", "dist": <one of the dist forms below>, "role": "driver" | "distractor" }
+  ],
+  "intercept": <number>,
+  "terms": [
+    { "kind": "linear", "var": "driver_name", "beta": <nonzero number> },
+    { "kind": "transform", "var": "driver_name", "fn": "log" | "sqrt" | "square", "beta": <nonzero number> },
+    { "kind": "interaction", "vars": ["driver_a", "driver_b"], "beta": <nonzero number> }
+  ],
+  "correlations": [ { "a": "name", "b": "name", "rho": <between -0.8 and 0.8> } ],
+  "noiseSd": <positive number>
+}
+dist forms: {"kind":"normal","mean":N,"sd":N} | {"kind":"lognormal","mean":N,"sd":N} (mean/sd are of the underlying normal; always positive) | {"kind":"uniform","min":N,"max":N} | {"kind":"binary","p":N}
+
+HARD RULES (a violation makes the puzzle unfair or impossible):
+- 6 to 9 predictor variables, all names unique snake_case, distinct from the outcome name.
+- Include at least 2 distractors. Every driver must appear in at least one term; distractors must appear in NO term.
+- terms may only reference variables whose role is "driver".
+- Any variable used inside log() or sqrt() MUST be strictly positive — give it dist lognormal, or uniform with min>0.
+- Interactions should be between two drivers (a binary x continuous interaction is ideal for heterogeneity).
+- Keep every number realistic for the context and on a sane scale.
+
+DIFFICULTY = ${input.difficulty}:
+${easy
+  ? "- 2-3 true terms, all linear (at most one simple interaction). Large signal: choose betas so the model R^2 lands around 0.70-0.85 given noiseSd. Predictor correlations few and small (|rho| <= 0.25). The right answer should be discoverable with basic correlations and one multiple regression."
+  : "- 3-4 true terms including at LEAST one nonlinear term (log or sqrt) and at LEAST one interaction. Smaller signal: R^2 around 0.35-0.55. Give 2-3 distractors a correlation of 0.4-0.7 with a driver so they show up as spuriously significant until the driver is controlled for. Subtle, rewards careful work (binscatter to spot curvature, checking predictor correlations for confounding)."}`;
+  const user = `CONTEXT: ${input.context}\nDIFFICULTY: ${input.difficulty}\nInvent a fresh, specific scenario for this context (not a generic template). Vary the variables and the true model from run to run.`;
+  const raw = await complete([
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ], { json: true, temperature: easy ? 0.8 : 0.95, maxTokens: 2000 });
+  return extractJson(raw);
+}
+
+// Regression Detective — qualitative feedback on the student's reasoning, on top
+// of the objective score. It is shown the true model (the answer), the student's
+// submitted model, their write-up, and the computed score breakdown.
+export async function regressionFeedbackAI(input: {
+  context: string;
+  scenario: string;
+  trueModel: string;
+  studentModel: string;
+  writeup: string;
+  breakdown: { score: number; correct: string[]; missed: string[]; extra: { label: string; why: string }[] };
+}): Promise<any> {
+  const system = `You are a warm but rigorous econometrics professor giving feedback on a student's attempt to recover the TRUE data-generating process from a dataset. You already know the answer and an objective score has already been computed; do not re-grade the number. Give specific, teaching feedback on their PROCESS and REASONING. Refer to the actual variables and forms. Do not use em dashes.
+
+Return STRICT JSON only:
+{
+  "headline": "one sentence overall read of how they did",
+  "strengths": ["1-3 specific things they got right, referencing their model or write-up"],
+  "gaps": ["1-3 substantive misses tied to the true model, e.g. 'you missed that commute enters as log(distance) - the effect flattens out, which a binscatter would have revealed'"],
+  "process_tips": ["1-3 concrete console moves that would have helped, e.g. 'binscatter y against each predictor to spot curvature', 'check cor() among predictors before trusting a single regression'"],
+  "one_thing": "the single most important lesson from this challenge, in one or two sentences"
+}`;
+  const b = input.breakdown;
+  const user = `CONTEXT: ${input.context}
+SCENARIO: ${input.scenario}
+TRUE MODEL (the answer): ${input.trueModel}
+STUDENT'S SUBMITTED MODEL: ${input.studentModel}
+OBJECTIVE RESULT: score ${b.score}/100; recovered terms: ${b.correct.join(", ") || "none"}; missed terms: ${b.missed.join(", ") || "none"}; junk terms included: ${b.extra.map((e) => `${e.label} (${e.why})`).join(", ") || "none"}.
+STUDENT'S WRITE-UP:
+${(input.writeup || "(no write-up provided)").slice(0, 4000)}`;
+  const raw = await complete([
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ], { json: true, temperature: 0.5, maxTokens: 1400 });
+  return extractJson(raw);
+}
+
 // The Hot Seat examiner: the student played the CEO. Grade whether they stayed
 // truthful and non-misleading under pressure (the legal line), how well they
 // hedged versus over-disclosed or stonewalled, and their composure. The grader
