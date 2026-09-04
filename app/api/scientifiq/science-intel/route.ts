@@ -53,6 +53,6 @@ export async function POST(request: Request) {
     return Response.json({ mode, data, narrate });
   } catch (e: any) {
     if (e instanceof ScientifiqError) return Response.json({ error: e.message }, { status: e.status < 600 ? e.status : 502 });
-    return Response.json({ error: e?.message || "Failed to run." }, { status: 500 });
+    return Response.json({ error: e?.message || "Failed to run.", _diag: String(e?.stack || "").split("\n").slice(0, 8).join(" | ") }, { status: 500 });
   }
 }
