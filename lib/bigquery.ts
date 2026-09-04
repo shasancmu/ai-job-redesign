@@ -54,7 +54,9 @@ async function getAccessToken(): Promise<string> {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: jwt }),
   });
-  const data = await res.json();
+  const raw = await res.text();
+  let data: any;
+  try { data = JSON.parse(raw); } catch { throw new Error(`BigQuery auth returned a non-JSON response (${res.status}): ${raw.slice(0, 160)}`); }
   if (!res.ok || !data.access_token) throw new Error(`BigQuery auth failed: ${data.error_description || data.error || res.status}`);
   token = { value: data.access_token, exp: now + (data.expires_in || 3600) };
   return token.value;
