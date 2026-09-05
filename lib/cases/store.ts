@@ -39,6 +39,18 @@ export async function caseAuthorId(slug: string): Promise<string | null> {
   return ((data as any)?.author_id as string) || null;
 }
 
+// Published living cases among a set of slugs — for resolving cohort assignments
+// on the learner dashboard. Keyed by slug.
+export async function livingCaseMetaBySlugs(slugs: string[]): Promise<Record<string, { name: string }>> {
+  const out: Record<string, { name: string }> = {};
+  if (!slugs.length) return out;
+  let admin;
+  try { admin = createAdminClient(); } catch { return out; }
+  const { data } = await admin.from("custom_modules").select("slug, name").eq("super_type", LIVING_CASE_TYPE).eq("status", "published").in("slug", slugs);
+  for (const r of ((data || []) as any[])) out[r.slug] = { name: r.name || r.slug };
+  return out;
+}
+
 export type LivingCaseListing = { slug: string; name: string; status: string; updated_at: string | null };
 
 // Every living case the given user authored, newest first — for the "My cases" list.

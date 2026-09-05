@@ -7,6 +7,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import LivingCaseReader from "@/components/LivingCaseReader";
+import AssignModule from "@/components/AssignModule";
 import type { CaseGenome } from "@/lib/cases/types";
 
 function ytId(url: string): string | null {
@@ -64,9 +65,10 @@ export default function CaseEditor({ spec }: { spec: CaseGenome; me?: string; or
         <div className="rounded-2xl border border-line bg-white p-6 text-center shadow-sm">
           <div className="text-3xl">✓</div>
           <h1 className="mt-2 font-serif text-2xl text-ink">{saved.published ? "Published" : "Saved as draft"}</h1>
-          <p className="mt-1 text-sm text-slate-500">{saved.published ? "Your class can run this living case by link." : "It's in Your modules as a draft. Publish when it's verified."}</p>
+          <p className="mt-1 text-sm text-slate-500">{saved.published ? "Now put it in front of a class." : "It's in Your modules as a draft. Publish when it's verified."}</p>
           <Link href={`/cases/${saved.slug}`} className="btn-primary mt-4 inline-block">Open the case →</Link>
         </div>
+        {saved.published && <div className="mt-3"><AssignModule slug={saved.slug} /></div>}
       </div>
     );
   }
