@@ -142,24 +142,61 @@ function Commit({ genome, committed, onCommit }: { genome: CaseGenome; committed
   );
 }
 
-function Interrogate({ qa, protagonist }: { qa: { q: string; a: string }[]; protagonist: string }) {
-  const who = protagonist.split(",")[0];
+// A live learning companion: a tutor that knows the whole case and answers the
+// student's questions openly, to help them go deeper.
+function AskCompanion({ genome, preview }: { genome: CaseGenome; preview?: boolean }) {
+  const starters = (genome.interrogate || []).map((x) => x.q).slice(0, 3);
+  const [msgs, setMsgs] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const endRef = useRef<HTMLDivElement>(null);
+
+  async function ask(q: string) {
+    const text = q.trim();
+    if (!text || busy) return;
+    if (preview) { setErr("The tutor goes live once the case is saved."); return; }
+    setErr(""); setInput("");
+    const next = [...msgs, { role: "user" as const, content: text }];
+    setMsgs(next); setBusy(true);
+    setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 30);
+    try {
+      const res = await fetch("/api/cases/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug: genome.slug, history: next }) });
+      const d = await res.json();
+      if (!res.ok || !d.reply) throw new Error(d.error || "No reply.");
+      setMsgs((m) => [...m, { role: "assistant", content: d.reply }]);
+    } catch (e: any) { setErr(e?.message || "Couldn't reach the tutor."); }
+    setBusy(false);
+    setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 30);
+  }
+
   return (
     <div className="my-6 rounded-2xl border border-line bg-mist/40 p-5">
-      <div className="font-mono text-[11px] uppercase tracking-wide text-slate-400">Preview · in the living case, you interrogate the protagonist</div>
-      <div className="mt-3 space-y-3">
-        {qa.map((x, i) => (
-          <div key={i} className="space-y-2">
-            <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-ink px-3.5 py-2 text-sm text-white">{x.q}</div>
-            <div className="max-w-[88%] rounded-2xl rounded-bl-sm bg-white px-3.5 py-2 text-sm text-slate2 shadow-sm"><b className="text-ink">AI {who} · </b>{x.a}</div>
-          </div>
-        ))}
+      <div className="font-mono text-[11px] uppercase tracking-wide text-slate-400">Ask about this case</div>
+      {msgs.length > 0 && (
+        <div className="mt-3 space-y-3">
+          {msgs.map((m, i) => (
+            <div key={i} className="space-y-2">
+              {m.role === "user"
+                ? <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-ink px-3.5 py-2 text-sm text-white">{m.content}</div>
+                : <div className="max-w-[88%] rounded-2xl rounded-bl-sm bg-white px-3.5 py-2 text-sm text-slate2 shadow-sm"><b className="text-ink">Tutor · </b>{m.content}</div>}
+            </div>
+          ))}
+          <div ref={endRef} />
+        </div>
+      )}
+      {busy && <div className="mt-2 text-xs text-slate-400">Thinking…</div>}
+      {starters.length > 0 && msgs.length === 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {starters.map((s, i) => <button key={i} onClick={() => ask(s)} className="rounded-full border border-line bg-white px-2.5 py-1 text-left text-xs text-slate2 hover:border-ink">{s}</button>)}
+        </div>
+      )}
+      <div className="mt-3 flex items-center gap-2">
+        <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") ask(input); }} placeholder="Ask anything about this case…" className="field flex-1" />
+        <button onClick={() => ask(input)} disabled={busy || !input.trim()} className="btn-ghost disabled:opacity-40">Ask</button>
       </div>
-      <div className="mt-3 flex items-center gap-2 opacity-60">
-        <input disabled placeholder="Ask a harder question…" className="field flex-1" />
-        <button disabled className="btn-ghost">Ask</button>
-      </div>
-      <p className="mt-2 text-center text-xs text-slate-400">The protagonist concedes to a sharp question and spins a vague one — and never tells you if the bet works. (Live in the full module.)</p>
+      {err && <p className="mt-2 text-xs text-red-600">{err}</p>}
+      <p className="mt-2 text-xs text-slate-400">A tutor that knows the whole case — ask it to explain, go deeper, or point you to a source.</p>
     </div>
   );
 }
@@ -238,19 +275,15 @@ export default function LivingCaseReader({ genome, preview }: { genome: CaseGeno
           ) : (
             <>
               {genome.revealBeats.map((b, i) => <BeatBlock key={i} beat={b} teaching={teaching} />)}
-              {genome.interrogate && genome.interrogate.length > 0 && (
-                <>
-                  <div className="mb-4 mt-14">
-                    <div className="flex items-center gap-3">
-                      <span className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-sage-soft font-serif text-lg font-bold text-sage">✦</span>
-                      <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-slate-400">the living case</span>
-                    </div>
-                    <h2 className="mt-3 text-[26px] font-bold leading-tight tracking-tight text-ink">Now imagine you could push the protagonist on it.</h2>
-                  </div>
-                  <p className="text-[17px] leading-relaxed text-ink/90">A document can only tell you what happened. The living version lets you <em>interrogate</em> the protagonist under a hidden truth, <em>query</em> the real data in a console, and watch your decision <em>play forward</em> — graded on judgment, not memory. A taste:</p>
-                  <Interrogate qa={genome.interrogate} protagonist={genome.protagonist} />
-                </>
-              )}
+              <div className="mb-4 mt-14">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-sage-soft font-serif text-lg font-bold text-sage">✦</span>
+                  <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-slate-400">go deeper</span>
+                </div>
+                <h2 className="mt-3 text-[26px] font-bold leading-tight tracking-tight text-ink">Curious about something? Ask.</h2>
+              </div>
+              <p className="text-[17px] leading-relaxed text-ink/90">A document can only tell you what happened. Here you can ask a tutor that knows the whole case anything — to explain the concept, unpack a decision, or point you to a source to read next.</p>
+              <AskCompanion genome={genome} preview={preview} />
               <div className="my-8 rounded-2xl bg-ink p-6 text-paper">
                 <div className="font-mono text-[11px] uppercase tracking-wide" style={{ color: "var(--sage)" }}>What you just experienced</div>
                 <p className="mt-2 text-lg font-semibold">A case you read <em>into</em>, not just through.</p>
