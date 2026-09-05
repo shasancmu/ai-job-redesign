@@ -3,7 +3,7 @@
 // matrix, regression, histogram, scatter, binscatter). Pure + client-side — the
 // data lives in the browser, so commands are instant and reveal nothing extra.
 
-import { correlation, describe, ols, mean } from "./stats";
+import { correlation, describe, ols, mean, sd, variance, quantile } from "./stats";
 import type { OlsResult } from "./stats";
 import { parseFormula, buildDesign } from "./formula";
 import { evalExpr } from "./expr";
@@ -21,15 +21,22 @@ export type ConsoleResult =
 export type RunOutput = { result: ConsoleResult; newColumn?: { name: string; values: number[] } };
 
 const HELP = [
-  "Commands:",
-  "  vars()                list variables",
-  "  describe()            summary stats for every column",
+  "Commands (base-R style):",
+  "  vars() / names()      list variables",
+  "  dim() nrow() ncol()   dataset shape",
+  "  str()                 structure: each variable and its stats",
+  "  head(k) tail(k)       first / last k rows (default 6)",
+  "  describe() summary()  summary stats for every column",
+  "  summary(x)            summary of one variable (5-number + mean)",
+  "  mean(x) sd(x) var(x)  single statistics —",
+  "  median(x) min(x) max(x) sum(x) range(x) IQR(x)",
+  "  quantile(x)           0/25/50/75/100th percentiles",
   "  cor()                 full correlation matrix",
-  "  cor(x, y)             correlation between two variables",
+  "  cor(x, y) cov(x, y)   correlation / covariance of two vars",
   "  hist(x)               histogram of x",
   "  scatter(x, y)         scatter of y vs x (with fitted line)",
   "  binscatter(x, y)      binned scatter of y vs x",
-  "  reg(y ~ x1 + x2)      OLS regression",
+  "  reg(y ~ x1 + x2)      OLS regression (alias: lm)",
   "     forms: log(x), sqrt(x), I(x^2), x1:x2 (interaction), x1*x2",
   "  gen name = expr       make a new variable, e.g. gen z = log(x)*y",
 ];
@@ -86,26 +93,89 @@ export function runCommand(raw: string, columns: Record<string, number[]>, outco
     if (!columns[v]) throw new Error(`unknown variable "${v}"`);
     return columns[v];
   };
+  const nrow = columns[names[0]]?.length ?? 0;
+  const SUMMARY_HEAD = ["variable", "n", "mean", "sd", "min", "q25", "median", "q75", "max"];
+  const summaryRow = (n: string): (string | number)[] => {
+    const d = describe(columns[n]);
+    return [n, d.n, round(d.mean), round(d.sd), round(d.min), round(d.q25), round(d.median), round(d.q75), round(d.max)];
+  };
+  // Single-variable statistic → one number, printed R-style: `mean(x) = 0.299`.
+  const stat = (label: string, f: (x: number[]) => number): RunOutput => {
+    if (call.args.length !== 1) throw new Error(`${label}(x) takes one variable.`);
+    return { result: { type: "text", lines: [`${label}(${call.args[0]}) = ${round(f(need(call.args[0])), 4)}`] } };
+  };
+  const sorted = (x: number[]) => [...x].sort((a, b) => a - b);
 
   try {
-    switch (call.name) {
+    // Dispatch is case-insensitive on the command name (variable names stay
+    // case-sensitive). So Summary(), DESCRIBE(), etc. all work.
+    switch (call.name.toLowerCase()) {
       case "vars":
       case "names":
+      case "colnames":
         return { result: { type: "text", lines: [names.join(", ")] } };
-      case "head": {
-        const k = Math.min(6, columns[names[0]].length);
+      case "nrow":
+        return { result: { type: "text", lines: [`${nrow}`] } };
+      case "ncol":
+        return { result: { type: "text", lines: [`${names.length}`] } };
+      case "dim":
+        return { result: { type: "text", lines: [`[${nrow}, ${names.length}]  (${nrow} rows, ${names.length} variables)`] } };
+      case "str": {
+        const lines = [`'data.frame': ${nrow} obs. of ${names.length} variables:`];
+        for (const n of names) {
+          const preview = columns[n].slice(0, 5).map((v) => round(v)).join(", ");
+          lines.push(`  $ ${n}: num  ${preview}${nrow > 5 ? " …" : ""}`);
+        }
+        return { result: { type: "text", lines } };
+      }
+      case "head":
+      case "tail": {
+        const isTail = call.name.toLowerCase() === "tail";
+        const kArg = call.args.length ? Math.round(Number(call.args[0])) : NaN;
+        const k = Math.min(Number.isFinite(kArg) && kArg > 0 ? kArg : 6, nrow);
         const rows: (string | number)[][] = [];
-        for (let i = 0; i < k; i++) rows.push(names.map((n) => round(columns[n][i])));
-        return { result: { type: "table", title: `First ${k} rows`, head: names, rows } };
+        const start = isTail ? nrow - k : 0;
+        for (let i = start; i < start + k; i++) rows.push(names.map((n) => round(columns[n][i])));
+        return { result: { type: "table", title: `${isTail ? "Last" : "First"} ${k} rows`, head: names, rows } };
       }
       case "describe":
-      case "summary": {
-        const head = ["variable", "n", "mean", "sd", "min", "median", "max"];
-        const rows = names.map((n) => {
-          const d = describe(columns[n]);
-          return [n, d.n, round(d.mean), round(d.sd), round(d.min), round(d.median), round(d.max)];
-        });
-        return { result: { type: "table", title: "Summary", head, rows } };
+      case "summary":
+      case "summarize":
+      case "summarise":
+      case "stats": {
+        if (call.args.length === 1) {
+          // Summary of a single variable, R's summary(x) plus n/sd.
+          need(call.args[0]);
+          return { result: { type: "table", title: `Summary of ${call.args[0]}`, head: SUMMARY_HEAD, rows: [summaryRow(call.args[0])] } };
+        }
+        return { result: { type: "table", title: "Summary", head: SUMMARY_HEAD, rows: names.map(summaryRow) } };
+      }
+      case "mean": return stat("mean", mean);
+      case "sd": return stat("sd", sd);
+      case "var": case "variance": return stat("var", variance);
+      case "median": return stat("median", (x) => quantile(sorted(x), 0.5));
+      case "min": return stat("min", (x) => Math.min(...x));
+      case "max": return stat("max", (x) => Math.max(...x));
+      case "sum": return stat("sum", (x) => x.reduce((a, b) => a + b, 0));
+      case "length": return stat("length", (x) => x.length);
+      case "iqr": return stat("IQR", (x) => { const s = sorted(x); return quantile(s, 0.75) - quantile(s, 0.25); });
+      case "range": {
+        if (call.args.length !== 1) return err("range(x) takes one variable.");
+        const x = need(call.args[0]);
+        return { result: { type: "text", lines: [`range(${call.args[0]}) = [${round(Math.min(...x))}, ${round(Math.max(...x))}]`] } };
+      }
+      case "quantile": {
+        if (call.args.length !== 1) return err("quantile(x) takes one variable.");
+        const s = sorted(need(call.args[0]));
+        const qs = [0, 0.25, 0.5, 0.75, 1].map((q) => `${Math.round(q * 100)}%=${round(quantile(s, q))}`);
+        return { result: { type: "text", lines: [`quantile(${call.args[0]}):  ${qs.join("   ")}`] } };
+      }
+      case "cov": {
+        if (call.args.length !== 2) return err("cov(x, y) takes two variables.");
+        const x = need(call.args[0]); const y = need(call.args[1]);
+        const mx = mean(x); const my = mean(y);
+        let s = 0; for (let i = 0; i < x.length; i++) s += (x[i] - mx) * (y[i] - my);
+        return { result: { type: "text", lines: [`cov(${call.args[0]}, ${call.args[1]}) = ${round(s / (x.length - 1), 4)}`] } };
       }
       case "cor":
       case "correlate": {
@@ -146,7 +216,7 @@ export function runCommand(raw: string, columns: Record<string, number[]>, outco
       case "lm":
         return runReg(call.inner, columns, outcomeName, err);
       default:
-        return err(`Unknown command "${call.name}". Type help.`);
+        return err(`"${call.name}()" isn't available in this console. Type help for the full command list (try summary, mean, sd, cor, hist, reg…).`);
     }
   } catch (e: any) {
     return err(e?.message || "command failed");
