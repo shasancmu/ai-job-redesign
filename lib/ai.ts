@@ -4278,3 +4278,38 @@ Return STRICT JSON only: { "headline": "one punchy sentence", "read": "2-3 sente
   ], { json: true, temperature: 0.5, maxTokens: 600, low: true });
   return extractJson(raw);
 }
+
+// ---- Living Case generator -------------------------------------------------
+// Drafts an interactive "case genome" from a business idea + a decision to teach.
+// Grounded in the model's own knowledge of the subject; the instructor verifies
+// facts and adds real videos/sources at the publish gate. NEVER invents media.
+export async function caseGenomeAI(input: { idea: string; decision: string; protagonist?: string }): Promise<any> {
+  const system = `You are a world-class business-school case writer building an INTERACTIVE "living case": decision-first, with the outcome hidden until the reader commits a call. Write with the narrative craft of a great HBS case but the honesty of a documentary.
+
+Return STRICT JSON only, exactly this shape (no extra keys):
+{
+ "eyebrow": "3-4 words, e.g. Strategy · platform bets · timing",
+ "title": "a vivid, specific hero line (a claim or tension, not a label)",
+ "dek": "2-4 sentences setting the scene and the decision, second person, ends by asking the reader to decide. Light markdown allowed.",
+ "protagonist": "Name, role",
+ "decision": "short phrase, e.g. 'enter the market, or don't'",
+ "meta": "e.g. '~10 min · 5 sources'",
+ "situationBeats": [ { "n":"1", "kicker":"the situation · YEAR", "title":"...", "body":"2-4 sentences, light markdown with inline [source label](https://real-url) links where you cite a real fact", "deeper":[{"label":"a drill-down question","body":"3-5 sentences going deeper, may include a [link](https://url)"}], "teach":"one instructor-only sentence on what to teach here" } ],
+ "commitPrompt": "the decision question put to the reader, in the protagonist's shoes",
+ "commitOptions": [ {"k":"a","label":"short label","blurb":"one sentence on the tradeoff"} ],
+ "revealBeats": [ { "n":"4", "kicker":"the reveal · YEAR", "title":"...", "body":"what actually happened, honest about luck vs skill", "deeper":[...], "teach":"..." } ],
+ "interrogate": [ {"q":"a sharp question a student would ask the protagonist","a":"how the protagonist answers — concede to a sharp one, deflect a vague one"} ],
+ "sources": [ {"label":"real publication or org","href":"https://a-real-url-you-are-confident-exists"} ],
+ "teachingIntro": "one instructor-only sentence framing the whole case (a theory lens)"
+}
+
+Rules:
+- 2-3 situationBeats (the last one, 'your move', should tee up the decision), 2 revealBeats, 3 commitOptions, 3-5 sources, 2 interrogate items.
+- Ground every factual claim in the real, public history of the subject. Do NOT fabricate specific numbers you are unsure of; prefer qualitative truth over invented precision.
+- For sources, give REAL URLs you are confident exist (official sites, Wikipedia, major publications). If unsure of a deep link, use the organization's official homepage. Never invent a fake article URL.
+- Do NOT include any video, image, or YouTube id — the instructor adds verified media later. There are no video fields in the JSON.
+- Keep the outcome ENTIRELY inside revealBeats; situationBeats must not spoil it.
+- No em dashes. Be concrete, name real people/places/firms.`;
+  const user = `BUSINESS IDEA OR COMPANY: ${input.idea}\nDECISION TO TEACH: ${input.decision}\nPROTAGONIST: ${input.protagonist?.trim() || "(choose a realistic real or composite protagonist)"}`;
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.7, maxTokens: 4200 });
+}
