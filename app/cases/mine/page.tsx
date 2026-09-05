@@ -41,7 +41,10 @@ export default async function MyCasesPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-serif text-2xl font-bold text-ink">My living cases</h1>
-        <Link href="/studio/upload" className="btn-primary text-sm">+ New case</Link>
+        <div className="flex items-center gap-3">
+          <Link href="/students" className="text-sm font-medium text-ai hover:underline">My students →</Link>
+          <Link href="/studio/upload" className="btn-primary text-sm">+ New case</Link>
+        </div>
       </div>
       <p className="mt-1 text-sm text-slate-500">Interactive case studies you've authored. Publish one, then share its link with a class.</p>
 
