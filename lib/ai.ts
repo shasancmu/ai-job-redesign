@@ -4325,3 +4325,16 @@ export async function caseGenomeFromMaterialsAI(input: { intent: string; sourceT
   const user = `LEARNING GOAL / BRIEF:\n${input.intent}${src}${research}\n\nWrite the full living case now. Remember: the sources list must contain 4-6 real, verifiable URLs, and the JSON must finish completely.`;
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.65, maxTokens: 6800, timeoutMs: 112000 });
 }
+
+// ---- Living Case improvement loop --------------------------------------------
+// Turns REAL engagement (completion, the decisions students made, the questions
+// they asked the tutor) into concrete, actionable edits for the author. This is
+// the observe->improve half of the loop: the case gets better the more it runs.
+export async function caseImproveAI(input: { title: string; decision: string; readers: number; completionPct: number; decisions: string; questions: string }): Promise<any> {
+  const system = `You are an expert instructional designer reviewing how a live interactive case study actually performed with students, using their real engagement data. Propose specific, high-leverage edits the author could make so the case teaches better next time. Ground every suggestion in the data given; do not invent numbers.
+
+Return STRICT JSON only: { "suggestions": [ { "title": "a short imperative, e.g. Add a drill-down on X", "why": "one sentence citing the specific signal in the data", "action": "one concrete sentence on the edit to make" } ] }
+Rules: 3 to 5 suggestions, best first. Look for: low completion (students dropping before the reveal), a lopsided decision split (weak alternatives), and recurring questions (a gap the case should address inline). No em dashes.`;
+  const user = `CASE: ${input.title}\nDECISION: ${input.decision}\nENGAGEMENT: ${input.readers} students opened it; ${input.completionPct}% made a call (completion).\nWHAT THEY DECIDED: ${input.decisions || "(no decisions yet)"}\nQUESTIONS THEY ASKED THE TUTOR: ${input.questions || "(none)"}`;
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.5, maxTokens: 900, low: true });
+}

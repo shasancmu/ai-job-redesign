@@ -8,6 +8,7 @@ import { caseInsights, caseCohortBreakdown } from "@/lib/cases/events";
 import { listOwnedClasses } from "@/lib/cases/access";
 import AssignLink from "@/components/AssignLink";
 import CaseAccessControl from "@/components/CaseAccessControl";
+import CaseImprove from "@/components/CaseImprove";
 import HeaderNav from "@/components/HeaderNav";
 import Logo from "@/components/Logo";
 
@@ -161,6 +162,9 @@ export default async function CaseInsightsPage({ params, searchParams }: { param
           </div>
         </section>
       )}
+
+      {/* improve loop */}
+      <CaseImprove slug={params.slug} hasEngagement={ins.readers > 0} />
 
       {/* questions asked */}
       {ins.questions.length > 0 && (
