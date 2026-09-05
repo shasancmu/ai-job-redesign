@@ -29,7 +29,7 @@ export function sanitizeGenome(raw: any, fallbackTitle: string): CaseGenome {
     commitOptions: (Array.isArray(raw?.commitOptions) ? raw.commitOptions : []).slice(0, 4).map((o: any, i: number) => ({ k: str(o?.k, String(i)), label: str(o?.label), blurb: str(o?.blurb) })).filter((o: any) => o.label),
     revealBeats: beats(raw?.revealBeats),
     interrogate: (Array.isArray(raw?.interrogate) ? raw.interrogate : []).slice(0, 3).map((x: any) => ({ q: str(x?.q), a: str(x?.a) })).filter((x: any) => x.q && x.a),
-    sources: (Array.isArray(raw?.sources) ? raw.sources : []).slice(0, 8).map((s: any) => ({ label: str(s?.label), href: str(s?.href) })).filter((s: any) => /^https?:\/\//.test(s.href)),
+    sources: (Array.isArray(raw?.sources) ? raw.sources : []).slice(0, 8).map((s: any) => ({ label: str(s?.label) || str(s?.title) || str(s?.name), href: str(s?.href) || str(s?.url) || str(s?.link) })).filter((s: any) => /^https?:\/\//.test(s.href)),
     teachingIntro: str(raw?.teachingIntro) || undefined,
     generated: true,
   };

@@ -4299,7 +4299,7 @@ const CASE_SPEC_SHAPE = `Return STRICT JSON only, exactly this shape (no extra k
  "teachingIntro": "one instructor-only sentence framing the whole case (a theory lens)"
 }`;
 const CASE_RULES = `Rules:
-- Target 2000-3000 words TOTAL across all beat bodies and deeper panels: write 3-4 situationBeats (the last, 'your move', tees up the decision) and 2-3 revealBeats, each body a substantial paragraph, most beats carrying 1-2 deeper panels. 3 commitOptions, 4-6 sources, 2 interrogate items.
+- Target roughly 2000-2400 words TOTAL across all beat bodies and deeper panels: write 3 situationBeats (the last, 'your move', tees up the decision) and 2 revealBeats, each body ~110-160 words, with a deeper panel on about half the beats. 3 commitOptions, 4-6 sources, 2 interrogate items. CRITICAL: keep it tight enough that the WHOLE JSON completes — the interrogate and sources arrays come last and must NOT be cut off. Never return an empty sources array.
 - Ground every factual claim in the real, public record. Do NOT fabricate specific numbers you are unsure of; prefer qualitative truth over invented precision.
 - For sources, give REAL URLs you are confident exist (official sites, Wikipedia, major publications). Never invent a fake article URL.
 - Do NOT include any video, image, or youtube id — verified media is added later. There are no video fields in the JSON.
@@ -4322,6 +4322,6 @@ export async function caseGenomeFromMaterialsAI(input: { intent: string; sourceT
   // which suppresses the required external source URLs). Ground the facts here;
   // the sources list still comes from real public URLs / the web research.
   const src = input.sourceText?.trim() ? `\n\nSOURCE MATERIAL (ground the case's situation, facts, names, and numbers in this; quote and synthesize it, but do not merely transcribe it):\n${input.sourceText.trim().slice(0, 12000)}` : "";
-  const user = `LEARNING GOAL / BRIEF:\n${input.intent}${src}${research}\n\nWrite the full living case now. Remember: the sources list must contain 4-6 real, verifiable URLs.`;
-  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.65, maxTokens: 5600, timeoutMs: 108000 });
+  const user = `LEARNING GOAL / BRIEF:\n${input.intent}${src}${research}\n\nWrite the full living case now. Remember: the sources list must contain 4-6 real, verifiable URLs, and the JSON must finish completely.`;
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.65, maxTokens: 6800, timeoutMs: 112000 });
 }
