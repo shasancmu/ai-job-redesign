@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import LivingCaseReader from "@/components/LivingCaseReader";
 import { caseBySlug } from "@/lib/cases/registry";
-import { loadLivingCase } from "@/lib/cases/store";
+import { loadLivingCase, caseAuthorId } from "@/lib/cases/store";
 import { caseEnrollmentGate } from "@/lib/cases/access";
+import { isSuperadmin } from "@/lib/orgs";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -46,5 +47,22 @@ export default async function CasePage({ params }: { params: { slug: string } })
     );
   }
 
-  return <LivingCaseReader genome={genome} />;
+  // Teaching notes are instructor-only: the case's author, or a superadmin for
+  // built-in cases. Students and anonymous viewers never see them.
+  let canTeach = false;
+  if (user) {
+    const builtin = caseBySlug(params.slug);
+    canTeach = builtin ? await isSuperadmin(user) : (await caseAuthorId(params.slug)) === user.id;
+  }
+
+  // Strip instructor-only teaching notes from the payload entirely for viewers who
+  // shouldn't see them (so the text never reaches the browser, not just hidden).
+  const forView = canTeach ? genome : {
+    ...genome,
+    teachingIntro: undefined,
+    situationBeats: genome.situationBeats.map((b) => ({ ...b, teach: undefined })),
+    revealBeats: genome.revealBeats.map((b) => ({ ...b, teach: undefined })),
+  };
+
+  return <LivingCaseReader genome={forView} canTeach={canTeach} />;
 }

@@ -209,7 +209,8 @@ function AskCompanion({ genome, preview }: { genome: CaseGenome; preview?: boole
 }
 
 /* ---------- the reader ---------- */
-export default function LivingCaseReader({ genome, preview }: { genome: CaseGenome; preview?: boolean }) {
+export default function LivingCaseReader({ genome, preview, canTeach }: { genome: CaseGenome; preview?: boolean; canTeach?: boolean }) {
+  const showTeach = !!canTeach || !!preview; // instructor-only: the author, or the editor preview
   const [progress, setProgress] = useState(0);
   const [committed, setCommitted] = useState<{ k: string; c: number } | null>(null);
   const [teaching, setTeaching] = useState(false);
@@ -263,7 +264,9 @@ export default function LivingCaseReader({ genome, preview }: { genome: CaseGeno
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-5 py-2.5">
           <Link href="/dashboard" className="text-sm text-slate2 hover:text-ink">← Superadditive</Link>
           <span className="font-mono text-[11px] uppercase tracking-wide text-slate-400">Living Case{preview ? " · preview" : ""}</span>
-          <button onClick={() => setTeaching((t) => !t)} className={"rounded-full px-3 py-1 text-xs font-semibold transition " + (teaching ? "bg-clay text-white" : "bg-mist text-slate2 hover:bg-slate-200")}>{teaching ? "Teaching notes on" : "Teaching notes"}</button>
+          {showTeach
+            ? <button onClick={() => setTeaching((t) => !t)} className={"rounded-full px-3 py-1 text-xs font-semibold transition " + (teaching ? "bg-clay text-white" : "bg-mist text-slate2 hover:bg-slate-200")}>{teaching ? "Teaching notes on" : "Teaching notes"}</button>
+            : <span className="w-16" />}
         </div>
       </div>
 

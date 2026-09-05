@@ -31,6 +31,14 @@ export async function loadLivingCase(slug: string, userId: string | null): Promi
   return genome && genome.situationBeats ? { ...genome, slug } : null;
 }
 
+// The author of a DB-backed living case (null for built-ins / not found).
+export async function caseAuthorId(slug: string): Promise<string | null> {
+  let admin;
+  try { admin = createAdminClient(); } catch { return null; }
+  const { data } = await admin.from("custom_modules").select("author_id").eq("slug", slug).eq("super_type", LIVING_CASE_TYPE).maybeSingle();
+  return ((data as any)?.author_id as string) || null;
+}
+
 export type LivingCaseListing = { slug: string; name: string; status: string; updated_at: string | null };
 
 // Every living case the given user authored, newest first — for the "My cases" list.
