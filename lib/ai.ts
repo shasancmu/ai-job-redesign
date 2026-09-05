@@ -4309,7 +4309,7 @@ const CASE_RULES = `Rules:
 export async function caseGenomeAI(input: { idea: string; decision: string; protagonist?: string }): Promise<any> {
   const system = `You are a world-class business-school case writer building an INTERACTIVE "living case", with the narrative craft of a great HBS case but the honesty of a documentary.\n\n${CASE_SPEC_SHAPE}\n\n${CASE_RULES}`;
   const user = `BUSINESS IDEA OR COMPANY: ${input.idea}\nDECISION TO TEACH: ${input.decision}\nPROTAGONIST: ${input.protagonist?.trim() || "(choose a realistic real or composite protagonist)"}`;
-  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.7, maxTokens: 5200 });
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.7, maxTokens: 5200, timeoutMs: 90000 });
 }
 
 // Grounded variant used by the authoring studio: builds the case from the
@@ -4319,5 +4319,5 @@ export async function caseGenomeFromMaterialsAI(input: { intent: string; sourceT
   const system = `You are a world-class business-school case writer building an INTERACTIVE "living case" from an instructor's own teaching materials. First infer the CORE IDEA / concept / learning goal the materials are really about, then build a decision-first case that teaches it, with the craft of a great HBS case and the honesty of a documentary.\n\n${CASE_SPEC_SHAPE}\n\n${CASE_RULES}\n- Anchor the case in the SOURCE MATERIAL: use its situation, facts, names, numbers, and terminology. The learning goal in the brief is the concept the case must teach.\n- When WEB RESEARCH is provided, prefer its real facts, quotes, and URLs for your sources; you may cite its links inline.`;
   const research = input.research?.trim() ? `\n\nWEB RESEARCH (real results found for this topic — use these facts, quotes, and URLs; they are verified):\n${input.research.trim().slice(0, 8000)}` : "";
   const user = `LEARNING GOAL / BRIEF:\n${input.intent}\n${sourceMaterialBlock(input.sourceText, input.opinion || "low")}${research}\n\nWrite the full living case now.`;
-  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.65, maxTokens: 6000 });
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.65, maxTokens: 5600, timeoutMs: 108000 });
 }
