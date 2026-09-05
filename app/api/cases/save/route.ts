@@ -21,8 +21,9 @@ export async function POST(request: Request) {
   const incoming = body.spec || body.genome;
   if (!incoming || typeof incoming !== "object") return Response.json({ error: "Missing case." }, { status: 400 });
   const genome = sanitizeGenome(incoming, String(incoming.title || "Case"));
-  // The editor may attach verified videos the generator is forbidden from inventing.
+  // The editor may attach verified media the generator is forbidden from inventing.
   if (incoming.openingVideo?.youtubeId) genome.openingVideo = { youtubeId: String(incoming.openingVideo.youtubeId).slice(0, 20), title: String(incoming.openingVideo.title || "").slice(0, 200) };
+  if (incoming.heroImage?.url && /^https?:\/\//.test(String(incoming.heroImage.url))) genome.heroImage = { url: String(incoming.heroImage.url).slice(0, 600), alt: String(incoming.heroImage.alt || "").slice(0, 200) };
   if (!genomeComplete(genome)) return Response.json({ error: "The case is incomplete." }, { status: 400 });
 
   const admin = createAdminClient();

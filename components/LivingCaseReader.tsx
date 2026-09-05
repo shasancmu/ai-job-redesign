@@ -217,6 +217,12 @@ export default function LivingCaseReader({ genome, preview }: { genome: CaseGeno
           {teaching && genome.teachingIntro && <TeachNote md={genome.teachingIntro} />}
         </header>
 
+        {genome.heroImage?.url && (
+          <figure className="my-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={genome.heroImage.url} alt={genome.heroImage.alt || genome.title} className="w-full rounded-xl border border-line object-cover" style={{ maxHeight: 420 }} loading="lazy" />
+          </figure>
+        )}
         {genome.openingVideo && <Video id={genome.openingVideo.youtubeId} title={genome.openingVideo.title} />}
 
         {genome.situationBeats.map((b, i) => <BeatBlock key={i} beat={b} teaching={teaching} />)}

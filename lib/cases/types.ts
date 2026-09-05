@@ -31,6 +31,7 @@ export type CaseGenome = {
   decision: string; // "fund CUDA, or don't"
   meta: string; // "~10 min · 8 sources · 3 videos"
   openingVideo?: CaseVideo;
+  heroImage?: { url: string; alt?: string }; // a verified image the editor attaches
   situationBeats: CaseBeat[]; // before the commit gate
   commitPrompt: string; // "It's 2006. You're Jensen. What do you do?"
   commitOptions: CaseCommitOption[];

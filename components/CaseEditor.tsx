@@ -17,16 +17,25 @@ function ytId(url: string): string | null {
 export default function CaseEditor({ spec }: { spec: CaseGenome; me?: string; orgName?: string | null }) {
   const [g, setG] = useState<CaseGenome>(spec);
   const [videoUrl, setVideoUrl] = useState("");
+  const [imgUrl, setImgUrl] = useState("");
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [saved, setSaved] = useState<{ slug: string; published: boolean } | null>(null);
+  // Media candidates the studio found via web search (transient; not saved as-is).
+  const suggest = (spec as any)._suggest as { videos?: { url: string; title: string }[]; images?: { url: string; title: string }[] } | undefined;
 
-  function attachVideo() {
-    const id = ytId(videoUrl);
+  function attachVideo(url = videoUrl) {
+    const id = ytId(url);
     if (!id) { setErr("Paste a valid YouTube link."); return; }
     setErr("");
     setG({ ...g, openingVideo: { youtubeId: id, title: g.title } });
     setVideoUrl("");
+  }
+  function attachImage(url = imgUrl) {
+    if (!/^https?:\/\//.test(url.trim())) { setErr("Paste a valid image URL."); return; }
+    setErr("");
+    setG({ ...g, heroImage: { url: url.trim(), alt: g.title } });
+    setImgUrl("");
   }
 
   async function save(publish: boolean) {
@@ -66,9 +75,43 @@ export default function CaseEditor({ spec }: { spec: CaseGenome; me?: string; or
             <label className="lbl">Opening video <span className="font-normal text-slate-400">— paste a verified YouTube link</span></label>
             <div className="mt-1 flex gap-2">
               <input className="field flex-1" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=…" />
-              <button onClick={attachVideo} className="btn-ghost">Attach</button>
+              <button onClick={() => attachVideo()} className="btn-ghost">Attach</button>
             </div>
             {g.openingVideo && <p className="mt-1 text-xs text-sage">✓ video attached ({g.openingVideo.youtubeId}) — <button onClick={() => setG({ ...g, openingVideo: undefined })} className="underline">remove</button></p>}
+            {!!suggest?.videos?.length && (
+              <div className="mt-2">
+                <div className="text-[11px] font-mono uppercase tracking-wide text-slate-400">Found on the web — click to verify &amp; use</div>
+                <div className="mt-1 space-y-1">
+                  {suggest.videos.map((v, i) => (
+                    <div key={i} className="flex items-center gap-2 text-xs">
+                      <a href={v.url} target="_blank" rel="noopener noreferrer" className="flex-1 truncate text-sky underline">{v.title || v.url}</a>
+                      <button onClick={() => attachVideo(v.url)} className="rounded-full bg-mist px-2 py-0.5 font-semibold text-ink hover:bg-slate-200">Use</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="lbl">Hero image <span className="font-normal text-slate-400">— paste a verified image URL</span></label>
+            <div className="mt-1 flex gap-2">
+              <input className="field flex-1" value={imgUrl} onChange={(e) => setImgUrl(e.target.value)} placeholder="https://…/photo.jpg" />
+              <button onClick={() => attachImage()} className="btn-ghost">Attach</button>
+            </div>
+            {g.heroImage && <p className="mt-1 text-xs text-sage">✓ image attached — <button onClick={() => setG({ ...g, heroImage: undefined })} className="underline">remove</button></p>}
+            {!!suggest?.images?.length && (
+              <div className="mt-2">
+                <div className="text-[11px] font-mono uppercase tracking-wide text-slate-400">Found on the web — click to verify &amp; use</div>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {suggest.images.map((im, i) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <button key={i} onClick={() => attachImage(im.url)} className="h-16 w-24 overflow-hidden rounded-lg border border-line hover:border-ink" title={im.title || im.url}>
+                      <img src={im.url} alt={im.title || ""} className="h-full w-full object-cover" loading="lazy" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           {err && <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
           <div className="flex gap-2">

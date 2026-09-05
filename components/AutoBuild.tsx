@@ -39,6 +39,7 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
   const [phase, setPhase] = useState<"upload" | "interview" | "choose" | "review" | "editor" | "created">(startMode === "interview" ? "interview" : "upload");
   const [interviewSource, setInterviewSource] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [links, setLinks] = useState(""); // pasted URLs, fetched server-side for grounding
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [options, setOptions] = useState<any[]>([]);
@@ -124,7 +125,8 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
   }
 
   async function generateOne(opt: any, onProgress?: (p: { chars: number; name: string }) => void): Promise<any> {
-    const res = await fetch(KINDS[opt.kind].endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intent: opt.concept, sourceText: source, opinion, stream: true }) });
+    const linkList = links.split(/[\s,]+/).map((s) => s.trim()).filter((s) => /^https?:\/\//.test(s)).slice(0, 8);
+    const res = await fetch(KINDS[opt.kind].endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intent: opt.concept, sourceText: source, opinion, links: linkList, stream: true }) });
     const ct = res.headers.get("content-type") || "";
     if (ct.includes("text/event-stream") && res.body) {
       const reader = res.body.getReader();
@@ -356,7 +358,10 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
           {files.map((f, i) => (<div key={i} className="flex items-center justify-between rounded-lg border border-line bg-white px-3 py-1.5 text-sm"><span className="truncate text-slate-700">📄 {f.name}</span><button onClick={() => setFiles((p) => p.filter((_, k) => k !== i))} className="text-slate-300 hover:text-red-500">✕</button></div>))}
         </div>
       )}
-      <button onClick={analyze} disabled={!files.length} className="btn-primary mt-5 w-full text-base disabled:opacity-50">See what I can make →</button>
+      <div className="mt-3">
+        <textarea value={links} onChange={(e) => setLinks(e.target.value)} placeholder="Optional: paste article or video links (one per line) — the studio reads them too" className="field min-h-[64px] w-full text-sm" />
+      </div>
+      <button onClick={analyze} disabled={!files.length} className="btn-primary mt-3 w-full text-base disabled:opacity-50">See what I can make →</button>
       {err && <p className="mt-3 text-sm text-red-700">{err}</p>}
 
       {/* Voice/text interview — grounded in the files if any (an "and", not "or"). */}
