@@ -13,6 +13,7 @@ export const AUTHOR_FORMATS: AuthorFormat[] = [
   { id: "analytical", label: "Analytical instrument", emoji: "📊", endpoint: "/api/mechanics/analytical-copilot", table: "analytical_specs", editBase: "/studio/analytical/" },
   { id: "redesign", label: "Paired redesign", emoji: "🤝", endpoint: "/api/mechanics/redesign-copilot", table: "redesign_specs", editBase: "/studio/redesign/" },
   { id: "newsframe", label: "In the News", emoji: "🗞️", endpoint: "/api/mechanics/newsframe-copilot", table: "newsframe_specs", editBase: "/studio/news/" },
+  { id: "case", label: "Living Case", emoji: "🎬", endpoint: "/api/mechanics/case-copilot", editBase: "/cases/" },
 ];
 
 export const AUTHOR_FORMAT_COUNT = AUTHOR_FORMATS.length;

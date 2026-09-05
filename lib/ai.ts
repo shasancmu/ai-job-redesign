@@ -4280,36 +4280,44 @@ Return STRICT JSON only: { "headline": "one punchy sentence", "read": "2-3 sente
 }
 
 // ---- Living Case generator -------------------------------------------------
-// Drafts an interactive "case genome" from a business idea + a decision to teach.
-// Grounded in the model's own knowledge of the subject; the instructor verifies
-// facts and adds real videos/sources at the publish gate. NEVER invents media.
-export async function caseGenomeAI(input: { idea: string; decision: string; protagonist?: string }): Promise<any> {
-  const system = `You are a world-class business-school case writer building an INTERACTIVE "living case": decision-first, with the outcome hidden until the reader commits a call. Write with the narrative craft of a great HBS case but the honesty of a documentary.
-
-Return STRICT JSON only, exactly this shape (no extra keys):
+// Drafts an interactive "case genome": decision-first, outcome hidden until the
+// reader commits. NEVER invents media (verified videos are added at the gate).
+const CASE_SPEC_SHAPE = `Return STRICT JSON only, exactly this shape (no extra keys):
 {
- "eyebrow": "3-4 words, e.g. Strategy · platform bets · timing",
+ "eyebrow": "3-4 words, e.g. Strategy · supplier power · timing",
  "title": "a vivid, specific hero line (a claim or tension, not a label)",
  "dek": "2-4 sentences setting the scene and the decision, second person, ends by asking the reader to decide. Light markdown allowed.",
- "protagonist": "Name, role",
- "decision": "short phrase, e.g. 'enter the market, or don't'",
- "meta": "e.g. '~10 min · 5 sources'",
- "situationBeats": [ { "n":"1", "kicker":"the situation · YEAR", "title":"...", "body":"2-4 sentences, light markdown with inline [source label](https://real-url) links where you cite a real fact", "deeper":[{"label":"a drill-down question","body":"3-5 sentences going deeper, may include a [link](https://url)"}], "teach":"one instructor-only sentence on what to teach here" } ],
+ "protagonist": "Name, role. Use a REAL named person only for a public strategic decision; for anything resembling a hidden truth about a real individual, use a clearly-framed composite.",
+ "decision": "short phrase, e.g. 'hold the line on price, or don't'",
+ "meta": "e.g. '~12 min · 6 sources'",
+ "situationBeats": [ { "n":"1", "kicker":"the situation · YEAR or PLACE", "title":"...", "body":"a rich paragraph (120-220 words), light markdown, with inline [source label](https://real-url) links where you cite a real fact", "deeper":[{"label":"a drill-down question a curious reader would click","body":"80-150 words going deeper, may include a [link](https://url)"}], "teach":"one instructor-only sentence on what to teach here" } ],
  "commitPrompt": "the decision question put to the reader, in the protagonist's shoes",
  "commitOptions": [ {"k":"a","label":"short label","blurb":"one sentence on the tradeoff"} ],
- "revealBeats": [ { "n":"4", "kicker":"the reveal · YEAR", "title":"...", "body":"what actually happened, honest about luck vs skill", "deeper":[...], "teach":"..." } ],
+ "revealBeats": [ { "n":"4", "kicker":"the reveal · YEAR", "title":"...", "body":"a rich paragraph on what actually happened, honest about luck vs skill", "deeper":[...], "teach":"..." } ],
  "interrogate": [ {"q":"a sharp question a student would ask the protagonist","a":"how the protagonist answers — concede to a sharp one, deflect a vague one"} ],
  "sources": [ {"label":"real publication or org","href":"https://a-real-url-you-are-confident-exists"} ],
  "teachingIntro": "one instructor-only sentence framing the whole case (a theory lens)"
+}`;
+const CASE_RULES = `Rules:
+- Target 2000-3000 words TOTAL across all beat bodies and deeper panels: write 3-4 situationBeats (the last, 'your move', tees up the decision) and 2-3 revealBeats, each body a substantial paragraph, most beats carrying 1-2 deeper panels. 3 commitOptions, 4-6 sources, 2 interrogate items.
+- Ground every factual claim in the real, public record. Do NOT fabricate specific numbers you are unsure of; prefer qualitative truth over invented precision.
+- For sources, give REAL URLs you are confident exist (official sites, Wikipedia, major publications). Never invent a fake article URL.
+- Do NOT include any video, image, or youtube id — verified media is added later. There are no video fields in the JSON.
+- Keep the outcome ENTIRELY inside revealBeats; situationBeats must not spoil it.
+- No em dashes. Be concrete; name real people, places, firms.`;
+
+export async function caseGenomeAI(input: { idea: string; decision: string; protagonist?: string }): Promise<any> {
+  const system = `You are a world-class business-school case writer building an INTERACTIVE "living case", with the narrative craft of a great HBS case but the honesty of a documentary.\n\n${CASE_SPEC_SHAPE}\n\n${CASE_RULES}`;
+  const user = `BUSINESS IDEA OR COMPANY: ${input.idea}\nDECISION TO TEACH: ${input.decision}\nPROTAGONIST: ${input.protagonist?.trim() || "(choose a realistic real or composite protagonist)"}`;
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.7, maxTokens: 5200 });
 }
 
-Rules:
-- 2-3 situationBeats (the last one, 'your move', should tee up the decision), 2 revealBeats, 3 commitOptions, 3-5 sources, 2 interrogate items.
-- Ground every factual claim in the real, public history of the subject. Do NOT fabricate specific numbers you are unsure of; prefer qualitative truth over invented precision.
-- For sources, give REAL URLs you are confident exist (official sites, Wikipedia, major publications). If unsure of a deep link, use the organization's official homepage. Never invent a fake article URL.
-- Do NOT include any video, image, or YouTube id — the instructor adds verified media later. There are no video fields in the JSON.
-- Keep the outcome ENTIRELY inside revealBeats; situationBeats must not spoil it.
-- No em dashes. Be concrete, name real people/places/firms.`;
-  const user = `BUSINESS IDEA OR COMPANY: ${input.idea}\nDECISION TO TEACH: ${input.decision}\nPROTAGONIST: ${input.protagonist?.trim() || "(choose a realistic real or composite protagonist)"}`;
-  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.7, maxTokens: 4200 });
+// Grounded variant used by the authoring studio: builds the case from the
+// instructor's uploaded materials + brief, and (when provided) real web research.
+// This is the path behind the "Living Case" module type.
+export async function caseGenomeFromMaterialsAI(input: { intent: string; sourceText?: string; opinion?: "low" | "high"; research?: string }): Promise<any> {
+  const system = `You are a world-class business-school case writer building an INTERACTIVE "living case" from an instructor's own teaching materials. First infer the CORE IDEA / concept / learning goal the materials are really about, then build a decision-first case that teaches it, with the craft of a great HBS case and the honesty of a documentary.\n\n${CASE_SPEC_SHAPE}\n\n${CASE_RULES}\n- Anchor the case in the SOURCE MATERIAL: use its situation, facts, names, numbers, and terminology. The learning goal in the brief is the concept the case must teach.\n- When WEB RESEARCH is provided, prefer its real facts, quotes, and URLs for your sources; you may cite its links inline.`;
+  const research = input.research?.trim() ? `\n\nWEB RESEARCH (real results found for this topic — use these facts, quotes, and URLs; they are verified):\n${input.research.trim().slice(0, 8000)}` : "";
+  const user = `LEARNING GOAL / BRIEF:\n${input.intent}\n${sourceMaterialBlock(input.sourceText, input.opinion || "low")}${research}\n\nWrite the full living case now.`;
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.65, maxTokens: 6000 });
 }

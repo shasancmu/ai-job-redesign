@@ -12,6 +12,7 @@ import AnalyticalEditor from "@/components/AnalyticalEditor";
 import RedesignEditor from "@/components/RedesignEditor";
 import ExplainerEditor from "@/components/ExplainerEditor";
 import NewsFrameEditor from "@/components/NewsFrameEditor";
+import CaseEditor from "@/components/CaseEditor";
 import AuthoringInterview from "@/components/AuthoringInterview";
 import { AUTHOR_FORMATS } from "@/lib/authorFormats";
 
@@ -30,6 +31,7 @@ const TEMPLATES: { kind: string; emoji: string; title: string; concept: string }
   { kind: "negotiation", emoji: "🤝", title: "Negotiate a live deal", concept: "The learner negotiates a scored deal against an AI counterpart that has a hidden payoff table — trading across several issues to find value, then sees how they did." },
   { kind: "benchmark", emoji: "⏱️", title: "Concept check with calibration", concept: "A short timed multiple-choice quiz on the key concepts, scored server-side, that also measures how well-calibrated the learner's confidence is." },
   { kind: "newsframe", emoji: "🗞️", title: "This week, in the news", concept: "The learner applies a business framework to a real, current news story pulled live, and writes up what the framework reveals." },
+  { kind: "case", emoji: "🎬", title: "A living case study", concept: "An interactive, decision-first case built from your materials: it names a real situation and protagonist, walks the learner through the evidence with drill-downs and sources, makes them commit a call under uncertainty, then reveals what happened. Grounded in the documents you upload." },
 ];
 
 export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: string; canGlobal: boolean; orgName: string | null; startMode?: string }) {
@@ -159,6 +161,12 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
       if (!res.ok || !d.slug) throw new Error(d.error || "save failed");
       return { slug: d.slug };
     }
+    if (kind === "case") {
+      const res = await fetch("/api/cases/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ spec, publish: false }) });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok || !d.slug) throw new Error(d.error || "save failed");
+      return { slug: d.slug };
+    }
     const table = KINDS[kind].table!;
     const { error } = await supabase.from(table).upsert({ slug: spec.slug, version: 1, owner_id: me, status: "draft", spec, updated_at: new Date().toISOString() }, { onConflict: "slug,version" });
     if (error) throw new Error(error.message);
@@ -190,6 +198,11 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
   }
 
   // ---- review the draft, then the editor (single pick) ----
+  // A Living Case has its own verify-and-publish editor (preview + real video),
+  // so it skips the generic spec review/editor path.
+  if (phase === "review" && one && one.kind === "case") {
+    return <CaseEditor spec={one.spec} me={me} orgName={orgName} />;
+  }
   if (phase === "review" && one) {
     return (
       <DraftReview
