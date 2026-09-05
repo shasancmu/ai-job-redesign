@@ -99,6 +99,9 @@ export default async function CaseInsightsPage({ params, searchParams }: { param
       <div className="mt-6 space-y-3">
         {isDbCase && <CaseAccessControl slug={params.slug} initialAccess={access} initialCohorts={assigned} classes={ownedClasses} />}
         <AssignLink slug={params.slug} />
+        {isDbCase && assigned.length > 0 && (
+          <a href={`/cases/${params.slug}/gradebook${cohort ? `?c=${cohort}` : ""}`} className="inline-flex items-center gap-1 text-sm font-medium text-ai hover:underline">↓ Download gradebook (CSV)</a>
+        )}
       </div>
 
       {/* by class / term — the longitudinal comparison */}
