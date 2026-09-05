@@ -46,5 +46,5 @@ export default async function CasePage({ params }: { params: { slug: string } })
     );
   }
 
-  return <LivingCaseReader genome={genome} draft={!!(genome as any)._draft} />;
+  return <LivingCaseReader genome={genome} />;
 }

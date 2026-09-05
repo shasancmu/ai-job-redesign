@@ -209,7 +209,7 @@ function AskCompanion({ genome, preview }: { genome: CaseGenome; preview?: boole
 }
 
 /* ---------- the reader ---------- */
-export default function LivingCaseReader({ genome, preview, draft }: { genome: CaseGenome; preview?: boolean; draft?: boolean }) {
+export default function LivingCaseReader({ genome, preview }: { genome: CaseGenome; preview?: boolean }) {
   const [progress, setProgress] = useState(0);
   const [committed, setCommitted] = useState<{ k: string; c: number } | null>(null);
   const [teaching, setTeaching] = useState(false);
@@ -268,9 +268,9 @@ export default function LivingCaseReader({ genome, preview, draft }: { genome: C
       </div>
 
       <article className="mx-auto max-w-3xl px-5 pb-24">
-        {!preview && draft && (
+        {!preview && genome.generated && (
           <div className="mt-6 rounded-xl border border-amber/40 bg-amber/5 p-3 text-sm text-slate2">
-            <b className="text-ink">Draft.</b> This case hasn&apos;t been published yet.
+            <b className="text-ink">Draft — a work in progress.</b> This case is still being refined and may contain rough edges.
           </div>
         )}
         <header className="pt-12">
