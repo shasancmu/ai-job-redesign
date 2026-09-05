@@ -32,6 +32,13 @@ export default function RegressionRoom({ session, initialWorkspace }: { me?: str
 
   const [cmd, setCmd] = useState("");
   const [log, setLog] = useState<{ cmd: string; result: ConsoleResult }[]>([]);
+  // Shell-style command recall: history of run commands, where ↑/↓ currently
+  // sits (null = at the live prompt), and the draft to restore when you arrow
+  // back down past the newest command.
+  const [history, setHistory] = useState<string[]>([]);
+  const [histIdx, setHistIdx] = useState<number | null>(null);
+  const draftRef = useRef("");
+  const cmdRef = useRef<HTMLInputElement>(null);
   const [formula, setFormula] = useState("");
   const [writeup, setWriteup] = useState("");
   const [confirming, setConfirming] = useState(false);
@@ -87,8 +94,29 @@ export default function RegressionRoom({ session, initialWorkspace }: { me?: str
     const { result: r, newColumn } = runCommand(c, columns, outcomeName);
     if (newColumn) setCanvas({ genCols: [...genCols, { name: newColumn.name, values: newColumn.values }] });
     setLog((l) => [...l.slice(-40), { cmd: c, result: r }]);
+    // Push to history (dedupe consecutive repeats, like a real shell) and reset
+    // the recall cursor to the live prompt.
+    setHistory((h) => (h[h.length - 1] === c ? h : [...h.slice(-99), c]));
+    setHistIdx(null);
     setCmd("");
     setTimeout(() => logEnd.current?.scrollIntoView({ behavior: "smooth" }), 30);
+  }
+
+  // ↑/↓ through past commands. ↑ walks back (older), ↓ walks toward the present
+  // and, past the newest, restores whatever you were typing before you started.
+  function recallHistory(dir: -1 | 1) {
+    if (history.length === 0) return;
+    const caretEnd = () => requestAnimationFrame(() => { const el = cmdRef.current; if (el) el.setSelectionRange(el.value.length, el.value.length); });
+    if (dir === -1) {
+      const n = histIdx === null ? history.length - 1 : Math.max(0, histIdx - 1);
+      if (histIdx === null) draftRef.current = cmd;
+      setHistIdx(n); setCmd(history[n]); caretEnd();
+    } else {
+      if (histIdx === null) return;
+      if (histIdx >= history.length - 1) { setHistIdx(null); setCmd(draftRef.current); caretEnd(); return; }
+      const n = histIdx + 1;
+      setHistIdx(n); setCmd(history[n]); caretEnd();
+    }
   }
 
   async function submit() {
@@ -225,10 +253,15 @@ export default function RegressionRoom({ session, initialWorkspace }: { me?: str
             </div>
             <div className="mt-2 flex gap-2">
               <input
+                ref={cmdRef}
                 className="field flex-1 font-mono text-[13px]"
                 value={cmd}
-                onChange={(e) => setCmd(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") run(cmd); }}
+                onChange={(e) => { setCmd(e.target.value); setHistIdx(null); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { run(cmd); return; }
+                  if (e.key === "ArrowUp") { e.preventDefault(); recallHistory(-1); return; }
+                  if (e.key === "ArrowDown") { e.preventDefault(); recallHistory(1); return; }
+                }}
                 placeholder={`e.g. reg(${outcomeName} ~ x1 + log(x2))  ·  cor(x1, x2)  ·  binscatter(x1, ${outcomeName})`}
                 spellCheck={false}
               />
