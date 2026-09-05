@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { caseBySlug } from "@/lib/cases/registry";
 import { isSuperadmin } from "@/lib/orgs";
-import { caseInsights } from "@/lib/cases/events";
+import { caseInsights, caseCohortBreakdown } from "@/lib/cases/events";
 import { listOwnedClasses } from "@/lib/cases/access";
 import AssignLink from "@/components/AssignLink";
 import CaseAccessControl from "@/components/CaseAccessControl";
@@ -50,6 +50,7 @@ export default async function CaseInsightsPage({ params, searchParams }: { param
 
   const cohort = searchParams.c || null;
   const ins = await caseInsights(params.slug, cohort);
+  const breakdown = await caseCohortBreakdown(params.slug);
   const pct = Math.round(ins.completionRate * 100);
   const maxDec = Math.max(1, ...ins.decisions.map((d) => d.n));
 
@@ -98,6 +99,38 @@ export default async function CaseInsightsPage({ params, searchParams }: { param
         {isDbCase && <CaseAccessControl slug={params.slug} initialAccess={access} initialCohorts={assigned} classes={ownedClasses} />}
         <AssignLink slug={params.slug} />
       </div>
+
+      {/* by class / term — the longitudinal comparison */}
+      {breakdown.length >= 2 && (
+        <section className="mt-8">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">By class · compare sections &amp; terms</h2>
+          <div className="mt-3 overflow-x-auto rounded-xl border border-line">
+            <table className="w-full min-w-[520px] text-sm">
+              <thead>
+                <tr className="border-b border-line bg-mist/50 text-left text-[11px] uppercase tracking-wide text-slate-400">
+                  <th className="px-3 py-2 font-semibold">Class</th>
+                  <th className="px-3 py-2 text-right font-semibold">Opened</th>
+                  <th className="px-3 py-2 text-right font-semibold">Decided</th>
+                  <th className="px-3 py-2 text-right font-semibold">Completion</th>
+                  <th className="px-3 py-2 font-semibold">Most chose</th>
+                </tr>
+              </thead>
+              <tbody>
+                {breakdown.map((r) => (
+                  <tr key={r.cohort} className="border-b border-line/60 last:border-0">
+                    <td className="px-3 py-2"><code className="text-xs text-slate2">{r.cohort}</code></td>
+                    <td className="px-3 py-2 text-right tabular-nums text-ink">{r.readers}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-slate2">{r.completed}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-slate2">{Math.round(r.completionRate * 100)}%</td>
+                    <td className="px-3 py-2 text-xs text-slate2">{r.topDecision || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-1.5 text-xs text-slate-400">Assign the case to a class (with a class tag) each term to build a term-over-term record here.</p>
+        </section>
+      )}
 
       {/* decisions */}
       {ins.decisions.length > 0 && (
