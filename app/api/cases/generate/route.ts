@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, caseGenomeAI } from "@/lib/ai";
 import { sanitizeGenome, genomeComplete } from "@/lib/cases/sanitize";
+import { authorStyleContext } from "@/lib/cases/style";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,7 +23,8 @@ export async function POST(request: Request) {
 
   setFlow("case-generate");
   try {
-    const raw = await caseGenomeAI({ idea, decision, protagonist });
+    const style = await authorStyleContext(user.id).catch(() => "");
+    const raw = await caseGenomeAI({ idea, decision, protagonist, style });
     const genome = sanitizeGenome(raw, idea);
     if (!genomeComplete(genome)) {
       return Response.json({ error: "The draft came back incomplete. Try a more specific idea and decision." }, { status: 502 });

@@ -4306,23 +4306,23 @@ const CASE_RULES = `Rules:
 - Keep the outcome ENTIRELY inside revealBeats; situationBeats must not spoil it.
 - No em dashes. Be concrete; name real people, places, firms.`;
 
-export async function caseGenomeAI(input: { idea: string; decision: string; protagonist?: string }): Promise<any> {
+export async function caseGenomeAI(input: { idea: string; decision: string; protagonist?: string; style?: string }): Promise<any> {
   const system = `You are a world-class business-school case writer building an INTERACTIVE "living case", with the narrative craft of a great HBS case but the honesty of a documentary.\n\n${CASE_SPEC_SHAPE}\n\n${CASE_RULES}`;
-  const user = `BUSINESS IDEA OR COMPANY: ${input.idea}\nDECISION TO TEACH: ${input.decision}\nPROTAGONIST: ${input.protagonist?.trim() || "(choose a realistic real or composite protagonist)"}`;
+  const user = `BUSINESS IDEA OR COMPANY: ${input.idea}\nDECISION TO TEACH: ${input.decision}\nPROTAGONIST: ${input.protagonist?.trim() || "(choose a realistic real or composite protagonist)"}${input.style || ""}`;
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.7, maxTokens: 5200, timeoutMs: 90000 });
 }
 
 // Grounded variant used by the authoring studio: builds the case from the
 // instructor's uploaded materials + brief, and (when provided) real web research.
 // This is the path behind the "Living Case" module type.
-export async function caseGenomeFromMaterialsAI(input: { intent: string; sourceText?: string; opinion?: "low" | "high"; research?: string }): Promise<any> {
+export async function caseGenomeFromMaterialsAI(input: { intent: string; sourceText?: string; opinion?: "low" | "high"; research?: string; style?: string }): Promise<any> {
   const system = `You are a world-class business-school case writer building an INTERACTIVE "living case" from an instructor's own teaching materials. First infer the CORE IDEA / concept / learning goal the materials are really about, then build a decision-first case that teaches it, with the craft of a great HBS case and the honesty of a documentary.\n\n${CASE_SPEC_SHAPE}\n\n${CASE_RULES}\n- Anchor the case NARRATIVE in the SOURCE MATERIAL: use its situation, facts, names, numbers, and terminology. The learning goal in the brief is the concept the case must teach.\n- IMPORTANT: the "use my materials" constraint governs the narrative, NOT the sources list. You MUST always populate 4-6 sources with real, well-known, verifiable URLs relevant to the topic (official sites, Wikipedia, major publications, trade bodies) even when the uploaded materials contain no links. Citing a real public URL is not inventing. Never leave sources empty.\n- When WEB RESEARCH is provided, prefer its real facts, quotes, and URLs for your sources; cite its links inline in the beats where you use them.`;
   const research = input.research?.trim() ? `\n\nWEB RESEARCH (real results found for this topic — use these facts, quotes, and URLs for the sources list; they are verified):\n${input.research.trim().slice(0, 8000)}` : "";
   // A case-specific source framing (not the verbatim "use my materials" block,
   // which suppresses the required external source URLs). Ground the facts here;
   // the sources list still comes from real public URLs / the web research.
   const src = input.sourceText?.trim() ? `\n\nSOURCE MATERIAL (ground the case's situation, facts, names, and numbers in this; quote and synthesize it, but do not merely transcribe it):\n${input.sourceText.trim().slice(0, 12000)}` : "";
-  const user = `LEARNING GOAL / BRIEF:\n${input.intent}${src}${research}\n\nWrite the full living case now. Remember: the sources list must contain 4-6 real, verifiable URLs, and the JSON must finish completely.`;
+  const user = `LEARNING GOAL / BRIEF:\n${input.intent}${src}${research}${input.style || ""}\n\nWrite the full living case now. Remember: the sources list must contain 4-6 real, verifiable URLs, and the JSON must finish completely.`;
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.65, maxTokens: 6800, timeoutMs: 112000 });
 }
 

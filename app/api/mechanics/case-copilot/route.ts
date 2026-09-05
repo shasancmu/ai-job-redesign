@@ -3,6 +3,7 @@ import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, caseGenomeFromMaterialsAI } from "@/lib/ai";
 import { sanitizeGenome, genomeComplete } from "@/lib/cases/sanitize";
 import { researchForCase, ingestLinks } from "@/lib/cases/webResearch";
+import { authorStyleContext } from "@/lib/cases/style";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,7 +34,8 @@ export async function POST(request: Request) {
     // monthly cap simply means less grounding, never a failed draft.
     if (links.length) { const linkText = await ingestLinks(links).catch(() => ""); if (linkText) sourceText = `${sourceText}\n\n---- FROM PROVIDED LINKS ----\n${linkText}`.slice(0, 16000); }
     const research = await researchForCase(intent, sourceText).catch(() => ({ block: "", videos: [], images: [] }));
-    const raw = await caseGenomeFromMaterialsAI({ intent, sourceText, opinion, research: research.block });
+    const style = await authorStyleContext(user.id).catch(() => "");
+    const raw = await caseGenomeFromMaterialsAI({ intent, sourceText, opinion, research: research.block, style });
     const genome = sanitizeGenome(raw, intent || "Case");
     if (!genomeComplete(genome)) return Response.json({ error: "The draft came back incomplete. Add a clearer brief or more materials." }, { status: 502 });
     // Attach media candidates the studio found, as one-click suggestions for the
