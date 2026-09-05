@@ -209,7 +209,7 @@ function AskCompanion({ genome, preview }: { genome: CaseGenome; preview?: boole
 }
 
 /* ---------- the reader ---------- */
-export default function LivingCaseReader({ genome, preview }: { genome: CaseGenome; preview?: boolean }) {
+export default function LivingCaseReader({ genome, preview, draft }: { genome: CaseGenome; preview?: boolean; draft?: boolean }) {
   const [progress, setProgress] = useState(0);
   const [committed, setCommitted] = useState<{ k: string; c: number } | null>(null);
   const [teaching, setTeaching] = useState(false);
@@ -268,9 +268,9 @@ export default function LivingCaseReader({ genome, preview }: { genome: CaseGeno
       </div>
 
       <article className="mx-auto max-w-3xl px-5 pb-24">
-        {genome.generated && (
+        {!preview && draft && (
           <div className="mt-6 rounded-xl border border-amber/40 bg-amber/5 p-3 text-sm text-slate2">
-            <b className="text-ink">Draft — verify before you teach it.</b> This case was AI-generated from your prompt. Check every claim and swap in real, verified videos and sources before publishing to a cohort.
+            <b className="text-ink">Draft.</b> This case hasn&apos;t been published yet.
           </div>
         )}
         <header className="pt-12">
@@ -331,7 +331,7 @@ export default function LivingCaseReader({ genome, preview }: { genome: CaseGeno
               <li key={i}>· <a href={s.href} target="_blank" rel="noopener noreferrer" className="font-medium text-sky underline decoration-sky/30 underline-offset-2 hover:decoration-sky">{s.label}</a></li>
             ))}
           </ul>
-          <p className="mt-5 text-xs text-slate-400">A “living case” · built for discussion{genome.generated ? " · AI-drafted, verify before teaching" : ""}.</p>
+          <p className="mt-5 text-xs text-slate-400">A “living case” · built for discussion.</p>
         </section>
       </article>
     </main>

@@ -28,7 +28,9 @@ export async function loadLivingCase(slug: string, userId: string | null): Promi
     }
   }
   const genome = (row as any).spec as CaseGenome;
-  return genome && genome.situationBeats ? { ...genome, slug } : null;
+  // Attach transient draft status (not persisted) so the reader can show a
+  // plain "Draft" notice to whoever is viewing an unpublished case.
+  return genome && genome.situationBeats ? ({ ...genome, slug, _draft: (row as any).status !== "published" } as any) : null;
 }
 
 export type LivingCaseListing = { slug: string; name: string; status: string; updated_at: string | null };

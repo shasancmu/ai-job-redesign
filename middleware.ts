@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isIndexablePath } from "@/lib/robots";
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -27,6 +28,13 @@ export async function middleware(request: NextRequest) {
 
   // Refreshes the auth token so Server Components see a valid session.
   await supabase.auth.getUser();
+
+  // Keep search engines out of the app and out of their cache/archive; only the
+  // marketing/landing/legal pages may be indexed. Serving this even for
+  // already-crawled URLs is what gets them removed from the index.
+  if (!isIndexablePath(request.nextUrl.pathname)) {
+    response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+  }
 
   return response;
 }
