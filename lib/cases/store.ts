@@ -30,3 +30,18 @@ export async function loadLivingCase(slug: string, userId: string | null): Promi
   const genome = (row as any).spec as CaseGenome;
   return genome && genome.situationBeats ? { ...genome, slug } : null;
 }
+
+export type LivingCaseListing = { slug: string; name: string; status: string; updated_at: string | null };
+
+// Every living case the given user authored, newest first — for the "My cases" list.
+export async function listMyLivingCases(userId: string): Promise<LivingCaseListing[]> {
+  let admin;
+  try { admin = createAdminClient(); } catch { return []; }
+  const { data } = await admin
+    .from("custom_modules")
+    .select("slug, name, status, updated_at")
+    .eq("super_type", LIVING_CASE_TYPE)
+    .eq("author_id", userId)
+    .order("updated_at", { ascending: false });
+  return ((data || []) as any[]) as LivingCaseListing[];
+}

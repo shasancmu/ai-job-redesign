@@ -18,6 +18,8 @@ export default function CaseEditor({ spec }: { spec: CaseGenome; me?: string; or
   const [g, setG] = useState<CaseGenome>(spec);
   const [videoUrl, setVideoUrl] = useState("");
   const [imgUrl, setImgUrl] = useState("");
+  const [beatUrl, setBeatUrl] = useState<Record<string, string>>({});
+  const [showBeats, setShowBeats] = useState(false);
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [saved, setSaved] = useState<{ slug: string; published: boolean } | null>(null);
@@ -36,6 +38,13 @@ export default function CaseEditor({ spec }: { spec: CaseGenome; me?: string; or
     setErr("");
     setG({ ...g, heroImage: { url: url.trim(), alt: g.title } });
     setImgUrl("");
+  }
+  // Assign / clear an image on a specific beat.
+  function setBeatImage(section: "situationBeats" | "revealBeats", i: number, url: string | null) {
+    setG((prev) => {
+      const beats = prev[section].map((b, k) => (k === i ? { ...b, image: url ? { url, alt: b.title } : undefined } : b));
+      return { ...prev, [section]: beats };
+    });
   }
 
   async function save(publish: boolean) {
@@ -110,6 +119,44 @@ export default function CaseEditor({ spec }: { spec: CaseGenome; me?: string; or
                     </button>
                   ))}
                 </div>
+              </div>
+            )}
+          </div>
+          <div className="rounded-xl border border-line bg-mist/30 p-3">
+            <button onClick={() => setShowBeats((s) => !s)} className="flex w-full items-center justify-between text-left">
+              <span className="lbl">Images per section <span className="font-normal text-slate-400">— optional</span></span>
+              <span className="font-mono text-[11px] uppercase text-slate-400">{showBeats ? "hide" : "add"}</span>
+            </button>
+            {showBeats && (
+              <div className="mt-2 space-y-3">
+                {(["situationBeats", "revealBeats"] as const).flatMap((section) =>
+                  g[section].map((b, i) => {
+                    const key = `${section}-${i}`;
+                    return (
+                      <div key={key} className="rounded-lg border border-line bg-white p-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="grid h-5 w-5 flex-none place-items-center rounded bg-sage-soft text-[11px] font-bold text-sage">{b.n}</span>
+                          <span className="min-w-0 flex-1 truncate text-xs font-semibold text-ink">{b.title}</span>
+                          {b.image && <button onClick={() => setBeatImage(section, i, null)} className="text-[11px] text-sage underline">✓ remove</button>}
+                        </div>
+                        <div className="mt-1.5 flex gap-2">
+                          <input className="field flex-1 py-1 text-xs" value={beatUrl[key] || ""} onChange={(e) => setBeatUrl((m) => ({ ...m, [key]: e.target.value }))} placeholder="image URL" />
+                          <button onClick={() => { const u = (beatUrl[key] || "").trim(); if (/^https?:\/\//.test(u)) { setBeatImage(section, i, u); setBeatUrl((m) => ({ ...m, [key]: "" })); } }} className="btn-ghost px-2 py-1 text-xs">Set</button>
+                        </div>
+                        {!!suggest?.images?.length && (
+                          <div className="mt-1.5 flex flex-wrap gap-1.5">
+                            {suggest.images.slice(0, 6).map((im, k) => (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <button key={k} onClick={() => setBeatImage(section, i, im.url)} className="h-10 w-16 overflow-hidden rounded border border-line hover:border-ink" title="Use for this section">
+                                <img src={im.url} alt="" className="h-full w-full object-cover" loading="lazy" />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             )}
           </div>

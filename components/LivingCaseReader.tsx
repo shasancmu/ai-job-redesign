@@ -3,7 +3,7 @@
 // Generic renderer for a CaseGenome — the reusable "living case" reader. Any
 // case (hand-authored in lib/cases, or AI-generated at /cases/new) renders here.
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import type { CaseGenome, CaseBeat, CaseExhibit } from "@/lib/cases/types";
 
@@ -98,6 +98,12 @@ function BeatBlock({ beat, teaching }: { beat: CaseBeat; teaching: boolean }) {
         <h2 className="mt-3 text-[26px] font-bold leading-tight tracking-tight text-ink">{beat.title}</h2>
       </div>
       <p className="text-[17px] leading-relaxed text-ink/90">{rich(beat.body)}</p>
+      {beat.image?.url && (
+        <figure className="my-5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={beat.image.url} alt={beat.image.alt || beat.title} className="w-full rounded-xl border border-line object-cover" style={{ maxHeight: 380 }} loading="lazy" />
+        </figure>
+      )}
       {beat.video && <Video id={beat.video.youtubeId} title={beat.video.title} />}
       {beat.exhibit && <Exhibit ex={beat.exhibit} />}
       {beat.deeper?.map((d, i) => <Deeper key={i} label={d.label} body={d.body} />)}
@@ -161,7 +167,8 @@ function AskCompanion({ genome, preview }: { genome: CaseGenome; preview?: boole
     setMsgs(next); setBusy(true);
     setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 30);
     try {
-      const res = await fetch("/api/cases/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug: genome.slug, history: next }) });
+      let cohort: string | null = null; try { cohort = new URLSearchParams(window.location.search).get("c"); } catch {}
+      const res = await fetch("/api/cases/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug: genome.slug, history: next, cohort }) });
       const d = await res.json();
       if (!res.ok || !d.reply) throw new Error(d.error || "No reply.");
       setMsgs((m) => [...m, { role: "assistant", content: d.reply }]);
@@ -219,9 +226,33 @@ export default function LivingCaseReader({ genome, preview }: { genome: CaseGeno
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // --- engagement tracking (best-effort; skipped in preview) ---
+  const anonRef = useRef<string>("");
+  const cohortRef = useRef<string | null>(null);
+  const beacon = useCallback((kind: string, extra: Record<string, unknown> = {}) => {
+    if (preview) return;
+    try {
+      fetch("/api/cases/event", { method: "POST", headers: { "Content-Type": "application/json" }, keepalive: true, body: JSON.stringify({ slug: genome.slug, kind, cohort: cohortRef.current, anonId: anonRef.current, ...extra }) }).catch(() => {});
+    } catch {}
+  }, [genome.slug, preview]);
+  useEffect(() => {
+    if (preview) return;
+    try {
+      let a = localStorage.getItem("case:anon");
+      if (!a) { a = (typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()).slice(0, 36); localStorage.setItem("case:anon", a); }
+      anonRef.current = a;
+      cohortRef.current = new URLSearchParams(window.location.search).get("c");
+    } catch {}
+    const t = setTimeout(() => beacon("open"), 500);
+    const onClick = (e: MouseEvent) => { const a = (e.target as HTMLElement)?.closest?.("a[href^='http']") as HTMLAnchorElement | null; if (a) beacon("link_click", { url: a.href }); };
+    document.addEventListener("click", onClick);
+    return () => { clearTimeout(t); document.removeEventListener("click", onClick); };
+  }, [preview, beacon]);
+
   const commit = (k: string, c: number) => {
     const v = { k, c }; setCommitted(v);
     if (!preview) { try { localStorage.setItem(storeKey, JSON.stringify(v)); } catch {} }
+    beacon("commit", { label: genome.commitOptions.find((o) => o.k === k)?.label || k, confidence: c });
     setTimeout(() => revealRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
   };
 

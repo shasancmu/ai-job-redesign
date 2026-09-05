@@ -14,6 +14,7 @@ export type CaseBeat = {
   kicker: string;
   title: string;
   body: string;
+  image?: { url: string; alt?: string }; // a verified image the editor attaches to this beat
   video?: CaseVideo;
   deeper?: CaseDeeper[];
   exhibit?: CaseExhibit;

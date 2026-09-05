@@ -24,6 +24,9 @@ export async function POST(request: Request) {
   // The editor may attach verified media the generator is forbidden from inventing.
   if (incoming.openingVideo?.youtubeId) genome.openingVideo = { youtubeId: String(incoming.openingVideo.youtubeId).slice(0, 20), title: String(incoming.openingVideo.title || "").slice(0, 200) };
   if (incoming.heroImage?.url && /^https?:\/\//.test(String(incoming.heroImage.url))) genome.heroImage = { url: String(incoming.heroImage.url).slice(0, 600), alt: String(incoming.heroImage.alt || "").slice(0, 200) };
+  const reattachImages = (clean: any[], inc: any) => clean.forEach((b: any, i: number) => { const src = Array.isArray(inc) ? inc[i]?.image : null; if (src?.url && /^https?:\/\//.test(String(src.url))) b.image = { url: String(src.url).slice(0, 600), alt: String(src.alt || "").slice(0, 200) }; });
+  reattachImages(genome.situationBeats, incoming.situationBeats);
+  reattachImages(genome.revealBeats, incoming.revealBeats);
   if (!genomeComplete(genome)) return Response.json({ error: "The case is incomplete." }, { status: 400 });
 
   const admin = createAdminClient();
