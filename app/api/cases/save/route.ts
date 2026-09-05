@@ -27,6 +27,9 @@ export async function POST(request: Request) {
   const reattachImages = (clean: any[], inc: any) => clean.forEach((b: any, i: number) => { const src = Array.isArray(inc) ? inc[i]?.image : null; if (src?.url && /^https?:\/\//.test(String(src.url))) b.image = { url: String(src.url).slice(0, 600), alt: String(src.alt || "").slice(0, 200) }; });
   reattachImages(genome.situationBeats, incoming.situationBeats);
   reattachImages(genome.revealBeats, incoming.revealBeats);
+  // Preserve access settings (set from the insights view) across re-saves.
+  if (incoming.access === "enrolled" || incoming.access === "public") genome.access = incoming.access;
+  if (Array.isArray(incoming.cohorts)) genome.cohorts = incoming.cohorts.map((c: any) => String(c)).slice(0, 20);
   if (!genomeComplete(genome)) return Response.json({ error: "The case is incomplete." }, { status: 400 });
 
   const admin = createAdminClient();

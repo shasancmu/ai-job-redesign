@@ -5,7 +5,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { caseBySlug } from "@/lib/cases/registry";
 import { isSuperadmin } from "@/lib/orgs";
 import { caseInsights } from "@/lib/cases/events";
+import { listOwnedClasses } from "@/lib/cases/access";
 import AssignLink from "@/components/AssignLink";
+import CaseAccessControl from "@/components/CaseAccessControl";
 import HeaderNav from "@/components/HeaderNav";
 import Logo from "@/components/Logo";
 
@@ -29,14 +31,22 @@ export default async function CaseInsightsPage({ params, searchParams }: { param
   const builtin = caseBySlug(params.slug);
   let name = builtin?.title || params.slug;
   let canView = false;
+  let access: "public" | "enrolled" = (builtin?.access as any) || "public";
+  let assigned: string[] = builtin?.cohorts || [];
+  let isDbCase = false;
   if (builtin) canView = await isSuperadmin(user);
   else {
     const admin = createAdminClient();
-    const { data: row } = await admin.from("custom_modules").select("author_id, name").eq("slug", params.slug).eq("super_type", "living-case").maybeSingle();
+    const { data: row } = await admin.from("custom_modules").select("author_id, name, spec").eq("slug", params.slug).eq("super_type", "living-case").maybeSingle();
     canView = !!row && (row as any).author_id === user.id;
     name = (row as any)?.name || name;
+    const spec = (row as any)?.spec || {};
+    access = spec.access === "enrolled" ? "enrolled" : "public";
+    assigned = Array.isArray(spec.cohorts) ? spec.cohorts : [];
+    isDbCase = !!row;
   }
   if (!canView) redirect("/dashboard");
+  const ownedClasses = isDbCase ? await listOwnedClasses(user.id) : [];
 
   const cohort = searchParams.c || null;
   const ins = await caseInsights(params.slug, cohort);
@@ -83,8 +93,11 @@ export default async function CaseInsightsPage({ params, searchParams }: { param
         </div>
       )}
 
-      {/* assignment link */}
-      <div className="mt-6"><AssignLink slug={params.slug} /></div>
+      {/* access + assignment link */}
+      <div className="mt-6 space-y-3">
+        {isDbCase && <CaseAccessControl slug={params.slug} initialAccess={access} initialCohorts={assigned} classes={ownedClasses} />}
+        <AssignLink slug={params.slug} />
+      </div>
 
       {/* decisions */}
       {ins.decisions.length > 0 && (

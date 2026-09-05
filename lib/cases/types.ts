@@ -41,4 +41,6 @@ export type CaseGenome = {
   sources: CaseSource[];
   teachingIntro?: string; // teaching note in the hero
   generated?: boolean; // true if AI-drafted (shows the "verify before publish" banner)
+  access?: "public" | "enrolled"; // "enrolled" = only members of an assigned class may open it
+  cohorts?: string[]; // class codes this case is assigned to (for enrolled access)
 };
