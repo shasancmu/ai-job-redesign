@@ -1693,6 +1693,136 @@ export function moduleCategory(slug: string): CategoryKey {
   return CATEGORY_OF[slug] || "strategy";
 }
 
+// ---------------------------------------------------------------------------
+// The outcome you keep — Maven-style. Every card leads with the artifact or
+// understanding you walk out with, not the title. A short noun phrase, authored
+// per module (never guessed): the thing that is true after you finish.
+// ---------------------------------------------------------------------------
+const OUTCOME_OF: Record<string, string> = {
+  "reimagine-job": "A redesign of your job — what to keep, what to hand AI",
+  "reimagine-workflow": "A redesigned workflow with the AI/human split drawn",
+  "workflow-solo": "A redesigned workflow you can implement",
+  "solo-ai": "A redesign of your job, done with AI",
+  benchmark: "Your reasoning score, head-to-head with the AI",
+  network: "A live map of the room's connections",
+  "jd-x-ray": "A role's AI-exposure breakdown",
+  "career-x-ray": "Your career's AI-exposure map",
+  "career-roadmap": "A prioritized map of your next moves",
+  "career-myopia": "Your career's three blind spots, named",
+  "find-superpower": "A profile of your real superpower",
+  "personal-network": "A map of your personal network",
+  "refresh-resume": "A prioritized set of résumé rewrites",
+  "refresh-resume-voice": "A prioritized set of résumé rewrites",
+  "vendor-disclosure": "A verdict on a vendor's AI claims",
+  "haip-disclosure": "A risk read on a healthcare-AI vendor",
+  "execution-4a": "Your plan scored on the 4 A's, with the one fix",
+  "good-business": "A pressure-tested business idea",
+  "balanced-scorecard": "A balanced scorecard for your strategy",
+  "deeptech-canvas": "A deep-tech venture plan",
+  "ai-canvas": "A GAS canvas — where AI fits your workflow",
+  "opportunity-capability": "A go/no-go read on your bet",
+  "test-the-bet": "A test designed for your strategy",
+  "business-consult": "A 30-minute diagnosis of your business",
+  "voice-consult": "A talked-through business diagnosis",
+  "ai-board": "Advice from your convened AI board",
+  "customer-empathy": "A map of what your customer really wants",
+  "business-myopia": "Your business's three blind spots, named",
+  "define-vision": "A usable company vision",
+  "define-vision-voice": "A usable company vision",
+  "earnings-call": "A forensic read on a CEO's hidden truth",
+  "star-hire": "Your hire, scored against the truth",
+  "incentive-lab": "An incentive system that resists gaming",
+  "regression-detective": "The true model, recovered and graded",
+  "hot-seat": "A survived hot-seat, scored",
+  "the-number": "Your team's reckoning report",
+  "domain-brief": "A domain-expertise brief",
+  "find-collaborators": "A shortlist of collaborators",
+  "licensing-brief": "A licensing brief for the invention",
+  "score-my-invention": "A commercial-potential score for your invention",
+  "defense-impact": "A defense-relevance score, evidence-backed",
+  "impact-optimizer": "An impact-optimized version of your abstract",
+  "explain-ai": "A plain-language explainer of the science",
+  "position-my-research": "A sharper positioning for your research",
+  "rank-disclosures": "Your disclosures ranked by potential",
+  "find-a-cofounder": "A shortlist of technical co-founders",
+  "diligence-the-science": "A diligence read on the science",
+  "nearest-expert": "The nearest expert to your problem",
+  "science-radar": "A radar of the science frontier",
+  "science-intel": "A science-intelligence talent map",
+  "technology-landscape": "A landscape scan of the technology",
+  "deep-tech-deal-sourcing": "A sourced list of spin-out candidates",
+  "commercialization-scorecard": "A university commercialization scorecard",
+  "field-trajectory": "A read on where your field is heading",
+  "close-the-offer": "A negotiated offer, scored on the value you claimed",
+  "name-your-price": "A scored price negotiation",
+  "ask-for-a-raise": "A rehearsed raise ask, scored",
+  "close-the-vendor-deal": "A closed vendor deal, scored",
+  "lease-the-space": "A negotiated lease, scored",
+  "rehearse-hard-conversation": "A rehearsed hard conversation",
+  "what-is-a-paper": "The idea behind a paper, made visible",
+  "paper-structure": "A structure for your paper",
+  "making-points": "Your paper's points, sharpened",
+  "read-the-interaction": "Your idea defined as a testable interaction",
+  "strategy-experiment": "A designed strategy experiment",
+  "publication-pipeline": "A map of your publication pipeline",
+  "understand-a-paper": "A paper, understood deeply",
+  "good-research": "A read on what makes your paper good",
+  "regression-tables": "Regression tables a reader can follow",
+  "research-graphs": "A figure that makes your finding obvious",
+  "literature-reviews": "A positioned literature review",
+  "data-moat": "A verdict on whether your data is a moat",
+  "data-strategy": "A chosen data strategy",
+  "identification": "A credibility check on your identification",
+  "the-referee": "Your paper seen through the reviewers' eyes",
+  "revise-resubmit": "An R&R response plan",
+  "journal-fit": "A journal pick and a cover letter",
+  "theory-section": "A built theory section",
+  "abstract-title": "A polished abstract and title",
+  "research-system": "A designed research system",
+  "research-team": "A plan for your research team",
+  "what-is-a-phd": "A clear read on whether a PhD fits you",
+  "choose-phd-program": "A way to rank PhD programs",
+  "phd-application": "A stronger PhD application",
+  "phd-structure": "A map of how a PhD actually works",
+  "phd-succeed": "A playbook for succeeding in a PhD",
+  "phd-placement": "A plan to place on the job market",
+  "ai-rules": "How rule-based AI works, understood",
+  "ai-learning": "How machine learning works, understood",
+  "ai-language": "How language models work, understood",
+  "ai-scale": "How scale and self-play work, understood",
+};
+
+// The artifact/understanding you keep, or null when none is authored (the card
+// then falls back to its tagline alone).
+export function outcomeOf(slug: string): string | null {
+  return OUTCOME_OF[slug] || null;
+}
+
+// ---------------------------------------------------------------------------
+// Intents — the Headspace-style "what do you want to get better at?" gate. A
+// small set of goals that roll the eight taxonomy categories up into the few
+// things a person actually shows up wanting to do. The gate reduces the choice
+// from ~90 modules to five doors.
+// ---------------------------------------------------------------------------
+export type IntentKey = "ai-work" | "decide" | "negotiate" | "commercialize" | "research";
+export const INTENTS: { key: IntentKey; emoji: string; label: string; blurb: string; cats: CategoryKey[] }[] = [
+  { key: "ai-work", emoji: "🤖", label: "Work smarter with AI", blurb: "Redesign your job or a workflow, and see what only a human can do.", cats: ["redesign", "foundations"] },
+  { key: "decide", emoji: "🎯", label: "Sharpen a decision", blurb: "Pressure-test a strategy, a bet, or a business with a real framework.", cats: ["strategy"] },
+  { key: "negotiate", emoji: "🤝", label: "Negotiate & persuade", blurb: "Bargain live against an AI counterpart, then get scored.", cats: ["negotiate"] },
+  { key: "commercialize", emoji: "🔬", label: "Commercialize science", blurb: "Turn research into ventures — score it, scan it, staff it.", cats: ["commercialize"] },
+  { key: "research", emoji: "🎓", label: "Do research & get a PhD", blurb: "Frame, structure, and argue a paper — and navigate the PhD path.", cats: ["research", "phd"] },
+];
+const CAT_TO_INTENT: Partial<Record<CategoryKey, IntentKey>> = (() => {
+  const m: Partial<Record<CategoryKey, IntentKey>> = {};
+  for (const it of INTENTS) for (const c of it.cats) m[c] = it.key;
+  return m;
+})();
+// Which intent a module belongs to, or null (e.g. "live" is cohort-only and sits
+// outside the solo intent gate).
+export function moduleIntent(slug: string): IntentKey | null {
+  return CAT_TO_INTENT[moduleCategory(slug)] || null;
+}
+
 // Curriculum order — how modules are sequenced within each category in the
 // catalog (foundational → advanced, following the learning path). Slugs not
 // listed fall to the end of their category. Used to sort the grouped catalog.

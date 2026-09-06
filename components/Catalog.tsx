@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { MODULES, PARTNER_META, CATEGORIES, moduleCategory, formatPrice, modulePills, pillLabel, moduleMatches, hasActiveFilters, byCatalogOrder, moduleNeeds } from "@/lib/modules";
+import { MODULES, PARTNER_META, CATEGORIES, moduleCategory, formatPrice, modulePills, pillLabel, moduleMatches, hasActiveFilters, byCatalogOrder, moduleNeeds, INTENTS, moduleIntent, outcomeOf, type IntentKey } from "@/lib/modules";
 import ModuleIcon from "@/components/ModuleIcon";
 import ModuleFilters from "@/components/ModuleFilters";
 import { useModuleFilters } from "@/components/useModuleFilters";
@@ -28,6 +28,14 @@ function makeCode() {
 }
 
 const PAIRED = new Set(["job", "workflow"]);
+
+// When we have no real run counts to rank "Popular" by, fall back to an editorial
+// pick (honest — a curated shortlist, never a fabricated number). The live count
+// badge only shows when a real number is present.
+const POPULAR_FALLBACK = [
+  "solo-ai", "good-business", "ai-canvas", "close-the-offer",
+  "regression-detective", "science-intel", "earnings-call", "career-x-ray",
+];
 
 // Where "View last result" should land: the printable artifact when there is one.
 function resultHref(exercise: string, code: string) {
@@ -64,6 +72,8 @@ export default function Catalog({
   recommended = [],
   runsLeft = {},
   certByModule = {},
+  popular = [],
+  runsThisWeek = {},
 }: {
   userId: string;
   unlocked: Record<string, boolean>;
@@ -75,6 +85,8 @@ export default function Catalog({
   recommended?: string[];
   runsLeft?: Record<string, number | null>;
   certByModule?: Record<string, string>;
+  popular?: string[]; // slugs ordered by real popularity (most-started first)
+  runsThisWeek?: Record<string, number>; // real run count this week, for the live badge
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -89,6 +101,7 @@ export default function Catalog({
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [detail, setDetail] = useState<string | null>(null); // slug of the module whose "What's this?" is open
+  const [intent, setIntent] = useState<IntentKey | null>(null); // the chosen "what do you want to get better at?" goal
   // Keyboard handling for that dialog: Escape closes it, focus moves into it on
   // open and back to the card that opened it on close.
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -152,8 +165,10 @@ export default function Catalog({
     const left = runsLeft[m.slug]; // null = unlimited, number = runs remaining
     const out = left === 0; // no runs remaining → send to the paywall
     const canStart = open && !out;
+    const outcome = outcomeOf(m.slug);
+    const runsWk = runsThisWeek[m.slug] || 0;
     return (
-            <div key={m.slug} className="card relative flex flex-col p-6 transition hover:shadow-lift">
+            <div key={m.slug} className="card group relative flex flex-col p-6 transition hover:shadow-lift">
               <button
                 type="button"
                 onClick={() => setDetail(m.slug)}
@@ -169,11 +184,25 @@ export default function Catalog({
               <div className={"flex h-11 w-11 items-center justify-center rounded-xl " + chip}>
                 <ModuleIcon slug={m.slug} />
               </div>
-              <h3 className="mt-4 text-lg font-bold text-ink">{tf("modules." + m.slug + ".name", m.name)}</h3>
+              {outcome ? (
+                <>
+                  <div className="mt-4 text-[10px] font-semibold uppercase tracking-wide text-ai/70">You&apos;ll walk out with</div>
+                  <h3 className="mt-0.5 text-[15px] font-bold leading-snug text-ink">{outcome}</h3>
+                  <div className="mt-1 text-xs font-medium text-slate-400">{tf("modules." + m.slug + ".name", m.name)}</div>
+                </>
+              ) : (
+                <h3 className="mt-4 text-lg font-bold text-ink">{tf("modules." + m.slug + ".name", m.name)}</h3>
+              )}
               {certByModule[m.slug] && (
                 <div className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-sage">🏅 Counts toward {certByModule[m.slug]}</div>
               )}
-              <p className="mt-1.5 text-sm leading-relaxed text-slate2">{tf("modules." + m.slug + ".tagline", m.tagline)}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate2 line-clamp-2">{tf("modules." + m.slug + ".tagline", m.tagline)}</p>
+              {/* Hover-preview: the fuller description reveals on hover (motion); non-essential, so it stays folded otherwise and respects reduced-motion. */}
+              <div className="grid grid-rows-[0fr] opacity-0 transition-all duration-300 ease-out group-hover:grid-rows-[1fr] group-hover:opacity-100 motion-reduce:transition-none">
+                <div className="overflow-hidden">
+                  <p className="mt-2 text-xs leading-relaxed text-slate-500">{m.description.length > 180 ? m.description.slice(0, 180).trimEnd() + "…" : m.description}</p>
+                </div>
+              </div>
               <div className="mt-2 flex flex-1 flex-wrap content-start gap-1">
                 {modulePills(m.slug).map((p) => (
                   <button
@@ -197,6 +226,9 @@ export default function Catalog({
                 <FeatureBadges slug={m.slug} />
                 {completed[m.slug] && (
                   <span className="rounded-full bg-sage-soft px-2 py-0.5 font-medium text-sage">{t("catalog.done")}</span>
+                )}
+                {runsWk > 0 && (
+                  <span className="rounded-full bg-clay-soft px-2 py-0.5 font-medium text-clay" title={`Started ${runsWk} time${runsWk === 1 ? "" : "s"} in the last 7 days`}>🔥 {runsWk} this week</span>
                 )}
                 {typeof left === "number" && (
                   <span className={"rounded-full px-2 py-0.5 font-medium " + (out ? "bg-clay-soft text-clay" : "bg-mist text-slate2")}>
@@ -298,32 +330,96 @@ export default function Catalog({
                   ) : (
                     <p className="text-sm text-slate2">No exercises match. Try clearing a filter or your search.</p>
                   )
+                ) : intent ? (
+                  (() => {
+                    const it = INTENTS.find((x) => x.key === intent)!;
+                    const im = shown.filter((m) => moduleIntent(m.slug) === intent).sort(byCatalogOrder);
+                    return (
+                      <div>
+                        <button onClick={() => setIntent(null)} className="text-sm text-slate2 hover:text-ink">← All goals</button>
+                        <div className="mt-3 flex items-start gap-3">
+                          <span className="text-3xl" aria-hidden>{it.emoji}</span>
+                          <div>
+                            <h3 className="font-serif text-xl text-ink">{it.label}</h3>
+                            <p className="mt-0.5 text-sm text-slate-500">{it.blurb}</p>
+                          </div>
+                        </div>
+                        {im.length ? (
+                          <div className={grid + " mt-6"}>{im.map(renderCard)}</div>
+                        ) : (
+                          <p className="mt-6 text-sm text-slate2">Nothing here yet.</p>
+                        )}
+                      </div>
+                    );
+                  })()
                 ) : (
-            <>
-              {recModules.length > 0 && (
-                <div>
-                  <div className="mb-3 flex items-baseline gap-2">
-                    <span className="h-2 w-2 rounded-full bg-ink" />
-                    <h3 className="text-sm font-bold text-ink">{t("dash.recommended")}</h3>
-                  </div>
-                  <div className={grid}>{recModules.map(renderCard)}</div>
-                </div>
-              )}
-              {CATEGORIES.map((cat) => {
-                const mods = shown.filter((m) => moduleCategory(m.slug) === cat.key).sort(byCatalogOrder);
-                if (mods.length === 0) return null;
-                return (
-                  <div key={cat.key}>
-                    <div className="mb-3 flex items-baseline gap-2">
-                      <span className="h-2 w-2 rounded-full" style={{ background: cat.dot }} />
-                      <h3 className="text-sm font-bold text-ink">{t("cat." + cat.key)}</h3>
-                    </div>
-                    <div className={grid}>{mods.map(renderCard)}</div>
-                  </div>
-                );
-              })}
-                    </>
-                  )}
+                  (() => {
+                    const quick = shown.filter((m) => m.minutes > 0 && m.minutes <= 15 && m.partner !== "group").sort(byCatalogOrder).slice(0, 8);
+                    const popModules = ((popular.length ? popular : POPULAR_FALLBACK)
+                      .map((s) => shown.find((m) => m.slug === s))
+                      .filter((m) => m && m.partner !== "group") as typeof MODULES).slice(0, 8);
+                    const rails: { key: string; dot: string; title: string; mods: typeof MODULES }[] = [
+                      ...(recModules.length ? [{ key: "rec", dot: "#1A1A1A", title: t("dash.recommended"), mods: recModules }] : []),
+                      { key: "quick", dot: "#3F7A52", title: "Quick wins — done in 15 minutes", mods: quick },
+                      { key: "popular", dot: "#B4632A", title: "Popular this week", mods: popModules },
+                    ];
+                    return (
+                      <div className="space-y-9">
+                        {/* Intent gate — reduce ~90 modules to five doors (Headspace-style). */}
+                        <div>
+                          <h3 className="font-serif text-lg text-ink">What do you want to get better at?</h3>
+                          <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+                            {INTENTS.map((it) => (
+                              <button key={it.key} onClick={() => setIntent(it.key)} className="group flex flex-col items-start rounded-2xl border border-line bg-white p-3.5 text-left transition hover:border-ai/40 hover:shadow-sm">
+                                <span className="text-2xl" aria-hidden>{it.emoji}</span>
+                                <span className="mt-2 text-sm font-bold leading-snug text-ink group-hover:text-ai">{it.label}</span>
+                                <span className="mt-0.5 text-[11px] leading-snug text-slate-500">{it.blurb}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Rails — a few named rows, horizontally scrollable, instead of one endless grid (Netflix-style). */}
+                        {rails.map((r) => r.mods.length ? (
+                          <div key={r.key}>
+                            <div className="mb-3 flex items-baseline gap-2">
+                              <span className="h-2 w-2 rounded-full" style={{ background: r.dot }} />
+                              <h3 className="text-sm font-bold text-ink">{r.title}</h3>
+                            </div>
+                            <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-2">
+                              {r.mods.map((m) => (
+                                <div key={m.slug} className="w-[280px] shrink-0 snap-start">{renderCard(m)}</div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null)}
+
+                        {/* Everything, by category — one disclosure down, for the browse-all user. */}
+                        <details className="group rounded-2xl border border-line bg-white/60">
+                          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-ink">
+                            <span>Browse the full library</span>
+                            <span className="text-slate-400 transition group-open:rotate-180">⌄</span>
+                          </summary>
+                          <div className="space-y-8 px-4 pb-5 pt-1">
+                            {CATEGORIES.map((cat) => {
+                              const cmods = shown.filter((m) => moduleCategory(m.slug) === cat.key).sort(byCatalogOrder);
+                              if (cmods.length === 0) return null;
+                              return (
+                                <div key={cat.key}>
+                                  <div className="mb-3 flex items-baseline gap-2">
+                                    <span className="h-2 w-2 rounded-full" style={{ background: cat.dot }} />
+                                    <h3 className="text-sm font-bold text-ink">{t("cat." + cat.key)}</h3>
+                                  </div>
+                                  <div className={grid}>{cmods.map(renderCard)}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </details>
+                      </div>
+                    );
+                  })()
+                )}
                 </>
               );
             })()}

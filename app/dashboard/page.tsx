@@ -363,6 +363,25 @@ export default async function Dashboard({
   const showRuns = isConsumer && PAYMENTS_ENABLED;
   const offer = showRuns ? await alumniOffer(supabase, user.id) : { active: false, daysLeft: 0 };
 
+  // Real "Popular this week" signal for the catalog rails — one bounded query,
+  // counted by room engine (exercise) and mapped back to modules. Honest: if it
+  // fails or comes back empty, the catalog falls back to an editorial pick and
+  // shows no number.
+  let popular: string[] = [];
+  const runsThisWeek: Record<string, number> = {};
+  try {
+    const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
+    const pa = createAdminClient();
+    const { data: recent } = await pa.from("sessions").select("exercise").gte("created_at", weekAgo).limit(6000);
+    const byExercise: Record<string, number> = {};
+    for (const r of (recent as any[]) || []) { const e = r.exercise; if (e) byExercise[e] = (byExercise[e] || 0) + 1; }
+    for (const m of visibleModules) { const n = byExercise[m.exercise] || 0; if (n > 0) runsThisWeek[m.slug] = n; }
+    popular = visibleModules
+      .filter((m) => m.partner !== "group" && (runsThisWeek[m.slug] || 0) > 0)
+      .sort((x, y) => (runsThisWeek[y.slug] || 0) - (runsThisWeek[x.slug] || 0))
+      .map((m) => m.slug);
+  } catch { /* fall back to editorial popular, no live badge */ }
+
   const catalogEl = (
     <Catalog
       userId={user.id}
@@ -374,6 +393,8 @@ export default async function Dashboard({
       recommended={recommended}
       runsLeft={runsLeft}
       certByModule={certByModule}
+      popular={popular}
+      runsThisWeek={runsThisWeek}
     />
   );
 
@@ -389,6 +410,8 @@ export default async function Dashboard({
       recommended={recommended}
       runsLeft={runsLeft}
       certByModule={certByModule}
+      popular={popular}
+      runsThisWeek={runsThisWeek}
     />
   ) : null;
 
