@@ -100,13 +100,16 @@ export default function NegEditor({ me, initial, initialStatus }: { me: string; 
                         <input className="field flex-1 text-sm font-medium" value={iss.label || ""} onChange={(e) => { const label = e.target.value; setIssue(ii, { label, key: label.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || `issue${ii + 1}` }); }} placeholder="Issue, e.g. Base salary or Per-seat price" />
                         <button onClick={() => setScn((s: any) => ({ ...s, issues: s.issues.filter((_: any, k: number) => k !== ii) }))} className="shrink-0 text-slate-300 hover:text-red-500">✕</button>
                       </div>
+                      {/* One shared grid template for the header and every row, so the
+                          You / Them columns line up exactly (a flex row collapsed the
+                          empty option label and pushed the numbers out of alignment). */}
                       <div className="mt-2 space-y-1">
-                        <div className="flex gap-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400"><span className="flex-1">Option</span><span className="w-16 text-right">You</span><span className="w-16 text-right">Them</span></div>
+                        <div className="grid grid-cols-[1fr_4.5rem_4.5rem] gap-2 px-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400"><span>Option</span><span className="text-right">You</span><span className="text-right">Them</span></div>
                         {(iss.options || []).map((o: any, oi: number) => (
-                          <div key={oi} className="flex items-center gap-2">
-                            <input className="field flex-1 text-xs" value={o.label || ""} onChange={(e) => setOpt(ii, oi, { label: e.target.value })} placeholder="e.g. $120k" />
-                            <input type="number" className="field w-16 text-right text-xs" value={o.you ?? ""} onChange={(e) => setOpt(ii, oi, { you: Number(e.target.value) || 0 })} />
-                            <input type="number" className="field w-16 text-right text-xs" value={o.them ?? ""} onChange={(e) => setOpt(ii, oi, { them: Number(e.target.value) || 0 })} />
+                          <div key={oi} className="grid grid-cols-[1fr_4.5rem_4.5rem] items-center gap-2">
+                            <input className="field text-xs" value={o.label || ""} onChange={(e) => setOpt(ii, oi, { label: e.target.value })} placeholder="Term on offer, e.g. $60/seat" />
+                            <input type="number" className="field text-right text-xs" value={o.you ?? ""} onChange={(e) => setOpt(ii, oi, { you: Number(e.target.value) || 0 })} />
+                            <input type="number" className="field text-right text-xs" value={o.them ?? ""} onChange={(e) => setOpt(ii, oi, { them: Number(e.target.value) || 0 })} />
                           </div>
                         ))}
                         <button onClick={() => addOpt(ii)} className="text-xs font-semibold text-ai hover:underline">+ option</button>

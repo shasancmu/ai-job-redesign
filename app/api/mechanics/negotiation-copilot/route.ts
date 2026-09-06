@@ -16,8 +16,9 @@ Multi-issue:
   "scenario": "the situation the learner sees (their goal, their walk-away, that the other side has hidden priorities)",
   "yourBatna": 900,
   "issues": [
-    { "key": "salary", "label": "Base salary", "options": [ { "label": "$120k", "you": 0, "them": 800 }, { "label": "$160k", "you": 800, "them": 0 } ] }
+    { "key": "salary", "label": "Base salary", "options": [ { "label": "$120k", "you": 0, "them": 800 }, { "label": "$140k", "you": 400, "them": 400 }, { "label": "$160k", "you": 800, "them": 0 } ] }
   ]
+  // Every "label" (issue AND option) is REQUIRED and must be human-readable — an issue is a Title-Case phrase, an option names the actual term ("$120k", "12-month term"). Never output an option without a "label".
 }
 Single-price (distributive):
 { "kind": "single-price", "slug", "name", "counterpartName", "youRole", "themRole", "scenario", "role": "buyer", "yourReservation": 16000, "theirReservation": 12500, "listPrice": 17500, "unit": "$", "item": "the van" }`;
