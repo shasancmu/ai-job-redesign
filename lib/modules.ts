@@ -1565,7 +1565,7 @@ export const CATEGORIES: { key: CategoryKey; title: string; blurb: string; chip:
   { key: "redesign", title: "Work & AI", blurb: "Redesign your job or a workflow, and X-ray a résumé or role to see what AI can do, and what only a human can.", chip: "bg-sage-soft text-sage", dot: "#3F7A52" },
   { key: "foundations", title: "How AI works", blurb: "A plain-language, interactive series on how AI actually works, from expert systems to modern LLMs, so you understand what it can and can't do. With live demos and a tutor.", chip: "bg-amber-soft text-amber", dot: "#C98A2B" },
   { key: "strategy", title: "Sharpen a decision", blurb: "Pressure-test a strategy, a bet, or a whole business with a real framework and real numbers. AI interviews you, then builds the analysis.", chip: "bg-amber-soft text-amber", dot: "#C98A2B" },
-  { key: "commercialize", title: "Deep-tech & commercialization", blurb: "Turn science into ventures: score an invention, scan a technology landscape, find a technical co-founder, diligence the science, and rank disclosures. Powered by Scientifiq.AI.", chip: "bg-clay-soft text-clay", dot: "#B4632A" },
+  { key: "commercialize", title: "Science & deep-tech", blurb: "For TTOs, scientists, and deep-tech investors: score an invention, scan the research frontier, find the nearest expert or a technical co-founder, diligence the science, and rank disclosures. Powered by Scientifiq.AI.", chip: "bg-clay-soft text-clay", dot: "#B4632A" },
   { key: "negotiate", title: "Negotiate", blurb: "Bargain live against an AI counterpart, then get scored on the value you claimed, and the value you created.", chip: "bg-sky-soft text-sky", dot: "#4E79C9" },
   { key: "live", title: "Run it live in class", blurb: "Whole-room diagnostics that draw themselves as your cohort responds.", chip: "bg-clay-soft text-clay", dot: "#C06A47" },
   { key: "research", title: "Research & scholarship", blurb: "Frame, structure, and argue a research paper, and read your regressions as ideas. Frameworks from Sharique Hasan's “Research, Strategy.” For PhD students and researchers.", chip: "bg-sage-soft text-sage", dot: "#3F7A52" },
@@ -1607,18 +1607,18 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "defense-impact": "commercialize",
   "impact-optimizer": "commercialize",
   "explain-ai": "commercialize",
-  "position-my-research": "research",
+  "position-my-research": "commercialize", // Scientifiq: scores a paper's potential — science/deep-tech, not business-school scholarship
   "regression-detective": "research",
-  "nearest-expert": "research",
-  "science-radar": "research",
-  "science-intel": "research",
+  "nearest-expert": "commercialize", // Scientifiq science-scouting (TTO / hard-tech), not paper scholarship
+  "science-radar": "commercialize",
+  "science-intel": "commercialize",
   "rank-disclosures": "commercialize",
   "find-a-cofounder": "commercialize",
   "diligence-the-science": "commercialize",
   "technology-landscape": "commercialize",
   "deep-tech-deal-sourcing": "commercialize",
   "commercialization-scorecard": "commercialize",
-  "field-trajectory": "research",
+  "field-trajectory": "commercialize", // Scientifiq: scans the research frontier — science/deep-tech world
   "close-the-offer": "negotiate",
   "name-your-price": "negotiate",
   "ask-for-a-raise": "negotiate",
@@ -1809,7 +1809,7 @@ export const INTENTS: { key: IntentKey; emoji: string; label: string; blurb: str
   { key: "ai-work", emoji: "🤖", label: "Work smarter with AI", blurb: "Redesign your job or a workflow, and see what only a human can do.", cats: ["redesign", "foundations"] },
   { key: "decide", emoji: "🎯", label: "Sharpen a decision", blurb: "Pressure-test a strategy, a bet, or a business with a real framework.", cats: ["strategy"] },
   { key: "negotiate", emoji: "🤝", label: "Negotiate & persuade", blurb: "Bargain live against an AI counterpart, then get scored.", cats: ["negotiate"] },
-  { key: "commercialize", emoji: "🔬", label: "Commercialize science", blurb: "Turn research into ventures — score it, scan it, staff it.", cats: ["commercialize"] },
+  { key: "commercialize", emoji: "🔬", label: "Science & deep-tech", blurb: "For TTOs & hard-tech: score inventions, scan the research frontier, turn science into ventures.", cats: ["commercialize"] },
   { key: "research", emoji: "🎓", label: "Do research & get a PhD", blurb: "Frame, structure, and argue a paper — and navigate the PhD path.", cats: ["research", "phd"] },
 ];
 const CAT_TO_INTENT: Partial<Record<CategoryKey, IntentKey>> = (() => {
