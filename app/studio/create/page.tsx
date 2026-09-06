@@ -43,26 +43,18 @@ export default async function CreateGallery() {
       <p className="mt-1 max-w-2xl text-slate2">Start from your own materials, talk it through with the AI, or pick a format. The editor and AI copilot take it from there.</p>
       <p className="mt-2 text-sm text-slate-500">New to this? <Link href="/studio/guide" className="font-medium text-ai hover:underline">Read the guide</Link> — what modules are, and how to build one. Already made some? <Link href="/studio/mine" className="font-medium text-ai hover:underline">Your modules →</Link></p>
 
-      {/* Two ways in that pick the format for you. They are an "and", not an
-          "or": the upload screen lets you add materials AND talk it through,
-          grounded in what you added — so neither card claims to be the only way. */}
+      {/* One step, not two doors: "share context" = upload materials AND/OR talk
+          it through, in one flow. Two separate cards always read as either/or, so
+          they're collapsed into a single entry (Flow A: context first → the AI
+          recommends the format). The same step also opens from a format card
+          below (Flow B: format first → share context). */}
       <div className="mt-6 text-xs font-semibold uppercase tracking-wide text-slate-400">Not sure which format? Start here</div>
       <Link href="/studio/upload" className="group mt-3 block rounded-2xl border border-ai/40 bg-gradient-to-br from-ai/5 to-mist/50 p-5 transition hover:shadow-sm sm:p-6">
         <div className="flex items-center gap-4">
           <div className="text-3xl">📎</div>
           <div className="min-w-0 flex-1">
-            <div className="text-lg font-bold text-ink group-hover:text-ai">Upload your materials → get a module</div>
-            <div className="mt-0.5 text-sm text-slate2">Drop PDFs, Word docs, or notes and paste links. It reads them, picks the best format, and drafts a module — and you can add a quick interview on top. The fastest way in.</div>
-          </div>
-          <span className="shrink-0 text-lg font-semibold text-ai">→</span>
-        </div>
-      </Link>
-      <Link href="/studio/upload?start=interview" className="group mt-3 block rounded-2xl border border-line bg-white p-5 transition hover:border-ai/40 hover:shadow-sm sm:p-6">
-        <div className="flex items-center gap-4">
-          <div className="text-3xl">🎙️</div>
-          <div className="min-w-0 flex-1">
-            <div className="text-lg font-bold text-ink group-hover:text-ai">Talk it through</div>
-            <div className="mt-0.5 text-sm text-slate2">The AI interviews you, by text or voice, about what you want learners to do, then proposes what to build. Add materials too and it uses both.</div>
+            <div className="text-lg font-bold text-ink group-hover:text-ai">Share your materials &amp; context → get a module</div>
+            <div className="mt-0.5 text-sm text-slate2">Drop your PDFs, docs, and links, <span className="font-semibold text-ink">and</span> talk it through with the AI by text or voice — in one flow. Do either or both. It reads everything you give it, recommends the format, and drafts the module.</div>
           </div>
           <span className="shrink-0 text-lg font-semibold text-ai">→</span>
         </div>
