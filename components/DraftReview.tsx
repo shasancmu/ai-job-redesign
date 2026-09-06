@@ -37,7 +37,9 @@ export default function DraftReview({
   if (!steps.length) { onDone(); return null; }
 
   const step = steps[Math.min(i, steps.length - 1)];
-  const endpoint = AUTHOR_FORMATS.find((f) => f.id === formatId)?.endpoint;
+  const fmt = AUTHOR_FORMATS.find((f) => f.id === formatId);
+  const endpoint = fmt?.endpoint;
+  const fmtLabel = (fmt?.label || "module").toLowerCase();
   const last = i >= steps.length - 1;
 
   function next() {
@@ -71,8 +73,8 @@ export default function DraftReview({
   return (
     <div className="mx-auto max-w-2xl">
       <div className="flex items-center justify-between text-xs text-slate-400">
-        <span>Reviewing your draft · {i + 1} of {steps.length}</span>
-        <button onClick={onDone} className="hover:text-ink">Skip to the editor →</button>
+        <span>Set up your {fmtLabel} · step {i + 1} of {steps.length}</span>
+        <button onClick={onDone} className="hover:text-ink">Edit everything at once →</button>
       </div>
       <div className="mt-2 flex gap-1" aria-hidden>
         {steps.map((s, n) => (
@@ -113,7 +115,7 @@ export default function DraftReview({
       {!busy && editing === null && (
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <button onClick={next} className="btn-primary">
-            {last ? "Keep it, open the editor →" : "Keep it →"}
+            {last ? "Done — open the editor →" : "Keep it →"}
           </button>
           <button onClick={reroll} className="btn-ghost text-sm">Try a different one</button>
           {step.write && (
@@ -125,7 +127,7 @@ export default function DraftReview({
       )}
 
       <p className="mt-6 text-xs text-slate-400">
-        Saved as a draft already. Everything here is editable later — this is just the part worth a look first.
+        A quick walk through the choices that shape it — keep each, tweak it, or have the AI try another. It&apos;s already saved as a draft, and you can fine-tune every detail in the full editor after.
       </p>
     </div>
   );

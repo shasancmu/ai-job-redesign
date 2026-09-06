@@ -30,6 +30,47 @@ const clone = (s: any) => JSON.parse(JSON.stringify(s));
 const joinList = (xs: any[] | undefined, pick: (x: any) => string, empty = "—") =>
   !xs?.length ? empty : xs.map((x) => `• ${pick(x)}`).join("\n");
 
+// A plain-language walk through the payoff structure — the hard, teachable part.
+// For each issue it names the structure (compatible / win-lose / a trade) from
+// the point pattern, then lists the options so an author sees what the numbers
+// actually mean, instead of a raw grid of point pairs.
+function negValueStructure(spec: any): string {
+  const issues: any[] = spec?.issues || [];
+  if (!issues.length) return "No issues yet — this negotiation has nothing to trade.";
+  const argmax = (a: number[]) => a.indexOf(Math.max(...a));
+  const range = (a: number[]) => (a.length ? Math.max(...a) - Math.min(...a) : 0);
+  let trades = 0;
+  const blocks = issues.map((iss) => {
+    const opts: any[] = iss.options || [];
+    const yous = opts.map((o) => Number(o.you) || 0);
+    const thems = opts.map((o) => Number(o.them) || 0);
+    let tag: string;
+    if (!opts.length) tag = "no options yet";
+    else if (argmax(yous) === argmax(thems)) tag = "compatible — you both want the same option (free value, just take it)";
+    else {
+      const yr = range(yous), tr = range(thems), big = Math.max(yr, tr) || 1;
+      if (Math.abs(yr - tr) / big > 0.35) { trades++; tag = yr > tr ? "a trade — you care more here, so hold it" : "a trade — they care more here, so concede it for something you want"; }
+      else tag = "win–lose — what you gain here, they give up";
+    }
+    const rows = opts.map((o) => `   ${o.label || "(unlabeled option — add a term)"} · you ${Number(o.you) || 0} / them ${Number(o.them) || 0}`);
+    return [`${iss.label || iss.key || "Untitled issue"}  —  ${tag}`, ...rows].join("\n");
+  });
+  const header = `${issues.length} issue${issues.length === 1 ? "" : "s"}${trades ? `, ${trades} with a real trade` : ", but no clear trades yet"} — the trades are where the learning is.`;
+  return [header, "", ...blocks].join("\n\n").trim();
+}
+
+// A legible read of a quiz: each question with its options, the correct one
+// marked, so an author vets the actual test in the walkthrough rather than a
+// raw list of prompts.
+function quizStructure(spec: any): string {
+  const qs: any[] = spec?.questions || [];
+  if (!qs.length) return "No questions yet.";
+  return qs.map((q, i) => {
+    const opts = (q.options || []).map((o: any) => `   ${o.key === q.answer ? "✓" : "·"} ${o.text || o.label || o.key || ""}`);
+    return [`${i + 1}. ${q.prompt || "(no prompt)"}`, ...opts].join("\n");
+  }).join("\n\n");
+}
+
 const ROLEPLAY: ReviewStep[] = [
   {
     key: "objective",
@@ -124,9 +165,9 @@ const NEGOTIATION: ReviewStep[] = [
   {
     key: "issues",
     title: "The issues, and the hidden payoffs",
-    why: "Where the value-creating trades live — the whole mechanic.",
-    read: (s) => joinList(s?.issues, (i) => i.label || i.key),
-    reroll: "Rebalance the payoff tables so there are clear integrative trades: issues one side values far more than the other. Keep everything else.",
+    why: "Where the value-creating trades live — the whole mechanic. You want a mix: some issues you both want the same, some pure win-lose, and some you weight oppositely so trading pays off.",
+    read: negValueStructure,
+    reroll: "Rebalance the payoff tables so there are clear integrative trades: issues one side values far more than the other. Give every option a concrete human label (a real term on offer, never blank). Keep everything else.",
   },
   {
     key: "batna",
@@ -141,15 +182,15 @@ const BENCHMARK: ReviewStep[] = [
   {
     key: "questions",
     title: "The questions",
-    why: "A quiz is only as good as what it asks.",
-    read: (s) => joinList(s?.questions, (q) => q.prompt || `Question ${q.id}`),
+    why: "A quiz is only as good as what it asks. ✓ marks the correct answer.",
+    read: quizStructure,
     reroll: "Rewrite the questions to test understanding and application rather than recall. Keep everything else.",
   },
   {
     key: "distractors",
     title: "The wrong answers",
     why: "Plausible distractors are what make a score mean anything.",
-    read: (s) => joinList(s?.questions?.slice(0, 3), (q) => `${q.prompt?.slice(0, 60) || q.id}: ${(q.options || []).map((o: any) => o.label || o).join(" / ")}`),
+    read: (s) => joinList(s?.questions?.slice(0, 3), (q) => `${q.prompt?.slice(0, 60) || q.id}: ${(q.options || []).map((o: any) => o.text || o.label || o.key || "").join(" / ")}`),
     reroll: "Make the wrong answers more plausible — each should reflect a specific, common misunderstanding. Keep everything else.",
   },
   {
