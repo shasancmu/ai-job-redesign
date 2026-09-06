@@ -89,15 +89,16 @@ export default function NegEditor({ me, initial, initialStatus }: { me: string; 
             <>
               <div><label className="lbl">Your BATNA (walk-away score)</label><input type="number" className="field w-40 text-sm" value={scn.yourBatna ?? ""} onChange={(e) => set({ yourBatna: Number(e.target.value) || 0 })} /></div>
               <div>
-                <label className="lbl">Issues & payoffs (your points / their points)</label>
-                <p className="mb-1 text-xs text-slate-400">Vary the structure: some issues both want the same (compatible), some pure win-lose (distributive), some weighted oppositely so trading creates value (integrative).</p>
+                <label className="lbl">Issues &amp; payoffs</label>
+                <p className="mb-1 text-xs text-slate-400">Each issue is a thing being negotiated; each option is a concrete term on offer (give it a plain label like &ldquo;$60/seat&rdquo;). The <span className="font-semibold">You</span> / <span className="font-semibold">Them</span> numbers are the hidden scoresheet — learners never see them; they drive the AI counterpart and the score. Vary the structure: some issues both sides want the same (compatible), some win-lose (distributive), some weighted oppositely so trading creates value (integrative).</p>
                 <div className="space-y-2">
                   {issues.map((iss, ii) => (
                     <div key={ii} className="rounded-xl border border-line p-2">
-                      <div className="flex gap-2">
-                        <input className="field w-28 font-mono text-xs" value={iss.key || ""} onChange={(e) => setIssue(ii, { key: e.target.value.replace(/[^a-zA-Z0-9]/g, "") })} placeholder="key" />
-                        <input className="field flex-1 text-sm" value={iss.label || ""} onChange={(e) => setIssue(ii, { label: e.target.value })} placeholder="Issue label, e.g. Base salary" />
-                        <button onClick={() => setScn((s: any) => ({ ...s, issues: s.issues.filter((_: any, k: number) => k !== ii) }))} className="text-slate-300 hover:text-red-500">✕</button>
+                      {/* The `key` is an internal id — auto-derived from the label so
+                          authors only ever see the human name, not the plumbing. */}
+                      <div className="flex items-center gap-2">
+                        <input className="field flex-1 text-sm font-medium" value={iss.label || ""} onChange={(e) => { const label = e.target.value; setIssue(ii, { label, key: label.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || `issue${ii + 1}` }); }} placeholder="Issue, e.g. Base salary or Per-seat price" />
+                        <button onClick={() => setScn((s: any) => ({ ...s, issues: s.issues.filter((_: any, k: number) => k !== ii) }))} className="shrink-0 text-slate-300 hover:text-red-500">✕</button>
                       </div>
                       <div className="mt-2 space-y-1">
                         <div className="flex gap-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400"><span className="flex-1">Option</span><span className="w-16 text-right">You</span><span className="w-16 text-right">Them</span></div>

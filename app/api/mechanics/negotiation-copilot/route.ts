@@ -28,6 +28,9 @@ ${SCHEMA}
 
 RULES:
 - Prefer multi-issue with 4 to 6 issues. Across the issues, deliberately vary the structure: some COMPATIBLE (both sides want the same option), some DISTRIBUTIVE (pure win-lose), and some INTEGRATIVE (the sides weight two issues oppositely, so trading across them creates value). This is what makes it teachable.
+- Every issue's "label" MUST be a short human, Title-Case phrase a person would say (e.g. "Per-seat price", "Contract length", "Support tier") — NEVER a snake_case, camelCase, or code-style string. Put any machine id in "key" only (the author never sees it).
+- Every option MUST have a concrete, human "label" naming the actual term on offer (e.g. "$60/seat", "12-month term", "Premium support", "Net-30 payment"). NEVER leave an option label blank, and never use a bare number with no unit or noun. The label is the only thing that makes the payoff row readable.
+- Give each issue 3-4 options spanning the realistic range, ordered from one side's best to the other's.
 - "you" = the learner's points per option; "them" = the counterpart's points. Higher = better for that side. Scale points so the best possible package is a few thousand points.
 - Set yourBatna so a lazy, split-the-difference deal barely beats it and a good traded deal clearly beats it.
 - Keep it fictional and professional. Single-price should default to role "buyer".
