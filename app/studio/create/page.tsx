@@ -10,16 +10,21 @@ export const dynamic = "force-dynamic";
 // The one authoring home. Two ways in that pick the format for you (upload
 // materials and/or talk it through), then one equal gallery of every format for
 // when you already know what you want — no format dominating, none buried.
+// Every format routes into the SAME shared "share context" step (Flow B): pick a
+// format → /studio/upload?format=<id> → upload docs and/or talk it through → it
+// drafts that format → editor. `format` is the AutoBuild/AUTHOR_FORMATS id; the
+// live activity is authored directly (not from docs+interview), so it keeps its
+// own page.
 const FORMATS: { emoji: string; name: string; blurb: string; href: string; tag?: string }[] = [
-  { emoji: "🎬", name: "Living case", blurb: "An interactive, decision-first case study from your materials: the learner reads the evidence, commits a call under uncertainty, then gets the reveal — with drill-downs and a tutor.", href: "/studio/case" },
-  { emoji: "🎭", name: "Role-play with a hidden truth", blurb: "The learner interrogates an AI character who won't lie but will spin, then makes a call. Like The Earnings Call.", href: "/studio/roleplay", tag: "9 examples" },
-  { emoji: "🗂️", name: "Guided interview → output", blurb: "An AI interviews the learner, then writes a report, scorecard, or verdict grounded in a framework you name.", href: "/studio/interview/start" },
-  { emoji: "🤝", name: "Negotiation", blurb: "The learner negotiates a scored deal against an AI counterpart with a hidden payoff table. Value-creating trades beat splitting the difference.", href: "/studio/negotiation/start" },
-  { emoji: "📊", name: "Analytical instrument", blurb: "Break a subject into units and score each against a scale you define, X-ray style — AI-exposure, risk, evidence strength.", href: "/studio/analytical/start" },
-  { emoji: "⏱️", name: "Timed quiz", blurb: "A timed, multiple-choice quiz. Server-scored, so the answer key stays private.", href: "/studio/benchmark/start" },
-  { emoji: "📖", name: "Explainer", blurb: "A taught, section-by-section walkthrough of a topic — the clearest way to hand learners a concept before the interactive work.", href: "/studio/explainer/start" },
-  { emoji: "🗞️", name: "In the News", blurb: "Apply a framework to real, current headlines that refresh every run, so the module never goes stale.", href: "/studio/news/start" },
-  { emoji: "🔧", name: "Paired redesign", blurb: "Two learners interview each other, then redesign each other's subject on an instrument you define. A live two-person experience.", href: "/studio/redesign/start", tag: "beta · live" },
+  { emoji: "🎬", name: "Living case", blurb: "An interactive, decision-first case study from your materials: the learner reads the evidence, commits a call under uncertainty, then gets the reveal — with drill-downs and a tutor.", href: "/studio/upload?format=case" },
+  { emoji: "🎭", name: "Role-play with a hidden truth", blurb: "The learner interrogates an AI character who won't lie but will spin, then makes a call. Like The Earnings Call.", href: "/studio/upload?format=roleplay" },
+  { emoji: "🗂️", name: "Guided interview → output", blurb: "An AI interviews the learner, then writes a report, scorecard, or verdict grounded in a framework you name.", href: "/studio/upload?format=interview" },
+  { emoji: "🤝", name: "Negotiation", blurb: "The learner negotiates a scored deal against an AI counterpart with a hidden payoff table. Value-creating trades beat splitting the difference.", href: "/studio/upload?format=negotiation" },
+  { emoji: "📊", name: "Analytical instrument", blurb: "Break a subject into units and score each against a scale you define, X-ray style — AI-exposure, risk, evidence strength.", href: "/studio/upload?format=analytical" },
+  { emoji: "⏱️", name: "Timed quiz", blurb: "A timed, multiple-choice quiz. Server-scored, so the answer key stays private.", href: "/studio/upload?format=benchmark" },
+  { emoji: "📖", name: "Explainer", blurb: "A taught, section-by-section walkthrough of a topic — the clearest way to hand learners a concept before the interactive work.", href: "/studio/upload?format=explainer" },
+  { emoji: "🗞️", name: "In the News", blurb: "Apply a framework to real, current headlines that refresh every run, so the module never goes stale.", href: "/studio/upload?format=newsframe" },
+  { emoji: "🔧", name: "Paired redesign", blurb: "Two learners interview each other, then redesign each other's subject on an instrument you define. A live two-person experience.", href: "/studio/upload?format=redesign", tag: "beta · live" },
   { emoji: "🌥️", name: "Live group activity", blurb: "A whole-room word cloud, poll, or open responses with an AI synthesis. Participants join on their phones, no account.", href: "/studio/live/new" },
 ];
 

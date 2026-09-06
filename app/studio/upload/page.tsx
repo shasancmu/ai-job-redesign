@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata = { title: "Upload material" };
 
-export default async function UploadPage({ searchParams }: { searchParams?: { start?: string } }) {
+export default async function UploadPage({ searchParams }: { searchParams?: { start?: string; format?: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -19,6 +19,7 @@ export default async function UploadPage({ searchParams }: { searchParams?: { st
   if (!(role.superadmin || role.directorOrgIds.length > 0 || role.instructorOrgIds.length > 0)) redirect("/dashboard");
   const dirOrg = role.memberships.find((m) => m.role === "director")?.org;
   const startMode = searchParams?.start === "interview" ? "interview" : undefined;
+  const format = searchParams?.format;
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-10">
@@ -26,7 +27,7 @@ export default async function UploadPage({ searchParams }: { searchParams?: { st
         <Logo href="/dashboard" />
         <div className="flex items-center gap-2"><Link href="/studio/create" className="text-sm text-slate2 hover:text-ink">← Create</Link><HeaderNav /></div>
       </header>
-      <AutoBuild me={user.id} canGlobal={role.superadmin} orgName={dirOrg?.name || null} startMode={startMode} />
+      <AutoBuild me={user.id} canGlobal={role.superadmin} orgName={dirOrg?.name || null} startMode={startMode} format={format} />
     </main>
   );
 }

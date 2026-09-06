@@ -34,8 +34,14 @@ const TEMPLATES: { kind: string; emoji: string; title: string; concept: string }
   { kind: "case", emoji: "🎬", title: "A living case study", concept: "An interactive, decision-first case built from your materials: it names a real situation and protagonist, walks the learner through the evidence with drill-downs and sources, makes them commit a call under uncertainty, then reveals what happened. Grounded in the documents you upload." },
 ];
 
-export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: string; canGlobal: boolean; orgName: string | null; startMode?: string }) {
+export default function AutoBuild({ me, canGlobal, orgName, startMode, format }: { me: string; canGlobal: boolean; orgName: string | null; startMode?: string; format?: string }) {
   const supabase = createClient();
+  // Pinned-format mode (Flow B): the format is already chosen, so the same
+  // share-context step (upload + interview) runs, then it generates THAT format
+  // directly instead of recommending among types.
+  const pinned = format && KINDS[format] ? format : undefined;
+  const pinnedLabel = pinned ? KINDS[pinned].label : "";
+  const [concept, setConcept] = useState("");
   const [phase, setPhase] = useState<"upload" | "interview" | "choose" | "review" | "editor" | "created">(startMode === "interview" ? "interview" : "upload");
   const [interviewSource, setInterviewSource] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -116,6 +122,14 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
   }
 
   function onInterviewDone(opts: any[], transcript: string) {
+    // Pinned: ignore the proposed types and generate the chosen format, grounded
+    // in the conversation (and any files, already folded into interviewSource).
+    if (pinned) {
+      const combined = [interviewSource, transcript].filter(Boolean).join("\n\n");
+      const intent = concept.trim() || `Build a ${pinnedLabel.toLowerCase()} from the author's description in the conversation and any materials provided.`;
+      void build([{ kind: pinned, title: pinnedLabel, concept: intent, source: combined }]);
+      return;
+    }
     const usable = (opts || []).filter((o) => o && KINDS[o.kind]);
     if (!usable.length) { setErr("Couldn't turn that into modules. Try again."); setPhase("upload"); return; }
     setOptions(usable);
@@ -126,7 +140,7 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
 
   async function generateOne(opt: any, onProgress?: (p: { chars: number; name: string }) => void): Promise<any> {
     const linkList = links.split(/[\s,]+/).map((s) => s.trim()).filter((s) => /^https?:\/\//.test(s)).slice(0, 8);
-    const res = await fetch(KINDS[opt.kind].endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intent: opt.concept, sourceText: source, opinion, links: linkList, stream: true }) });
+    const res = await fetch(KINDS[opt.kind].endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intent: opt.concept, sourceText: opt.source ?? source, opinion, links: linkList, stream: true }) });
     const ct = res.headers.get("content-type") || "";
     if (ct.includes("text/event-stream") && res.body) {
       const reader = res.body.getReader();
@@ -175,8 +189,21 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
     return { slug: spec.slug };
   }
 
-  async function build() {
-    const picked = options.filter((_, i) => sel.has(i));
+  // Collect the shared context (files + interview) and generate the pinned
+  // format directly — Flow B's "share context → generate <format>".
+  async function buildPinned() {
+    if (!pinned) return;
+    setErr("");
+    let src = "";
+    if (files.length) { setBusy("prep"); try { src = await collectSource(); } catch { src = ""; } setBusy(""); }
+    const combined = [src, interviewSource].filter(Boolean).join("\n\n");
+    const intent = concept.trim() || (combined ? `Build a ${pinnedLabel.toLowerCase()} grounded in the author's materials below.` : "");
+    if (!intent && !combined) { setErr(`Add materials, talk it through, or describe what this ${pinnedLabel.toLowerCase()} should have the learner do.`); return; }
+    await build([{ kind: pinned, title: pinnedLabel, concept: intent, source: combined }]);
+  }
+
+  async function build(explicit?: any[]) {
+    const picked = explicit ?? options.filter((_, i) => sel.has(i));
     if (picked.length === 0) return;
     setBusy("build"); setErr(""); setStep(0); setProgress(null);
     try {
@@ -333,7 +360,7 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
           </div>
         </div>
         )}
-        <button onClick={build} disabled={sel.size === 0} className="btn-primary mt-4 w-full text-base disabled:opacity-50">{sel.size <= 1 ? "Build this module →" : `Build ${sel.size} modules →`}</button>
+        <button onClick={() => build()} disabled={sel.size === 0} className="btn-primary mt-4 w-full text-base disabled:opacity-50">{sel.size <= 1 ? "Build this module →" : `Build ${sel.size} modules →`}</button>
         {err && <p className="mt-3 text-sm text-red-700">{err}</p>}
         <div className="mt-3 text-center"><button onClick={() => { setPhase("upload"); setOptions([]); }} className="text-sm text-slate-400 hover:text-ink">← Different files</button></div>
       </div>
@@ -344,10 +371,16 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
   return (
     <div className="mx-auto max-w-xl">
       <div className="text-center">
-        <div className="text-3xl">📎</div>
-        <h1 className="mt-2 font-serif text-3xl text-ink">Turn your teaching materials into modules</h1>
-        <p className="mt-2 text-slate2">Drop your slides, readings, or notes. It reads them and proposes several modules you can build — pick one or many.</p>
+        <div className="text-3xl">{pinned ? KINDS[pinned].emoji : "📎"}</div>
+        <h1 className="mt-2 font-serif text-3xl text-ink">{pinned ? `Build ${/^[aeiou]/i.test(pinnedLabel) ? "an" : "a"} ${pinnedLabel.toLowerCase()}` : "Turn your teaching materials into modules"}</h1>
+        <p className="mt-2 text-slate2">{pinned ? "Share your context — upload materials, paste links, or talk it through — and it drafts the module, grounded in what you give it. Everything is editable after." : "Drop your slides, readings, or notes. It reads them and proposes several modules you can build — pick one or many."}</p>
       </div>
+      {pinned && (
+        <div className="mt-6">
+          <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">What should it have the learner do?</label>
+          <textarea value={concept} onChange={(e) => setConcept(e.target.value)} placeholder={`In a sentence or two, describe this ${pinnedLabel.toLowerCase()}. Optional if you upload materials or talk it through below.`} className="field mt-1 min-h-[72px] w-full text-sm" />
+        </div>
+      )}
       <label className="mt-6 block cursor-pointer rounded-2xl border-2 border-dashed border-line bg-white p-8 text-center transition hover:border-ai/40">
         <input type="file" multiple accept=".pdf,.docx,.txt,.md,.markdown" className="hidden" onChange={(e) => addFiles(e.target.files)} />
         <div className="text-sm font-semibold text-ink">Choose files</div>
@@ -361,7 +394,11 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
       <div className="mt-3">
         <textarea value={links} onChange={(e) => setLinks(e.target.value)} placeholder="Optional: paste article or video links (one per line) — the studio reads them too" className="field min-h-[64px] w-full text-sm" />
       </div>
-      <button onClick={analyze} disabled={!files.length} className="btn-primary mt-3 w-full text-base disabled:opacity-50">See what I can make →</button>
+      {pinned ? (
+        <button onClick={buildPinned} disabled={!files.length && !concept.trim()} className="btn-primary mt-3 w-full text-base disabled:opacity-50">{busy === "prep" ? "Reading your materials…" : `Build the ${pinnedLabel.toLowerCase()} →`}</button>
+      ) : (
+        <button onClick={analyze} disabled={!files.length} className="btn-primary mt-3 w-full text-base disabled:opacity-50">See what I can make →</button>
+      )}
       {err && <p className="mt-3 text-sm text-red-700">{err}</p>}
 
       {/* Voice/text interview — grounded in the files if any (an "and", not "or"). */}
@@ -369,12 +406,14 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
         <div className="text-2xl">🎙️</div>
         <div className="min-w-0 flex-1">
           <div className="text-sm font-bold text-ink">{files.length ? "Talk it through first" : "Talk it through"}</div>
-          <div className="text-xs text-slate-500">{files.length ? "A few questions by voice or text, building on the files you added — then it proposes what to build." : "A few questions by voice or text, and it proposes what to build. Add files above and it uses both."}</div>
+          <div className="text-xs text-slate-500">{pinned ? (files.length ? `A few questions by voice or text, building on the files you added — then it drafts your ${pinnedLabel.toLowerCase()}.` : `A few questions by voice or text, then it drafts your ${pinnedLabel.toLowerCase()}. Add files above and it uses both.`) : (files.length ? "A few questions by voice or text, building on the files you added — then it proposes what to build." : "A few questions by voice or text, and it proposes what to build. Add files above and it uses both.")}</div>
         </div>
         <span className="shrink-0 text-sm font-semibold text-ai">→</span>
       </button>
 
-      {/* Starter templates — ideas to build from, alone or on top of files. */}
+      {/* Starter templates — ideas to build from, alone or on top of files. Only
+          in the format-agnostic flow; when a format is pinned they'd switch type. */}
+      {!pinned && (
       <div className="mt-7">
         <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Or start from an idea</div>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -391,6 +430,7 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode }: { me: s
         </div>
         <p className="mt-2 text-xs text-slate-400">Uses your files too, if you added any. Everything is editable after.</p>
       </div>
+      )}
 
       <p className="mt-5 text-center text-xs text-slate-400">Files are read for this draft only and never stored. Scanned PDFs (images) aren't supported.</p>
     </div>
