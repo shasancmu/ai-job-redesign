@@ -74,6 +74,8 @@ export default function Catalog({
   certByModule = {},
   popular = [],
   runsThisWeek = {},
+  nextUp = [],
+  nextUpBecause = null,
 }: {
   userId: string;
   unlocked: Record<string, boolean>;
@@ -87,6 +89,8 @@ export default function Catalog({
   certByModule?: Record<string, string>;
   popular?: string[]; // slugs ordered by real popularity (most-started first)
   runsThisWeek?: Record<string, number>; // real run count this week, for the live badge
+  nextUp?: string[]; // the Markov recommendation, best-first (drives the lead rail)
+  nextUpBecause?: string | null; // the module the recommendation follows from, for the rail title
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -293,9 +297,11 @@ export default function Catalog({
   const grouped = !moduleSlugs;
   const grid = "grid gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger-in";
 
-  // "Recommended for you" — resolve the segment/goal slugs to modules, in order.
+  // The lead rail — the Markov "next up" recommendation when we have it, else the
+  // segment/goal recommendation. Resolved to modules, in order.
+  const railSlugs = nextUp.length ? nextUp : recommended;
   const recModules = grouped
-    ? (recommended.map((s) => MODULES.find((m) => m.slug === s)).filter((m) => m && !m.hidden) as typeof MODULES)
+    ? (railSlugs.map((s) => MODULES.find((m) => m.slug === s)).filter((m) => m && !m.hidden) as typeof MODULES)
     : [];
 
   return (
@@ -341,7 +347,7 @@ export default function Catalog({
                       .map((s) => shown.find((m) => m.slug === s))
                       .filter((m) => m && m.partner !== "group") as typeof MODULES).slice(0, 8);
                     const rails: { key: string; dot: string; title: string; mods: typeof MODULES }[] = [
-                      ...(recModules.length ? [{ key: "rec", dot: "#1A1A1A", title: t("dash.recommended"), mods: recModules }] : []),
+                      ...(recModules.length ? [{ key: "rec", dot: "#1A1A1A", title: nextUpBecause ? `Because you did ${nextUpBecause}` : t("dash.recommended"), mods: recModules }] : []),
                       { key: "quick", dot: "#3F7A52", title: "Quick wins — done in 15 minutes", mods: quick },
                       { key: "popular", dot: "#B4632A", title: "Popular this week", mods: popModules },
                     ];

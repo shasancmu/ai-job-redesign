@@ -34,6 +34,7 @@ import FollowUps from "@/components/FollowUps";
 import { dueFollowUps } from "@/lib/followups";
 import { computeStreak, artifactHref, nextStep } from "@/lib/momentum";
 import { recommendedSlugs } from "@/lib/segments";
+import { recommenderData, recommendNext } from "@/lib/recommender";
 import { getServerLocale } from "@/lib/i18n-server";
 import { makeT } from "@/lib/i18n";
 import Footer from "@/components/Footer";
@@ -359,24 +360,30 @@ export default async function Dashboard({
   const showRuns = isConsumer && PAYMENTS_ENABLED;
   const offer = showRuns ? await alumniOffer(supabase, user.id) : { active: false, daysLeft: 0 };
 
-  // Real "Popular this week" signal for the catalog rails — one bounded query,
-  // counted by room engine (exercise) and mapped back to modules. Honest: if it
-  // fails or comes back empty, the catalog falls back to an editorial pick and
-  // shows no number.
-  let popular: string[] = [];
-  const runsThisWeek: Record<string, number> = {};
-  try {
-    const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
-    const pa = createAdminClient();
-    const { data: recent } = await pa.from("sessions").select("exercise").gte("created_at", weekAgo).limit(6000);
-    const byExercise: Record<string, number> = {};
-    for (const r of (recent as any[]) || []) { const e = r.exercise; if (e) byExercise[e] = (byExercise[e] || 0) + 1; }
-    for (const m of visibleModules) { const n = byExercise[m.exercise] || 0; if (n > 0) runsThisWeek[m.slug] = n; }
-    popular = visibleModules
-      .filter((m) => m.partner !== "group" && (runsThisWeek[m.slug] || 0) > 0)
-      .sort((x, y) => (runsThisWeek[y.slug] || 0) - (runsThisWeek[x.slug] || 0))
-      .map((m) => m.slug);
-  } catch { /* fall back to editorial popular, no live badge */ }
+  // Recommender: ONE bounded read of the session log yields the learned
+  // transition matrix (decayed by recency), the weekly popularity signal, and
+  // global marginals. All three catalog rails read from it.
+  const recData = await recommenderData(createAdminClient(), {});
+  const runsThisWeek = recData.runsThisWeek;
+  const popular = visibleModules
+    .filter((m) => m.partner !== "group" && (runsThisWeek[m.slug] || 0) > 0)
+    .sort((a, b) => (runsThisWeek[b.slug] || 0) - (runsThisWeek[a.slug] || 0))
+    .map((m) => m.slug);
+  // "Next up" — the Markov recommendation: posterior (AI prior + observed
+  // transitions), Thompson-sampled, from the person's most recent finished
+  // module. Cold users fall back to their onboarding segment recs. Seeded per
+  // user per day so it's stable within a day and refreshes across days.
+  const lastCompleted = [...workItems].filter((w) => w.done).sort((a, b) => (a.at < b.at ? 1 : -1))[0]?.slug || null;
+  const completedSet = new Set(MODULES.filter((m) => completed[m.slug]).map((m) => m.slug));
+  const nextUp = recommendNext(recData, {
+    lastCompleted,
+    completed: completedSet,
+    world: null,
+    fallback: recommended,
+    limit: 8,
+    seed: `${user.id}:${new Date().toISOString().slice(0, 10)}`,
+  });
+  const nextUpBecause = lastCompleted ? (moduleBySlug(lastCompleted)?.name || null) : null;
 
   const catalogEl = (
     <Catalog
@@ -391,6 +398,8 @@ export default async function Dashboard({
       certByModule={certByModule}
       popular={popular}
       runsThisWeek={runsThisWeek}
+      nextUp={nextUp}
+      nextUpBecause={nextUpBecause}
     />
   );
 
@@ -408,6 +417,8 @@ export default async function Dashboard({
       certByModule={certByModule}
       popular={popular}
       runsThisWeek={runsThisWeek}
+      nextUp={nextUp}
+      nextUpBecause={nextUpBecause}
     />
   ) : null;
 
