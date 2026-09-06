@@ -43,6 +43,17 @@ export default async function OrgSettingsPage() {
         <p className="mt-1 text-sm text-slate2">Your landing page, the modules your members can use, and your AI provider.</p>
       </div>
 
+      <Link href="/org/ads" className="mb-6 flex items-center justify-between gap-3 rounded-2xl border border-line bg-white p-4 transition hover:border-ai/40 hover:shadow-sm">
+        <span className="flex items-center gap-3">
+          <span className="text-xl" aria-hidden>📣</span>
+          <span>
+            <span className="block text-sm font-bold text-ink">Program spotlights</span>
+            <span className="block text-xs text-slate-500">Promote a program or event to your members, and track impressions, clicks, and interest.</span>
+          </span>
+        </span>
+        <span className="shrink-0 text-sm font-semibold text-ai">Open →</span>
+      </Link>
+
       {orgs.length === 0 ? (
         <div className="card p-8 text-center text-slate2">We couldn't load your organization. <Link href="/dashboard" className="text-sky hover:underline">Back to dashboard</Link>.</div>
       ) : (

@@ -35,6 +35,8 @@ import { dueFollowUps } from "@/lib/followups";
 import { computeStreak, artifactHref, nextStep } from "@/lib/momentum";
 import { recommendedSlugs } from "@/lib/segments";
 import { recommenderData, recommendNext } from "@/lib/recommender";
+import { activeAdsForOrg } from "@/lib/ads";
+import PromoCards from "@/components/PromoCards";
 import { getServerLocale } from "@/lib/i18n-server";
 import { makeT } from "@/lib/i18n";
 import Footer from "@/components/Footer";
@@ -385,6 +387,10 @@ export default async function Dashboard({
   });
   const nextUpBecause = lastCompleted ? (moduleBySlug(lastCompleted)?.name || null) : null;
 
+  // Program spotlights the org owner is running, shown to members above the catalog.
+  const orgAds = activeOrg ? await activeAdsForOrg(activeOrg.id) : [];
+  const promoCohort = searchParams.cohort || (activeOrg ? masterCohortCode(activeOrg.id) : "");
+
   const catalogEl = (
     <Catalog
       userId={user.id}
@@ -665,6 +671,14 @@ export default async function Dashboard({
             ))}
           </div>
         </section>
+      )}
+
+      {orgAds.length > 0 && (
+        <PromoCards
+          ads={orgAds.map((a) => ({ id: a.id, slug: a.slug, emoji: a.emoji, title: a.title, tagline: a.tagline }))}
+          cohort={promoCohort}
+          orgName={activeOrg?.name || null}
+        />
       )}
 
       {showLibrary && (isNewConsumer && startHere.length > 0 ? (
