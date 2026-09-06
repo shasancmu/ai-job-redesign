@@ -16,6 +16,7 @@ const LOOP = [
 ];
 
 const TYPES = [
+  { emoji: "🎬", name: "Living case", best: "An interactive, decision-first case study built from your materials: the learner reads the evidence, commits a call under uncertainty, then gets the reveal — with drill-downs, sources, and a tutor. For teaching a real decision the way a case does, but interactive." },
   { emoji: "🎭", name: "Role-play", best: "Interrogate an AI character under a hidden truth and judge under uncertainty. For detecting deception, diligence, eliciting from a guarded source, reading a person. (The Earnings Call is this.)" },
   { emoji: "🗂️", name: "Guided interview → output", best: "An AI interviews the learner, then writes a report, scorecard, or verdict. For applying a framework to the learner's own situation (Five Forces, jobs-to-be-done, a readiness check, a reflection)." },
   { emoji: "🤝", name: "Negotiation", best: "Negotiate a scored deal against an AI counterpart with a hidden payoff table. For bargaining, deal-making, and trade-offs." },
@@ -27,8 +28,8 @@ const TYPES = [
 ];
 
 const FINISH = [
-  { title: "Edit", body: "A structured editor holds every field, with an AI copilot beside it. Type an instruction (\"make the counterpart tougher\", \"add a scenario\") and it revises the draft." },
-  { title: "Check quality", body: "Validate flags anything missing. For role-plays, the Critic gives an adversarial read of your design, and Playtest runs a simulated learner to see whether it actually teaches, before a real one runs it." },
+  { title: "Walk through the setup", body: "The moment it drafts, the studio walks you through the handful of choices that actually shape the module — one at a time, each with why it matters and what was chosen. Keep each as it is, tweak the wording, or have the AI try a different one. This is the fast path; most modules need nothing more." },
+  { title: "Fine-tune in the full editor", body: "\"Edit everything at once\" opens the structured editor — every field, with an AI copilot beside it. Type an instruction (\"make the counterpart tougher\", \"add a scenario\") and it revises the draft. For role-plays, a Critic gives an adversarial read of your design and Playtest runs a simulated learner before a real one does." },
   { title: "Publish", body: "Publishing makes the module runnable at its own link. Until then it's a private draft only you see." },
   { title: "Assign or share", body: "Attach it to a cohort so a class runs it together, or just send the link. Learners never see the answer key or the hidden layer." },
   { title: "Observe and improve", body: "Watch results and insights come in, then revise. History keeps a snapshot of every save, so you can always restore a prior version." },
@@ -90,7 +91,7 @@ export default async function GuidePage() {
       <section className="mt-12">
         <h2 className="text-2xl font-bold tracking-tight text-ink">Pick the right shape</h2>
         <p className="mt-2 text-[15px] leading-relaxed text-slate2">
-          Every module is one of these shapes. You do not have to know which before you start, the upload flow suggests them, but knowing what each is for helps you choose well.
+          Every module is one of these shapes. You don&apos;t have to know which before you start — share your material and the studio suggests one — but knowing what each is for helps you choose well, and lets you pick one directly.
         </p>
         <div className="mt-5 space-y-2.5">
           {TYPES.map((t) => (
@@ -118,56 +119,52 @@ export default async function GuidePage() {
       <section className="mt-16 border-t border-line pt-12">
         <span className="eyebrow text-ai">Step by step</span>
         <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink">How to build one</h2>
-        <p className="mt-2 text-[15px] leading-relaxed text-slate2">Three ways in. All of them land you in the same editor with a working draft, and all take minutes. Pick the one that fits where you&apos;re starting from.</p>
+        <p className="mt-2 text-[15px] leading-relaxed text-slate2">One step sits at the center of it: you <b className="text-ink">share your context</b> — upload docs, paste links, and/or talk it through — and the AI drafts the module from it. You reach that step two ways, depending on whether you already know the format.</p>
       </section>
 
       <section className="mt-6">
         <div className="rounded-2xl border border-ai/30 bg-gradient-to-br from-ai/5 to-mist/40 p-5">
           <div className="flex items-center gap-2">
             <span className="text-xl">📎</span>
-            <div className="text-sm font-bold text-ink">Path A — Upload your materials</div>
+            <div className="text-sm font-bold text-ink">The step at the center: share your context</div>
           </div>
-          <p className="mt-1 text-xs text-slate-500">Fastest when you already have a deck or reading.</p>
-          <ol className="mt-3 space-y-2.5 text-[14px] leading-relaxed text-slate2">
-            <li><b className="text-ink">1. Drop your files.</b> Go to Create, then Upload, and add your slides, a PDF, a Word doc, or notes. They are read to draft the module and never stored.</li>
-            <li><b className="text-ink">2. See the menu.</b> It reads the material and proposes a few genuinely different modules it could become, across formats. Pick one, a few, or all of them.</li>
-            <li><b className="text-ink">3. Watch it draft.</b> Each module is written live from your material, so you can see it take shape.</li>
-            <li><b className="text-ink">4. Edit and launch.</b> You land in the editor with a working first draft. Make a few changes, then publish.</li>
-          </ol>
-          <Link href="/studio/upload" className="btn-primary mt-4 inline-block text-sm">Upload materials →</Link>
+          <p className="mt-1.5 text-[14px] leading-relaxed text-slate2">
+            Drop PDFs, Word docs, or notes; paste article or video links; and/or talk it through with the AI by <b className="text-ink">text or voice</b> (the blue dot asks the questions aloud). Do any one of them, or all — it&apos;s an <b className="text-ink">and</b>, not an either/or. It reads everything you give it and drafts the module, grounded in your material. Files are read for the draft only and never stored.
+          </p>
         </div>
       </section>
 
       <section className="mt-4">
         <div className="rounded-2xl border border-line bg-white p-5">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🎙️</span>
-            <div className="text-sm font-bold text-ink">Path B — Talk it through</div>
+            <span className="text-xl">🧭</span>
+            <div className="text-sm font-bold text-ink">Flow A — Not sure which format? Start from your context.</div>
           </div>
-          <p className="mt-1 text-xs text-slate-500">Best when you&apos;re not sure which format fits, or you have no materials to upload.</p>
+          <p className="mt-1 text-xs text-slate-500">Best when you have material or an idea but don&apos;t know the shape yet.</p>
           <ol className="mt-3 space-y-2.5 text-[14px] leading-relaxed text-slate2">
-            <li><b className="text-ink">1. Start the interview.</b> Choose &ldquo;Talk it through&rdquo; on Create (or the Upload page), by <b className="text-ink">text or voice</b> (the blue dot asks the questions aloud). It works with or without materials; if you uploaded some, it draws on them.</li>
-            <li><b className="text-ink">2. Answer a few questions.</b> It asks what you want learners to be able to do, who they are, and what&apos;s hard, five or six short questions, then tells you when it has enough.</li>
-            <li><b className="text-ink">3. See what it can build.</b> It turns the conversation into the same menu of module ideas, already shaped by what you said. Pick one or more.</li>
-            <li><b className="text-ink">4. Edit and launch.</b> Same editor, same finish.</li>
+            <li><b className="text-ink">1. Share your context.</b> On Create, choose &ldquo;Share your materials &amp; context&rdquo; and add files, links, and/or a conversation.</li>
+            <li><b className="text-ink">2. It recommends the format.</b> It reads what you gave it and proposes a few genuinely different modules it could become, across formats. Pick one, a few, or all of them.</li>
+            <li><b className="text-ink">3. It drafts, live.</b> Each is written in front of you from your material, so you can see it take shape.</li>
+            <li><b className="text-ink">4. Set it up and publish.</b> A short guided walkthrough of the choices that matter, then publish.</li>
           </ol>
-          <Link href="/studio/upload?start=interview" className="btn-ghost mt-4 inline-block text-sm">Start an interview →</Link>
+          <Link href="/studio/upload" className="btn-primary mt-4 inline-block text-sm">Share your context →</Link>
         </div>
       </section>
 
       <section className="mt-4">
         <div className="rounded-2xl border border-line bg-white p-5">
           <div className="flex items-center gap-2">
-            <span className="text-xl">✨</span>
-            <div className="text-sm font-bold text-ink">Path C — Describe a specific module</div>
+            <span className="text-xl">🎯</span>
+            <div className="text-sm font-bold text-ink">Flow B — Know the format? Pick it, then share your context.</div>
           </div>
           <p className="mt-1 text-xs text-slate-500">Best when you already know the shape you want.</p>
           <ol className="mt-3 space-y-2.5 text-[14px] leading-relaxed text-slate2">
-            <li><b className="text-ink">1. Pick a shape.</b> In Create, choose the type that fits (a role-play, an interview, a quiz, and so on).</li>
-            <li><b className="text-ink">2. Describe it.</b> Say the situation, the characters, or the framework in a sentence or two. The copilot drafts a full first version.</li>
-            <li><b className="text-ink">3. Edit and launch.</b> Same editor, same finish: refine, validate, publish.</li>
+            <li><b className="text-ink">1. Pick a format.</b> On Create, choose the shape that fits — a living case, a role-play, a negotiation, a quiz, and so on.</li>
+            <li><b className="text-ink">2. Share your context.</b> The same step opens, now aimed at that format: upload docs, paste links, and/or talk it through.</li>
+            <li><b className="text-ink">3. It drafts that format, live.</b></li>
+            <li><b className="text-ink">4. Set it up and publish.</b> The same guided walkthrough, then publish.</li>
           </ol>
-          <Link href="/studio/create" className="btn-ghost mt-4 inline-block text-sm">Browse the shapes →</Link>
+          <Link href="/studio/create" className="btn-ghost mt-4 inline-block text-sm">Pick a format →</Link>
         </div>
       </section>
 
@@ -199,8 +196,8 @@ export default async function GuidePage() {
       </section>
 
       <div className="mt-12 flex flex-wrap items-center gap-3">
-        <Link href="/studio/upload" className="btn-primary text-sm">Start with your materials →</Link>
-        <Link href="/studio/create" className="btn-ghost text-sm">Or pick a shape</Link>
+        <Link href="/studio/upload" className="btn-primary text-sm">Share your context →</Link>
+        <Link href="/studio/create" className="btn-ghost text-sm">Or pick a format</Link>
       </div>
     </main>
   );
