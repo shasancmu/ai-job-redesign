@@ -41,6 +41,10 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode, format }:
   // directly instead of recommending among types.
   const pinned = format && KINDS[format] ? format : undefined;
   const pinnedLabel = pinned ? KINDS[pinned].label : "";
+  // A grammatical noun for the heading/CTAs: most labels read fine lowercased
+  // ("an explainer", "a role-play"), but "In the News" isn't a noun on its own —
+  // it needs "module" to scan ("an In the News module").
+  const pinnedNoun = pinnedLabel === "In the News" ? "In the News module" : pinnedLabel.toLowerCase();
   const [concept, setConcept] = useState("");
   const [phase, setPhase] = useState<"upload" | "interview" | "choose" | "review" | "editor" | "created">(startMode === "interview" ? "interview" : "upload");
   const [interviewSource, setInterviewSource] = useState("");
@@ -198,7 +202,7 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode, format }:
     if (files.length) { setBusy("prep"); try { src = await collectSource(); } catch { src = ""; } setBusy(""); }
     const combined = [src, interviewSource].filter(Boolean).join("\n\n");
     const intent = concept.trim() || (combined ? `Build a ${pinnedLabel.toLowerCase()} grounded in the author's materials below.` : "");
-    if (!intent && !combined) { setErr(`Add materials, talk it through, or describe what this ${pinnedLabel.toLowerCase()} should have the learner do.`); return; }
+    if (!intent && !combined) { setErr(`Add materials, talk it through, or describe what this ${pinnedNoun} should have the learner do.`); return; }
     await build([{ kind: pinned, title: pinnedLabel, concept: intent, source: combined }]);
   }
 
@@ -372,13 +376,16 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode, format }:
     <div className="mx-auto max-w-xl">
       <div className="text-center">
         <div className="text-3xl">{pinned ? KINDS[pinned].emoji : "📎"}</div>
-        <h1 className="mt-2 font-serif text-3xl text-ink">{pinned ? `Build ${/^[aeiou]/i.test(pinnedLabel) ? "an" : "a"} ${pinnedLabel.toLowerCase()}` : "Turn your teaching materials into modules"}</h1>
+        <h1 className="mt-2 font-serif text-3xl text-ink">{pinned ? `Build ${/^[aeiou]/i.test(pinnedNoun) ? "an" : "a"} ${pinnedNoun}` : "Turn your teaching materials into modules"}</h1>
         <p className="mt-2 text-slate2">{pinned ? "Share your context — upload materials, paste links, or talk it through — and it drafts the module, grounded in what you give it. Everything is editable after." : "Drop your slides, readings, or notes. It reads them and proposes several modules you can build — pick one or many."}</p>
       </div>
+      {pinned === "newsframe" && (
+        <p className="mt-4 rounded-xl bg-mist/60 px-4 py-2.5 text-center text-xs leading-relaxed text-slate-600">You&apos;re setting the <b className="text-ink">framework</b> and the <b className="text-ink">news beat</b>. Real, current stories are pulled in live every time a learner runs it — so the module never goes stale.</p>
+      )}
       {pinned && (
         <div className="mt-6">
-          <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">What should it have the learner do?</label>
-          <textarea value={concept} onChange={(e) => setConcept(e.target.value)} placeholder={`In a sentence or two, describe this ${pinnedLabel.toLowerCase()}. Optional if you upload materials or talk it through below.`} className="field mt-1 min-h-[72px] w-full text-sm" />
+          <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">{pinned === "newsframe" ? "What framework, applied to what beat?" : "What should it have the learner do?"}</label>
+          <textarea value={concept} onChange={(e) => setConcept(e.target.value)} placeholder={pinned === "newsframe" ? "e.g. Apply Porter's Five Forces to the AI-chips industry. Optional if you upload materials or talk it through below." : `In a sentence or two, describe this ${pinnedNoun}. Optional if you upload materials or talk it through below.`} className="field mt-1 min-h-[72px] w-full text-sm" />
         </div>
       )}
       <label className="mt-6 block cursor-pointer rounded-2xl border-2 border-dashed border-line bg-white p-8 text-center transition hover:border-ai/40">
@@ -395,7 +402,7 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode, format }:
         <textarea value={links} onChange={(e) => setLinks(e.target.value)} placeholder="Optional: paste article or video links (one per line) — the studio reads them too" className="field min-h-[64px] w-full text-sm" />
       </div>
       {pinned ? (
-        <button onClick={buildPinned} disabled={!files.length && !concept.trim()} className="btn-primary mt-3 w-full text-base disabled:opacity-50">{busy === "prep" ? "Reading your materials…" : `Build the ${pinnedLabel.toLowerCase()} →`}</button>
+        <button onClick={buildPinned} disabled={!files.length && !concept.trim()} className="btn-primary mt-3 w-full text-base disabled:opacity-50">{busy === "prep" ? "Reading your materials…" : `Build the ${pinnedNoun} →`}</button>
       ) : (
         <button onClick={analyze} disabled={!files.length} className="btn-primary mt-3 w-full text-base disabled:opacity-50">See what I can make →</button>
       )}
@@ -406,7 +413,7 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode, format }:
         <div className="text-2xl">🎙️</div>
         <div className="min-w-0 flex-1">
           <div className="text-sm font-bold text-ink">{files.length ? "Talk it through first" : "Talk it through"}</div>
-          <div className="text-xs text-slate-500">{pinned ? (files.length ? `A few questions by voice or text, building on the files you added — then it drafts your ${pinnedLabel.toLowerCase()}.` : `A few questions by voice or text, then it drafts your ${pinnedLabel.toLowerCase()}. Add files above and it uses both.`) : (files.length ? "A few questions by voice or text, building on the files you added — then it proposes what to build." : "A few questions by voice or text, and it proposes what to build. Add files above and it uses both.")}</div>
+          <div className="text-xs text-slate-500">{pinned ? (files.length ? `A few questions by voice or text, building on the files you added — then it drafts your ${pinnedNoun}.` : `A few questions by voice or text, then it drafts your ${pinnedNoun}. Add files above and it uses both.`) : (files.length ? "A few questions by voice or text, building on the files you added — then it proposes what to build." : "A few questions by voice or text, and it proposes what to build. Add files above and it uses both.")}</div>
         </div>
         <span className="shrink-0 text-sm font-semibold text-ai">→</span>
       </button>
