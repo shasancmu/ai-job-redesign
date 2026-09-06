@@ -58,17 +58,7 @@ export default async function CreateGallery() {
           <span className="shrink-0 text-lg font-semibold text-ai">→</span>
         </div>
       </Link>
-      <Link href="/studio/case" className="group mt-3 block rounded-2xl border border-line bg-white p-5 transition hover:border-ai/40 hover:shadow-sm sm:p-6">
-        <div className="flex items-center gap-4">
-          <div className="text-3xl">🎬</div>
-          <div className="min-w-0 flex-1">
-            <div className="text-lg font-bold text-ink group-hover:text-ai">Author a living case</div>
-            <div className="mt-0.5 text-sm text-slate2">An interactive, decision-first case study students read, decide inside, and get a reveal — with a tutor and drill-downs. From a topic or your documents.</div>
-          </div>
-          <span className="shrink-0 text-lg font-semibold text-ai">→</span>
-        </div>
-      </Link>
-      {/* The paths above choose the format for you, which is the point: the
+      {/* The two paths above choose the format for you, which is the point: the
           reason someone is on this page is usually that they don't know which
           one they want. Everything below assumes they already do, so it waits
           behind a disclosure instead of competing for the same attention. */}
@@ -104,6 +94,18 @@ export default async function CreateGallery() {
               </Link>
             ))}
           </div>
+        </section>
+      )}
+
+      {canRoleplay && (
+        <section className="mt-8">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Living case</div>
+          <p className="mt-1 text-sm text-slate-500">An interactive, decision-first case study: the learner reads the evidence, commits a call under uncertainty, then gets the reveal — with drill-downs and a tutor.</p>
+          <Link href="/studio/case" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
+            <div className="text-2xl">🎬</div>
+            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div><div className="text-xs text-slate-500">Name a business and the decision to teach; the copilot drafts the whole case.</div></div>
+            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
+          </Link>
         </section>
       )}
 
