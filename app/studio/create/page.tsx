@@ -58,7 +58,17 @@ export default async function CreateGallery() {
           <span className="shrink-0 text-lg font-semibold text-ai">→</span>
         </div>
       </Link>
-      {/* The two paths above choose the format for you, which is the point: the
+      <Link href="/studio/case" className="group mt-3 block rounded-2xl border border-line bg-white p-5 transition hover:border-ai/40 hover:shadow-sm sm:p-6">
+        <div className="flex items-center gap-4">
+          <div className="text-3xl">🎬</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-lg font-bold text-ink group-hover:text-ai">Author a living case</div>
+            <div className="mt-0.5 text-sm text-slate2">An interactive, decision-first case study students read, decide inside, and get a reveal — with a tutor and drill-downs. From a topic or your documents.</div>
+          </div>
+          <span className="shrink-0 text-lg font-semibold text-ai">→</span>
+        </div>
+      </Link>
+      {/* The paths above choose the format for you, which is the point: the
           reason someone is on this page is usually that they don't know which
           one they want. Everything below assumes they already do, so it waits
           behind a disclosure instead of competing for the same attention. */}

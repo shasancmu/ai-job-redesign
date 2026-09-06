@@ -43,7 +43,7 @@ export default async function MyCasesPage() {
         <h1 className="font-serif text-2xl font-bold text-ink">My living cases</h1>
         <div className="flex items-center gap-3">
           <Link href="/students" className="text-sm font-medium text-ai hover:underline">My students →</Link>
-          <Link href="/studio/upload" className="btn-primary text-sm">+ New case</Link>
+          <Link href="/studio/case" className="btn-primary text-sm">+ New case</Link>
         </div>
       </div>
       <p className="mt-1 text-sm text-slate-500">Interactive case studies you've authored. Publish one, then share its link with a class.</p>
@@ -62,7 +62,7 @@ export default async function MyCasesPage() {
           <div className="text-3xl">🎬</div>
           <p className="mt-2 font-serif text-lg text-ink">No living cases yet</p>
           <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">Upload teaching materials or paste links in the studio, pick “Living Case,” and the studio drafts an interactive case you can publish.</p>
-          <Link href="/studio/upload" className="btn-primary mt-4 inline-block text-sm">Author a case →</Link>
+          <Link href="/studio/case" className="btn-primary mt-4 inline-block text-sm">Author a case →</Link>
         </div>
       ) : (
         <div className="mt-6 space-y-2">
