@@ -108,8 +108,8 @@ export const ROLEPLAY_TEMPLATES: RoleplayTemplate[] = [
     runnable: true, make: earningsToSpec,
   },
   {
-    id: "reference-check", name: "The Reference Check", emoji: "📞", domain: "Hiring · eliciting signal",
-    whenToUse: "A guarded, constrained source. The information is in what they won't say. Great for managers and recruiters.",
+    id: "reference-check", name: "Read what a reference won't say", emoji: "📞", domain: "Hiring · eliciting signal",
+    whenToUse: "A guarded, constrained source — the signal is in what they won't say plainly. Great for managers and recruiters.",
     runnable: true, make: referenceCheckSpec,
   },
   {

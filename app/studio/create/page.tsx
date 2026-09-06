@@ -4,17 +4,23 @@ import { createClient } from "@/lib/supabase/server";
 import HeaderNav from "@/components/HeaderNav";
 import Logo from "@/components/Logo";
 import { roleFor } from "@/lib/orgs";
-import { ROLEPLAY_TEMPLATES } from "@/lib/mechanics/templates";
 
 export const dynamic = "force-dynamic";
 
-// The one authoring home: pick a template, from either mechanic, and land in the
-// right editor. The two engines stay specialized underneath; this is the shared
-// front door for "create".
-const INTERVIEW_TEMPLATES = [
-  { type: "report", emoji: "📝", name: "Interview → report", domain: "Reflection · discovery", whenToUse: "An AI interviewer draws someone out on a topic, then writes a narrative report back. The workhorse." },
-  { type: "scorecard", emoji: "📊", name: "Interview → scorecard", domain: "Assessment", whenToUse: "The interview ends in ratings across dimensions you define. Good for skills and readiness checks." },
-  { type: "verdict", emoji: "⚖️", name: "Interview → verdict", domain: "Decision", whenToUse: "The interview drives to a labeled decision or recommendation the learner walks away with." },
+// The one authoring home. Two ways in that pick the format for you (upload
+// materials and/or talk it through), then one equal gallery of every format for
+// when you already know what you want — no format dominating, none buried.
+const FORMATS: { emoji: string; name: string; blurb: string; href: string; tag?: string }[] = [
+  { emoji: "🎬", name: "Living case", blurb: "An interactive, decision-first case study from your materials: the learner reads the evidence, commits a call under uncertainty, then gets the reveal — with drill-downs and a tutor.", href: "/studio/case" },
+  { emoji: "🎭", name: "Role-play with a hidden truth", blurb: "The learner interrogates an AI character who won't lie but will spin, then makes a call. Like The Earnings Call.", href: "/studio/roleplay", tag: "9 examples" },
+  { emoji: "🗂️", name: "Guided interview → output", blurb: "An AI interviews the learner, then writes a report, scorecard, or verdict grounded in a framework you name.", href: "/studio/interview/start" },
+  { emoji: "🤝", name: "Negotiation", blurb: "The learner negotiates a scored deal against an AI counterpart with a hidden payoff table. Value-creating trades beat splitting the difference.", href: "/studio/negotiation/start" },
+  { emoji: "📊", name: "Analytical instrument", blurb: "Break a subject into units and score each against a scale you define, X-ray style — AI-exposure, risk, evidence strength.", href: "/studio/analytical/start" },
+  { emoji: "⏱️", name: "Timed quiz", blurb: "A timed, multiple-choice quiz. Server-scored, so the answer key stays private.", href: "/studio/benchmark/start" },
+  { emoji: "📖", name: "Explainer", blurb: "A taught, section-by-section walkthrough of a topic — the clearest way to hand learners a concept before the interactive work.", href: "/studio/explainer/start" },
+  { emoji: "🗞️", name: "In the News", blurb: "Apply a framework to real, current headlines that refresh every run, so the module never goes stale.", href: "/studio/news/start" },
+  { emoji: "🔧", name: "Paired redesign", blurb: "Two learners interview each other, then redesign each other's subject on an instrument you define. A live two-person experience.", href: "/studio/redesign/start", tag: "beta · live" },
+  { emoji: "🌥️", name: "Live group activity", blurb: "A whole-room word cloud, poll, or open responses with an AI synthesis. Participants join on their phones, no account.", href: "/studio/live/new" },
 ];
 
 export const metadata = { title: "Create a module" };
@@ -24,9 +30,8 @@ export default async function CreateGallery() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   const role = await roleFor(user);
-  const canInterview = role.superadmin || role.directorOrgIds.length > 0 || role.instructorOrgIds.length > 0;
-  const canRoleplay = canInterview;
-  if (!canInterview && !canRoleplay) redirect("/dashboard");
+  const canCreate = role.superadmin || role.directorOrgIds.length > 0 || role.instructorOrgIds.length > 0;
+  if (!canCreate) redirect("/dashboard");
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-8">
@@ -35,15 +40,19 @@ export default async function CreateGallery() {
         <div className="flex items-center gap-2"><Link href="/studio" className="text-sm text-slate2 hover:text-ink">← Studio</Link><HeaderNav /></div>
       </header>
       <h1 className="text-3xl text-ink">Create a module</h1>
-      <p className="mt-1 max-w-2xl text-slate2">Start from your own materials, talk it through with the AI, or pick a template. The editor and AI copilot take it from there.</p>
+      <p className="mt-1 max-w-2xl text-slate2">Start from your own materials, talk it through with the AI, or pick a format. The editor and AI copilot take it from there.</p>
       <p className="mt-2 text-sm text-slate-500">New to this? <Link href="/studio/guide" className="font-medium text-ai hover:underline">Read the guide</Link> — what modules are, and how to build one. Already made some? <Link href="/studio/mine" className="font-medium text-ai hover:underline">Your modules →</Link></p>
 
-      <Link href="/studio/upload" className="group mt-6 block rounded-2xl border border-ai/40 bg-gradient-to-br from-ai/5 to-mist/50 p-5 transition hover:shadow-sm sm:p-6">
+      {/* Two ways in that pick the format for you. They are an "and", not an
+          "or": the upload screen lets you add materials AND talk it through,
+          grounded in what you added — so neither card claims to be the only way. */}
+      <div className="mt-6 text-xs font-semibold uppercase tracking-wide text-slate-400">Not sure which format? Start here</div>
+      <Link href="/studio/upload" className="group mt-3 block rounded-2xl border border-ai/40 bg-gradient-to-br from-ai/5 to-mist/50 p-5 transition hover:shadow-sm sm:p-6">
         <div className="flex items-center gap-4">
           <div className="text-3xl">📎</div>
           <div className="min-w-0 flex-1">
-            <div className="text-lg font-bold text-ink group-hover:text-ai">Upload your slides &amp; readings → get a module</div>
-            <div className="mt-0.5 text-sm text-slate2">Drop your PDFs, Word docs, or notes. It reads them, picks the best format, and drafts a module you edit and launch. The fastest way in.</div>
+            <div className="text-lg font-bold text-ink group-hover:text-ai">Upload your materials → get a module</div>
+            <div className="mt-0.5 text-sm text-slate2">Drop PDFs, Word docs, or notes and paste links. It reads them, picks the best format, and drafts a module — and you can add a quick interview on top. The fastest way in.</div>
           </div>
           <span className="shrink-0 text-lg font-semibold text-ai">→</span>
         </div>
@@ -52,189 +61,29 @@ export default async function CreateGallery() {
         <div className="flex items-center gap-4">
           <div className="text-3xl">🎙️</div>
           <div className="min-w-0 flex-1">
-            <div className="text-lg font-bold text-ink group-hover:text-ai">No materials? Talk it through</div>
-            <div className="mt-0.5 text-sm text-slate2">The AI interviews you, by text or voice, about what you want learners to do, then proposes what to build. Great when you&apos;re not sure which format fits.</div>
+            <div className="text-lg font-bold text-ink group-hover:text-ai">Talk it through</div>
+            <div className="mt-0.5 text-sm text-slate2">The AI interviews you, by text or voice, about what you want learners to do, then proposes what to build. Add materials too and it uses both.</div>
           </div>
           <span className="shrink-0 text-lg font-semibold text-ai">→</span>
         </div>
       </Link>
-      {/* The two paths above choose the format for you, which is the point: the
-          reason someone is on this page is usually that they don't know which
-          one they want. Everything below assumes they already do, so it waits
-          behind a disclosure instead of competing for the same attention. */}
-      <details className="group mt-10">
-        <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-slate2 hover:text-ink">
-          <span className="transition group-open:rotate-90">›</span> I already know the format I want
-        </summary>
-        <p className="mt-2 max-w-2xl text-sm text-slate-500">
-          Each of these starts a draft in one specific format. Not sure which? Use one of the two paths
-          above, or read <Link href="/studio/guide" className="font-medium text-ai hover:underline">what each format is for</Link>.
-        </p>
 
-      {canInterview && (
-        <section className="mt-8">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Guided interview → output</div>
-          <p className="mt-1 text-sm text-slate-500">An AI interviewer talks the learner through a topic, then produces a report, scorecard, or verdict grounded in a framework you name.</p>
-          <Link href="/studio/interview/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
-            <div className="text-2xl">✨</div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div>
-              <div className="text-xs text-slate-500">Name the subject and the framework; the copilot drafts the whole module.</div>
+      {/* One equal gallery of every format — always visible, none dominating. */}
+      <div className="mt-10 text-xs font-semibold uppercase tracking-wide text-slate-400">Or pick a format</div>
+      <p className="mt-1 max-w-2xl text-sm text-slate-500">Each starts a draft in one specific format. Not sure which fits? Use one of the two paths above, or read <Link href="/studio/guide" className="font-medium text-ai hover:underline">what each format is for</Link>.</p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {FORMATS.map((f) => (
+          <Link key={f.href} href={f.href} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:border-ai/40 hover:shadow-sm">
+            <div className="flex items-start justify-between gap-2">
+              <div className="text-2xl">{f.emoji}</div>
+              {f.tag && <span className="rounded-full bg-mist px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">{f.tag}</span>}
             </div>
-            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
+            <div className="mt-2 text-sm font-bold text-ink group-hover:text-ai">{f.name}</div>
+            <p className="mt-1 flex-1 text-xs leading-relaxed text-slate-500">{f.blurb}</p>
+            <span className="mt-3 text-sm font-semibold text-ai">Start →</span>
           </Link>
-          <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Or pick a starting point</div>
-          <div className="mt-2 grid gap-3 sm:grid-cols-3">
-            {INTERVIEW_TEMPLATES.map((t) => (
-              <Link key={t.type} href={`/studio/interview/new?type=${t.type}`} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
-                <div className="text-2xl">{t.emoji}</div>
-                <div className="mt-2 text-sm font-bold text-ink group-hover:text-ai">{t.name}</div>
-                <div className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-400">{t.domain}</div>
-                <p className="mt-2 text-xs leading-relaxed text-slate-500">{t.whenToUse}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {canRoleplay && (
-        <section className="mt-8">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Living case</div>
-          <p className="mt-1 text-sm text-slate-500">An interactive, decision-first case study: the learner reads the evidence, commits a call under uncertainty, then gets the reveal — with drill-downs and a tutor.</p>
-          <Link href="/studio/case" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
-            <div className="text-2xl">🎬</div>
-            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div><div className="text-xs text-slate-500">Name a business and the decision to teach; the copilot drafts the whole case.</div></div>
-            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
-          </Link>
-        </section>
-      )}
-
-      {canRoleplay && (
-        <section className="mt-8">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Role-play with hidden truth</div>
-          <p className="mt-1 text-sm text-slate-500">The learner interrogates an AI character who won't lie but will spin, then makes a call under uncertainty. Like The Earnings Call.</p>
-          <Link href="/studio/roleplay/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
-            <div className="text-2xl">✨</div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div>
-              <div className="text-xs text-slate-500">One prompt designs the whole module. You refine from there.</div>
-            </div>
-            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
-          </Link>
-          <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Or start from an example</div>
-          <div className="mt-2 grid gap-3 sm:grid-cols-3">
-            {ROLEPLAY_TEMPLATES.map((t) => (
-              <div key={t.id} className="flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
-                <div className="text-2xl">{t.emoji}</div>
-                <div className="mt-2 text-sm font-bold text-ink">{t.name}</div>
-                <div className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-400">{t.domain}</div>
-                <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-500">{t.whenToUse}</p>
-                <div className="mt-3">
-                  <Link href={`/studio/roleplay/new?from=${t.id}`} className="btn-primary w-full whitespace-nowrap text-sm">{t.id === "blank" ? "Start" : "Use template"}</Link>
-                  {t.runnable && (
-                    <div className="mt-2 flex items-center justify-center gap-3 text-xs">
-                      <Link href={`/studio/roleplay/new?remix=${t.id}`} className="text-slate2 hover:text-ink">Remix</Link>
-                      <span className="text-slate-300">·</span>
-                      <Link href={`/m/${t.id}`} target="_blank" className="text-slate2 hover:text-ink">Preview →</Link>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {canRoleplay && (
-        <section className="mt-8">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Negotiation simulation</div>
-          <p className="mt-1 text-sm text-slate-500">The learner negotiates a scored deal against an AI counterpart with a hidden payoff table. Value-creating trades beat splitting the difference.</p>
-          <Link href="/studio/negotiation/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
-            <div className="text-2xl">🤝</div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div>
-              <div className="text-xs text-slate-500">The copilot writes the hidden payoff tables.</div>
-            </div>
-            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
-          </Link>
-        </section>
-      )}
-
-      {canRoleplay && (
-        <section className="mt-8">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Timed quiz</div>
-          <p className="mt-1 text-sm text-slate-500">A timed, scored multiple-choice quiz. Server-scored, so the answer key stays private.</p>
-          <Link href="/studio/benchmark/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
-            <div className="text-2xl">⏱️</div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div>
-              <div className="text-xs text-slate-500">The copilot writes the questions and the answer key.</div>
-            </div>
-            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
-          </Link>
-        </section>
-      )}
-
-      {canRoleplay && (
-        <section className="mt-8">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Analytical instrument</div>
-          <p className="mt-1 text-sm text-slate-500">Break a subject into units and score each against a scale you define, X-ray style (AI-exposure, risk, evidence strength).</p>
-          <Link href="/studio/analytical/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
-            <div className="text-2xl">📊</div>
-            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div><div className="text-xs text-slate-500">Name the subject, the units, and the scale.</div></div>
-            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
-          </Link>
-        </section>
-      )}
-
-      {canRoleplay && (
-        <section className="mt-8">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Paired redesign <span className="ml-1 rounded-full bg-amber-soft px-1.5 py-0.5 text-[10px] font-semibold text-amber">beta · live</span></div>
-          <p className="mt-1 text-sm text-slate-500">Two learners interview each other, then redesign each other's subject on an instrument you define. A live two-person experience.</p>
-          <Link href="/studio/redesign/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
-            <div className="text-2xl">🤝</div>
-            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div><div className="text-xs text-slate-500">Name the subject and the AI/Human split.</div></div>
-            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
-          </Link>
-        </section>
-      )}
-
-      {canRoleplay && (
-        <section className="mt-8">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Live group activity</div>
-          <p className="mt-1 text-sm text-slate-500">Author a whole-room activity — word cloud, poll, or open responses with an AI synthesis — then run it by code. Participants join on their phones, no account.</p>
-          <Link href="/studio/live/new" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
-            <div className="text-2xl">🌥️</div>
-            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Author a live activity</div><div className="text-xs text-slate-500">Pick a type, write the prompt, run it any time.</div></div>
-            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
-          </Link>
-        </section>
-      )}
-
-      {canRoleplay && (
-        <section className="mt-8">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Explainer</div>
-          <p className="mt-1 text-sm text-slate-500">A taught, guided walkthrough of a topic, section by section. The clearest way to hand learners a concept before the interactive work.</p>
-          <Link href="/studio/explainer/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
-            <div className="text-2xl">📖</div>
-            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div><div className="text-xs text-slate-500">Name the topic and who it&apos;s for; the copilot structures the walkthrough.</div></div>
-            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
-          </Link>
-        </section>
-      )}
-
-      {canRoleplay && (
-        <section className="mt-8">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">In the News</div>
-          <p className="mt-1 text-sm text-slate-500">Pick a framework and a news beat. Every run pulls real, current headlines, so learners apply the framework to a story that broke this week. The module never goes stale.</p>
-          <Link href="/studio/news/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
-            <div className="text-2xl">🗞️</div>
-            <div className="min-w-0 flex-1"><div className="text-sm font-bold text-ink group-hover:text-ai">Build a news module</div><div className="text-xs text-slate-500">Name the framework and the beat; the AI writes the fields and the call.</div></div>
-            <span className="shrink-0 text-sm font-semibold text-ai">→</span>
-          </Link>
-        </section>
-      )}
-      </details>
+        ))}
+      </div>
     </main>
   );
 }

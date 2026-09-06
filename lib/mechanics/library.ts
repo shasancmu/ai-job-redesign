@@ -215,10 +215,10 @@ export const LIBRARY_SPECS: Record<string, () => ModuleSpec> = {
 
 // Gallery metadata: the general TYPE each template teaches.
 export const LIBRARY_TEMPLATES = [
-  { id: "the-diagnosis", name: "The Diagnosis", emoji: "🩺", domain: "Ops · root-cause", whenToUse: "Symptoms are reported but the cause is hidden and the informant guesses wrong. Medicine, incidents, quality, org dysfunction.", make: diagnosisSpec },
-  { id: "the-diligence", name: "The Diligence", emoji: "🔬", domain: "Investing · go / no-go", whenToUse: "Vet a pitch or claim when the other side spins the weak spots. VC, procurement, M&A, grant review.", make: diligenceSpec },
-  { id: "the-investigation", name: "The Investigation", emoji: "🕵️", domain: "Management · what happened", whenToUse: "Reconstruct events from someone with a stake. HR complaints, incident reviews, journalism, compliance.", make: investigationSpec },
-  { id: "the-discovery", name: "The Discovery", emoji: "🧭", domain: "Consulting · real problem", whenToUse: "The client arrives with a solution; find the real problem. Consulting, product, sales discovery, UX research.", make: discoverySpec },
-  { id: "the-screening", name: "The Screening", emoji: "👔", domain: "Hiring · assess a person", whenToUse: "See past a polished self-presentation to the strength or risk. Interviews, admissions, casting, credit.", make: screeningSpec },
-  { id: "the-negotiation", name: "The Negotiation", emoji: "🤝", domain: "Negotiation · find the give", whenToUse: "Discover where a counterpart actually has room before you ask. Salary, procurement, partnerships, disputes.", make: negotiationSpec },
+  { id: "the-diagnosis", name: "Find the hidden root cause", emoji: "🩺", domain: "Ops · root-cause", whenToUse: "Symptoms are reported but the cause is hidden and the informant guesses wrong. Medicine, incidents, quality, org dysfunction.", make: diagnosisSpec },
+  { id: "the-diligence", name: "Vet a pitch or claim", emoji: "🔬", domain: "Investing · go / no-go", whenToUse: "Decide invest-or-pass when the other side spins the weak spots but won't lie. VC, procurement, M&A, grant review.", make: diligenceSpec },
+  { id: "the-investigation", name: "Reconstruct what happened", emoji: "🕵️", domain: "Management · what happened", whenToUse: "Establish the facts from someone with a stake in the story. HR complaints, incident reviews, journalism, compliance.", make: investigationSpec },
+  { id: "the-discovery", name: "Find the client's real problem", emoji: "🧭", domain: "Consulting · real problem", whenToUse: "The client arrives sure of the solution; find the real problem first. Consulting, product, sales discovery, UX research.", make: discoverySpec },
+  { id: "the-screening", name: "See past a candidate's polish", emoji: "👔", domain: "Hiring · assess a person", whenToUse: "See past a polished self-presentation to the real strength or risk. Interviews, admissions, casting, credit.", make: screeningSpec },
+  { id: "the-negotiation", name: "Find where the deal can give", emoji: "🤝", domain: "Negotiation · find the give", whenToUse: "Discover where a counterpart actually has room before you ask for the wrong thing. Salary, procurement, partnerships, disputes.", make: negotiationSpec },
 ] as const;
