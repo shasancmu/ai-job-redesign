@@ -75,7 +75,7 @@ export default async function CreateGallery() {
         <section className="mt-8">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Guided interview → output</div>
           <p className="mt-1 text-sm text-slate-500">An AI interviewer talks the learner through a topic, then produces a report, scorecard, or verdict grounded in a framework you name.</p>
-          <Link href="/build/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
+          <Link href="/studio/interview/start" className="group mt-3 flex items-center gap-3 rounded-2xl border border-ai/30 bg-gradient-to-br from-white to-mist/40 p-4 transition hover:shadow-sm">
             <div className="text-2xl">✨</div>
             <div className="min-w-0 flex-1">
               <div className="text-sm font-bold text-ink group-hover:text-ai">Describe it, and build it</div>
@@ -86,7 +86,7 @@ export default async function CreateGallery() {
           <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Or pick a starting point</div>
           <div className="mt-2 grid gap-3 sm:grid-cols-3">
             {INTERVIEW_TEMPLATES.map((t) => (
-              <Link key={t.type} href={`/build/new?type=${t.type}`} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+              <Link key={t.type} href={`/studio/interview/new?type=${t.type}`} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
                 <div className="text-2xl">{t.emoji}</div>
                 <div className="mt-2 text-sm font-bold text-ink group-hover:text-ai">{t.name}</div>
                 <div className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-400">{t.domain}</div>

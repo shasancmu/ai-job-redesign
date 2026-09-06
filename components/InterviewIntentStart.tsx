@@ -121,7 +121,7 @@ export default function InterviewIntentStart({ canGlobal, orgName }: { canGlobal
           {err && <p className="mt-3 text-sm text-red-700">{err}</p>}
 
           <div className="mt-6 text-center text-sm text-slate-400">
-            Prefer to fill it in yourself? <Link href="/build/new" className="text-slate2 underline hover:text-ink">Open the blank builder</Link>
+            Prefer to fill it in yourself? <Link href="/studio/interview/new" className="text-slate2 underline hover:text-ink">Open the blank builder</Link>
           </div>
         </>
       )}

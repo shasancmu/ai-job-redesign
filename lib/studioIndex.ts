@@ -56,7 +56,7 @@ export async function listMyStudioModules(db: any, userId: string): Promise<Stud
       out.push({
         slug: r.slug, name: r.name || r.spec?.name || r.slug, emoji: r.spec?.emoji || "🗂️",
         kind: "interview", kindLabel: "Guided interview", status: r.status || "draft", updatedAt: r.updated_at || null,
-        editHref: `/build/${r.slug}`, runHref: null,
+        editHref: `/studio/interview/${r.slug}`, runHref: null,
       });
     }
   } catch { /* skip */ }

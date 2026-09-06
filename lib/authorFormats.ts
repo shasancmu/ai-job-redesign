@@ -7,7 +7,7 @@ export type AuthorFormat = { id: string; label: string; emoji: string; endpoint:
 export const AUTHOR_FORMATS: AuthorFormat[] = [
   { id: "explainer", label: "Explainer", emoji: "📖", endpoint: "/api/mechanics/explainer-copilot", table: "explainer_specs", editBase: "/studio/explainer/" },
   { id: "roleplay", label: "Role-play", emoji: "🎭", endpoint: "/api/mechanics/copilot", table: "module_specs", editBase: "/studio/roleplay/" },
-  { id: "interview", label: "Guided interview", emoji: "🗂️", endpoint: "/api/mechanics/interview-copilot", editBase: "/build/" },
+  { id: "interview", label: "Guided interview", emoji: "🗂️", endpoint: "/api/mechanics/interview-copilot", editBase: "/studio/interview/" },
   { id: "negotiation", label: "Negotiation", emoji: "🤝", endpoint: "/api/mechanics/negotiation-copilot", table: "negotiation_specs", editBase: "/studio/negotiation/" },
   { id: "benchmark", label: "Timed quiz", emoji: "⏱️", endpoint: "/api/mechanics/benchmark-copilot", table: "benchmark_specs", editBase: "/studio/benchmark/" },
   { id: "analytical", label: "Analytical instrument", emoji: "📊", endpoint: "/api/mechanics/analytical-copilot", table: "analytical_specs", editBase: "/studio/analytical/" },
