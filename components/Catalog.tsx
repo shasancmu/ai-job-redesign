@@ -312,25 +312,7 @@ export default function Catalog({
             const mods = (filtering ? shown.filter((m) => moduleMatches(m, filterState)) : shown).slice().sort(byCatalogOrder);
             return (
               <>
-                <ModuleFilters
-                  query={query}
-                  onQuery={setQuery}
-                  topics={activePills}
-                  onToggleTopic={togglePill}
-                  features={activeFeatures}
-                  onToggleFeature={toggleFeature}
-                  onClear={clearFilters}
-                  modules={shown}
-                  resultCount={filtering ? mods.length : undefined}
-                />
-
-                {filtering ? (
-                  mods.length ? (
-                    <div className={grid}>{mods.map(renderCard)}</div>
-                  ) : (
-                    <p className="text-sm text-slate2">No exercises match. Try clearing a filter or your search.</p>
-                  )
-                ) : intent ? (
+                {intent && !filtering ? (
                   (() => {
                     const it = INTENTS.find((x) => x.key === intent)!;
                     const im = shown.filter((m) => moduleIntent(m.slug) === intent).sort(byCatalogOrder);
@@ -365,22 +347,25 @@ export default function Catalog({
                     ];
                     return (
                       <div className="space-y-9">
-                        {/* Intent gate — reduce ~90 modules to five doors (Headspace-style). */}
-                        <div>
-                          <h3 className="font-serif text-lg text-ink">What do you want to get better at?</h3>
-                          <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
-                            {INTENTS.map((it) => (
-                              <button key={it.key} onClick={() => setIntent(it.key)} className="group flex flex-col items-start rounded-2xl border border-line bg-white p-3.5 text-left transition hover:border-ai/40 hover:shadow-sm">
-                                <span className="text-2xl" aria-hidden>{it.emoji}</span>
-                                <span className="mt-2 text-sm font-bold leading-snug text-ink group-hover:text-ai">{it.label}</span>
-                                <span className="mt-0.5 text-[11px] leading-snug text-slate-500">{it.blurb}</span>
-                              </button>
-                            ))}
+                        {/* Intent gate — the front door: reduce ~90 modules to five goals
+                            (Headspace-style). Hidden while an explicit search/filter runs. */}
+                        {!filtering && (
+                          <div>
+                            <h3 className="font-serif text-lg text-ink">What do you want to get better at?</h3>
+                            <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+                              {INTENTS.map((it) => (
+                                <button key={it.key} onClick={() => setIntent(it.key)} className="group flex flex-col items-start rounded-2xl border border-line bg-white p-3.5 text-left transition hover:border-ai/40 hover:shadow-sm">
+                                  <span className="text-2xl" aria-hidden>{it.emoji}</span>
+                                  <span className="mt-2 text-sm font-bold leading-snug text-ink group-hover:text-ai">{it.label}</span>
+                                  <span className="mt-0.5 text-[11px] leading-snug text-slate-500">{it.blurb}</span>
+                                </button>
+                              ))}
+                            </div>
                           </div>
-                        </div>
+                        )}
 
-                        {/* Rails — a few named rows, horizontally scrollable, instead of one endless grid (Netflix-style). */}
-                        {rails.map((r) => r.mods.length ? (
+                        {/* Rails — a few named rows instead of one endless grid (Netflix-style). Hidden while filtering. */}
+                        {!filtering && rails.map((r) => r.mods.length ? (
                           <div key={r.key}>
                             <div className="mb-3 flex items-baseline gap-2">
                               <span className="h-2 w-2 rounded-full" style={{ background: r.dot }} />
@@ -394,26 +379,49 @@ export default function Catalog({
                           </div>
                         ) : null)}
 
-                        {/* Everything, by category — one disclosure down, for the browse-all user. */}
-                        <details className="group rounded-2xl border border-line bg-white/60">
+                        {/* The full library — search, filter, and the by-category grid, all in
+                            one disclosure so they never stack a second taxonomy on the gate.
+                            Forced open (and holding the matches) whenever a filter is active. */}
+                        <details open={filtering ? true : undefined} className="group rounded-2xl border border-line bg-white/60">
                           <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-ink">
-                            <span>Browse the full library</span>
+                            <span>Browse &amp; search the full library</span>
                             <span className="text-slate-400 transition group-open:rotate-180">⌄</span>
                           </summary>
-                          <div className="space-y-8 px-4 pb-5 pt-1">
-                            {CATEGORIES.map((cat) => {
-                              const cmods = shown.filter((m) => moduleCategory(m.slug) === cat.key).sort(byCatalogOrder);
-                              if (cmods.length === 0) return null;
-                              return (
-                                <div key={cat.key}>
-                                  <div className="mb-3 flex items-baseline gap-2">
-                                    <span className="h-2 w-2 rounded-full" style={{ background: cat.dot }} />
-                                    <h3 className="text-sm font-bold text-ink">{t("cat." + cat.key)}</h3>
-                                  </div>
-                                  <div className={grid}>{cmods.map(renderCard)}</div>
-                                </div>
-                              );
-                            })}
+                          <div className="space-y-6 px-4 pb-5 pt-1">
+                            <ModuleFilters
+                              query={query}
+                              onQuery={setQuery}
+                              topics={activePills}
+                              onToggleTopic={togglePill}
+                              features={activeFeatures}
+                              onToggleFeature={toggleFeature}
+                              onClear={clearFilters}
+                              modules={shown}
+                              resultCount={filtering ? mods.length : undefined}
+                            />
+                            {filtering ? (
+                              mods.length ? (
+                                <div className={grid}>{mods.map(renderCard)}</div>
+                              ) : (
+                                <p className="text-sm text-slate2">No exercises match. Try clearing a filter or your search.</p>
+                              )
+                            ) : (
+                              <div className="space-y-8">
+                                {CATEGORIES.map((cat) => {
+                                  const cmods = shown.filter((m) => moduleCategory(m.slug) === cat.key).sort(byCatalogOrder);
+                                  if (cmods.length === 0) return null;
+                                  return (
+                                    <div key={cat.key}>
+                                      <div className="mb-3 flex items-baseline gap-2">
+                                        <span className="h-2 w-2 rounded-full" style={{ background: cat.dot }} />
+                                        <h3 className="text-sm font-bold text-ink">{t("cat." + cat.key)}</h3>
+                                      </div>
+                                      <div className={grid}>{cmods.map(renderCard)}</div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
                           </div>
                         </details>
                       </div>
