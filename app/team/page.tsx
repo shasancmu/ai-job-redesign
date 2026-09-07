@@ -85,7 +85,7 @@ export default async function TeamPage() {
         </p>
       </div>
 
-      <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Link href="/facilitator" data-tour="team-cohorts" className="group rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
           <div className="text-2xl">👥</div>
           <div className="mt-2 text-sm font-bold text-ink group-hover:text-sage">Cohorts &amp; live activities</div>
@@ -105,6 +105,11 @@ export default async function TeamPage() {
           <div className="text-2xl">🎨</div>
           <div className="mt-2 text-sm font-bold text-ink group-hover:text-sage">Public page &amp; branding</div>
           <div className="text-xs text-slate-400">Logo, hero image &amp; text</div>
+        </Link>
+        <Link href="/org/ads" className="group rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+          <div className="text-2xl">📣</div>
+          <div className="mt-2 text-sm font-bold text-ink group-hover:text-sage">Program spotlights</div>
+          <div className="text-xs text-slate-400">Promote a program or event, and track interest</div>
         </Link>
       </div>
 
