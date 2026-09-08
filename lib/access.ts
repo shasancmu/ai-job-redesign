@@ -12,6 +12,10 @@ export const FREE_TIER_RUNS = num(process.env.FREE_TIER_RUNS, 4);
 // counted: the B2B2C no-arbitrage guarantee. Both env-tunable without a deploy.
 export const FREE_RUNS = num(process.env.FREE_RUNS, 10);
 export const PACK_RUNS = num(process.env.PACK_RUNS, 60);
+// An org director is comped a larger personal allowance so they can run and
+// evaluate ANY module in the catalog (not just their org's granted set) before
+// deciding what to assign — as if they'd bought a pack, but free.
+export const DIRECTOR_FREE_RUNS = num(process.env.DIRECTOR_FREE_RUNS, 60);
 // Legacy per-module cap knobs — kept only so old imports don't break; the wallet
 // model above supersedes them.
 export const PAID_UNLIMITED = (process.env.PAID_UNLIMITED ?? "false") !== "false";
@@ -127,14 +131,26 @@ async function personalRunsUsed(supabase: SupabaseClient, userId: string): Promi
 
 export type Wallet = { free: number; purchased: number; used: number; balance: number };
 
-// The user's runs wallet. `balance` is FREE_RUNS + purchased − used (may dip to
-// the current in-progress run at the gate; clamp for display).
+// True if the user is a director of any org (stored as 'director', or the legacy
+// 'facilitator'). Directors are comped a larger free allowance.
+async function isOrgDirector(supabase: SupabaseClient, userId: string): Promise<boolean> {
+  try {
+    const { data } = await supabase.from("org_members").select("role").eq("user_id", userId).in("role", ["director", "facilitator"]).limit(1);
+    return !!(data && (data as any[]).length);
+  } catch { return false; }
+}
+
+// The user's runs wallet. `free` is the comped allowance (larger for directors);
+// `balance` is free + purchased − used (may dip to the current in-progress run at
+// the gate; clamp for display).
 export async function runWallet(supabase: SupabaseClient, userId: string): Promise<Wallet> {
-  const [purchased, used] = await Promise.all([
+  const [purchased, used, director] = await Promise.all([
     purchasedCredits(supabase, userId),
     personalRunsUsed(supabase, userId),
+    isOrgDirector(supabase, userId),
   ]);
-  return { free: FREE_RUNS, purchased, used, balance: FREE_RUNS + purchased - used };
+  const free = director ? DIRECTOR_FREE_RUNS : FREE_RUNS;
+  return { free, purchased, used, balance: free + purchased - used };
 }
 
 // The single source of truth for "can this user run this module right now?".
