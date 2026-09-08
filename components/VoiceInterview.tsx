@@ -85,6 +85,11 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
   const silenceRef = useRef<any>(null);
   const maxTurnRef = useRef<any>(null);
   const deadRef = useRef(false);
+  // The TTS keep-alive interval (synth.resume every 5s). Held in a ref so stopVoice
+  // and unmount can kill it — otherwise it resurrects cancelled speech, and the
+  // facilitator keeps talking after "End & build".
+  const speakKeepAlive = useRef<any>(null);
+  const clearKeepAlive = () => { if (speakKeepAlive.current) { clearInterval(speakKeepAlive.current); speakKeepAlive.current = null; } };
   const clearTurnTimers = () => { clearTimeout(silenceRef.current); clearTimeout(maxTurnRef.current); };
 
   async function saveCanvas(patch: Record<string, any>) {
@@ -100,8 +105,8 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
     const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
     if (mutedRef.current || !synth) { onEnd?.(); return; }
     let done = false;
-    let keepAlive: any = null;
-    const finish = () => { if (done) return; done = true; if (keepAlive) clearInterval(keepAlive); onEnd?.(); };
+    clearKeepAlive(); // never let a prior turn's keep-alive outlive this one
+    const finish = () => { if (done) return; done = true; clearKeepAlive(); onEnd?.(); };
     try {
       synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -114,7 +119,7 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
       u.onerror = () => { clearTimeout(wd); finish(); };
       synth.speak(u);
       // iOS/Safari silently pauses speech after ~15s; nudge it to keep going.
-      keepAlive = setInterval(() => { try { synth.resume(); } catch {} }, 5000);
+      speakKeepAlive.current = setInterval(() => { try { synth.resume(); } catch {} }, 5000);
     } catch {
       finish();
     }
@@ -229,7 +234,9 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
     return () => {
       deadRef.current = true;
       turnDoneRef.current = true;
+      runningRef.current = false;
       clearTurnTimers();
+      clearKeepAlive();
       try { rec.onresult = null; rec.onend = null; rec.onerror = null; } catch {}
       try { rec.stop(); } catch {}
       try { rec.abort(); } catch {}
@@ -269,6 +276,7 @@ export default function VoiceInterview(cfg: VoiceInterviewConfig) {
     runningRef.current = false;
     turnDoneRef.current = true;
     clearTurnTimers();
+    clearKeepAlive(); // kill the resume() loop before cancelling, or it revives the speech
     setInterim("");
     try { recRef.current?.stop(); } catch {}
     try { recRef.current?.abort(); } catch {}

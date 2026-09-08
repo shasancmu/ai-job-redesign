@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { CAREER_STEPS, hasXray } from "@/lib/careerXray";
-import Timer from "@/components/Timer";
 import CareerXrayView from "@/components/CareerXrayView";
 import { useT } from "@/components/I18nProvider";
 import type { T } from "@/lib/i18n";
@@ -81,8 +80,6 @@ export default function CareerRoom({ me, session, mode, initialWorkspace, savedR
           <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{isJD ? t("career.roleTag") : t("career.careerTag")}</span>
         </div>
-        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
-          onAdvance={phase < CAREER_STEPS.length - 1 ? () => go(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">
