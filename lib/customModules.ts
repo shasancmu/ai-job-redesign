@@ -103,7 +103,8 @@ export type InterviewCatalogEntry = { slug: string; name: string; emoji: string 
 export async function listAssignableInterviewModules(userId: string): Promise<InterviewCatalogEntry[]> {
   const rows = await listCustomModulesForUser(userId);
   return rows
-    .filter((r) => r.status === "published")
+    // paper-explainer resolves via its own catalog (lib/moduleCatalog), not the interview list.
+    .filter((r) => r.status === "published" && r.super_type !== "paper-explainer")
     .map((r) => ({ slug: r.slug, name: r.name || r.slug, emoji: (r.spec as any)?.emoji || "🧩" }));
 }
 
@@ -113,9 +114,10 @@ export async function interviewMetaBySlugs(slugs: string[]): Promise<Record<stri
   if (!slugs.length) return {};
   let admin;
   try { admin = createAdminClient(); } catch { return {}; }
-  const { data } = await admin.from("custom_modules").select("slug, name, spec, status").in("slug", slugs).eq("status", "published");
+  const { data } = await admin.from("custom_modules").select("slug, name, spec, status, super_type").in("slug", slugs).eq("status", "published");
   const out: Record<string, InterviewCatalogEntry> = {};
-  for (const r of ((data || []) as any[])) out[r.slug] = { slug: r.slug, name: r.name || r.slug, emoji: (r.spec as any)?.emoji || "🧩" };
+  // paper-explainer resolves via its own catalog (lib/moduleCatalog), not here.
+  for (const r of ((data || []) as any[])) { if (r.super_type === "paper-explainer") continue; out[r.slug] = { slug: r.slug, name: r.name || r.slug, emoji: (r.spec as any)?.emoji || "🧩" }; }
   return out;
 }
 

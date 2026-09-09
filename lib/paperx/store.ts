@@ -51,6 +51,17 @@ export async function paperxMetaBySlugs(slugs: string[]): Promise<Record<string,
   return out;
 }
 
+// Published explainers as assignable-catalog entries (all, or one author's), for
+// the class picker + dashboard resolution via lib/moduleCatalog.
+export async function listPaperxCatalog(ownerId?: string): Promise<{ slug: string; name: string; emoji: string }[]> {
+  let admin;
+  try { admin = createAdminClient(); } catch { return []; }
+  let q = admin.from("custom_modules").select("slug, name, spec, author_id").eq("super_type", PAPER_EXPLAINER_TYPE).eq("status", "published");
+  if (ownerId) q = q.eq("author_id", ownerId);
+  const { data } = await q;
+  return ((data || []) as any[]).map((r) => ({ slug: r.slug, name: r.name || r.slug, emoji: (r.spec as any)?.emoji || "💡" }));
+}
+
 export type PaperxListing = { slug: string; name: string; status: string; updated_at: string | null };
 
 // Every explainer the given user authored, newest first — for the "My explainers" list.

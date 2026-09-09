@@ -217,6 +217,14 @@ export default async function Dashboard({
           : runs.some((s: any) => s.status === "done");
   }
 
+  // Custom modules (living cases, paper explainers) record completion as a
+  // `custom:<slug>` done session — collect those so assigned ones show as done.
+  const doneCustomSlugs = new Set(
+    (sessions || [])
+      .filter((s: any) => s.status === "done" && typeof s.exercise === "string" && s.exercise.startsWith("custom:"))
+      .map((s: any) => (s.exercise as string).slice("custom:".length)),
+  );
+
   // Level: how many exercises finished → status ladder (links to /achievements).
   const credCount = MODULES.filter((m) => m.partner !== "group" && completed[m.slug]).length;
   const level = levelFor(credCount);
@@ -450,16 +458,20 @@ export default async function Dashboard({
       <div className={zoneWrap + " space-y-4"}>
         {classAssignments.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2 stagger-in">
-            {classAssignments.map((r) => (
+            {classAssignments.map((r) => {
+              const isDone = doneCustomSlugs.has(r.slug);
+              return (
               <a key={r.slug} href={r.href} className="group flex items-center gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
                 <div className="text-2xl">{r.emoji}</div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-bold text-ink group-hover:text-ai">{r.name}</div>
                   <div className="text-xs text-slate-400">{r.className}</div>
                 </div>
-                <span className="shrink-0 text-sm font-semibold text-sage">Start &rarr;</span>
+                {isDone
+                  ? <span className="shrink-0 text-sm font-semibold text-sage">✓ Done</span>
+                  : <span className="shrink-0 text-sm font-semibold text-sage">Start &rarr;</span>}
               </a>
-            ))}
+            );})}
           </div>
         ) : isStaffHere ? (
           <a href="/team" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">

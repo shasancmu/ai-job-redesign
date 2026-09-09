@@ -84,7 +84,7 @@ function Chart({ chart }: { chart: PxChart }) {
 }
 
 // ---- Teach-back --------------------------------------------------------------
-function TeachBack({ slug, g }: { slug: string; g: PxGenome }) {
+function TeachBack({ slug, g, cohort, preview }: { slug: string; g: PxGenome; cohort?: string | null; preview?: boolean }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [res, setRes] = useState<PxTeachback | null>(null);
@@ -97,6 +97,8 @@ function TeachBack({ slug, g }: { slug: string; g: PxGenome }) {
       const j = await r.json();
       if (!r.ok) { setErr(j.error || "Couldn't evaluate that."); setBusy(false); return; }
       setRes(j);
+      // Reaching the teach-back is completion. Record it (not while previewing a draft).
+      if (!preview) fetch("/api/paperx/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug, cohort }) }).catch(() => {});
     } catch { setErr("Couldn't reach the grader."); }
     setBusy(false);
   }
@@ -134,7 +136,7 @@ function TeachBack({ slug, g }: { slug: string; g: PxGenome }) {
 }
 
 // ---- The reader --------------------------------------------------------------
-export default function PaperxReader({ g, preview }: { g: PxGenome; preview?: boolean }) {
+export default function PaperxReader({ g, preview, cohort }: { g: PxGenome; preview?: boolean; cohort?: string | null }) {
   const [started, setStarted] = useState(false);
 
   return (
@@ -224,7 +226,7 @@ export default function PaperxReader({ g, preview }: { g: PxGenome; preview?: bo
 
           {/* Teach-back */}
           <Section eyebrow="Your turn">
-            <TeachBack slug={g.slug} g={g} />
+            <TeachBack slug={g.slug} g={g} cohort={cohort} preview={preview} />
           </Section>
 
           {/* Glossary + close */}

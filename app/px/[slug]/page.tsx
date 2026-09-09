@@ -6,7 +6,7 @@ import PaperxReader from "@/components/PaperxReader";
 export const dynamic = "force-dynamic";
 
 // The learner-facing run page for a Paper Explainer.
-export default async function PaperxRunPage({ params }: { params: { slug: string } }) {
+export default async function PaperxRunPage({ params, searchParams }: { params: { slug: string }; searchParams: { c?: string; cohort?: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect(`/login?next=/px/${params.slug}`);
@@ -15,7 +15,8 @@ export default async function PaperxRunPage({ params }: { params: { slug: string
   if (!g) redirect("/dashboard");
 
   const preview = g.generated === true && (await isDraft(params.slug, user.id));
-  return <PaperxReader g={g} preview={preview} />;
+  const cohort = (searchParams.cohort || searchParams.c || "").trim() || null;
+  return <PaperxReader g={g} preview={preview} cohort={cohort} />;
 }
 
 // A draft (unpublished) explainer, opened by its author, shows the verify banner.

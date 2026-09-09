@@ -9,6 +9,7 @@ import { listNewsCatalog } from "@/lib/mechanics/newsStore";
 import { listExplainerCatalog } from "@/lib/mechanics/explainerStore";
 import { listRedesignCatalog } from "@/lib/mechanics/redesignStore";
 import { listLivePromptCatalog } from "@/lib/mechanics/livePromptStore";
+import { listPaperxCatalog } from "@/lib/paperx/store";
 
 export type AuthoredModule = { slug: string; name: string; emoji: string; kind: string; prefix: string; mode?: "Solo" | "Paired" | "Live" };
 
@@ -20,6 +21,7 @@ const DEFS: { kind: string; prefix: string; emoji: string; mode?: "Solo" | "Pair
   { kind: "explainer", prefix: "e", emoji: "📖", list: listExplainerCatalog },
   { kind: "redesign", prefix: "rd", emoji: "🤝", list: listRedesignCatalog },
   { kind: "liveprompt", prefix: "lp", emoji: "🌥️", mode: "Live", list: listLivePromptCatalog },
+  { kind: "paper-explainer", prefix: "px", emoji: "💡", mode: "Solo", list: listPaperxCatalog },
 ];
 
 // All published authored modules across the newer engines. ownerId omitted =
