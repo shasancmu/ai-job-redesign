@@ -12,29 +12,40 @@ import type { PxGenome } from "@/lib/paperx/types";
 export default function PaperxAuthor() {
   const [text, setText] = useState("");
   const [fileName, setFileName] = useState("");
-  const [pdfB64, setPdfB64] = useState("");
+  const [pdfText, setPdfText] = useState(""); // text extracted from the PDF in the browser
   const [busy, setBusy] = useState(false);
+  const [reading, setReading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [genome, setGenome] = useState<PxGenome | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  function clearFile() { setPdfText(""); setFileName(""); if (fileRef.current) fileRef.current.value = ""; }
+
+  // Extract the PDF's text IN THE BROWSER (pdfjs), exactly like the module upload
+  // flow — server-side PDF parsing fails on Vercel, so we send plain text.
   async function onFile(f: File | null) {
     if (!f) return;
     setErr(null);
-    if (f.size > 15 * 1024 * 1024) { setErr("That PDF is over 15MB. Try a smaller file or paste the text."); return; }
-    const buf = await f.arrayBuffer();
-    let bin = ""; const bytes = new Uint8Array(buf);
-    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-    setPdfB64(btoa(bin));
-    setFileName(f.name);
-    setText("");
+    if (f.size > 25 * 1024 * 1024) { setErr("That PDF is over 25MB. Try a smaller file or paste the text."); return; }
+    setReading(true); setFileName(f.name); setText("");
+    try {
+      const { extractPdfTextClient } = await import("@/lib/pdfClient");
+      const t = (await extractPdfTextClient(f)).trim();
+      if (t.length < 400) { setErr("That PDF has little or no selectable text (a scan or image PDF?). Paste the paper's text instead."); clearFile(); }
+      else setPdfText(t);
+    } catch {
+      setErr("Couldn't read that PDF. Paste the paper's text instead.");
+      clearFile();
+    }
+    setReading(false);
   }
 
   async function generate() {
-    if (!pdfB64 && text.trim().length < 400) { setErr("Upload the paper's PDF, or paste at least a few paragraphs of it."); return; }
+    const source = (pdfText || text).trim();
+    if (source.length < 400) { setErr("Upload the paper's PDF, or paste at least a few paragraphs of it."); return; }
     setBusy(true); setErr(null);
     try {
-      const res = await fetch("/api/paperx/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(pdfB64 ? { pdf: pdfB64 } : { text }) });
+      const res = await fetch("/api/paperx/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: source }) });
       const j = await res.json();
       if (!res.ok) { setErr(j.error || "Couldn't generate."); setBusy(false); return; }
       setGenome(j.genome);
@@ -59,14 +70,15 @@ export default function PaperxAuthor() {
       <div className="rounded-2xl border border-line bg-white p-5">
         <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Upload the paper</div>
         <div className="mt-2 flex flex-wrap items-center gap-3">
-          <button onClick={() => fileRef.current?.click()} className="btn-ghost text-sm">{fileName ? `📄 ${fileName}` : "Choose a PDF…"}</button>
-          {fileName && <button onClick={() => { setPdfB64(""); setFileName(""); if (fileRef.current) fileRef.current.value = ""; }} className="text-xs text-slate-400 hover:text-ink">clear</button>}
+          <button onClick={() => fileRef.current?.click()} disabled={reading} className="btn-ghost text-sm disabled:opacity-50">{reading ? "Reading the PDF…" : fileName ? `📄 ${fileName}` : "Choose a PDF…"}</button>
+          {fileName && !reading && <button onClick={clearFile} className="text-xs text-slate-400 hover:text-ink">clear</button>}
           <input ref={fileRef} type="file" accept="application/pdf" hidden onChange={(e) => onFile(e.target.files?.[0] || null)} />
         </div>
+        {pdfText && <p className="mt-1.5 text-xs text-sage">✓ Read {pdfText.length.toLocaleString()} characters from the PDF.</p>}
         <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Or paste the text</div>
-        <textarea value={text} onChange={(e) => { setText(e.target.value); if (e.target.value) { setPdfB64(""); setFileName(""); } }} rows={5} placeholder="Paste the abstract + key sections, or the whole paper…" className="field mt-2 w-full text-sm" />
+        <textarea value={text} onChange={(e) => { setText(e.target.value); if (e.target.value) clearFile(); }} rows={5} placeholder="Paste the abstract + key sections, or the whole paper…" className="field mt-2 w-full text-sm" />
         {err && <p className="mt-3 text-sm text-clay">{err}</p>}
-        <button onClick={generate} disabled={busy} className="btn-primary mt-4">{busy ? "Building your explainer… (up to a minute)" : "Build the explainer →"}</button>
+        <button onClick={generate} disabled={busy || reading} className="btn-primary mt-4">{busy ? "Building your explainer… (up to a minute)" : "Build the explainer →"}</button>
         <p className="mt-2 text-xs text-slate-400">The AI is instructed to use only the paper's real numbers and findings. You verify everything before publishing.</p>
       </div>
     </div>
