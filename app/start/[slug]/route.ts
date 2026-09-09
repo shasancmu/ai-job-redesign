@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { moduleBySlug } from "@/lib/modules";
 import { loadRunnableBySlug } from "@/lib/customModules";
 import { loadLivingCase } from "@/lib/cases/store";
+import { loadPaperx } from "@/lib/paperx/store";
 import { getActiveOrg, ensureMasterCohort, isDirectorOrAdmin } from "@/lib/orgs";
 
 export const runtime = "nodejs";
@@ -45,6 +46,8 @@ export async function GET(request: Request, { params }: { params: { slug: string
     // send them straight to the case reader instead of spinning up a room.
     const lc = await loadLivingCase(params.slug, user.id);
     if (lc) return NextResponse.redirect(`${origin}/cases/${params.slug}`);
+    const px = await loadPaperx(params.slug, user.id);
+    if (px) return NextResponse.redirect(`${origin}/px/${params.slug}`);
     const custom = await loadRunnableBySlug(params.slug, user.id);
     if (!custom) return NextResponse.redirect(`${origin}/dashboard`);
     exercise = custom.exercise;

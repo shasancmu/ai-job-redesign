@@ -4338,3 +4338,51 @@ Rules: 3 to 5 suggestions, best first. Look for: low completion (students droppi
   const user = `CASE: ${input.title}\nDECISION: ${input.decision}\nENGAGEMENT: ${input.readers} students opened it; ${input.completionPct}% made a call (completion).\nWHAT THEY DECIDED: ${input.decisions || "(no decisions yet)"}\nQUESTIONS THEY ASKED THE TUTOR: ${input.questions || "(none)"}`;
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.5, maxTokens: 900, low: true });
 }
+
+// ============================================================================
+// Paper Explainer — turn an uploaded academic paper into an interactive, visual
+// explainer whose goal is deep conceptual understanding + the ability to teach
+// it. Built on Sharique Hasan's "Research, Strategy" frameworks.
+// ============================================================================
+const PX_SPEC_SHAPE = `Return STRICT JSON with EXACTLY these keys:
+{
+  "paperTitle": "the paper's real title",
+  "authors": "Last names + year, e.g. Gartenberg, Hasan, Murray & Pierce (2026)",
+  "venue": "the journal or venue if stated, else empty",
+  "title": "a punchy, curiosity-provoking title for the EXPLAINER (not the paper's title) — 3 to 7 words",
+  "eyebrow": "3 topic tags joined by ' · ', e.g. AI · peer review · incentives",
+  "emoji": "one emoji that fits the idea",
+  "dek": "a one-paragraph hook (40-70 words) that makes a non-expert want to know more",
+  "bigQuestion": "the single motivating question the paper answers, one line",
+  "hook": { "headline": "why anyone should care", "body": "60-90 words making the stakes vivid and concrete" },
+  "nullBelief": { "headline": "what everyone assumes", "body": "60-90 words stating the conventional wisdom / null model the paper pushes against — the thing a smart person would believe by default" },
+  "puzzle": { "believe": "we believe X (the null, one sentence)", "expect": "if that were true we'd expect to see Z (one sentence)", "observe": "but we actually observe R (the surprising fact, one sentence)" },
+  "predicts": [ { "prompt": "a guess-first question about the key finding", "choices": ["3-4 plausible options"], "answer": 0, "reveal": "40-70 words explaining the real answer and why the intuitive guess is wrong" } ],
+  "idea": { "if_": "IF ... (the cause/condition X)", "then_": "THEN ... (the effect Y)", "whenZ": "ESPECIALLY / EXCEPT WHEN ... (the condition Z where it's stronger or breaks)", "because": "BECAUSE ... (the mechanism, one crisp sentence)" },
+  "evidence": { "headline": "the key result", "chart": { "kind": "slope|bars|line", "title": "chart title", "yLabel": "y axis label", "annotation": "one callout like +42% or -1.28 SD", "series": [ { "label": "series name", "tone": "up|down|neutral", "points": [ { "x": "label", "y": 0 } ] } ] }, "takeaway": "40-70 words on what the evidence shows" },
+  "mechanism": { "headline": "why it happens", "body": "70-110 words on the mechanism / the twist — the deeper 'why' behind the pattern" },
+  "soWhat": { "headline": "why it matters", "body": "60-90 words on the implications: what changes, who should act, what we now see differently" },
+  "teachBack": { "prompt": "Explain this paper's core idea to <audience> in three sentences.", "audience": "e.g. a smart friend outside your field", "rubric": ["3-5 short criteria a good explanation must hit — the puzzle, the mechanism, the evidence, clarity for a non-expert"] },
+  "glossary": [ { "term": "a key term", "def": "a one-line plain-language definition" } ]
+}`;
+const PX_RULES = `Rules:
+- Ground EVERYTHING in the actual paper provided. Use its real numbers, findings, and terms. Do NOT invent statistics; if a precise number isn't in the text, describe the finding qualitatively instead.
+- The chart is OPTIONAL but strongly preferred when the paper has a clear quantitative result: pick the ONE result that best captures the finding and encode it as a few real data points. 'slope' for a before/after or two-point change, 'bars' for a few categories, 'line' for a trend over time. Keep it to 2-8 points per series and at most 3 series. If you have no trustworthy numbers, OMIT the chart key.
+- Write for an intelligent NON-EXPERT. Entertaining but honest: vivid, plain language, zero jargon that isn't defined in the glossary. Short sentences.
+- The whole point is the reader should end able to EXPLAIN the idea. Make the puzzle (violated expectation) and the mechanism unmistakably clear.
+- 1 or 2 predicts, best first. The 'answer' is the 0-based index of the correct choice.
+- No em dashes anywhere, including inside JSON string values. CRITICAL: keep the JSON tight enough to finish — glossary comes last and must not be cut off.`;
+
+// Generate the explainer genome from the paper's extracted text.
+export async function paperExplainerAI(input: { paperText: string; style?: string }): Promise<any> {
+  const system = `You are a brilliant science communicator and teacher building an INTERACTIVE, VISUAL explainer of a single academic paper. Your goal: a curious non-expert reads it in ten minutes, deeply understands the ONE core research idea, and can then explain it clearly to someone else. You deconstruct the paper the way a great researcher would, using this lens: a research idea makes the invisible visible against a NULL (the conventional wisdom); the contribution is usually an INTERACTION (IF X THEN Y, ESPECIALLY or EXCEPT WHEN Z, BECAUSE a mechanism); the PUZZLE is a violated expectation (we believe X, so we'd expect Z, but we observe R).\n\n${PX_SPEC_SHAPE}\n\n${PX_RULES}`;
+  const user = `THE PAPER (extracted text; may be truncated):\n${String(input.paperText || "").slice(0, 24000)}${input.style || ""}`;
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.6, maxTokens: 4200, timeoutMs: 95000 });
+}
+
+// Grade a learner's teach-back attempt against the paper's core idea.
+export async function paperxTeachbackAI(input: { title: string; puzzle: string; idea: string; mechanism: string; audience: string; rubric: string[]; attempt: string }): Promise<any> {
+  const system = `You are a warm but exacting teacher evaluating whether someone truly understood a research idea, by judging how they explained it to ${input.audience}. The test of understanding is a clear, honest explanation a non-expert could follow. Be encouraging but specific; never flatter a vague answer.\n\nReturn STRICT JSON: { "score": 0-100, "verdict": "one honest sentence", "strengths": ["what they nailed"], "gaps": ["what a listener would still be confused about, or what they got wrong"], "model": "a model 3-sentence explanation they can compare against" }\nRules: score on whether they captured the puzzle, the mechanism, and the evidence, AND whether it's clear to a non-expert. 1-3 strengths, 1-3 gaps. The model explanation must be genuinely excellent and jargon-free. No em dashes.`;
+  const user = `THE IDEA (ground truth):\nTitle: ${input.title}\nPuzzle: ${input.puzzle}\nCore idea: ${input.idea}\nMechanism: ${input.mechanism}\nWhat a good explanation must hit: ${input.rubric.join("; ")}\n\nTHE LEARNER'S EXPLANATION:\n${input.attempt.slice(0, 2000)}`;
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.3, maxTokens: 900, low: true, timeoutMs: 45000 });
+}
