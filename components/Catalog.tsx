@@ -105,7 +105,7 @@ export default function Catalog({
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [detail, setDetail] = useState<string | null>(null); // slug of the module whose "What's this?" is open
-  const [intent, setIntent] = useState<IntentKey | null>(null); // the chosen "what do you want to get better at?" goal
+  const [showAll, setShowAll] = useState(false); // "Show all by categories" — reveal the full category-grouped library
   // Keyboard handling for that dialog: Escape closes it, focus moves into it on
   // open and back to the card that opened it on close.
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -318,122 +318,65 @@ export default function Catalog({
             const mods = (filtering ? shown.filter((m) => moduleMatches(m, filterState)) : shown).slice().sort(byCatalogOrder);
             return (
               <>
-                {intent && !filtering ? (
-                  (() => {
-                    const it = INTENTS.find((x) => x.key === intent)!;
-                    const im = shown.filter((m) => moduleIntent(m.slug) === intent).sort(byCatalogOrder);
-                    return (
-                      <div>
-                        <button onClick={() => setIntent(null)} className="text-sm text-slate2 hover:text-ink">← All goals</button>
-                        <div className="mt-3 flex items-start gap-3">
-                          <span className="text-3xl" aria-hidden>{it.emoji}</span>
-                          <div>
-                            <h3 className="font-serif text-xl text-ink">{it.label}</h3>
-                            <p className="mt-0.5 text-sm text-slate-500">{it.blurb}</p>
+                {/* Google-style search: the front door. Type to find any exercise;
+                    or show the whole library grouped by category. */}
+                <div className="mx-auto max-w-2xl">
+                  <div className="relative">
+                    <svg className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+                    <input
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="Search exercises — a topic, a skill, a name…"
+                      aria-label="Search exercises"
+                      className="w-full rounded-full border border-line bg-white py-3.5 pl-12 pr-10 text-base shadow-sm transition focus:border-ai/50 focus:outline-none focus:ring-2 focus:ring-ai/20"
+                    />
+                    {query && (
+                      <button onClick={() => clearFilters()} aria-label="Clear search" className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 hover:bg-mist hover:text-ink">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden><path d="M18 6 6 18M6 6l12 12" /></svg>
+                      </button>
+                    )}
+                  </div>
+                  {!filtering && (
+                    <div className="mt-3 text-center">
+                      <button onClick={() => setShowAll((v) => !v)} className="text-sm font-semibold text-ai hover:underline">
+                        {showAll ? "Hide categories" : `Show all ${shown.length} by categories`}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {filtering ? (
+                  mods.length ? (
+                    <div className={grid + " mt-8"}>{mods.map(renderCard)}</div>
+                  ) : (
+                    <p className="mt-8 text-center text-sm text-slate2">No exercises match &ldquo;{query}&rdquo;. Try another word, or <button onClick={() => { clearFilters(); setShowAll(true); }} className="font-semibold text-ai hover:underline">show all by categories</button>.</p>
+                  )
+                ) : showAll ? (
+                  <div className="mt-8 space-y-8">
+                    {CATEGORIES.map((cat) => {
+                      const cmods = shown.filter((m) => moduleCategory(m.slug) === cat.key).sort(byCatalogOrder);
+                      if (cmods.length === 0) return null;
+                      return (
+                        <div key={cat.key}>
+                          <div className="mb-3 flex items-baseline gap-2">
+                            <span className="h-2 w-2 rounded-full" style={{ background: cat.dot }} />
+                            <h3 className="text-sm font-bold text-ink">{t("cat." + cat.key)}</h3>
                           </div>
+                          <div className={grid}>{cmods.map(renderCard)}</div>
                         </div>
-                        {im.length ? (
-                          <div className={grid + " mt-6"}>{im.map(renderCard)}</div>
-                        ) : (
-                          <p className="mt-6 text-sm text-slate2">Nothing here yet.</p>
-                        )}
-                      </div>
-                    );
-                  })()
-                ) : (
-                  (() => {
-                    const quick = shown.filter((m) => m.minutes > 0 && m.minutes <= 15 && m.partner !== "group").sort(byCatalogOrder).slice(0, 8);
-                    const popModules = ((popular.length ? popular : POPULAR_FALLBACK)
-                      .map((s) => shown.find((m) => m.slug === s))
-                      .filter((m) => m && m.partner !== "group") as typeof MODULES).slice(0, 8);
-                    const rails: { key: string; dot: string; title: string; mods: typeof MODULES }[] = [
-                      ...(recModules.length ? [{ key: "rec", dot: "#1A1A1A", title: nextUpBecause ? `Because you did ${nextUpBecause}` : t("dash.recommended"), mods: recModules }] : []),
-                      { key: "quick", dot: "#3F7A52", title: "Quick wins — done in 15 minutes", mods: quick },
-                      { key: "popular", dot: "#B4632A", title: "Popular this week", mods: popModules },
-                    ];
-                    return (
-                      <div className="space-y-9">
-                        {/* Intent gate — the front door: reduce ~90 modules to five goals
-                            (Headspace-style). Hidden while an explicit search/filter runs. */}
-                        {!filtering && (
-                          <div>
-                            <h3 className="font-serif text-lg text-ink">What do you want to get better at?</h3>
-                            <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
-                              {INTENTS.map((it) => (
-                                <button key={it.key} onClick={() => setIntent(it.key)} className="group flex flex-col items-start rounded-2xl border border-line bg-white p-3.5 text-left transition hover:border-ai/40 hover:shadow-sm">
-                                  <span className="text-2xl" aria-hidden>{it.emoji}</span>
-                                  <span className="mt-2 text-sm font-bold leading-snug text-ink group-hover:text-ai">{it.label}</span>
-                                  <span className="mt-0.5 text-[11px] leading-snug text-slate-500">{it.blurb}</span>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Rails — a few named rows instead of one endless grid (Netflix-style). Hidden while filtering. */}
-                        {!filtering && rails.map((r) => r.mods.length ? (
-                          <div key={r.key}>
-                            <div className="mb-3 flex items-baseline gap-2">
-                              <span className="h-2 w-2 rounded-full" style={{ background: r.dot }} />
-                              <h3 className="text-sm font-bold text-ink">{r.title}</h3>
-                            </div>
-                            <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-2">
-                              {r.mods.map((m) => (
-                                <div key={m.slug} className="w-[280px] shrink-0 snap-start">{renderCard(m)}</div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : null)}
-
-                        {/* The full library — search, filter, and the by-category grid, all in
-                            one disclosure so they never stack a second taxonomy on the gate.
-                            Forced open (and holding the matches) whenever a filter is active. */}
-                        <details open={filtering ? true : undefined} className="group rounded-2xl border border-line bg-white/60">
-                          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-ink">
-                            <span>Browse &amp; search the full library</span>
-                            <span className="text-slate-400 transition group-open:rotate-180">⌄</span>
-                          </summary>
-                          <div className="space-y-6 px-4 pb-5 pt-1">
-                            <ModuleFilters
-                              query={query}
-                              onQuery={setQuery}
-                              topics={activePills}
-                              onToggleTopic={togglePill}
-                              features={activeFeatures}
-                              onToggleFeature={toggleFeature}
-                              onClear={clearFilters}
-                              modules={shown}
-                              resultCount={filtering ? mods.length : undefined}
-                            />
-                            {filtering ? (
-                              mods.length ? (
-                                <div className={grid}>{mods.map(renderCard)}</div>
-                              ) : (
-                                <p className="text-sm text-slate2">No exercises match. Try clearing a filter or your search.</p>
-                              )
-                            ) : (
-                              <div className="space-y-8">
-                                {CATEGORIES.map((cat) => {
-                                  const cmods = shown.filter((m) => moduleCategory(m.slug) === cat.key).sort(byCatalogOrder);
-                                  if (cmods.length === 0) return null;
-                                  return (
-                                    <div key={cat.key}>
-                                      <div className="mb-3 flex items-baseline gap-2">
-                                        <span className="h-2 w-2 rounded-full" style={{ background: cat.dot }} />
-                                        <h3 className="text-sm font-bold text-ink">{t("cat." + cat.key)}</h3>
-                                      </div>
-                                      <div className={grid}>{cmods.map(renderCard)}</div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        </details>
-                      </div>
-                    );
-                  })()
-                )}
+                      );
+                    })}
+                  </div>
+                ) : recModules.length ? (
+                  // At rest: one helpful row — the Markov "next up" (or segment recs).
+                  <div className="mt-8">
+                    <div className="mb-3 flex items-baseline gap-2">
+                      <span className="h-2 w-2 rounded-full bg-ink" />
+                      <h3 className="text-sm font-bold text-ink">{nextUpBecause ? `Because you did ${nextUpBecause}` : t("dash.recommended")}</h3>
+                    </div>
+                    <div className={grid}>{recModules.slice(0, 6).map(renderCard)}</div>
+                  </div>
+                ) : null}
                 </>
               );
             })()}
