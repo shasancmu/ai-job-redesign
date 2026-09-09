@@ -46,18 +46,23 @@ export async function listMyStudioModules(db: any, userId: string): Promise<Stud
     } catch { /* table/policy issue → just skip this type */ }
   }));
 
-  // Guided-interview modules live in custom_modules (author_id, no run prefix).
+  // Modules that live in custom_modules (author_id). Most are guided interviews;
+  // some carry a super_type (paper-explainer, living-case) with their own
+  // editor + runner, so branch on it rather than labeling everything "interview".
   try {
-    const { data } = await db.from("custom_modules").select("slug, name, spec, status, updated_at").eq("author_id", userId).order("updated_at", { ascending: false }).limit(300);
+    const { data } = await db.from("custom_modules").select("slug, name, spec, status, updated_at, super_type").eq("author_id", userId).order("updated_at", { ascending: false }).limit(300);
     const seen = new Set<string>();
     for (const r of ((data as any[]) || [])) {
       if (seen.has(r.slug)) continue;
       seen.add(r.slug);
-      out.push({
-        slug: r.slug, name: r.name || r.spec?.name || r.slug, emoji: r.spec?.emoji || "🗂️",
-        kind: "interview", kindLabel: "Guided interview", status: r.status || "draft", updatedAt: r.updated_at || null,
-        editHref: `/studio/interview/${r.slug}`, runHref: null,
-      });
+      const base = { slug: r.slug, name: r.name || r.spec?.name || r.slug, status: r.status || "draft", updatedAt: r.updated_at || null };
+      if (r.super_type === "paper-explainer") {
+        out.push({ ...base, emoji: r.spec?.emoji || "💡", kind: "paper-explainer", kindLabel: "Paper Explainer", editHref: `/studio/paper/${r.slug}`, runHref: `/px/${r.slug}` });
+      } else if (r.super_type === "living-case") {
+        out.push({ ...base, emoji: r.spec?.emoji || "🎬", kind: "living-case", kindLabel: "Living case", editHref: `/cases/${r.slug}/insights`, runHref: `/cases/${r.slug}` });
+      } else {
+        out.push({ ...base, emoji: r.spec?.emoji || "🗂️", kind: "interview", kindLabel: "Guided interview", editHref: `/studio/interview/${r.slug}`, runHref: null });
+      }
     }
   } catch { /* skip */ }
 
