@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
 import { SOLO_WORKFLOW_STEPS, STEP_ROLES } from "@/lib/workflow";
 import { moduleBeacon } from "@/lib/clientBeacon";
-import Timer from "@/components/Timer";
 import WorkflowFlow from "@/components/WorkflowFlow";
 import TradeoffPlan from "@/components/TradeoffPlan";
 import { useT } from "@/components/I18nProvider";
@@ -131,8 +130,6 @@ export default function SoloWorkflowRoom({
           </Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{t("sworkflow.tag")}</span>
         </div>
-        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
-          onAdvance={phase < SOLO_WORKFLOW_STEPS.length - 1 ? () => go(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">

@@ -8,7 +8,6 @@ import InterviewHelper from "@/components/InterviewHelper";
 import ReportReveal from "@/components/ReportReveal";
 import { usePredictGate } from "@/components/usePredictGate";
 import { CONSULT_STEPS, WMS, WMS_AREAS } from "@/lib/business";
-import Timer from "@/components/Timer";
 import ConsultReport from "@/components/ConsultReport";
 import StepHeader from "./StepHeader";
 import InterviewProgress from "@/components/InterviewProgress";
@@ -68,8 +67,6 @@ export default function ConsultRoom({
           <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">The 30-Minute Consult</span>
         </div>
-        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
-          onAdvance={phase < CONSULT_STEPS.length - 1 ? () => go(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">

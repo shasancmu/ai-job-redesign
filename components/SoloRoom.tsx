@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/client";
 import InterviewHelper from "@/components/InterviewHelper";
 import { SOLO_STEPS } from "@/lib/solo";
 import GridEditor from "@/components/GridEditor";
-import Timer from "@/components/Timer";
 import BuildPlan from "@/components/BuildPlan";
 import PredictReveal from "@/components/PredictReveal";
 import { reportGuide } from "@/lib/reportGuide";
@@ -108,8 +107,6 @@ export default function SoloRoom({
             {t("room.soloTag")}
           </span>
         </div>
-        <Timer startedAt={session.phase_started_at || mountedAt} minutes={step.minutes} onReset={() => goToPhase(phase)}
-          onAdvance={phase < SOLO_STEPS.length - 1 ? () => goToPhase(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">

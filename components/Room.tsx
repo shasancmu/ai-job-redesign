@@ -13,7 +13,6 @@ import BreakPanel from "@/components/phases/BreakPanel";
 import RedesignPanel from "@/components/phases/RedesignPanel";
 import SharePanel from "@/components/phases/SharePanel";
 import FinalPanel from "@/components/phases/FinalPanel";
-import Timer from "@/components/Timer";
 import PairWaiting from "@/components/PairWaiting";
 import { useT } from "@/components/I18nProvider";
 import StepHeader from "./StepHeader";
@@ -334,12 +333,6 @@ export default function Room({
             </span>
           </span>
         </div>
-        <Timer
-          startedAt={session.phase_started_at || new Date(localStart).toISOString()}
-          minutes={phase.minutes}
-          onReset={resetTimer}
-          onAdvance={session.phase < PHASES.length - 1 ? () => goToPhase(session.phase + 1, true) : undefined}
-        />
       </div>
 
       {/* Phase progress */}

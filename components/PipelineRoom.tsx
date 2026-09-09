@@ -5,7 +5,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import ReportReveal from "@/components/ReportReveal";
 import { usePredictGate } from "@/components/usePredictGate";
-import Timer from "@/components/Timer";
 import PipelineReport from "@/components/PipelineReport";
 import { PIPELINE_STEPS, PIPELINE_STAGES, FUNNEL_NOTE, QUALITY, DEFAULT_INPUTS, simulate, type PipelineInputs } from "@/lib/pipeline";
 import StepHeader from "./StepHeader";
@@ -54,8 +53,6 @@ export default function PipelineRoom({ session, initialWorkspace }: { me: string
           <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">Publication Pipeline</span>
         </div>
-        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
-          onAdvance={phase < PIPELINE_STEPS.length - 1 ? () => go(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">

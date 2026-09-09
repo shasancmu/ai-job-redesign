@@ -5,7 +5,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import ReportReveal from "@/components/ReportReveal";
 import { usePredictGate } from "@/components/usePredictGate";
-import Timer from "@/components/Timer";
 import PaperStudyReport from "@/components/PaperStudyReport";
 import { PAPER_STUDY_STEPS, EXAMPLE_PAPER } from "@/lib/paperstudy";
 import StepHeader from "./StepHeader";
@@ -54,8 +53,6 @@ export default function PaperStudyRoom({ session, initialWorkspace }: { me: stri
           <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">Understand a Paper</span>
         </div>
-        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
-          onAdvance={phase < PAPER_STUDY_STEPS.length - 1 ? () => go(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">

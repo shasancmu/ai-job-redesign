@@ -7,7 +7,6 @@ import { streamPost } from "@/lib/streamClient";
 import InterviewHelper from "@/components/InterviewHelper";
 import ReportReveal from "@/components/ReportReveal";
 import { usePredictGate } from "@/components/usePredictGate";
-import Timer from "@/components/Timer";
 import VisionReport from "@/components/VisionReport";
 import StepHeader from "./StepHeader";
 import InterviewProgress from "@/components/InterviewProgress";
@@ -63,8 +62,6 @@ export default function VisionRoom({ me, session, initialWorkspace }: { me: stri
           <Link href="/dashboard" className="-m-2.5 inline-flex items-center rounded-lg p-2.5 text-sm text-slate2 hover:text-ink">← {t("room.exit")}</Link>
           <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">Shape your vision</span>
         </div>
-        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
-          onAdvance={phase < STEPS.length - 1 ? () => go(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">

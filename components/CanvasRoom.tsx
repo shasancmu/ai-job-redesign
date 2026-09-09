@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
 import InterviewHelper from "@/components/InterviewHelper";
 import { CANVAS_STEPS, accentColor, type CanvasDef, type CanvasField } from "@/lib/canvases";
-import Timer from "@/components/Timer";
 import CanvasView from "@/components/CanvasView";
 import ReflectCommit from "@/components/ReflectCommit";
 import ResearchBehind from "@/components/ResearchBehind";
@@ -88,8 +87,6 @@ export default function CanvasRoom({
             </span>
           )}
         </div>
-        <Timer startedAt={startedAt} minutes={step.minutes} onReset={() => setStartedAt(new Date().toISOString())}
-          onAdvance={phase < CANVAS_STEPS.length - 1 ? () => go(phase + 1) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">

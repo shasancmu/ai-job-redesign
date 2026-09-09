@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/client";
 import { useCohortPing } from "@/components/useCohortLive";
 import { WORKFLOW_STEPS, STEP_ROLES } from "@/lib/workflow";
 import { moduleBeacon } from "@/lib/clientBeacon";
-import Timer from "@/components/Timer";
 import PairWaiting from "@/components/PairWaiting";
 import WorkflowFlow from "@/components/WorkflowFlow";
 import TradeoffPlan from "@/components/TradeoffPlan";
@@ -338,7 +337,6 @@ export default function WorkflowRoom({
             </span>
           </span>
         </div>
-        <Timer startedAt={session.phase_started_at || new Date(localStart).toISOString()} minutes={step.minutes} onReset={resetTimer} onAdvance={session.phase < WORKFLOW_STEPS.length - 1 ? () => goToPhase(session.phase + 1, true) : undefined} />
       </div>
 
       <div className="mb-6 flex items-center gap-1.5">
