@@ -443,30 +443,34 @@ export default async function Dashboard({
   );
 
   // ZONE — Your program: what your cohort/org assigned, plus its spotlights.
-  const programZone = (classAssignments.length > 0 || isOrgLearner || orgAds.length > 0) ? (
+  // Shows whenever you're in an org context (member OR staff) or have assignments.
+  const programZone = (activeOrg || classAssignments.length > 0 || orgAds.length > 0) ? (
     <section className="mb-5">
-      <h2 className="eyebrow mb-2.5">{isOrgLearner ? "Your program" : "Assigned to you"}</h2>
+      <h2 className="eyebrow mb-2.5">Your program{activeOrg ? ` · ${activeOrg.name}` : ""}</h2>
       <div className={zoneWrap + " space-y-4"}>
-        {(classAssignments.length > 0 || isOrgLearner) && (
-          classAssignments.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-line bg-white p-6 text-center">
-              <div className="text-sm font-semibold text-ink">Nothing assigned yet</div>
-              <div className="mt-1 text-sm text-slate2">When your instructor assigns an exercise{cohortName ? ` to ${cohortName}` : ""}, it appears right here.</div>
-            </div>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2 stagger-in">
-              {classAssignments.map((r) => (
-                <a key={r.slug} href={r.href} className="group flex items-center gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
-                  <div className="text-2xl">{r.emoji}</div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-bold text-ink group-hover:text-ai">{r.name}</div>
-                    <div className="text-xs text-slate-400">{r.className}</div>
-                  </div>
-                  <span className="shrink-0 text-sm font-semibold text-sage">Start &rarr;</span>
-                </a>
-              ))}
-            </div>
-          )
+        {classAssignments.length > 0 ? (
+          <div className="grid gap-3 sm:grid-cols-2 stagger-in">
+            {classAssignments.map((r) => (
+              <a key={r.slug} href={r.href} className="group flex items-center gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+                <div className="text-2xl">{r.emoji}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-bold text-ink group-hover:text-ai">{r.name}</div>
+                  <div className="text-xs text-slate-400">{r.className}</div>
+                </div>
+                <span className="shrink-0 text-sm font-semibold text-sage">Start &rarr;</span>
+              </a>
+            ))}
+          </div>
+        ) : isStaffHere ? (
+          <a href="/team" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+            <span className="min-w-0"><span className="block text-sm font-semibold text-ink">Run your program</span><span className="block text-xs text-slate-500">Assign modules to your cohorts, add people, and see how they engage.</span></span>
+            <span className="shrink-0 text-sm font-semibold text-ai">Open →</span>
+          </a>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-line bg-white p-6 text-center">
+            <div className="text-sm font-semibold text-ink">Nothing assigned yet</div>
+            <div className="mt-1 text-sm text-slate2">When your instructor assigns an exercise{cohortName ? ` to ${cohortName}` : ""}, it appears right here.</div>
+          </div>
         )}
         {orgAds.length > 0 && (
           <PromoCards
