@@ -62,6 +62,12 @@ import PhdLesson3Apply from "@/components/lessons/PhdLesson3Apply";
 import PhdLesson4Structure from "@/components/lessons/PhdLesson4Structure";
 import PhdLesson5Succeed from "@/components/lessons/PhdLesson5Succeed";
 import PhdLesson6Placement from "@/components/lessons/PhdLesson6Placement";
+import ResLesson1Good from "@/components/lessons/ResLesson1Good";
+import ResLesson2Idea from "@/components/lessons/ResLesson2Idea";
+import ResLesson3Paper from "@/components/lessons/ResLesson3Paper";
+import ResLesson4Argument from "@/components/lessons/ResLesson4Argument";
+import ResLesson5Data from "@/components/lessons/ResLesson5Data";
+import ResLesson6Publish from "@/components/lessons/ResLesson6Publish";
 import { variantForExercise } from "@/lib/disclosure";
 import { canvasByExercise } from "@/lib/canvases";
 import { resolveCanvasDefForUser } from "@/lib/customModules";
@@ -431,6 +437,18 @@ export default async function RoomPage({
       session.exercise === "phd-apply" ? PhdLesson3Apply :
       session.exercise === "phd-structure" ? PhdLesson4Structure :
       session.exercise === "phd-succeed" ? PhdLesson5Succeed : PhdLesson6Placement;
+    return <Lesson me={user.id} session={session} initialWorkspace={null} />;
+  }
+
+  // Research Foundations — reading-series explainers. Host only.
+  if (["res-good", "res-idea", "res-paper", "res-argument", "res-data", "res-publish"].includes(session.exercise || "")) {
+    if (!amHost) redirect("/dashboard");
+    const Lesson =
+      session.exercise === "res-good" ? ResLesson1Good :
+      session.exercise === "res-idea" ? ResLesson2Idea :
+      session.exercise === "res-paper" ? ResLesson3Paper :
+      session.exercise === "res-argument" ? ResLesson4Argument :
+      session.exercise === "res-data" ? ResLesson5Data : ResLesson6Publish;
     return <Lesson me={user.id} session={session} initialWorkspace={null} />;
   }
 

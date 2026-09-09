@@ -113,7 +113,13 @@ export type ModuleDef = {
     | "ai-rules"
     | "ai-learning"
     | "ai-language"
-    | "ai-scale"; // which room engine renders it
+    | "ai-scale"
+    | "res-good"
+    | "res-idea"
+    | "res-paper"
+    | "res-argument"
+    | "res-data"
+    | "res-publish"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -1047,6 +1053,105 @@ export const MODULES: ModuleDef[] = [
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_MYOPIA",
   },
+  // --- Research Foundations: reading series (explainers from "Research,
+  // Strategy" by Sharique Hasan). Plain-language lessons that teach the concepts
+  // the interactive research modules then let you practice. ---------------------
+  {
+    slug: "research-good",
+    exercise: "res-good",
+    name: "1 · What Makes Research Good",
+    tagline: "Research as a craft: the null model, making the invisible visible, GAS, and the four tests.",
+    description:
+      "Part one of a reading series drawn from Sharique Hasan's \"Research, Strategy.\" Why research is a craft where the little things decide whether a paper gets published; what a research idea actually is (a unique insight into why the facts are what they are); the null model you push against; the GAS tradeoff (Generalizable, Accurate, Simple — pick two); and the four execution tests: Important, Interesting, Ambitious, Craft. With predict-then-reveal checkpoints and a tutor you can ask anything.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 10,
+    ai: true,
+    emoji: "🔬",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "research-idea",
+    exercise: "res-idea",
+    name: "2 · Every Idea Is an Interaction",
+    tagline: "IF X → Y, ESPECIALLY/EXCEPT WHEN Z, BECAUSE a mechanism — and why β₃ is the idea.",
+    description:
+      "Part two of the Research Foundations series (Hasan, \"Research, Strategy\"). The four-part shape of a strategy claim — IF X happens, THEN Y happens, EXCEPT/ESPECIALLY WHEN Z, BECAUSE a mechanism — and how it maps onto the regression Y = β₀ + β₁X + β₂Z + β₃(X·Z), where the interaction coefficient β₃ carries the real contribution. Ends on the Strategy Experiment Canvas that turns the idea into a testable design. Interactive, with a tutor.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 10,
+    ai: true,
+    emoji: "🧩",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "research-paper",
+    exercise: "res-paper",
+    name: "3 · The Anatomy of a Paper",
+    tagline: "The hourglass, nested parallelism, the six-sentence abstract, and a title people can find.",
+    description:
+      "Part three of the Research Foundations series (Hasan, \"Research, Strategy\"). The hourglass shape of a paper; nested parallelism, where the same six components (motivation, puzzle, solution, data, results, implications) repeat across the abstract, the introduction, and the body; the six-sentence abstract and five-paragraph introduction; the nine standard sections; and how to write a title that communicates the benefit and is actually findable. Interactive, with a tutor.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 10,
+    ai: true,
+    emoji: "⏳",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "research-argument",
+    exercise: "res-argument",
+    name: "4 · Building the Argument",
+    tagline: "Theory, counter-arguments, the three tables, and one clear point per paragraph.",
+    description:
+      "Part four of the Research Foundations series (Hasan, \"Research, Strategy\"). How to build a paper's argument: the theory section (set up a null, make a non-obvious claim, support it, then argue against yourself to raise the stakes, plus scope and extension claims); methods and data; the results section as three tables (the claim vs a strong null, the implications, and scope conditions via interactions); the discussion; and 'making points' — one point per paragraph, tested by whether a reader gets it without rereading. Interactive, with a tutor.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 10,
+    ai: true,
+    emoji: "🏗️",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "research-data",
+    exercise: "res-data",
+    name: "5 · Reading the Data",
+    tagline: "Correlation vs causation, the gradient of control, and why randomization works.",
+    description:
+      "Part five of the Research Foundations series (Hasan, \"Research, Strategy\"). Why most claims are causal and why a regression only gives correlation; the two problems (reverse causality, and the 'all else equal' unobserved-confounder problem); the gradient of control from control variables to fixed effects to IV / difference-in-differences / regression discontinuity to randomized trials; why randomization neutralizes even the confounders you can't see; and field experiments as measurement–intervention–measurement with six intervention types. Interactive, with a tutor.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 12,
+    ai: true,
+    emoji: "📊",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
+  {
+    slug: "research-publish",
+    exercise: "res-publish",
+    name: "6 · Getting Published & Heard",
+    tagline: "The lit review's two jobs, the R&R as an exam, presenting in five parts, and the weakest link.",
+    description:
+      "Part six of the Research Foundations series (Hasan, \"Research, Strategy\"). Positioning and publishing: the two roles of a literature review and finding the gap; the publishing funnel and 3–7% lottery; choosing a journal (fit vs prestige vs speed); handling rejection and treating a Revise & Resubmit as an exam answered in a revision document; presenting research in five parts and the three questions you'll always get; and co-authoring as complementary skills bounded by the weakest link. Interactive, with a tutor.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 12,
+    ai: true,
+    emoji: "🚀",
+    priceCents: 0,
+    priceEnv: "STRIPE_PRICE_RESEARCH",
+    forSale: false,
+  },
   // --- Research modules (from "Research, Strategy" by Sharique Hasan) ---------
   {
     slug: "what-is-a-paper",
@@ -1627,6 +1732,12 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "rehearse-hard-conversation": "negotiate",
   benchmark: "live",
   network: "live",
+  "research-good": "research",
+  "research-idea": "research",
+  "research-paper": "research",
+  "research-argument": "research",
+  "research-data": "research",
+  "research-publish": "research",
   "what-is-a-paper": "research",
   "paper-structure": "research",
   "making-points": "research",
@@ -1759,6 +1870,12 @@ const OUTCOME_OF: Record<string, string> = {
   "close-the-vendor-deal": "A closed vendor deal, scored",
   "lease-the-space": "A negotiated lease, scored",
   "rehearse-hard-conversation": "A rehearsed hard conversation",
+  "research-good": "What separates good research from the rest, understood",
+  "research-idea": "The interaction at the heart of a research idea, understood",
+  "research-paper": "How a paper is built, section by section, understood",
+  "research-argument": "How a paper's argument earns belief, understood",
+  "research-data": "How causal claims are made credible, understood",
+  "research-publish": "How research gets published and heard, understood",
   "what-is-a-paper": "The idea behind a paper, made visible",
   "paper-structure": "A structure for your paper",
   "making-points": "Your paper's points, sharpened",
@@ -1841,7 +1958,9 @@ const CATALOG_ORDER: string[] = [
   // Negotiate
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
   "lease-the-space", "rehearse-hard-conversation",
-  // Research & scholarship (the curriculum sequence: idea → writing → data → publish → ops)
+  // Research & scholarship — the reading foundations first, then the exercises
+  // (curriculum sequence: read → idea → writing → data → publish → ops)
+  "research-good", "research-idea", "research-paper", "research-argument", "research-data", "research-publish",
   "publication-pipeline", "read-the-interaction", "strategy-experiment", "good-research", "theory-section",
   "understand-a-paper", "paper-structure", "making-points", "abstract-title", "literature-reviews",
   "data-moat", "data-strategy", "identification", "regression-detective", "regression-tables", "research-graphs",

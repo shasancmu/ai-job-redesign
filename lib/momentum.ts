@@ -93,6 +93,13 @@ const NEXT_AFTER: Record<string, string> = {
   "execution-4a": "opportunity-capability",
   "deeptech-canvas": "good-business",
   "close-the-offer": "name-your-price",
+  // Research Foundations — the reading series, flowing into the exercises.
+  "research-good": "research-idea",
+  "research-idea": "research-paper",
+  "research-paper": "research-argument",
+  "research-argument": "research-data",
+  "research-data": "research-publish",
+  "research-publish": "publication-pipeline",
   // Research & scholarship — the curriculum order.
   "publication-pipeline": "read-the-interaction",
   "read-the-interaction": "strategy-experiment",
