@@ -77,15 +77,23 @@ export const FRAMEWORKS: Record<string, Framework[]> = {
   ],
   "paper-idea": [
     { name: "A research idea makes the invisible visible", finding: "An idea is a unique insight into why the facts are what they are — a new fact, or a known one explained.", cite: "Hasan, Research, Strategy" },
+    { name: "Two kinds of idea", finding: "You either establish a new fact the field hadn't seen (e.g. the vast productivity dispersion across firms) or explain a known one (management practices explain that dispersion); each opens fresh questions.", cite: "Hasan, Research, Strategy (Research Ideas)" },
+    { name: "The null model sets the bar", finding: "An idea's value is what it adds over the conventional wisdom a knowledgeable person already holds — no clear null, nothing to overturn.", cite: "Hasan, Research, Strategy (The Null Model)" },
   ],
   "paper-structure": [
     { name: "The hourglass", finding: "A paper opens broad, narrows to the problem, approach, and findings, then widens to the contribution; five sections, each with one job.", cite: "Hasan, Research, Strategy" },
+    { name: "Nested parallelism", finding: "Six components — motivation, puzzle, solution, data, results, implications — repeat at three zooms: one sentence each in the abstract, one paragraph each in the intro, a full section each in the body.", cite: "Hasan, Research, Strategy (Structure)" },
+    { name: "One job per section", finding: "Intro motivates and previews; Theory makes the non-obvious claim; Data & Methods earns trust; Results show the pattern survives; Discussion says what we learn.", cite: "Hasan, Research, Strategy" },
   ],
   "paper-points": [
     { name: "A paper is five parallel points", finding: "Motivation, the puzzle (we believe X; if true we'd see Z; but we see R), your solution, the evidence, and the implications — repeated in parallel through the paper.", cite: "Hasan, Research, Strategy" },
+    { name: "The puzzle is a violated expectation", finding: "State it as belief → prediction → observation: 'we believe X; if true we'd see Z; but we observe R.' The gap between Z and R is the puzzle.", cite: "Hasan, Research, Strategy (Making Points)" },
+    { name: "One point per paragraph", finding: "An article is a sequence of points leading to a conclusion; the test of a paragraph is whether a reader grasps its point without rereading.", cite: "Hasan, Research, Strategy" },
   ],
   interaction: [
     { name: "The interaction is the idea", finding: "In Y = β0 + β1X1 + β2X2 + β3(X1×X2), β3 is usually the contribution: IF X1 → Y, especially/except when X2, because a mechanism.", cite: "Hasan, Research, Strategy" },
+    { name: "The condition, not the main effect", finding: "A flat X→Y is often unsurprising; the insight lives in the ESPECIALLY/EXCEPT WHEN Z and the BECAUSE mechanism — that's where you make the invisible visible.", cite: "Hasan, Research, Strategy (Theory)" },
+    { name: "β₃ is heterogeneity", finding: "β₃ tells you for whom and when the effect is stronger or weaker; a flat, insignificant β₃ means the idea is thin, however clean the main effect.", cite: "Hasan, Research, Strategy (Data Analysis)" },
   ],
   "field-experiment": [
     { name: "The Strategy Experiment Canvas", finding: "Design a field experiment in eight parts: setup, setting & subjects, friction, insight, solution (treatment), why & when it works, the null, and impact on the business.", cite: "Hasan, Kim & Koning" },
@@ -98,42 +106,66 @@ export const FRAMEWORKS: Record<string, Framework[]> = {
   ],
   "reg-tables": [
     { name: "One idea per table", finding: "A clear table spotlights the key coefficient and builds columns as a narrative, so the reader sees the finding survive each specification.", cite: "Hasan, Research, Strategy (craft)" },
+    { name: "Three primary tables", finding: "Table 1 shows the claim against a strong null; Table 2 the implications; Table 3 the scope conditions — interactions showing where the effect is strongest.", cite: "Hasan, Research, Strategy (Results)" },
+    { name: "Columns as a narrative", finding: "Baseline → add controls → add fixed effects → add the interaction, so the reader watches the result survive each tougher specification.", cite: "Hasan, Research, Strategy" },
   ],
   "research-graphs": [
     { name: "The graph is the argument", finding: "Maximize the data-ink ratio and cut chartjunk; the right encoding shows the finding directly.", cite: "Tufte, The Visual Display of Quantitative Information" },
+    { name: "Show the finding, not the data dump", finding: "Pick the encoding that makes the effect — and its heterogeneity — visible at a glance, so the figure answers the research question without a table.", cite: "Hasan, Research, Strategy (craft)" },
   ],
   "lit-review": [
     { name: "Support and gap, not summary", finding: "A literature review grounds your claims in prior work and highlights the gap that becomes your contribution — organized by ideas, not paper by paper.", cite: "Hasan, Research, Strategy" },
+    { name: "Two jobs", finding: "It supports the claims you test AND the foundational premises you don't test — the logical bridges your argument rests on but never puts in a regression.", cite: "Hasan, Research, Strategy (Literature Reviews)" },
+    { name: "Summarize each paper as a canvas", finding: "Reduce every paper you read to IF X THEN Y, ESPECIALLY/EXCEPT WHEN Z, BECAUSE — then synthesize by idea to surface the gap.", cite: "Hasan, Research, Strategy" },
   ],
   vrino: [
     { name: "VRIN+O for data", finding: "Data is a moat when it's Valuable (lets you publish what others can't), Rare, Inimitable, Non-substitutable, and you're Organized to capture the value.", cite: "Barney (1991), applied to data by Hasan, Research, Strategy" },
+    { name: "The moat is what only you can publish", finding: "Rare data or access is Ambition in the four tests — it lets you make the invisible visible where competitors are blind, and it's hard for others to replicate.", cite: "Hasan, Research, Strategy" },
   ],
   "data-strategy": [
     { name: "Every data source buys something different", finding: "Public, administrative/trace, survey, experimental, qualitative, and simulated data trade off causality, generalizability, detail, and cost; the choice follows the claim.", cite: "Hasan, Research, Strategy" },
+    { name: "Measurement — intervention — measurement", finding: "A field experiment measures fixed traits, outcomes, and mechanisms before and after the intervention; align your measures with established, high-quality instruments.", cite: "Hasan, Research, Strategy (Experimental Data)" },
+    { name: "Six intervention patterns", finding: "Most treatments are Training, Information, Incentives, Spillovers, Process, or Resources — each addressing a specific friction; naming which clarifies what you're testing.", cite: "Hasan, Kim & Koning" },
   ],
   identification: [
-    { name: "Threats to identification", finding: "A causal claim must survive selection, reverse causality, omitted variables, and measurement error; a research design (experiment, DiD, IV, RD, matching) answers the threat.", cite: "Modern causal inference; Hasan, Research, Strategy" },
+    { name: "The two problems", finding: "Reverse causality (fix it by measuring X before Y) and the 'all else equal' problem — an unobserved M drives both X and Y. The second is the hard one, with as many confounding stories as readers.", cite: "Hasan, Research, Strategy (Causal Inference)" },
+    { name: "The gradient of control", finding: "Control variables (weak — the dangerous confounders are unobserved) → fixed effects (time-invariant unobservables) → IV / DiD / RD (time-varying) → the RCT, gold standard by balance.", cite: "Hasan, Research, Strategy; Angrist & Pischke" },
+    { name: "Why randomization works", finding: "Random assignment is uncorrelated with every pre-treatment trait — even the ones you can't observe — so a surviving X→Y correlation can only be the effect of X.", cite: "Hasan, Research, Strategy" },
   ],
   referee: [
     { name: "How referees judge", finding: "Reviewers weigh the contribution, the credibility of the evidence, the positioning, and the polish — and first impressions matter.", cite: "Hasan, Research, Strategy (reviewing)" },
+    { name: "First impression, then justification", finding: "Most reviewers form a quick view and use the rest of the read to justify it — so the abstract and introduction must land the contribution fast.", cite: "Hasan, Research, Strategy" },
+    { name: "Reviewing is training", finding: "Judging others' work on question, method, and contribution sharpens your ability to evaluate — and pre-empt the critiques on — your own.", cite: "Hasan, Research, Strategy" },
   ],
   rnr: [
-    { name: "An R&R is a dialogue", finding: "Answer every comment in a revision document, engage even where you disagree with clear reasoning, and stay organized; most accepted papers survive several rounds.", cite: "Hasan, Research, Strategy" },
+    { name: "An R&R is an exam", finding: "The reviewers pose questions; you pass by answering each thoroughly and systematically, not by winning every argument — most accepted papers survive several rounds.", cite: "Hasan, Research, Strategy" },
+    { name: "A revision document", finding: "List every comment and your explicit response; engage even where you disagree, with clear reasoning; a systematic, organized reply signals professionalism.", cite: "Hasan, Research, Strategy" },
+    { name: "Rejection is the norm", finding: "Diagnose which it was — poor fit, methodological flaw, thin theory, or unclear writing — then revise and resubmit; many great papers were rejected first.", cite: "Hasan, Research, Strategy (Rejected Papers)" },
   ],
   "journal-fit": [
     { name: "Fit is half the battle", finding: "The right journal matches the paper's audience, scope, and level; the wrong venue is a fast desk-reject, and a cover letter argues the fit.", cite: "Hasan, Research, Strategy" },
+    { name: "Fit vs prestige vs speed", finding: "Top journals bring status and fierce competition; niche venues bring faster decisions and a targeted audience — weigh the trade-off for this paper and this career stage.", cite: "Hasan, Research, Strategy (Choosing a Journal)" },
+    { name: "Publishing is a lottery", finding: "Acceptance at top journals runs 3–7%, and noisy editors aggregate reviewer votes differently; a pipeline of papers, each with its odds raised, beats betting on one.", cite: "Hasan, Research, Strategy" },
   ],
   theory: [
     { name: "Null model → non-obvious claim", finding: "A theory section sets up the view most people hold, advances a claim that departs from it, and gives the mechanism — the reasons to believe.", cite: "Hasan, Research, Strategy" },
+    { name: "Argue against yourself", finding: "Presenting compelling counter-arguments raises the stakes: if the opposite is plausible, your evidence can actually shift beliefs. If everyone already agrees, the paper teaches nothing.", cite: "Hasan, Research, Strategy (Theory)" },
+    { name: "Build belief in steps", finding: "Chain smaller, intuitive or established claims and link them to your bigger claim; then add scope claims (when it holds) and extension claims (what else it implies).", cite: "Hasan, Research, Strategy" },
   ],
   abstract: [
     { name: "The abstract is an hourglass", finding: "It moves from motivation to problem to approach to findings to contribution, and the title should communicate the idea and be findable.", cite: "Hasan, Research, Strategy" },
+    { name: "Six sentences", finding: "Motivation, puzzle, solution, data, results, implications — one tight sentence each, concrete (give effect sizes). The abstract is the whole paper in miniature.", cite: "Hasan, Research, Strategy (Abstract)" },
+    { name: "A title for findability", finding: "Communicate the benefit in words your audience actually searches; a clever-but-opaque title (his own 'Mechanics of Social Capital…') costs you readers.", cite: "Hasan, Research, Strategy (Title)" },
   ],
   "research-system": [
     { name: "Automate and delegate", finding: "A research system that automates drudgery (scripts, linked tables, a clean directory) and delegates the rest gets you to the creative work faster.", cite: "Hasan, Research, Strategy" },
+    { name: "The project directory", finding: "canonical → code → derived → tables → figures, with createData / createTables / createFigures, so anyone can rebuild every result from the raw data.", cite: "Hasan, Research, Strategy (Project Directory)" },
+    { name: "Clear, concise, complete code", finding: "A reader can reconstruct every table from raw data and understand every line — increasingly required as journals mandate code submission.", cite: "Hasan, Research, Strategy" },
   ],
   "research-team": [
     { name: "The architect, builder, electrician", finding: "Strong papers are coauthored by complements: big-picture framing, the writer, and the data/analysis lead.", cite: "Hasan, Topics in Strategy (lecture)" },
+    { name: "The weakest-link problem", finding: "A paper is only as strong as its least-reliable coauthor; choose collaborators for trust and reliability, and align roles to strengths early.", cite: "Hasan, Research, Strategy (Teams)" },
+    { name: "Master builder vs team", finding: "Solo gives total control but doesn't scale and exposes every weakness; coauthoring trades control for complementary skill, shared learning, and a bigger pipeline.", cite: "Hasan, Research, Strategy" },
   ],
   "phd-what": [
     { name: "A PhD is research training", finding: "A business PhD trains you to become a professor who produces knowledge; the two tangible products are papers and presentations.", cite: "Hasan, Research, Strategy" },
