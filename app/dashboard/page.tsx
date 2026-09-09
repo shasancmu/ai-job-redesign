@@ -393,12 +393,15 @@ export default async function Dashboard({
   const orgAds = activeOrg ? await activeAdsForOrg(activeOrg.id) : [];
   const promoCohort = searchParams.cohort || (activeOrg ? masterCohortCode(activeOrg.id) : "");
 
+  // The finder: ALWAYS the search-first catalog. Full library for anyone who can
+  // browse; scoped to the org's granted set for a restricted member. No flat grid,
+  // no nested "browse all" — the search bar is the finder.
   const catalogEl = (
     <Catalog
       userId={user.id}
       unlocked={unlocked}
       initialCohort={searchParams.cohort || (activeOrg ? masterCohortCode(activeOrg.id) : "")}
-      moduleSlugs={orgModules || undefined}
+      scopeSlugs={showLibrary ? undefined : (orgModules || undefined)}
       completed={completed}
       lastCode={lastCode}
       recommended={recommended}
@@ -411,89 +414,107 @@ export default async function Dashboard({
     />
   );
 
-  // The same catalog without the org's curation, for the "browse all" disclosure.
-  // Unclamped, so it groups by category and renders the search/filter controls.
-  const fullCatalogEl = orgModules ? (
-    <Catalog
-      userId={user.id}
-      unlocked={unlocked}
-      initialCohort={searchParams.cohort || (activeOrg ? masterCohortCode(activeOrg.id) : "")}
-      completed={completed}
-      lastCode={lastCode}
-      recommended={recommended}
-      runsLeft={runsLeft}
-      certByModule={certByModule}
-      popular={popular}
-      runsThisWeek={runsThisWeek}
-      nextUp={nextUp}
-      nextUpBecause={nextUpBecause}
-    />
+  // ---- The dashboard zones, each visually demarcated (a labeled panel) --------
+  const zoneWrap = "rounded-3xl border border-line bg-white/55 p-4 sm:p-6";
+
+  // ZONE — Find an exercise: the search bar leads, in its own panel.
+  const findZone = (
+    <section className="mb-5" data-tour="catalog">
+      <h2 className="eyebrow mb-2.5">Find an exercise</h2>
+      <div className={zoneWrap}>
+        {isNewConsumer && startHere.length > 0 && (
+          <div className="mb-6">
+            <div className="text-sm font-semibold text-ink">New here? Start with one of these</div>
+            <div className="mt-2 grid gap-3 sm:grid-cols-3 stagger-in">
+              {startHere.map((m) => (
+                <a key={m.slug} href={`/start/${m.slug}`} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+                  <div className="text-2xl">{m.emoji}</div>
+                  <div className="mt-2 text-sm font-bold text-ink group-hover:text-ai">{m.name}</div>
+                  <div className="mt-0.5 line-clamp-2 text-xs text-slate-400">{m.tagline}</div>
+                  <span className="mt-3 text-sm font-semibold text-sage">Start →</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+        {catalogEl}
+      </div>
+    </section>
+  );
+
+  // ZONE — Your program: what your cohort/org assigned, plus its spotlights.
+  const programZone = (classAssignments.length > 0 || isOrgLearner || orgAds.length > 0) ? (
+    <section className="mb-5">
+      <h2 className="eyebrow mb-2.5">{isOrgLearner ? "Your program" : "Assigned to you"}</h2>
+      <div className={zoneWrap + " space-y-4"}>
+        {(classAssignments.length > 0 || isOrgLearner) && (
+          classAssignments.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-line bg-white p-6 text-center">
+              <div className="text-sm font-semibold text-ink">Nothing assigned yet</div>
+              <div className="mt-1 text-sm text-slate2">When your instructor assigns an exercise{cohortName ? ` to ${cohortName}` : ""}, it appears right here.</div>
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 stagger-in">
+              {classAssignments.map((r) => (
+                <a key={r.slug} href={r.href} className="group flex items-center gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+                  <div className="text-2xl">{r.emoji}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-bold text-ink group-hover:text-ai">{r.name}</div>
+                    <div className="text-xs text-slate-400">{r.className}</div>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold text-sage">Start &rarr;</span>
+                </a>
+              ))}
+            </div>
+          )
+        )}
+        {orgAds.length > 0 && (
+          <PromoCards
+            ads={orgAds.map((a) => ({ id: a.id, slug: a.slug, emoji: a.emoji, title: a.title, tagline: a.tagline }))}
+            cohort={promoCohort}
+            orgName={activeOrg?.name || null}
+          />
+        )}
+      </div>
+    </section>
   ) : null;
 
-  // The search-first catalog, extracted so it can sit near the top of the page.
-  const exercisesEl = !showLibrary ? null : (isNewConsumer && startHere.length > 0 ? (
-    <section data-tour="catalog">
-      <h2 className="eyebrow">Start here</h2>
-      <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">New to Superadditive? Pick one and do it — about 20 minutes, and you walk away with something real, not a completion checkmark.</p>
-      <div className="grid gap-3 sm:grid-cols-3 stagger-in">
-        {startHere.map((m) => (
-          <a key={m.slug} href={`/start/${m.slug}`} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
-            <div className="text-2xl">{m.emoji}</div>
-            <div className="mt-2 text-sm font-bold text-ink group-hover:text-ai">{m.name}</div>
-            <div className="mt-0.5 line-clamp-2 text-xs text-slate-400">{m.tagline}</div>
-            <span className="mt-3 text-sm font-semibold text-sage">Start →</span>
-          </a>
-        ))}
-      </div>
-      <details className="group mt-8">
-        <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-slate2 hover:text-ink">
-          <span className="transition group-open:rotate-90">›</span> Browse all {MODULES.length} exercises
-        </summary>
-        <div className="mt-5">{catalogEl}</div>
-      </details>
-    </section>
-  ) : (
-    <section id="exercises" data-tour="catalog">
-      <h2 className="eyebrow">{isOrgLearner ? "Explore more" : t("dash.exercises")}</h2>
-      {catalogEl}
-      {orgModules && (
-        <details className="group mt-8">
-          <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-slate2 hover:text-ink">
-            <span className="transition group-open:rotate-90">›</span> Browse all {MODULES.filter((m) => !m.hidden).length} exercises
-          </summary>
-          <div className="mt-5">{fullCatalogEl}</div>
-        </details>
-      )}
-    </section>
-  ));
-
-  // Browsable certificates with the learner's progress toward each.
+  // ZONE — Your progress: reports made + browsable certificates with progress.
   const certBundles = bundles.filter((b) => b.coreTotal + b.elecNeeded > 0);
-  const certificatesEl = certBundles.length ? (
-    <section className="mb-8">
-      <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h2 className="eyebrow">Certificates</h2>
-        <a href="/achievements" className="text-sm font-medium text-ai hover:underline">Your achievements →</a>
+  const progressZone = (
+    <section className="mb-5">
+      <div className="mb-2.5 flex items-baseline justify-between gap-3">
+        <h2 className="eyebrow">Your progress</h2>
+        <a href="/achievements" className="text-sm font-medium text-ai hover:underline">Achievements →</a>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {certBundles.map((b) => (
-          <a key={b.key} href="/achievements" className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
-            <div className="flex items-start justify-between gap-2">
-              <span className="text-xl" aria-hidden>{b.earned ? "🏅" : "🎓"}</span>
-              {b.earned
-                ? <span className="rounded-full bg-sage-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sage">Earned</span>
-                : <span className="text-[11px] font-medium text-slate-400">{b.remaining} to go</span>}
-            </div>
-            <div className="mt-2 text-sm font-bold leading-snug text-ink group-hover:text-ai">{b.name}</div>
-            <div className="mt-1 line-clamp-2 flex-1 text-xs text-slate-500">{b.line}</div>
-            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-mist">
-              <div className="h-full rounded-full bg-sage transition-all" style={{ width: `${Math.max(4, b.progressPct)}%` }} />
-            </div>
-          </a>
-        ))}
+      <div className={zoneWrap}>
+        <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+          <span><b className="tabular-nums text-ink">{reportsCount}</b> <span className="text-slate-500">report{reportsCount === 1 ? "" : "s"} made</span></span>
+          <span><b className="tabular-nums text-ink">{level.title}</b> <span className="text-slate-500">· level</span></span>
+          {certBundles.some((b) => b.earned) && <span><b className="tabular-nums text-ink">{certBundles.filter((b) => b.earned).length}</b> <span className="text-slate-500">certificate{certBundles.filter((b) => b.earned).length === 1 ? "" : "s"} earned</span></span>}
+        </div>
+        {certBundles.length > 0 && (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {certBundles.map((b) => (
+              <a key={b.key} href="/achievements" className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-xl" aria-hidden>{b.earned ? "🏅" : "🎓"}</span>
+                  {b.earned
+                    ? <span className="rounded-full bg-sage-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sage">Earned</span>
+                    : <span className="text-[11px] font-medium text-slate-400">{b.remaining} to go</span>}
+                </div>
+                <div className="mt-2 text-sm font-bold leading-snug text-ink group-hover:text-ai">{b.name}</div>
+                <div className="mt-1 line-clamp-2 flex-1 text-xs text-slate-500">{b.line}</div>
+                <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-mist">
+                  <div className="h-full rounded-full bg-sage transition-all" style={{ width: `${Math.max(4, b.progressPct)}%` }} />
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
       </div>
     </section>
-  ) : null;
+  );
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
@@ -617,10 +638,10 @@ export default async function Dashboard({
         </Dismissible>
       )}
 
-      {/* Search-first: the catalog (with its search bar) leads the page, then
-          certificates to browse. Everything else follows below. */}
-      {exercisesEl}
-      {certificatesEl}
+      {/* The zones, each visually demarcated: Find → Your program → Your progress. */}
+      {findZone}
+      {programZone}
+      {progressZone}
 
       {/* Runs banner only when it's actually urgent — out of runs, or the alumni
           window is open. The header chip carries the balance the rest of the time. */}
@@ -672,31 +693,6 @@ export default async function Dashboard({
       {/* Authoring (Create a module) is a Studio destination — it lives in the
           account menu / Studio, not on the learner dashboard. */}
 
-      {(classAssignments.length > 0 || isOrgLearner) && (
-        <section className="mb-8">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{isOrgLearner ? "Your program" : "Assigned by your class"}</div>
-          {classAssignments.length === 0 ? (
-            <div className="mt-2 rounded-2xl border border-dashed border-line bg-white p-6 text-center">
-              <div className="text-sm font-semibold text-ink">Nothing assigned yet</div>
-              <div className="mt-1 text-sm text-slate2">When your instructor assigns an exercise{cohortName ? ` to ${cohortName}` : ""}, it appears right here.</div>
-            </div>
-          ) : (
-          <div className="mt-2 grid gap-3 sm:grid-cols-2 stagger-in">
-            {classAssignments.map((r) => (
-              <a key={r.slug} href={r.href} className="group flex items-center gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
-                <div className="text-2xl">{r.emoji}</div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-bold text-ink group-hover:text-ai">{r.name}</div>
-                  <div className="text-xs text-slate-400">{r.className}</div>
-                </div>
-                <span className="shrink-0 text-sm font-semibold text-sage">Start &rarr;</span>
-              </a>
-            ))}
-          </div>
-          )}
-        </section>
-      )}
-
       <div data-tour="your-work">
         <YourWork recents={recents} reportsCount={reportsCount} />
       </div>
@@ -732,17 +728,6 @@ export default async function Dashboard({
           </div>
         </section>
       )}
-
-      {orgAds.length > 0 && (
-        <PromoCards
-          ads={orgAds.map((a) => ({ id: a.id, slug: a.slug, emoji: a.emoji, title: a.title, tagline: a.tagline }))}
-          cohort={promoCohort}
-          orgName={activeOrg?.name || null}
-        />
-      )}
-
-      {/* The exercises catalog and certificates now render near the top (exercisesEl
-          / certificatesEl, just below the resume card). */}
 
       <section className="mt-10">
         <h2 className="eyebrow mb-3">{t("dash.yourSessions")}</h2>

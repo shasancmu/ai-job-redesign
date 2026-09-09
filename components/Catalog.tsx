@@ -76,11 +76,13 @@ export default function Catalog({
   runsThisWeek = {},
   nextUp = [],
   nextUpBecause = null,
+  scopeSlugs,
 }: {
   userId: string;
   unlocked: Record<string, boolean>;
   initialCohort?: string;
   moduleSlugs?: string[];
+  scopeSlugs?: string[]; // restrict the search-first library to these slugs (keeps search + categories)
   fixedCohort?: string;
   completed?: Record<string, boolean>;
   lastCode?: Record<string, string>;
@@ -126,12 +128,15 @@ export default function Catalog({
     topics: activePills, features: activeFeatures,
     togglePill, toggleFeature, clearFilters,
   } = useModuleFilters();
+  // The solo catalog excludes "group" modules — those are live, in-class
+  // activities run within a cohort (You vs. AI, the network map), not solo
+  // exercises to browse and start; they're reached from the facilitator/cohort.
+  const soloBase = MODULES.filter((m) => !m.hidden && m.partner !== "group");
   const shown = moduleSlugs
     ? (moduleSlugs.map((s) => MODULES.find((m) => m.slug === s)).filter(Boolean) as typeof MODULES)
-    // The solo catalog excludes "group" modules — those are live, in-class
-    // activities run within a cohort (You vs. AI, the network map), not solo
-    // exercises to browse and start. They're reached from the facilitator/cohort.
-    : MODULES.filter((m) => !m.hidden && m.partner !== "group");
+    : scopeSlugs
+      ? soloBase.filter((m) => scopeSlugs.includes(m.slug))
+      : soloBase;
 
   // Single-user modules (solo, benchmark, network) start immediately.
   async function startSolo(slug: string, exercise: string) {
