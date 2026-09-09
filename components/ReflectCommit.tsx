@@ -31,12 +31,16 @@ export default function ReflectCommit({ code, hasPrediction }: { code: string; h
     setBusy(false);
   }
 
+  const whenLabel = date ? new Date(date + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
+
   if (saved) {
     return (
       <div className="mt-5 rounded-2xl border border-sage/30 bg-sage-soft p-4 no-print">
         <div className="text-sm font-semibold text-ink">Committed.</div>
         <p className="mt-0.5 text-sm text-slate-600">
-          {thenPart ? <>We&apos;ll check in{date ? ` on ${date}` : " in a few days"} to see how it went.</> : "Nice reflection. It&apos;s saved to your record."}
+          {thenPart
+            ? <>We&apos;ll remind you{whenLabel ? ` on ${whenLabel}` : " in a few days"} — it&apos;ll show up on your dashboard so you actually follow through.</>
+            : <>Saved. You&apos;ll find this reflection with your report whenever you come back to it.</>}
         </p>
       </div>
     );
@@ -46,7 +50,8 @@ export default function ReflectCommit({ code, hasPrediction }: { code: string; h
 
   return (
     <div className="mt-5 rounded-2xl border border-line bg-white p-5 no-print">
-      <div className="text-xs font-semibold uppercase tracking-wide text-sage">Reflect &amp; commit</div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-sage">Before you go — lock it in</div>
+      <p className="mt-1 text-sm text-slate-600">What you just worked out fades within a day. Name one concrete move you&apos;ll make, tie it to a moment, and we&apos;ll remind you — so the exercise turns into something you actually do.</p>
 
       {hasPrediction && (
         <div className="mt-3">
@@ -64,13 +69,16 @@ export default function ReflectCommit({ code, hasPrediction }: { code: string; h
       )}
 
       <div className="mt-4">
-        <div className="text-sm text-slate-600">Turn this into one concrete next move.</div>
+        <div className="text-sm font-medium text-ink">Your next move, as an “if-then”</div>
         <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-          <input className="field text-sm" value={ifPart} onChange={(e) => setIfPart(e.target.value)} placeholder="If (a trigger)…" />
-          <input className="field text-sm" value={thenPart} onChange={(e) => setThenPart(e.target.value)} placeholder="…then I will (an action)" />
-          <input type="date" className="field text-sm" value={date} onChange={(e) => setDate(e.target.value)} aria-label="By when" />
+          <input className="field text-sm" value={ifPart} onChange={(e) => setIfPart(e.target.value)} placeholder="When… (a moment or trigger)" />
+          <input className="field text-sm" value={thenPart} onChange={(e) => setThenPart(e.target.value)} placeholder="…I will (a specific action)" />
+          <input type="date" className="field text-sm" value={date} onChange={(e) => setDate(e.target.value)} aria-label="Remind me by" />
         </div>
-        <div className="mt-1 text-[11px] text-slate-400">An “if-then” you tie to a moment gets done far more often than a to-do.</div>
+        <div className="mt-1.5 text-[11px] leading-relaxed text-slate-400">
+          Example: <span className="italic text-slate-500">When it&apos;s Monday&apos;s planning meeting, I will propose handing the first draft to AI.</span><br />
+          A move tied to a specific moment gets done far more often than a plain to-do.
+        </div>
       </div>
 
       <button onClick={save} disabled={busy || !canSave} className="btn-primary mt-4 text-sm disabled:opacity-40">
