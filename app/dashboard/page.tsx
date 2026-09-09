@@ -642,9 +642,9 @@ export default async function Dashboard({
         </Dismissible>
       )}
 
-      {/* The zones, each visually demarcated: Find → Your program → Your progress. */}
-      {findZone}
+      {/* The zones, each visually demarcated: Your program → Find → Your progress. */}
       {programZone}
+      {findZone}
       {progressZone}
 
       {/* Runs banner only when it's actually urgent — out of runs, or the alumni
