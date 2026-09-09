@@ -128,7 +128,10 @@ export default function Catalog({
   } = useModuleFilters();
   const shown = moduleSlugs
     ? (moduleSlugs.map((s) => MODULES.find((m) => m.slug === s)).filter(Boolean) as typeof MODULES)
-    : MODULES.filter((m) => !m.hidden);
+    // The solo catalog excludes "group" modules — those are live, in-class
+    // activities run within a cohort (You vs. AI, the network map), not solo
+    // exercises to browse and start. They're reached from the facilitator/cohort.
+    : MODULES.filter((m) => !m.hidden && m.partner !== "group");
 
   // Single-user modules (solo, benchmark, network) start immediately.
   async function startSolo(slug: string, exercise: string) {
@@ -301,7 +304,7 @@ export default function Catalog({
   // segment/goal recommendation. Resolved to modules, in order.
   const railSlugs = nextUp.length ? nextUp : recommended;
   const recModules = grouped
-    ? (railSlugs.map((s) => MODULES.find((m) => m.slug === s)).filter((m) => m && !m.hidden) as typeof MODULES)
+    ? (railSlugs.map((s) => MODULES.find((m) => m.slug === s)).filter((m) => m && !m.hidden && m.partner !== "group") as typeof MODULES)
     : [];
 
   return (

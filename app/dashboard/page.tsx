@@ -12,7 +12,7 @@ import AccountMenu from "@/components/AccountMenu";
 import FacilitatorWelcome from "@/components/FacilitatorWelcome";
 import { titleCaseName } from "@/lib/name";
 import { MODULES, moduleBySlug, CATEGORIES, moduleCategory } from "@/lib/modules";
-import { levelFor, loadBundles, bundlesFor, bundlesForSlug, nextCertificateStep } from "@/lib/credentials";
+import { levelFor, loadBundles, bundlesFor, bundlesForSlug, nextCertificateStep, type BundleView } from "@/lib/credentials";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { viewAsTarget } from "@/lib/viewAs";
 import { inboxFor, type InboxItem } from "@/lib/pushes";
@@ -281,12 +281,14 @@ export default async function Dashboard({
   // finish a certificate the moment someone touches one of its modules.
   let nextStep: ReturnType<typeof nextCertificateStep> = null;
   const certByModule: Record<string, string> = {};
+  let bundles: BundleView[] = [];
   try {
     const admin = createAdminClient();
     const orgIds = myOrgs.map((m) => m.org.id);
     const completedList = MODULES.filter((m) => m.partner !== "group" && completed[m.slug]).map((m) => ({ slug: m.slug, at: "" }));
     const defs = await loadBundles(admin, { orgIds });
-    nextStep = nextCertificateStep(bundlesFor(completedList, defs));
+    bundles = bundlesFor(completedList, defs);
+    nextStep = nextCertificateStep(bundles);
     for (const m of MODULES) {
       const b = bundlesForSlug(m.slug, defs)[0];
       if (b) certByModule[m.slug] = b.name;
@@ -428,6 +430,71 @@ export default async function Dashboard({
     />
   ) : null;
 
+  // The search-first catalog, extracted so it can sit near the top of the page.
+  const exercisesEl = !showLibrary ? null : (isNewConsumer && startHere.length > 0 ? (
+    <section data-tour="catalog">
+      <h2 className="eyebrow">Start here</h2>
+      <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">New to Superadditive? Pick one and do it — about 20 minutes, and you walk away with something real, not a completion checkmark.</p>
+      <div className="grid gap-3 sm:grid-cols-3 stagger-in">
+        {startHere.map((m) => (
+          <a key={m.slug} href={`/start/${m.slug}`} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+            <div className="text-2xl">{m.emoji}</div>
+            <div className="mt-2 text-sm font-bold text-ink group-hover:text-ai">{m.name}</div>
+            <div className="mt-0.5 line-clamp-2 text-xs text-slate-400">{m.tagline}</div>
+            <span className="mt-3 text-sm font-semibold text-sage">Start →</span>
+          </a>
+        ))}
+      </div>
+      <details className="group mt-8">
+        <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-slate2 hover:text-ink">
+          <span className="transition group-open:rotate-90">›</span> Browse all {MODULES.length} exercises
+        </summary>
+        <div className="mt-5">{catalogEl}</div>
+      </details>
+    </section>
+  ) : (
+    <section id="exercises" data-tour="catalog">
+      <h2 className="eyebrow">{isOrgLearner ? "Explore more" : t("dash.exercises")}</h2>
+      {catalogEl}
+      {orgModules && (
+        <details className="group mt-8">
+          <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-slate2 hover:text-ink">
+            <span className="transition group-open:rotate-90">›</span> Browse all {MODULES.filter((m) => !m.hidden).length} exercises
+          </summary>
+          <div className="mt-5">{fullCatalogEl}</div>
+        </details>
+      )}
+    </section>
+  ));
+
+  // Browsable certificates with the learner's progress toward each.
+  const certBundles = bundles.filter((b) => b.coreTotal + b.elecNeeded > 0);
+  const certificatesEl = certBundles.length ? (
+    <section className="mb-8">
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <h2 className="eyebrow">Certificates</h2>
+        <a href="/achievements" className="text-sm font-medium text-ai hover:underline">Your achievements →</a>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {certBundles.map((b) => (
+          <a key={b.key} href="/achievements" className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-xl" aria-hidden>{b.earned ? "🏅" : "🎓"}</span>
+              {b.earned
+                ? <span className="rounded-full bg-sage-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sage">Earned</span>
+                : <span className="text-[11px] font-medium text-slate-400">{b.remaining} to go</span>}
+            </div>
+            <div className="mt-2 text-sm font-bold leading-snug text-ink group-hover:text-ai">{b.name}</div>
+            <div className="mt-1 line-clamp-2 flex-1 text-xs text-slate-500">{b.line}</div>
+            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-mist">
+              <div className="h-full rounded-full bg-sage transition-all" style={{ width: `${Math.max(4, b.progressPct)}%` }} />
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  ) : null;
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <EasterEgg />
@@ -550,6 +617,11 @@ export default async function Dashboard({
         </Dismissible>
       )}
 
+      {/* Search-first: the catalog (with its search bar) leads the page, then
+          certificates to browse. Everything else follows below. */}
+      {exercisesEl}
+      {certificatesEl}
+
       {/* Runs banner only when it's actually urgent — out of runs, or the alumni
           window is open. The header chip carries the balance the rest of the time. */}
       {showRuns && offer.active ? (
@@ -597,20 +669,8 @@ export default async function Dashboard({
         </section>
       )}
 
-      {/* Studio, Cohorts and Organization are destinations and live in the
-          account menu. What earns a place on the dashboard is the one thing a
-          director actually comes here to do, which the menu doesn't carry:
-          start a module. */}
-      {(facAccess.superadmin || facAccess.orgIds.length > 0) && (
-        <a href="/studio/create" className="card group mb-8 flex items-center gap-3 p-4 transition hover:shadow-lift sm:max-w-md">
-          <span className="text-xl" aria-hidden>🧩</span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold text-ink group-hover:text-ai">Create a module</span>
-            <span className="block text-xs text-slate-400">From your materials, or just describe it</span>
-          </span>
-          <span className="shrink-0 text-slate-300 transition group-hover:text-ink" aria-hidden>→</span>
-        </a>
-      )}
+      {/* Authoring (Create a module) is a Studio destination — it lives in the
+          account menu / Studio, not on the learner dashboard. */}
 
       {(classAssignments.length > 0 || isOrgLearner) && (
         <section className="mb-8">
@@ -681,52 +741,8 @@ export default async function Dashboard({
         />
       )}
 
-      {showLibrary && (isNewConsumer && startHere.length > 0 ? (
-        // A first-time consumer: one clear place to start, with the full library
-        // tucked behind a disclosure so the first screen isn't 80 choices.
-        <section data-tour="catalog">
-          <h2 className="eyebrow">Start here</h2>
-          <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">New to Superadditive? Pick one and do it — about 20 minutes, and you walk away with something real, not a completion checkmark.</p>
-          <div className="grid gap-3 sm:grid-cols-3 stagger-in">
-            {startHere.map((m) => (
-              <a key={m.slug} href={`/start/${m.slug}`} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
-                <div className="text-2xl">{m.emoji}</div>
-                <div className="mt-2 text-sm font-bold text-ink group-hover:text-ai">{m.name}</div>
-                <div className="mt-0.5 line-clamp-2 text-xs text-slate-400">{m.tagline}</div>
-                <span className="mt-3 text-sm font-semibold text-sage">Start →</span>
-              </a>
-            ))}
-          </div>
-          <details className="group mt-8">
-            <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-slate2 hover:text-ink">
-              <span className="transition group-open:rotate-90">›</span> Browse all {MODULES.length} exercises
-            </summary>
-            <div className="mt-5">{catalogEl}</div>
-          </details>
-        </section>
-      ) : (
-        <section id="exercises" data-tour="catalog">
-          <h2 className="eyebrow">{isOrgLearner ? "Explore more" : t("dash.exercises")}</h2>
-          {/* The catalog now leads with the intent gate (a compact "what do you
-              want to get better at?" front door) and self-collapses its full
-              library, so it no longer needs the old category-count card in front
-              of it — that only stacked a second taxonomy on top of the gate. */}
-          <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">{t(orgModules ? "dash.framingCurated" : "dash.framing")}</p>
-          {catalogEl}
-          {/* An org's curated list replaces the library rather than sitting beside
-              it, so without this the rest of the catalog is unreachable from an
-              org context — even for staff and for members the org opted into
-              browsing. Same disclosure the new-consumer view already uses. */}
-          {orgModules && (
-            <details className="group mt-8">
-              <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-slate2 hover:text-ink">
-                <span className="transition group-open:rotate-90">›</span> Browse all {MODULES.filter((m) => !m.hidden).length} exercises
-              </summary>
-              <div className="mt-5">{fullCatalogEl}</div>
-            </details>
-          )}
-        </section>
-      ))}
+      {/* The exercises catalog and certificates now render near the top (exercisesEl
+          / certificatesEl, just below the resume card). */}
 
       <section className="mt-10">
         <h2 className="eyebrow mb-3">{t("dash.yourSessions")}</h2>
