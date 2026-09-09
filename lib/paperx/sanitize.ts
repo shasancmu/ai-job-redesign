@@ -4,16 +4,19 @@ const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").repla
 const str = (v: any, d = "") => (typeof v === "string" ? v.trim() : d);
 const clampNum = (v: any) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
 
+const KINDS = ["slope", "bars", "stacked", "hbars", "line", "area", "scatter", "coef"];
+const optNum = (v: any) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
 function chart(raw: any): PxChart | undefined {
   if (!raw || typeof raw !== "object") return undefined;
-  const kind = ["slope", "bars", "line"].includes(raw.kind) ? raw.kind : "bars";
+  const kind = KINDS.includes(raw.kind) ? raw.kind : "bars";
   const series: PxSeries[] = (Array.isArray(raw.series) ? raw.series : []).slice(0, 3).map((s: any) => ({
     label: str(s?.label),
     tone: (["up", "down", "neutral"].includes(s?.tone) ? s.tone : "neutral") as PxTone,
-    points: (Array.isArray(s?.points) ? s.points : []).slice(0, 12).map((p: any) => ({ x: str(p?.x, ""), y: clampNum(p?.y) })).filter((p: any) => p.x !== ""),
+    trend: s?.trend === true || undefined,
+    points: (Array.isArray(s?.points) ? s.points : []).slice(0, 24).map((p: any) => ({ x: str(p?.x, ""), y: clampNum(p?.y), lo: optNum(p?.lo), hi: optNum(p?.hi) })).filter((p: any) => p.x !== ""),
   })).filter((s: PxSeries) => s.points.length > 0);
   if (!series.length) return undefined;
-  return { kind, title: str(raw.title, "The finding"), caption: str(raw.caption) || undefined, yLabel: str(raw.yLabel) || undefined, series, annotation: str(raw.annotation) || undefined };
+  return { kind, title: str(raw.title, "The finding"), caption: str(raw.caption) || undefined, xLabel: str(raw.xLabel) || undefined, yLabel: str(raw.yLabel) || undefined, series, annotation: str(raw.annotation) || undefined };
 }
 
 function predicts(raw: any): PxPredict[] {

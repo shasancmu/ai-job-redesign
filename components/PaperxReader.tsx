@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import LessonPredict from "@/components/lessons/LessonPredict";
-import type { PxGenome, PxChart, PxTeachback } from "@/lib/paperx/types";
+import type { PxGenome, PxChart, PxSeries, PxTeachback } from "@/lib/paperx/types";
 
 // The interactive, visual reader for a Paper Explainer. A guided vertical
 // narrative: hook → the null everyone believes → predict → the puzzle → the
@@ -27,57 +27,121 @@ function Section({ eyebrow, children }: { eyebrow?: string; children: React.Reac
 }
 
 // ---- Inline SVG chart --------------------------------------------------------
+const col = (s: PxSeries) => TONE[s.tone || "neutral"].stroke;
+const fillOf = (s: PxSeries) => TONE[s.tone || "neutral"].fill;
+const GRID = "#e2e8f0", AXIS = "#64748b", FAINT = "#94a3b8";
+// Least-squares fit for a scatter trend line.
+function fit(pts: { x: number; y: number }[]) {
+  const n = pts.length; if (n < 2) return null;
+  const sx = pts.reduce((a, p) => a + p.x, 0), sy = pts.reduce((a, p) => a + p.y, 0);
+  const sxx = pts.reduce((a, p) => a + p.x * p.x, 0), sxy = pts.reduce((a, p) => a + p.x * p.y, 0);
+  const d = n * sxx - sx * sx; if (!d) return null;
+  const m = (n * sxy - sx * sy) / d; return { m, b: (sy - m * sx) / n };
+}
+
 function Chart({ chart }: { chart: PxChart }) {
-  const W = 560, H = 240, padL = 44, padR = 20, padT = 16, padB = 34;
-  const allY = chart.series.flatMap((s) => s.points.map((p) => p.y));
-  const minY = Math.min(0, ...allY), maxY = Math.max(...allY, 1);
-  const span = maxY - minY || 1;
-  const xs = chart.series[0]?.points.map((p) => p.x) || [];
-  const n = Math.max(1, xs.length);
-  const xAt = (i: number) => padL + (n === 1 ? (W - padL - padR) / 2 : (i * (W - padL - padR)) / (n - 1));
-  const yAt = (v: number) => padT + (H - padT - padB) * (1 - (v - minY) / span);
-  const barGroupW = (W - padL - padR) / n;
+  const W = 560, H = 250, padT = 16, padB = 36;
+  const kind = chart.kind;
+  const series = chart.series;
+  const s0 = series[0];
+  const cats = s0?.points.map((p) => p.x) || [];
+  const nCat = Math.max(1, cats.length);
+  const horizontal = kind === "hbars" || kind === "coef";
+  const padL = horizontal ? 108 : 46, padR = 18;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+
+  // Value domain (y for vertical, x for horizontal/scatter).
+  let vMin: number, vMax: number;
+  if (kind === "scatter") {
+    const ys = series.flatMap((s) => s.points.map((p) => p.y));
+    vMin = Math.min(...ys); vMax = Math.max(...ys);
+  } else if (kind === "coef") {
+    const vals = series.flatMap((s) => s.points.flatMap((p) => [p.y, p.lo ?? p.y, p.hi ?? p.y]));
+    vMin = Math.min(0, ...vals); vMax = Math.max(0, ...vals);
+  } else if (kind === "stacked") {
+    const sums = cats.map((_, i) => series.reduce((a, s) => a + (s.points[i]?.y || 0), 0));
+    vMin = 0; vMax = Math.max(1, ...sums);
+  } else {
+    const ys = series.flatMap((s) => s.points.map((p) => p.y));
+    vMin = Math.min(0, ...ys); vMax = Math.max(1, ...ys);
+  }
+  if (vMin === vMax) vMax = vMin + 1;
+  const pad = (vMax - vMin) * 0.08; vMin -= (kind === "scatter" ? pad : 0); vMax += pad;
+  const vSpan = vMax - vMin || 1;
+
+  // scatter x domain
+  const sx = series.flatMap((s) => s.points.map((p) => parseFloat(p.x))).filter((v) => Number.isFinite(v));
+  let xMin = Math.min(...(sx.length ? sx : [0])), xMax = Math.max(...(sx.length ? sx : [1]));
+  if (xMin === xMax) xMax = xMin + 1;
+  const xpad = (xMax - xMin) * 0.08; xMin -= xpad; xMax += xpad;
+
+  // Scales.
+  const vToX = (v: number) => padL + plotW * ((v - vMin) / vSpan); // horizontal value axis
+  const vToY = (v: number) => padT + plotH * (1 - (v - vMin) / vSpan); // vertical value axis
+  const catX = (i: number) => padL + (nCat === 1 ? plotW / 2 : (i * plotW) / (nCat - 1));
+  const catY = (i: number) => padT + plotH * ((i + 0.5) / nCat); // horizontal category rows
+  const scX = (v: number) => padL + plotW * ((v - xMin) / (xMax - xMin));
+  const bandW = plotW / nCat;
 
   return (
     <figure className="my-6 overflow-hidden rounded-2xl border border-line bg-white p-4">
       <figcaption className="mb-1 text-sm font-semibold text-ink">{chart.title}</figcaption>
       {chart.annotation && <div className="mb-2 inline-block rounded-full bg-mist px-2 py-0.5 text-xs font-bold tabular-nums text-ink">{chart.annotation}</div>}
       <div className="overflow-x-auto">
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full min-w-[420px]" role="img" aria-label={chart.title}>
-          {/* baseline / zero line */}
-          <line x1={padL} y1={yAt(0)} x2={W - padR} y2={yAt(0)} stroke="#e2e8f0" strokeWidth="1" />
-          {chart.yLabel && <text x={12} y={padT + 6} fontSize="11" fill="#94a3b8" transform={`rotate(-90 12 ${H / 2})`} textAnchor="middle">{chart.yLabel}</text>}
-          {chart.kind === "bars"
-            ? chart.series.map((s, si) => {
-                const t = TONE[s.tone || "neutral"];
-                const bw = (barGroupW * 0.7) / chart.series.length;
-                return s.points.map((p, i) => {
-                  const x = padL + i * barGroupW + barGroupW * 0.15 + si * bw;
-                  const y = yAt(p.y), y0 = yAt(0);
-                  return <rect key={`${si}-${i}`} x={x} y={Math.min(y, y0)} width={bw} height={Math.abs(y0 - y)} rx="2" fill={t.stroke} opacity={0.85} />;
-                });
-              })
-            : chart.series.map((s, si) => {
-                const t = TONE[s.tone || "neutral"];
-                const pts = s.points.map((p, i) => `${xAt(i)},${yAt(p.y)}`).join(" ");
-                return (
-                  <g key={si}>
-                    <polyline points={pts} fill="none" stroke={t.stroke} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                    {s.points.map((p, i) => <circle key={i} cx={xAt(i)} cy={yAt(p.y)} r="3.5" fill={t.stroke} />)}
-                  </g>
-                );
-              })}
-          {/* x labels */}
-          {xs.map((x, i) => <text key={i} x={xAt(i)} y={H - 12} fontSize="11" fill="#64748b" textAnchor="middle">{x}</text>)}
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full min-w-[440px]" role="img" aria-label={chart.title}>
+          {chart.yLabel && !horizontal && <text x={12} y={H / 2} fontSize="11" fill={FAINT} transform={`rotate(-90 12 ${H / 2})`} textAnchor="middle">{chart.yLabel}</text>}
+          {chart.xLabel && <text x={padL + plotW / 2} y={H - 4} fontSize="11" fill={FAINT} textAnchor="middle">{chart.xLabel}</text>}
+
+          {/* ---- vertical value charts: bars / stacked / line / area / slope ---- */}
+          {["bars", "stacked", "line", "area", "slope"].includes(kind) && <>
+            <line x1={padL} y1={vToY(Math.max(vMin, 0))} x2={W - padR} y2={vToY(Math.max(vMin, 0))} stroke={GRID} />
+            {kind === "stacked"
+              ? cats.map((_, i) => { let acc = 0; return series.map((s, si) => { const v = s.points[i]?.y || 0; const y1 = vToY(acc + v), y0 = vToY(acc); acc += v; return <rect key={`${si}-${i}`} x={padL + i * bandW + bandW * 0.2} y={y1} width={bandW * 0.6} height={Math.max(0, y0 - y1)} fill={col(s)} opacity={0.85} rx="1.5" />; }); })
+              : kind === "bars"
+                ? series.map((s, si) => { const bw = (bandW * 0.68) / series.length; return s.points.map((p, i) => { const y = vToY(p.y), y0 = vToY(Math.max(vMin, 0)); return <rect key={`${si}-${i}`} x={padL + i * bandW + bandW * 0.16 + si * bw} y={Math.min(y, y0)} width={bw} height={Math.abs(y0 - y)} rx="2" fill={col(s)} opacity={0.85} />; }); })
+                : series.map((s, si) => { const pts = s.points.map((p, i) => `${catX(i)},${vToY(p.y)}`).join(" "); const area = `${padL},${vToY(Math.max(vMin, 0))} ${pts} ${catX(s.points.length - 1)},${vToY(Math.max(vMin, 0))}`;
+                    return <g key={si}>{kind === "area" && <polygon points={area} fill={fillOf(s)} />}<polyline points={pts} fill="none" stroke={col(s)} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />{s.points.map((p, i) => <circle key={i} cx={catX(i)} cy={vToY(p.y)} r="3.5" fill={col(s)} />)}</g>; })}
+            {cats.map((x, i) => <text key={i} x={catX(i)} y={H - 18} fontSize="11" fill={AXIS} textAnchor="middle">{x}</text>)}
+          </>}
+
+          {/* ---- scatter ---- */}
+          {kind === "scatter" && <>
+            <line x1={padL} y1={vToY(Math.max(vMin, 0))} x2={W - padR} y2={vToY(Math.max(vMin, 0))} stroke={GRID} />
+            {series.map((s, si) => {
+              const pts = s.points.map((p) => ({ x: parseFloat(p.x), y: p.y })).filter((p) => Number.isFinite(p.x));
+              const line = s.trend ? fit(pts) : null;
+              return <g key={si}>
+                {line && <line x1={scX(xMin)} y1={vToY(line.m * xMin + line.b)} x2={scX(xMax)} y2={vToY(line.m * xMax + line.b)} stroke={col(s)} strokeWidth="2" strokeDasharray="5 4" opacity={0.7} />}
+                {pts.map((p, i) => <circle key={i} cx={scX(p.x)} cy={vToY(p.y)} r="4" fill={col(s)} opacity={0.8} />)}
+              </g>;
+            })}
+            {[xMin + (xMax - xMin) * 0.05, (xMin + xMax) / 2, xMax - (xMax - xMin) * 0.05].map((v, i) => <text key={i} x={scX(v)} y={H - 18} fontSize="10" fill={AXIS} textAnchor="middle">{Math.round(v * 100) / 100}</text>)}
+          </>}
+
+          {/* ---- horizontal bars ---- */}
+          {kind === "hbars" && <>
+            <line x1={padL} y1={padT} x2={padL} y2={padT + plotH} stroke={GRID} />
+            {(s0?.points || []).map((p, i) => { const y = padT + plotH * ((i + 0.5) / nCat); const bh = Math.min(22, (plotH / nCat) * 0.6); const x2 = vToX(p.y);
+              return <g key={i}><rect x={padL} y={y - bh / 2} width={Math.max(0, x2 - padL)} height={bh} rx="2" fill={col(s0)} opacity={0.85} /><text x={padL - 6} y={y + 3} fontSize="11" fill={AXIS} textAnchor="end">{p.x.length > 18 ? p.x.slice(0, 17) + "…" : p.x}</text><text x={x2 + 4} y={y + 3} fontSize="10" fill={FAINT}>{p.y}</text></g>; })}
+          </>}
+
+          {/* ---- coefficient / forest plot ---- */}
+          {kind === "coef" && <>
+            <line x1={vToX(0)} y1={padT} x2={vToX(0)} y2={padT + plotH} stroke={GRID} strokeDasharray="3 3" />
+            {(s0?.points || []).map((p, i) => { const y = catY(i); const lo = p.lo ?? p.y, hi = p.hi ?? p.y; const crosses = lo <= 0 && hi >= 0;
+              const c = crosses ? "#94a3b8" : col(s0);
+              return <g key={i}><text x={padL - 8} y={y + 3} fontSize="11" fill={AXIS} textAnchor="end">{p.x.length > 20 ? p.x.slice(0, 19) + "…" : p.x}</text><line x1={vToX(lo)} y1={y} x2={vToX(hi)} y2={y} stroke={c} strokeWidth="2" /><line x1={vToX(lo)} y1={y - 4} x2={vToX(lo)} y2={y + 4} stroke={c} strokeWidth="1.5" /><line x1={vToX(hi)} y1={y - 4} x2={vToX(hi)} y2={y + 4} stroke={c} strokeWidth="1.5" /><circle cx={vToX(p.y)} cy={y} r="4" fill={c} /></g>; })}
+            {[vMin + (vMax - vMin) * 0.05, 0, vMax - (vMax - vMin) * 0.05].map((v, i) => <text key={i} x={vToX(v)} y={H - 18} fontSize="10" fill={AXIS} textAnchor="middle">{Math.round(v * 100) / 100}</text>)}
+          </>}
         </svg>
       </div>
-      <div className="mt-2 flex flex-wrap gap-3">
-        {chart.series.map((s, i) => (
-          <span key={i} className="inline-flex items-center gap-1.5 text-xs text-slate-500">
-            <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: TONE[s.tone || "neutral"].stroke }} />{s.label}
-          </span>
-        ))}
-      </div>
+      {series.length > 1 && kind !== "hbars" && kind !== "coef" && (
+        <div className="mt-2 flex flex-wrap gap-3">
+          {series.map((s, i) => (
+            <span key={i} className="inline-flex items-center gap-1.5 text-xs text-slate-500"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: col(s) }} />{s.label}{s.trend ? " (trend)" : ""}</span>
+          ))}
+        </div>
+      )}
       {chart.caption && <p className="mt-2 text-xs text-slate-400">{chart.caption}</p>}
     </figure>
   );

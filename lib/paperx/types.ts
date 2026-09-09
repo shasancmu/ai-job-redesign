@@ -10,14 +10,25 @@
 
 // A tiny chart the reader draws inline as SVG. Kept deliberately small and robust
 // so an AI-extracted result renders cleanly in both light and dark themes.
-export type PxChartKind = "slope" | "bars" | "line";
+//   slope   two-point before/after per series
+//   bars    grouped vertical bars over categories
+//   stacked stacked vertical bars (composition)
+//   hbars   horizontal bars (rankings, long labels)
+//   line    a trend over ordered categories
+//   area    a trend with a filled area
+//   scatter numeric x vs y points (relationships); optional fitted trend line
+//   coef    coefficient / forest plot: an estimate with a lo–hi interval per row
+export type PxChartKind = "slope" | "bars" | "stacked" | "hbars" | "line" | "area" | "scatter" | "coef";
 export type PxTone = "up" | "down" | "neutral";
-export type PxPoint = { x: string; y: number };
-export type PxSeries = { label: string; tone?: PxTone; points: PxPoint[] };
+// x is a label for categorical charts, or a numeric-as-string value for scatter.
+// lo/hi carry a confidence interval for `coef`.
+export type PxPoint = { x: string; y: number; lo?: number; hi?: number };
+export type PxSeries = { label: string; tone?: PxTone; points: PxPoint[]; trend?: boolean };
 export type PxChart = {
   kind: PxChartKind;
   title: string;
   caption?: string;
+  xLabel?: string;
   yLabel?: string;
   series: PxSeries[]; // 1–3 series
   annotation?: string; // a single callout, e.g. "+42%" or "-1.28 SD"
