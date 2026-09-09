@@ -16,6 +16,7 @@ export default function PhdBetDemo() {
   const [p, setP] = useState(20); // per-paper publish probability, %
   const [n, setN] = useState(6);  // papers written over the tenure clock
   const [draw, setDraw] = useState<boolean[] | null>(null); // a played-out career
+  const [hist, setHist] = useState<number[] | null>(null);  // 100 careers: count by # accepted
 
   const prob = pAtLeast(NEED, n, p / 100);
   const pct = Math.round(prob * 100);
@@ -23,9 +24,22 @@ export default function PhdBetDemo() {
   const accepted = draw ? draw.filter(Boolean).length : 0;
   const color = pct >= 50 ? "#3F7A52" : pct >= 20 ? "#B07A1E" : "#C0603A";
 
+  const RUNS = 100;
+  const histMax = hist ? Math.max(1, ...hist) : 1;
+  const cleared = hist ? hist.slice(NEED).reduce((a, b) => a + b, 0) : 0;
+
   function play() { setDraw(Array.from({ length: n }, () => Math.random() < p / 100)); }
-  const setPd = (v: number) => { setP(v); setDraw(null); };
-  const setNd = (v: number) => { setN(v); setDraw(null); };
+  function runMany() {
+    const h = new Array(n + 1).fill(0);
+    for (let c = 0; c < RUNS; c++) {
+      let acc = 0;
+      for (let i = 0; i < n; i++) if (Math.random() < p / 100) acc++;
+      h[acc]++;
+    }
+    setHist(h);
+  }
+  const setPd = (v: number) => { setP(v); setDraw(null); setHist(null); };
+  const setNd = (v: number) => { setN(v); setDraw(null); setHist(null); };
 
   return (
     <div className="my-6 rounded-2xl border border-line bg-white p-5">
@@ -76,6 +90,32 @@ export default function PhdBetDemo() {
           <span className="text-2xl font-bold tabular-nums" style={{ color }}>{pct}%</span>
         </div>
         <div className="mt-0.5 text-xs text-slate-400">clear the {NEED}-paper bar · you&apos;d expect about {expected.toFixed(1)} to get in</div>
+      </div>
+
+      {/* 100 careers → a histogram of outcomes, so the % above becomes a shape. */}
+      <div className="mt-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <button onClick={runMany} className="btn-ghost text-sm">{hist ? "Run 100 more" : "Run 100 careers →"}</button>
+          {hist && <span className="text-xs text-slate-500">Cleared {NEED}+ in <b className="tabular-nums text-ink">{cleared}</b> of {RUNS} careers</span>}
+        </div>
+        {hist && (
+          <div className="mt-3">
+            <div className="flex h-28 items-end gap-1">
+              {hist.map((count, k) => (
+                <div key={k} className="flex flex-1 flex-col items-center justify-end" title={`${count} of ${RUNS} careers published ${k}`}>
+                  <div className="text-[10px] tabular-nums text-slate-400">{count || ""}</div>
+                  <div className="w-full rounded-t transition-all" style={{ height: `${(count / histMax) * 100}%`, minHeight: count ? 2 : 0, background: k >= NEED ? "#3F7A52" : "#CBD5E1" }} />
+                </div>
+              ))}
+            </div>
+            <div className="mt-1 flex gap-1">
+              {hist.map((_, k) => (
+                <div key={k} className={"flex-1 text-center text-[10px] tabular-nums " + (k >= NEED ? "font-semibold text-sage" : "text-slate-400")}>{k}</div>
+              ))}
+            </div>
+            <div className="mt-1 text-center text-[11px] text-slate-400">papers published in a career · <span className="font-semibold text-sage">green = earned tenure</span></div>
+          </div>
+        )}
       </div>
 
       <p className="mt-3 text-xs text-slate-400">
