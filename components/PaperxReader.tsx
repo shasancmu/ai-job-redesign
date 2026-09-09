@@ -97,8 +97,8 @@ function TeachBack({ slug, g, cohort, preview }: { slug: string; g: PxGenome; co
       const j = await r.json();
       if (!r.ok) { setErr(j.error || "Couldn't evaluate that."); setBusy(false); return; }
       setRes(j);
-      // Reaching the teach-back is completion. Record it (not while previewing a draft).
-      if (!preview) fetch("/api/paperx/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug, cohort }) }).catch(() => {});
+      // Reaching the teach-back is completion. Record it with the score (not while previewing a draft).
+      if (!preview) fetch("/api/paperx/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug, cohort, score: j.score, verdict: j.verdict }) }).catch(() => {});
     } catch { setErr("Couldn't reach the grader."); }
     setBusy(false);
   }

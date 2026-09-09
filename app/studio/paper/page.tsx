@@ -36,6 +36,7 @@ export default async function StudioPaperPage() {
               <div key={m.slug} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-white p-3">
                 <div><span className="font-semibold text-ink">{m.name || m.slug}</span><span className="ml-2 rounded-full bg-mist px-2 py-0.5 text-[11px] text-slate-500">{m.status}</span></div>
                 <div className="flex items-center gap-2">
+                  {m.status === "published" && <Link href={`/px/${m.slug}/insights`} className="btn-ghost text-sm">Insights</Link>}
                   <Link href={`/studio/paper/${m.slug}`} className="btn-ghost text-sm">Edit</Link>
                   <Link href={`/px/${m.slug}`} className="btn-ghost text-sm">Open →</Link>
                 </div>

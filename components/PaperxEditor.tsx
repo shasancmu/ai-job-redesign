@@ -53,6 +53,7 @@ export default function PaperxEditor({ spec, editSlug }: { spec: PxGenome; editS
           <button onClick={() => setTab("edit")} className={`rounded-full px-3 py-1 text-sm ${tab === "edit" ? "bg-white font-semibold text-ink shadow-sm" : "text-slate2"}`}>Edit text</button>
         </div>
         <div className="flex items-center gap-2">
+          {savedSlug && <Link href={`/px/${savedSlug}/insights`} className="text-sm text-slate2 hover:text-ink">Insights</Link>}
           {savedSlug && <Link href={`/px/${savedSlug}`} className="text-sm text-slate2 hover:text-ink">Open →</Link>}
           <button onClick={() => save(false)} disabled={busy} className="btn-ghost text-sm">{busy ? "…" : "Save draft"}</button>
           <button onClick={() => save(true)} disabled={busy} className="btn-primary text-sm">{busy ? "…" : "Publish"}</button>
