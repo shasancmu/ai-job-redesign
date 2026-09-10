@@ -283,6 +283,10 @@ main > *:nth-child(n + 6) { animation-delay: 0.24s; }
   to { opacity: 1; transform: none; }
 }
 
+/* One deck card sliding in when you advance (Paper Explainer, etc.). */
+.px-card-in { animation: lux-rise 0.3s var(--ease) both; }
+@media (prefers-reduced-motion: reduce) { .px-card-in { animation: none; } }
+
 /* Card-level staggered reveal — add .stagger-in to a grid/row and its cards cascade
    in one after another (a gentle rise), rather than the block appearing all at once. */
 .stagger-in > * { animation: lux-rise 0.5s var(--ease) both; }

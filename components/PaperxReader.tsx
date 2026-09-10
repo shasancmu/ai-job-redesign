@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import LessonPredict from "@/components/lessons/LessonPredict";
 import type { PxGenome, PxChart, PxSeries, PxTeachback } from "@/lib/paperx/types";
@@ -16,15 +16,6 @@ const TONE = {
   down: { stroke: "#C0603A", fill: "rgba(192,96,58,0.12)", chip: "text-clay" },
   neutral: { stroke: "#4E79C9", fill: "rgba(78,121,201,0.12)", chip: "text-sky" },
 } as const;
-
-function Section({ eyebrow, children }: { eyebrow?: string; children: React.ReactNode }) {
-  return (
-    <section className="mx-auto max-w-2xl px-5 py-10 sm:py-14">
-      {eyebrow && <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{eyebrow}</div>}
-      {children}
-    </section>
-  );
-}
 
 // ---- Inline SVG chart --------------------------------------------------------
 const col = (s: PxSeries) => TONE[s.tone || "neutral"].stroke;
@@ -209,122 +200,111 @@ function TeachBack({ slug, g, cohort, preview }: { slug: string; g: PxGenome; co
   );
 }
 
-// ---- The reader --------------------------------------------------------------
+// ---- The reader — a paced card DECK (one beat per card) ----------------------
 export default function PaperxReader({ g, preview, cohort }: { g: PxGenome; preview?: boolean; cohort?: string | null }) {
-  const [started, setStarted] = useState(false);
-
-  return (
-    <main className="min-h-[100dvh] bg-paper text-ink">
-      {preview && <div className="bg-amber-soft px-4 py-2 text-center text-xs font-medium text-amber">Preview — verify the facts against the paper before publishing.</div>}
-
-      {/* Hero */}
-      <div className="mx-auto max-w-2xl px-5 pt-12 pb-6 sm:pt-20">
+  // Build the ordered deck of cards. Each is { eyebrow, body }.
+  const cards: { eyebrow: string; body: React.ReactNode; cover?: boolean }[] = [
+    { eyebrow: g.eyebrow, cover: true, body: (
+      <div>
         <div className="text-4xl" aria-hidden>{g.emoji}</div>
-        <div className="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{g.eyebrow}</div>
-        <h1 className="mt-2 text-3xl font-bold leading-tight text-ink sm:text-4xl">{g.title}</h1>
+        <h1 className="mt-3 text-3xl font-bold leading-tight text-ink sm:text-4xl">{g.title}</h1>
         <p className="mt-3 text-lg leading-relaxed text-slate-600">{g.dek}</p>
-        <div className="mt-4 rounded-xl border border-line bg-white/60 p-3 text-xs text-slate-500">
-          <span className="font-semibold text-slate-600">The paper:</span> {g.paperTitle}{g.authors ? ` — ${g.authors}` : ""}{g.venue ? ` · ${g.venue}` : ""}
+        <div className="mt-4 rounded-xl border border-line bg-white/60 p-3 text-xs text-slate-500"><span className="font-semibold text-slate-600">The paper:</span> {g.paperTitle}{g.authors ? ` — ${g.authors}` : ""}{g.venue ? ` · ${g.venue}` : ""}</div>
+      </div>
+    ) },
+    { eyebrow: "The question", body: <p className="text-2xl font-bold leading-snug text-ink">{g.bigQuestion}</p> },
+    { eyebrow: "Why it matters", body: <><h2 className="text-xl font-bold text-ink">{g.hook.headline}</h2><p className="mt-2 leading-relaxed text-slate-700">{g.hook.body}</p></> },
+    { eyebrow: "What everyone assumes", body: <><h2 className="text-xl font-bold text-ink">{g.nullBelief.headline}</h2><p className="mt-2 leading-relaxed text-slate-700">{g.nullBelief.body}</p></> },
+    ...g.predicts.map((p, i) => ({ eyebrow: "Take a guess", body: <LessonPredict key={i} prompt={p.prompt} choices={p.choices} answer={p.answer} reveal={p.reveal} /> })),
+    { eyebrow: "The puzzle", body: (
+      <div className="space-y-2">
+        <div className="rounded-xl border border-line bg-white p-3"><span className="text-[11px] font-semibold uppercase tracking-wide text-sky">We believe</span><p className="mt-0.5 text-ink">{g.puzzle.believe}</p></div>
+        <div className="rounded-xl border border-line bg-white p-3"><span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">So we'd expect</span><p className="mt-0.5 text-slate-600">{g.puzzle.expect}</p></div>
+        <div className="rounded-xl border-2 border-clay/40 bg-clay-soft/30 p-3"><span className="text-[11px] font-semibold uppercase tracking-wide text-clay">But we observe</span><p className="mt-0.5 font-semibold text-ink">{g.puzzle.observe}</p></div>
+      </div>
+    ) },
+    { eyebrow: "The evidence", body: <><h2 className="text-xl font-bold text-ink">{g.evidence.headline}</h2>{g.evidence.chart && <Chart chart={g.evidence.chart} />}<p className="mt-2 leading-relaxed text-slate-700">{g.evidence.takeaway}</p></> },
+    { eyebrow: "The idea", body: (
+      <>
+        <p className="mb-4 text-sm text-slate-500">Every research idea is really a conditional relationship. Here is this one:</p>
+        <div className="space-y-2">
+          <div className="flex items-start gap-3 rounded-xl border border-line bg-white p-3"><span className="flex-none rounded-md bg-ink px-2 py-1 text-[11px] font-bold text-white">IF</span><p className="text-ink">{g.idea.if_}</p></div>
+          <div className="flex items-start gap-3 rounded-xl border border-line bg-white p-3"><span className="flex-none rounded-md bg-sage px-2 py-1 text-[11px] font-bold text-white">THEN</span><p className="text-ink">{g.idea.then_}</p></div>
+          <div className="flex items-start gap-3 rounded-xl border border-line bg-white p-3"><span className="flex-none rounded-md bg-sky px-2 py-1 text-[11px] font-bold text-white">WHEN</span><p className="text-ink">{g.idea.whenZ}</p></div>
+          <div className="flex items-start gap-3 rounded-xl border-2 border-amber/40 bg-amber-soft/30 p-3"><span className="flex-none rounded-md bg-amber px-2 py-1 text-[11px] font-bold text-white">BECAUSE</span><p className="font-medium text-ink">{g.idea.because}</p></div>
         </div>
-        {!started && (
-          <button onClick={() => setStarted(true)} className="btn-primary mt-6">Start the explainer →</button>
-        )}
+      </>
+    ) },
+    { eyebrow: "Why it happens", body: <><h2 className="text-xl font-bold text-ink">{g.mechanism.headline}</h2><p className="mt-2 leading-relaxed text-slate-700">{g.mechanism.body}</p></> },
+    { eyebrow: "So what", body: <><h2 className="text-xl font-bold text-ink">{g.soWhat.headline}</h2><p className="mt-2 leading-relaxed text-slate-700">{g.soWhat.body}</p></> },
+    { eyebrow: "Your turn", body: <TeachBack slug={g.slug} g={g} cohort={cohort} preview={preview} /> },
+    ...(g.glossary && g.glossary.length > 0 ? [{ eyebrow: "Plain-language glossary", body: (
+      <dl className="space-y-2">{g.glossary.map((gl, i) => (<div key={i} className="rounded-xl border border-line bg-white p-3"><dt className="text-sm font-semibold text-ink">{gl.term}</dt><dd className="mt-0.5 text-sm text-slate-600">{gl.def}</dd></div>))}</dl>
+    ) }] : []),
+    { eyebrow: "Done", body: (
+      <div className="text-center">
+        <div className="text-4xl" aria-hidden>🎉</div>
+        <h2 className="mt-3 text-2xl font-bold text-ink">You&rsquo;ve got the idea</h2>
+        <p className="mt-2 text-slate-600">You walked the whole argument and explained it back. That&rsquo;s the paper.</p>
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+          <Link href="/dashboard" className="btn-primary">Back to dashboard</Link>
+        </div>
+      </div>
+    ) },
+  ];
+
+  const [i, setI] = useState(0);
+  const n = cards.length;
+  const clamp = useCallback((k: number) => Math.max(0, Math.min(n - 1, k)), [n]);
+  const go = useCallback((d: number) => setI((k) => clamp(k + d)), [clamp]);
+  const first = i === 0, last = i === n - 1;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = document.activeElement as HTMLElement | null;
+      if (el && (el.tagName === "TEXTAREA" || el.tagName === "INPUT")) return; // don't hijack typing
+      if (e.key === "ArrowRight") go(1);
+      else if (e.key === "ArrowLeft") go(-1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [go]);
+
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => { const t = e.touches[0]; touch.current = { x: t.clientX, y: t.clientY }; };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (!touch.current) return;
+    const t = e.changedTouches[0]; const dx = t.clientX - touch.current.x, dy = t.clientY - touch.current.y; touch.current = null;
+    if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
+  };
+
+  const card = cards[i];
+  return (
+    <main className="flex min-h-[100dvh] flex-col bg-paper text-ink">
+      {preview && <div className="bg-amber-soft px-4 py-1.5 text-center text-xs font-medium text-amber">Preview — verify the facts against the paper before publishing.</div>}
+
+      {/* Progress bar */}
+      <div className="mx-auto mt-3 flex w-full max-w-2xl items-center gap-1 px-5">
+        {cards.map((_, k) => (<span key={k} className="h-1.5 flex-1 rounded-full transition-colors" style={{ background: k <= i ? "var(--brand, #3F7A52)" : "#e2e8f0" }} />))}
       </div>
 
-      {(started || preview) && (
-        <div className="animate-in fade-in duration-500">
-          {/* The big question */}
-          <Section eyebrow="The question">
-            <p className="text-2xl font-bold leading-snug text-ink">{g.bigQuestion}</p>
-          </Section>
-
-          {/* Hook */}
-          <Section eyebrow="Why it matters">
-            <h2 className="text-xl font-bold text-ink">{g.hook.headline}</h2>
-            <p className="mt-2 leading-relaxed text-slate-700">{g.hook.body}</p>
-          </Section>
-
-          {/* The null everyone believes */}
-          <Section eyebrow="What everyone assumes">
-            <h2 className="text-xl font-bold text-ink">{g.nullBelief.headline}</h2>
-            <p className="mt-2 leading-relaxed text-slate-700">{g.nullBelief.body}</p>
-          </Section>
-
-          {/* Predict-then-reveal */}
-          {g.predicts.length > 0 && (
-            <Section eyebrow="Take a guess">
-              {g.predicts.map((p, i) => (
-                <LessonPredict key={i} prompt={p.prompt} choices={p.choices} answer={p.answer} reveal={p.reveal} />
-              ))}
-            </Section>
-          )}
-
-          {/* The puzzle — a violated expectation */}
-          <Section eyebrow="The puzzle">
-            <div className="space-y-2">
-              <div className="rounded-xl border border-line bg-white p-3"><span className="text-[11px] font-semibold uppercase tracking-wide text-sky">We believe</span><p className="mt-0.5 text-ink">{g.puzzle.believe}</p></div>
-              <div className="rounded-xl border border-line bg-white p-3"><span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">So we'd expect</span><p className="mt-0.5 text-slate-600">{g.puzzle.expect}</p></div>
-              <div className="rounded-xl border-2 border-clay/40 bg-clay-soft/30 p-3"><span className="text-[11px] font-semibold uppercase tracking-wide text-clay">But we observe</span><p className="mt-0.5 font-semibold text-ink">{g.puzzle.observe}</p></div>
-            </div>
-          </Section>
-
-          {/* Evidence + chart */}
-          <Section eyebrow="The evidence">
-            <h2 className="text-xl font-bold text-ink">{g.evidence.headline}</h2>
-            {g.evidence.chart && <Chart chart={g.evidence.chart} />}
-            <p className="mt-2 leading-relaxed text-slate-700">{g.evidence.takeaway}</p>
-          </Section>
-
-          {/* The idea as an interaction */}
-          <Section eyebrow="The idea">
-            <p className="mb-4 text-sm text-slate-500">Every research idea is really a conditional relationship. Here is this one:</p>
-            <div className="space-y-2">
-              <div className="flex items-start gap-3 rounded-xl border border-line bg-white p-3"><span className="flex-none rounded-md bg-ink px-2 py-1 text-[11px] font-bold text-white">IF</span><p className="text-ink">{g.idea.if_}</p></div>
-              <div className="flex items-start gap-3 rounded-xl border border-line bg-white p-3"><span className="flex-none rounded-md bg-sage px-2 py-1 text-[11px] font-bold text-white">THEN</span><p className="text-ink">{g.idea.then_}</p></div>
-              <div className="flex items-start gap-3 rounded-xl border border-line bg-white p-3"><span className="flex-none rounded-md bg-sky px-2 py-1 text-[11px] font-bold text-white">WHEN</span><p className="text-ink">{g.idea.whenZ}</p></div>
-              <div className="flex items-start gap-3 rounded-xl border-2 border-amber/40 bg-amber-soft/30 p-3"><span className="flex-none rounded-md bg-amber px-2 py-1 text-[11px] font-bold text-white">BECAUSE</span><p className="font-medium text-ink">{g.idea.because}</p></div>
-            </div>
-          </Section>
-
-          {/* Mechanism */}
-          <Section eyebrow="Why it happens">
-            <h2 className="text-xl font-bold text-ink">{g.mechanism.headline}</h2>
-            <p className="mt-2 leading-relaxed text-slate-700">{g.mechanism.body}</p>
-          </Section>
-
-          {/* So what */}
-          <Section eyebrow="So what">
-            <h2 className="text-xl font-bold text-ink">{g.soWhat.headline}</h2>
-            <p className="mt-2 leading-relaxed text-slate-700">{g.soWhat.body}</p>
-          </Section>
-
-          {/* Teach-back */}
-          <Section eyebrow="Your turn">
-            <TeachBack slug={g.slug} g={g} cohort={cohort} preview={preview} />
-          </Section>
-
-          {/* Glossary + close */}
-          {g.glossary && g.glossary.length > 0 && (
-            <Section eyebrow="Plain-language glossary">
-              <dl className="space-y-2">
-                {g.glossary.map((gl, i) => (
-                  <div key={i} className="rounded-xl border border-line bg-white p-3">
-                    <dt className="text-sm font-semibold text-ink">{gl.term}</dt>
-                    <dd className="mt-0.5 text-sm text-slate-600">{gl.def}</dd>
-                  </div>
-                ))}
-              </dl>
-            </Section>
-          )}
-
-          <Section>
-            <div className="flex flex-wrap items-center gap-3">
-              <Link href="/dashboard" className="btn-primary">Back to dashboard</Link>
-              <button onClick={() => { setStarted(false); if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" }); }} className="text-sm text-slate2 hover:text-ink">Read it again</button>
-            </div>
-          </Section>
+      {/* Card viewport */}
+      <div className="flex flex-1 items-center overflow-hidden" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        <div key={i} className="px-card-in mx-auto w-full max-w-2xl px-5 py-6">
+          {!card.cover && <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{card.eyebrow}</div>}
+          {card.body}
         </div>
-      )}
+      </div>
+
+      {/* Bottom nav */}
+      <div className="mx-auto grid w-full max-w-2xl grid-cols-[1fr_auto_1fr] items-center gap-2 border-t border-line px-5 py-3">
+        <div className="justify-self-start"><button onClick={() => go(-1)} disabled={first} className="rounded-full px-3 py-2 text-sm font-medium text-slate2 transition hover:text-ink disabled:opacity-30">← Back</button></div>
+        <span className="text-xs tabular-nums text-slate-400">{i + 1} / {n}</span>
+        <div className="justify-self-end">
+          {last ? <Link href="/dashboard" className="btn-primary text-sm">Finish</Link>
+            : <button onClick={() => go(1)} className="btn-primary text-sm">{first ? "Start →" : "Next →"}</button>}
+        </div>
+      </div>
     </main>
   );
 }
