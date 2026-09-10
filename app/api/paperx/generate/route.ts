@@ -3,6 +3,7 @@ import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, paperExplainerAI } from "@/lib/ai";
 import { extractPdfText } from "@/lib/mechanics/pdf";
 import { sanitizePx, pxComplete } from "@/lib/paperx/sanitize";
+import { enforceGenerateLimit, tooMany } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ export async function POST(request: Request) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Sign in required." }, { status: 401 });
+  const rl = enforceGenerateLimit(user.id); if (!rl.ok) return tooMany(rl.retryAfter);
 
   let body: any;
   try { body = await request.json(); } catch { return Response.json({ error: "bad request" }, { status: 400 }); }

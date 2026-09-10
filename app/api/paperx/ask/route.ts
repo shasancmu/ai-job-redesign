@@ -3,6 +3,7 @@ import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, paperxAskReply } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { loadPaperx } from "@/lib/paperx/store";
+import { enforceChatLimit, tooMany } from "@/lib/ratelimit";
 import type { PxGenome } from "@/lib/paperx/types";
 
 export const runtime = "nodejs";
@@ -17,6 +18,7 @@ export async function POST(request: Request) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Sign in required." }, { status: 401 });
+  const rl = enforceChatLimit(user.id); if (!rl.ok) return tooMany(rl.retryAfter);
 
   let body: any;
   try { body = await request.json(); } catch { return Response.json({ error: "bad request" }, { status: 400 }); }

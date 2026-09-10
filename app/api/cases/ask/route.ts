@@ -5,6 +5,7 @@ import { caseBySlug } from "@/lib/cases/registry";
 import { loadLivingCase } from "@/lib/cases/store";
 import { caseTutorSystem } from "@/lib/cases/tutor";
 import { logCaseEvent } from "@/lib/cases/events";
+import { enforceChatLimit, tooMany } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,6 +21,7 @@ export async function POST(request: Request) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Sign in required." }, { status: 401 });
+  const rl = enforceChatLimit(user.id); if (!rl.ok) return tooMany(rl.retryAfter);
 
   let body: any;
   try { body = await request.json(); } catch { return Response.json({ error: "bad request" }, { status: 400 }); }
