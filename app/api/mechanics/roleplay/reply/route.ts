@@ -5,6 +5,8 @@ import { streamingResponse } from "@/lib/stream";
 import { withLanguage } from "@/lib/lang";
 import { selectScenario, characterSystem } from "@/lib/mechanics/roleplay";
 import { getSpec, characterRole } from "@/lib/mechanics/store";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { experimentNudge } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,7 +35,12 @@ export async function POST(request: Request) {
   const scn = selectScenario(spec, code);
   // For a learner-chosen-persona role, their text fills the persona slot (still
   // untrusted; the immutable behavior + rails still bind it).
-  const system = characterSystem(spec, role, scn, role.openPersona ? persona : undefined);
+  const baseSystem = characterSystem(spec, role, scn, role.openPersona ? persona : undefined);
+  // A/B experiment: a running experiment on this module (flow = slug, target
+  // interview) subtly nudges the character. Assignment is sticky per run code.
+  let nudge = "";
+  try { nudge = await experimentNudge(createAdminClient(), code, slug, "interview"); } catch { /* experiments optional */ }
+  const system = nudge ? `${baseSystem}\n\nEXPERIMENT NOTE (stay in character, keep it subtle): ${nudge}` : baseSystem;
   setFlow(`roleplay:${slug}`);
   const lang = spec.guardrails?.language;
   return streamingResponse((emit) => withLanguage(lang && lang !== "en" ? lang : undefined, () =>

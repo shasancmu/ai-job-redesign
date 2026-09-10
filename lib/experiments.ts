@@ -14,7 +14,7 @@ export type Experiment = {
   flow: string;
   name: string;
   hypothesis: string;
-  metric: "completion" | "depth" | "shared";
+  metric: "completion" | "depth" | "shared" | "score";
   depth_threshold: number;
   variants: Variant[];
   min_per_arm: number;
@@ -59,7 +59,12 @@ export const EXPERIMENT_FLOWS: { key: string; label: string }[] = EXPERIMENT_CAP
   .map((ex) => ({ key: ex, label: moduleByExercise(ex)?.name || ex }))
   .sort((a, b) => a.label.localeCompare(b.label));
 
-export const METRICS: { key: "completion" | "depth" | "shared"; label: string; help: string }[] = [
+// Threshold (0-100) a scored run must reach to count as a "good decision" for the
+// score metric. Fixed for now; a continuous mean-comparison is a future refinement.
+export const SCORE_WIN = 70;
+
+export const METRICS: { key: "completion" | "depth" | "shared" | "score"; label: string; help: string }[] = [
+  { key: "score", label: "Decision quality", help: `scored ${SCORE_WIN}+ (for scored modules)` },
   { key: "completion", label: "Completion rate", help: "reached a finished report" },
   { key: "depth", label: "Interview depth", help: "answered at least the threshold number of questions" },
   { key: "shared", label: "Share rate", help: "created a public share link for the result" },
@@ -240,4 +245,31 @@ export async function experimentNudgeAuto(admin: any, sessionId: string): Promis
   } catch {
     return "";
   }
+}
+
+// When an assigned run finishes in a SCORED engine (roleplay, negotiation, …),
+// record its outcome once per experiment it was assigned to, keyed by the run's
+// stable identity (its code). The stats core reads experiment_outcomes for the
+// score + completion metrics — no dependence on the sessions/workspaces schema.
+export async function recordExperimentOutcome(admin: any, runKey: string, outcome: { score?: number | null; completed?: boolean }): Promise<void> {
+  if (!runKey || !admin) return;
+  try {
+    const { data: assigns } = await admin.from("experiment_assignments").select("experiment_id, variant_key").eq("session_id", runKey);
+    if (!assigns?.length) return;
+    const score = typeof outcome.score === "number" && Number.isFinite(outcome.score) ? Math.round(outcome.score) : null;
+    const completed = outcome.completed !== false;
+    await admin.from("experiment_outcomes").upsert(
+      (assigns as any[]).map((a) => ({ experiment_id: a.experiment_id, run_key: runKey, variant_key: a.variant_key, score, completed })),
+      { onConflict: "experiment_id,run_key" },
+    );
+  } catch { /* table missing / transient — never block the learner */ }
+}
+
+// Rows for `analyze` from per-run outcomes: the score metric wins at SCORE_WIN+,
+// with completion available as a secondary read. Keeps the binomial machinery.
+export function scoreRows(outcomes: { variant_key: string; score: number | null }[]): { variant_key: string; success: boolean }[] {
+  return outcomes.map((o) => ({ variant_key: o.variant_key, success: o.score != null && o.score >= SCORE_WIN }));
+}
+export function completionRows(outcomes: { variant_key: string; completed: boolean }[]): { variant_key: string; success: boolean }[] {
+  return outcomes.map((o) => ({ variant_key: o.variant_key, success: !!o.completed }));
 }

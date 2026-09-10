@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import { AI_ENABLED, experimentProposeAI, experimentNarrateAI, syntheticSimulateAI, syntheticJudgeAI } from "@/lib/ai";
-import { analyze, successForSession, flowLabel, PERSONAS, type Experiment, type Variant } from "@/lib/experiments";
+import { analyze, successForSession, scoreRows, completionRows, flowLabel, PERSONAS, type Experiment, type Variant } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
         flow,
         name: String(body.name || "Untitled experiment").slice(0, 120),
         hypothesis: String(body.hypothesis || "").slice(0, 600),
-        metric: ["completion", "depth", "shared"].includes(body.metric) ? body.metric : "completion",
+        metric: ["completion", "depth", "shared", "score"].includes(body.metric) ? body.metric : "completion",
         depth_threshold: Math.max(2, Math.min(12, Number(body.depth_threshold) || 4)),
         variants,
         min_per_arm: Math.max(20, Math.min(2000, Number(body.min_per_arm) || 100)),
@@ -164,6 +164,16 @@ export async function POST(request: Request) {
 
 // Join assignments to each session's current state and score the metric per arm.
 async function computeAnalysis(admin: any, exp: Experiment) {
+  // Scored engines (roleplay, negotiation, …) record per-run outcomes in
+  // experiment_outcomes. Score is the headline; completion rides along secondary.
+  if (exp.metric === "score") {
+    const { data: outs } = await admin.from("experiment_outcomes").select("variant_key, score, completed").eq("experiment_id", exp.id);
+    const rows = (outs || []) as { variant_key: string; score: number | null; completed: boolean }[];
+    const primary = analyze(exp, exp.variants || [], scoreRows(rows));
+    const completion = analyze({ ...exp, metric: "completion" } as any, exp.variants || [], completionRows(rows));
+    return { ...primary, secondary: { metric: "completion", arms: completion.arms } };
+  }
+
   const { data: assigns } = await admin.from("experiment_assignments").select("session_id, variant_key").eq("experiment_id", exp.id);
   const rowsRaw = assigns || [];
   const sids = [...new Set(rowsRaw.map((a: any) => a.session_id))];

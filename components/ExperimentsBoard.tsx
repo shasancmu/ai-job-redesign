@@ -8,10 +8,11 @@ async function api(action: string, extra: any = {}) {
   return res.json();
 }
 
-export default function ExperimentsBoard() {
+export default function ExperimentsBoard({ flows }: { flows?: { key: string; label: string; kind?: string }[] }) {
+  const moduleFlows: { key: string; label: string; kind?: string }[] = flows && flows.length ? flows : EXPERIMENT_FLOWS;
   const [exps, setExps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [proposeFlow, setProposeFlow] = useState<string>(EXPERIMENT_FLOWS[0].key);
+  const [proposeFlow, setProposeFlow] = useState<string>(moduleFlows[0].key);
   const [proposeTarget, setProposeTarget] = useState<"interview" | "report">("interview");
   const [proposeMode, setProposeMode] = useState<"human" | "synthetic">("human");
   const [draft, setDraft] = useState<any>(null);
@@ -78,7 +79,7 @@ export default function ExperimentsBoard() {
         <div className="mt-3 flex flex-wrap items-end gap-2">
           <label className="text-xs text-slate-500">Module
             <select value={proposeFlow} onChange={(e) => setProposeFlow(e.target.value)} className="field mt-1 w-auto text-sm">
-              {EXPERIMENT_FLOWS.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
+              {moduleFlows.map((f) => <option key={f.key} value={f.key}>{f.kind ? `${f.label} · ${f.kind}` : f.label}</option>)}
             </select>
           </label>
           <label className="text-xs text-slate-500">Experiment on

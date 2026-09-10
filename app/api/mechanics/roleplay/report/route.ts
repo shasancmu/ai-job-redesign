@@ -5,6 +5,7 @@ import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, roleplayExaminerAI } from "@/lib/ai";
 import { selectScenario, examinerPrompt } from "@/lib/mechanics/roleplay";
 import { getSpec } from "@/lib/mechanics/store";
+import { experimentNudge, recordExperimentOutcome } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,10 +30,18 @@ export async function POST(request: Request) {
   const scn = selectScenario(spec, code);
   setFlow(`roleplay:${slug}:report`);
 
-  const { system, user: userMsg } = examinerPrompt(spec, scn, String(body.transcript || ""), body.verdict || {});
+  const { system: baseSystem, user: userMsg } = examinerPrompt(spec, scn, String(body.transcript || ""), body.verdict || {});
+  const admin = createAdminClient();
+  // A/B: an experiment targeting the report subtly nudges the grader (records the
+  // assignment for this run so the outcome below is attributed).
+  let rNudge = "";
+  try { rNudge = await experimentNudge(admin, code, slug, "report"); } catch { /* optional */ }
+  const system = rNudge ? `${baseSystem}\n\nEXPERIMENT NOTE: ${rNudge}` : baseSystem;
   try {
     const report = await roleplayExaminerAI(system, userMsg);
     if (!report) return Response.json({ error: "Couldn't grade. Try again." }, { status: 502 });
+    // Record the run's outcome for any experiment it was assigned to (score + completion).
+    try { await recordExperimentOutcome(admin, code, { score: typeof report.score === "number" ? report.score : null, completed: true }); } catch { /* optional */ }
     // Persist the run so the module's author can observe how learners do. Best
     // effort: a missing table or write error must never block the learner.
     try {

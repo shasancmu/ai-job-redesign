@@ -5,6 +5,7 @@ import HeaderNav from "@/components/HeaderNav";
 import Logo from "@/components/Logo";
 import { isSuperadmin } from "@/lib/orgs";
 import ExperimentsBoard from "@/components/ExperimentsBoard";
+import { listExperimentModules } from "@/lib/experimentModules";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default async function AdminExperimentsPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   if (!(await isSuperadmin(user))) redirect("/dashboard");
+  const flows = await listExperimentModules().catch(() => []);
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
@@ -30,7 +32,7 @@ export default async function AdminExperimentsPage() {
       <p className="mb-6 mt-1 max-w-2xl text-sm text-slate2">
         The agent proposes subtle A/B tests on your AI interviews. You launch the ones you like. The statistics are computed in code and only call a winner once each arm hits the required sample size, so nothing is decided on a hunch. You decide what to adopt.
       </p>
-      <ExperimentsBoard />
+      <ExperimentsBoard flows={flows} />
     </main>
   );
 }
