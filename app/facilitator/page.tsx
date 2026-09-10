@@ -367,13 +367,14 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
   let joined = 0;
   let benchUsers = 0;
   let netUsers = 0;
+  let hideResponses = false; // org privacy: hide learners' verbatim written work from staff
   if (!untagged) {
     const { data: klass } = await admin.from("classes").select("id, name, is_default, class_unit_id, org_id").eq("code", cohort).maybeSingle();
     if (klass) {
       className = klass.name || "";
       cohortName = klass.is_default ? "All members" : (klass.name || cohort);
       if (klass.class_unit_id) { const { data: cu } = await admin.from("class_units").select("name").eq("id", klass.class_unit_id).maybeSingle(); unitName = (cu as any)?.name || ""; }
-      if (klass.org_id) { const { data: org } = await admin.from("organizations").select("name").eq("id", klass.org_id).maybeSingle(); orgName = (org as any)?.name || ""; }
+      if (klass.org_id) { const { data: org } = await admin.from("organizations").select("name, hide_learner_responses").eq("id", klass.org_id).maybeSingle(); orgName = (org as any)?.name || ""; hideResponses = !!(org as any)?.hide_learner_responses; }
       const [{ count: jc }, { data: bench }, { data: net }] = await Promise.all([
         admin.from("class_members").select("user_id", { count: "exact", head: true }).eq("class_id", klass.id),
         admin.from("benchmark_results").select("user_id").eq("cohort", cohort),
@@ -646,7 +647,11 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
                 </div>
               </div>
 
-              {s.exercise === "career-xray" || s.exercise === "jd-xray" ? (
+              {hideResponses ? (
+                <div className="rounded-xl border border-dashed border-line bg-mist/40 p-4 text-sm text-slate-500">
+                  Responses are hidden for this organization. {nameOf(s.host_id)} {s.status === "done" ? "completed" : "started"} this — scores and completion still count. <span className="text-slate-400">(A director can change this in Team settings.)</span>
+                </div>
+              ) : s.exercise === "career-xray" || s.exercise === "jd-xray" ? (
                 <CareerFacilitatorView ws={wsFor(s.id, s.host_id)} code={s.code} authorName={nameOf(s.host_id)} />
               ) : negScenario(s.exercise || "") ? (
                 <NegotiationFacilitatorView exercise={s.exercise} ws={wsFor(s.id, s.host_id)} authorName={nameOf(s.host_id)} />
