@@ -32,6 +32,15 @@ export default function PaperxEditor({ spec, editSlug }: { spec: PxGenome; editS
   function upSection(k: "hook" | "nullBelief" | "mechanism" | "soWhat", field: "headline" | "body", v: string) {
     setG((p) => ({ ...p, [k]: { ...p[k], [field]: v } }));
   }
+  function upPredict(i: number, field: "prompt" | "reveal", v: string) {
+    setG((p) => { const preds = [...p.predicts]; preds[i] = { ...preds[i], [field]: v }; return { ...p, predicts: preds }; });
+  }
+  function upChoice(i: number, ci: number, v: string) {
+    setG((p) => { const preds = [...p.predicts]; const ch = [...preds[i].choices]; ch[ci] = v; preds[i] = { ...preds[i], choices: ch }; return { ...p, predicts: preds }; });
+  }
+  function setAnswer(i: number, ci: number) {
+    setG((p) => { const preds = [...p.predicts]; preds[i] = { ...preds[i], answer: ci }; return { ...p, predicts: preds }; });
+  }
 
   async function save(publish: boolean) {
     setBusy(true); setErr(null);
@@ -97,6 +106,29 @@ export default function PaperxEditor({ spec, editSlug }: { spec: PxGenome; editS
             <div className="mt-2 space-y-2"><Field label="Headline" value={g.mechanism.headline} onChange={(v) => upSection("mechanism", "headline", v)} /><Field label="Body" value={g.mechanism.body} onChange={(v) => upSection("mechanism", "body", v)} area /></div></div>
           <div className="rounded-xl border border-line p-3"><div className="text-xs font-bold uppercase tracking-wide text-slate-400">So what</div>
             <div className="mt-2 space-y-2"><Field label="Headline" value={g.soWhat.headline} onChange={(v) => upSection("soWhat", "headline", v)} /><Field label="Body" value={g.soWhat.body} onChange={(v) => upSection("soWhat", "body", v)} area /></div></div>
+          {g.predicts.length > 0 && (
+            <div className="rounded-xl border border-line p-3">
+              <div className="text-xs font-bold uppercase tracking-wide text-slate-400">Predict questions</div>
+              <p className="mt-1 text-xs text-slate-400">Check the logic: the option you mark correct must actually be correct, and the reveal must match it.</p>
+              <div className="mt-3 space-y-4">
+                {g.predicts.map((pr, i) => (
+                  <div key={i} className="rounded-lg bg-mist/50 p-3">
+                    <Field label={`Question ${i + 1}`} value={pr.prompt} onChange={(v) => upPredict(i, "prompt", v)} />
+                    <div className="mt-2 text-xs font-semibold text-slate-500">Choices — select the correct one</div>
+                    <div className="mt-1 space-y-1.5">
+                      {pr.choices.map((c, ci) => (
+                        <label key={ci} className="flex items-center gap-2">
+                          <input type="radio" name={`ans-${i}`} checked={pr.answer === ci} onChange={() => setAnswer(i, ci)} className="shrink-0 accent-sage" />
+                          <input value={c} onChange={(e) => upChoice(i, ci, e.target.value)} className={"field w-full text-sm " + (pr.answer === ci ? "border-sage" : "")} />
+                        </label>
+                      ))}
+                    </div>
+                    <div className="mt-2"><Field label="Reveal (why the answer is right)" value={pr.reveal} onChange={(v) => upPredict(i, "reveal", v)} area /></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="rounded-xl border border-line p-3"><div className="text-xs font-bold uppercase tracking-wide text-slate-400">Teach-back</div>
             <div className="mt-2 space-y-2">
               <Field label="Prompt (use <audience> as a placeholder)" value={g.teachBack.prompt} onChange={(v) => setG((p) => ({ ...p, teachBack: { ...p.teachBack, prompt: v } }))} />

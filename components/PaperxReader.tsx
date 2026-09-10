@@ -157,7 +157,15 @@ function TeachBack({ slug, g, cohort, preview }: { slug: string; g: PxGenome; co
   async function submit() {
     setBusy(true); setErr(null);
     try {
-      const r = await fetch("/api/paperx/teachback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug, attempt: text }) });
+      // Send the core inline so an author previewing an unsaved draft can still
+      // grade a teach-back (the server prefers the saved genome when it exists).
+      const core = {
+        title: g.title,
+        puzzle: `We believe ${g.puzzle.believe}. We'd expect ${g.puzzle.expect}. But we observe ${g.puzzle.observe}.`,
+        idea: `IF ${g.idea.if_}, THEN ${g.idea.then_}, ${g.idea.whenZ}, BECAUSE ${g.idea.because}.`,
+        mechanism: g.mechanism.body, audience: g.teachBack.audience, rubric: g.teachBack.rubric,
+      };
+      const r = await fetch("/api/paperx/teachback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug, attempt: text, core }) });
       const j = await r.json();
       if (!r.ok) { setErr(j.error || "Couldn't evaluate that."); setBusy(false); return; }
       setRes(j);

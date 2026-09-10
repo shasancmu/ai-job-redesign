@@ -7,7 +7,10 @@
 
 import { useRef, useState } from "react";
 import PaperxEditor from "@/components/PaperxEditor";
+import ProcessingBar from "@/components/ProcessingBar";
 import type { PxGenome } from "@/lib/paperx/types";
+
+const GEN_STEPS = ["Reading the paper", "Finding the null and the puzzle", "Naming the core idea", "Pulling the key numbers into a chart", "Writing the teach-back", "Polishing the explainer"];
 
 export default function PaperxAuthor() {
   const [text, setText] = useState("");
@@ -78,8 +81,14 @@ export default function PaperxAuthor() {
         <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Or paste the text</div>
         <textarea value={text} onChange={(e) => { setText(e.target.value); if (e.target.value) clearFile(); }} rows={5} placeholder="Paste the abstract + key sections, or the whole paper…" className="field mt-2 w-full text-sm" />
         {err && <p className="mt-3 text-sm text-clay">{err}</p>}
-        <button onClick={generate} disabled={busy || reading} className="btn-primary mt-4">{busy ? "Building your explainer… (up to a minute)" : "Build the explainer →"}</button>
-        <p className="mt-2 text-xs text-slate-400">The AI is instructed to use only the paper's real numbers and findings. You verify everything before publishing.</p>
+        {busy ? (
+          <ProcessingBar steps={GEN_STEPS} etaSeconds={55} note="Deconstructing the paper into an explainer. This can take up to a minute." />
+        ) : (
+          <>
+            <button onClick={generate} disabled={reading} className="btn-primary mt-4">Build the explainer →</button>
+            <p className="mt-2 text-xs text-slate-400">The AI is instructed to use only the paper's real numbers and findings. You verify everything before publishing.</p>
+          </>
+        )}
       </div>
     </div>
   );
