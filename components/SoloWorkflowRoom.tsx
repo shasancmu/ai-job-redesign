@@ -15,6 +15,12 @@ import InterviewProgress from "./InterviewProgress";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
+// The interviewer's turn budget — MUST match the target lib/ai.ts enforces for the
+// workflow interview (workflowInterviewReply uses 5). Both the progress bar and the
+// "you've covered it" affordance key off this so they never disagree with each other
+// or with when the AI actually starts closing.
+const INTERVIEW_TURNS = 5;
+
 // Translate with a fallback to the passed-in English (for step titles that live
 // in lib/workflow.ts): if the key is missing, show the original rather than a key.
 function tf(t: T, key: string, fallback: string) {
@@ -373,12 +379,12 @@ function WorkflowInterview({
           <button type="button" onClick={() => call(chat).then((r) => r && setChat([...chat, { role: "assistant", content: r }]))} className="shrink-0 font-semibold underline">Retry</button>
         </div>
       )}
-      {onDone && chat.filter((m) => m.role === "user").length >= 3 && (
+      {onDone && chat.filter((m) => m.role === "user").length >= INTERVIEW_TURNS && (
         <button type="button" onClick={onDone} className="mt-3 w-full rounded-lg bg-sage-soft px-3 py-2 text-sm font-semibold text-ink transition hover:bg-sage/20">
           ✓ You&apos;ve covered the workflow — build my map →
         </button>
       )}
-      <InterviewProgress msgs={chat} />
+      <InterviewProgress msgs={chat} turns={INTERVIEW_TURNS} />
       <form onSubmit={send} className="mt-3 flex items-center gap-2">
         <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t("room.typeAnswer")} disabled={busy} />
         <button className="btn-primary" disabled={busy || !input.trim()}>{t("room.send")}</button>
