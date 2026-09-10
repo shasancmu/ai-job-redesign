@@ -4,6 +4,8 @@ import { setFlow } from "@/lib/aiflow";
 import { recordMechanicsResult } from "@/lib/cohortData";
 import { AI_ENABLED, roleplayExaminerAI } from "@/lib/ai";
 import { getNewsSpec } from "@/lib/mechanics/newsStore";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { experimentNudge, recordExperimentOutcome } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,9 +35,14 @@ The analysis fields:
 ${fieldList}
 Output ONLY JSON: {"score":0-100,"framework_use":[{"field":"the field label","quality":"high|med|low","note":"one specific line"}],"analyst_read":"2-3 sentences on how a sharp analyst would apply ${spec.framework} to THIS story","best_miss":"the most important thing they under-used or missed","verdict_note":"a line on their overall call, if they made one","principle":"the transferable lesson about using ${spec.framework} on real situations"}. No em dashes.`;
   const userMsg = `THE STORY:\nHeadline: ${story.title || ""}\nSource: ${story.source || ""}${story.snippet ? `\n${story.snippet}` : ""}\n\nTHE LEARNER'S ANALYSIS:\n${learnerWork}\n\nTHEIR CALL: ${verdict.call || "(none)"}${verdict.confidence != null ? ` at ${verdict.confidence}% confidence` : ""}`;
+  const slug = String(body.slug || "");
+  const admin = createAdminClient();
+  let nudge = ""; try { nudge = await experimentNudge(admin, `${user.id}:${slug}`, slug, "report"); } catch { /* optional */ }
+  const sys = nudge ? `${system}\n\nEXPERIMENT NOTE: ${nudge}` : system;
   try {
-    const report = await roleplayExaminerAI(system, userMsg, 2200);
+    const report = await roleplayExaminerAI(sys, userMsg, 2200);
     if (!report) return Response.json({ error: "Couldn't grade. Try again." }, { status: 502 });
+    try { await recordExperimentOutcome(admin, `${user.id}:${slug}`, { score: typeof report?.score === "number" ? report.score : null, completed: true }); } catch { /* optional */ }
     await recordMechanicsResult("newsframe", String(body.slug || ""), user?.id, typeof report?.score === "number" ? report.score : null, `${spec.framework}: ${report?.verdict_note || ""}${report?.best_miss ? ` | missed: ${report.best_miss}` : ""}`);
     await recordModuleEvent(String(body.slug || ""), "newsframe", "complete", user?.id);
     return Response.json({ report });

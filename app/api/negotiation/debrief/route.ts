@@ -4,6 +4,8 @@ import { AI_ENABLED, coachReply } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { analyze, debriefFacts, scenarioByExercise } from "@/lib/negotiation";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { recordExperimentOutcome } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,7 +39,10 @@ export async function POST(request: Request) {
   if (!scn) return Response.json({ error: "unknown scenario" }, { status: 400 });
   setFlow("negotiation:debrief");
 
-  const facts = debriefFacts(scn, analyze(scn, terms, noDeal));
+  const a = analyze(scn, terms, noDeal);
+  const exercise = String(body.exercise || "negotiation");
+  try { await recordExperimentOutcome(createAdminClient(), `${user.id}:${exercise}`, { score: typeof (a as any)?.efficiency === "number" ? (a as any).efficiency : null, completed: true }); } catch { /* optional */ }
+  const facts = debriefFacts(scn, a);
   const user_msg = `FACTS:\n${JSON.stringify(facts, null, 2)}\n\nTranscript excerpt:\n${transcript || "(none)"}`;
   const lang = await getUserLanguage(supabase, user.id);
   return streamingResponse((emit) => withLanguage(lang, () => coachReply(SYSTEM, user_msg, 0.6, emit)));

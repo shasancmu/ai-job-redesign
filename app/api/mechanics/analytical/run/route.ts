@@ -4,6 +4,8 @@ import { setFlow } from "@/lib/aiflow";
 import { recordMechanicsResult } from "@/lib/cohortData";
 import { AI_ENABLED, roleplayExaminerAI } from "@/lib/ai";
 import { getAnalyticalSpec } from "@/lib/mechanics/analyticalStore";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { experimentNudge, recordExperimentOutcome } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,13 +33,18 @@ ${spec.lens ? `Apply this lens rigorously: ${spec.lens}\n` : ""}The levels (use 
 ${levelList}
 Output ONLY JSON: {"units":[{"label":"the ${spec.unitLabel}","level":"<one level key>","note":"one short reason"}],"summary":"2-3 sentences on the overall picture"}. Produce 5 to 15 units. Be specific and grounded in the input; never invent content not implied by it. No em dashes.`;
 
+  const slug = String(body.slug || "");
+  const admin = createAdminClient();
+  let nudge = ""; try { nudge = await experimentNudge(admin, `${user.id}:${slug}`, slug, "report"); } catch { /* optional */ }
+  const sys = nudge ? `${system}\n\nEXPERIMENT NOTE: ${nudge}` : system;
   try {
-    const out = await roleplayExaminerAI(system, input, 2500);
+    const out = await roleplayExaminerAI(sys, input, 2500);
     if (!out?.units) return Response.json({ error: "Couldn't analyze. Try again." }, { status: 502 });
     const valueOf: Record<string, number> = {}; for (const l of spec.levels) valueOf[l.key] = l.value;
     const units = (out.units as any[]).filter((u) => u && u.label).map((u) => ({ label: String(u.label), level: valueOf[u.level] != null ? u.level : spec.levels[0].key, note: String(u.note || "") }));
     const vals = units.map((u) => valueOf[u.level] ?? 0);
     const aggregate = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
+    try { await recordExperimentOutcome(admin, `${user.id}:${slug}`, { score: aggregate, completed: true }); } catch { /* optional */ }
     await recordMechanicsResult("analytical", String(body.slug || ""), user?.id, aggregate, `${spec.name || spec.slug}: ${spec.aggregateLabel || "aggregate"} ${aggregate}. ${String(out.summary || "")}`);
     await recordModuleEvent(String(body.slug || ""), "analytical", "complete", user?.id);
     return Response.json({ units, aggregate, summary: String(out.summary || ""), levels: spec.levels, aggregateLabel: spec.aggregateLabel });

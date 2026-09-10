@@ -4,6 +4,8 @@ import { AI_ENABLED, roleplayReply, starHireCandidateSystem } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { unsealScenario } from "@/lib/starhire/seal";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { experimentNudge } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,7 +30,9 @@ export async function POST(request: Request) {
 
   const messages = Array.isArray(body.messages) ? body.messages.slice(-40) : [];
   setFlow("starhire:reply");
-  const system = starHireCandidateSystem(scn, candidate);
+  const base = starHireCandidateSystem(scn, candidate);
+  let nudge = ""; try { nudge = await experimentNudge(createAdminClient(), `${user.id}:star-hire`, "star-hire", "interview"); } catch { /* optional */ }
+  const system = nudge ? `${base}\n\nEXPERIMENT NOTE (stay in character, keep it subtle): ${nudge}` : base;
 
   const lang = await getUserLanguage(supabase, user.id);
   return streamingResponse((emit) => withLanguage(lang, () => roleplayReply(system, messages, emit)));

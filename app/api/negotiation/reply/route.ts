@@ -4,6 +4,8 @@ import { AI_ENABLED, roleplayReply } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { counterpartSystem, scenarioByExercise } from "@/lib/negotiation";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { experimentNudge } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,10 +25,14 @@ export async function POST(request: Request) {
     return Response.json({ error: "bad request" }, { status: 400 });
   }
   const messages = Array.isArray(body.messages) ? body.messages.slice(-40) : [];
-  const scn = scenarioByExercise(String(body.exercise || "negotiation"));
+  const exercise = String(body.exercise || "negotiation");
+  const scn = scenarioByExercise(exercise);
   if (!scn) return Response.json({ error: "unknown scenario" }, { status: 400 });
   setFlow("negotiation:reply");
 
+  let nudge = ""; try { nudge = await experimentNudge(createAdminClient(), `${user.id}:${exercise}`, exercise, "interview"); } catch { /* optional */ }
+  const base = counterpartSystem(scn);
+  const system = nudge ? `${base}\n\nEXPERIMENT NOTE (stay in character, keep it subtle): ${nudge}` : base;
   const lang = await getUserLanguage(supabase, user.id);
-  return streamingResponse((emit) => withLanguage(lang, () => roleplayReply(counterpartSystem(scn), messages, emit)));
+  return streamingResponse((emit) => withLanguage(lang, () => roleplayReply(system, messages, emit)));
 }

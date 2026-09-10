@@ -5,20 +5,32 @@
 import { EXPERIMENT_CAPABLE_EXERCISES } from "@/lib/experiments";
 import { moduleByExercise } from "@/lib/modules";
 import { listRoleplayCatalog } from "@/lib/mechanics/store";
+import { listNegCatalog } from "@/lib/mechanics/negStore";
+import { listAnalyticalCatalog } from "@/lib/mechanics/analyticalStore";
+import { listNewsCatalog } from "@/lib/mechanics/newsStore";
 
 export type ExperimentFlow = { key: string; label: string; kind: string };
 
 export async function listExperimentModules(admin?: any): Promise<ExperimentFlow[]> {
-  const builtin: ExperimentFlow[] = EXPERIMENT_CAPABLE_EXERCISES.map((ex) => ({
-    key: ex, label: moduleByExercise(ex)?.name || ex, kind: "Interview",
-  }));
+  const builtin: ExperimentFlow[] = EXPERIMENT_CAPABLE_EXERCISES.map((ex) => {
+    const m = moduleByExercise(ex);
+    // Group the built-ins by their real kind so the dropdown reads sensibly.
+    const kind = ["negotiation", "haggle", "raise", "vendor-deal", "lease"].includes(ex) ? "Negotiation"
+      : ["earnings-call", "hot-seat", "star-hire"].includes(ex) ? "Hidden-truth sim" : "Interview";
+    return { key: ex, label: m?.name || ex, kind };
+  });
 
-  // Authored role-play modules — the flow key is the module slug.
-  let roleplay: ExperimentFlow[] = [];
-  try {
-    const rp = await listRoleplayCatalog();
-    roleplay = (rp || []).map((r: any) => ({ key: r.slug, label: r.name || r.slug, kind: "Role-play" }));
-  } catch { /* catalog unavailable — skip */ }
+  // Authored modules — the flow key is the module slug. Each engine's own catalog.
+  const authored: ExperimentFlow[] = [];
+  const add = async (fn: () => Promise<any[]>, kind: string) => {
+    try { for (const r of (await fn()) || []) authored.push({ key: r.slug, label: r.name || r.slug, kind }); } catch { /* skip */ }
+  };
+  await Promise.all([
+    add(() => listRoleplayCatalog(), "Role-play"),
+    add(() => listNegCatalog(), "Negotiation"),
+    add(() => listAnalyticalCatalog(), "Analytical"),
+    add(() => listNewsCatalog(), "In the News"),
+  ]);
 
-  return [...builtin, ...roleplay].sort((a, b) => (a.kind + a.label).localeCompare(b.kind + b.label));
+  return [...builtin, ...authored].sort((a, b) => (a.kind + a.label).localeCompare(b.kind + b.label));
 }

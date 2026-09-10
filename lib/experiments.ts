@@ -51,8 +51,13 @@ export const PERSONAS: { key: string; persona: string }[] = [
 // exercise key here — the dropdown label is pulled live from the module registry
 // so it never goes stale as modules are renamed or added.
 export const EXPERIMENT_CAPABLE_EXERCISES: string[] = [
+  // Interview / canvas engines (treatment via /api/interview + the specific routes).
   "consult", "resume", "empathy", "superpower", "board", "solo", "workflow-solo",
   "myopia-business", "myopia-career", "personal-network", "domain-brief", "collaborators", "licensing-brief",
+  // Built-in negotiation scenarios (treatment on the counterpart; score = value claimed).
+  "negotiation", "haggle", "raise", "vendor-deal", "lease",
+  // Built-in hidden-truth sims (treatment on the character; score = decision quality).
+  "earnings-call", "hot-seat", "star-hire",
 ];
 
 export const EXPERIMENT_FLOWS: { key: string; label: string }[] = EXPERIMENT_CAPABLE_EXERCISES

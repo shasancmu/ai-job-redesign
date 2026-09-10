@@ -5,6 +5,8 @@ import { recordMechanicsResult } from "@/lib/cohortData";
 import { AI_ENABLED, roleplayExaminerAI } from "@/lib/ai";
 import { analyze } from "@/lib/negotiation";
 import { getNegScenario } from "@/lib/mechanics/negStore";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { recordExperimentOutcome } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,6 +40,8 @@ export async function POST(request: Request) {
     try { debrief = await roleplayExaminerAI(system, userMsg, 1200); } catch { debrief = null; }
   }
 
+  // A/B outcome: value-claiming efficiency (0-100) is the decision-quality score.
+  try { await recordExperimentOutcome(createAdminClient(), `${user!.id}:${String(body.slug || "")}`, { score: typeof a?.efficiency === "number" ? a.efficiency : null, completed: true }); } catch { /* optional */ }
   await recordMechanicsResult("negotiation", String(body.slug || ""), user?.id, typeof a?.efficiency === "number" ? a.efficiency : null, `joint ${a?.joint}/${a?.maxJoint} (${a?.efficiency}% efficient), beat BATNA: ${a?.beatBATNA}`);
   await recordModuleEvent(String(body.slug || ""), "negotiation", "complete", user?.id);
   return Response.json({ analysis: a, debrief });

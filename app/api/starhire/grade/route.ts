@@ -3,6 +3,8 @@ import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, starHireGradeAI } from "@/lib/ai";
 import { unsealScenario } from "@/lib/starhire/seal";
 import { scoreCandidates, decisionScore } from "@/lib/starhire/value";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { recordExperimentOutcome } from "@/lib/experiments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,6 +38,8 @@ export async function POST(request: Request) {
   const scored = scoreCandidates(scn);
   const best = [...scored].sort((a, b) => a.rank - b.rank)[0];
   const ds = decisionScore(scored, pickId);
+  // A/B outcome: the objective decision score (0-100) is decision quality.
+  try { await recordExperimentOutcome(createAdminClient(), `${user.id}:star-hire`, { score: ds, completed: true }); } catch { /* optional */ }
 
   // format transcripts (chats: { candidateId: {role, content}[] })
   const chats = body.chats && typeof body.chats === "object" ? body.chats : {};
