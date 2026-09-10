@@ -3,7 +3,7 @@ import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, interviewReply, proposeRedesign, ChatMsg } from "@/lib/ai";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { experimentNudgeAuto } from "@/lib/experiments";
+import { experimentNudgeAuto, resolveExercise } from "@/lib/experiments";
 import { logConversation, messagesToTurns, variantForRun } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
@@ -41,7 +41,12 @@ export async function POST(request: Request) {
 
   const language = await getUserLanguage(supabase, user.id);
   const sessionId = String(body.sessionId || "");
-  const moduleName = String(body.slug || body.module || "interview");
+  const admin = createAdminClient();
+  // Label the conversation with the session's resolved exercise — the SAME key
+  // the A/B engine uses as the flow — so the spine's `module` lines up with the
+  // experiment flow (and the autopilot's per-flow baseline counts). Fall back to
+  // the client-provided slug/module, then the generic label.
+  const moduleName = (await resolveExercise(admin, sessionId)) || String(body.slug || body.module || "interview");
   try {
     if (mode === "propose") {
       // Context can come from the interview transcript (solo) or captured notes (paired).
@@ -51,13 +56,12 @@ export async function POST(request: Request) {
       const result = await withLanguage(language, () => proposeRedesign(context, job));
       // The interview produced its proposal — finalize the conversation spine.
       try {
-        const admin = createAdminClient();
         await logConversation({ conversationId: sessionId, personId: user.id, module: moduleName, turns: messagesToTurns(history), intervention: await variantForRun(admin, sessionId), ended: true });
       } catch { /* logging optional */ }
       return Response.json(result);
     }
     let nudge = "";
-    try { nudge = await experimentNudgeAuto(createAdminClient(), sessionId); } catch {}
+    try { nudge = await experimentNudgeAuto(admin, sessionId); } catch {}
     const reply = await withLanguage(language, () => interviewReply(history, job, nudge));
     // Persist the running conversation (both sides) keyed by session.
     try { await logConversation({ conversationId: sessionId, personId: user.id, module: moduleName, turns: messagesToTurns([...history, { role: "assistant", content: reply }]) }); } catch { /* logging optional */ }

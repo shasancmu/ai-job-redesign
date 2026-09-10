@@ -267,17 +267,24 @@ export async function experimentNudge(admin: any, sessionId: string, flow: strin
   }
 }
 
+// Resolve a session's own exercise key — the canonical flow key for routes that
+// serve many exercises (e.g. /api/interview). Used both to match experiments and
+// to label the conversation spine so its module == its A/B flow key.
+export async function resolveExercise(admin: any, sessionId: string): Promise<string> {
+  if (!sessionId || !admin) return "";
+  try {
+    const { data } = await admin.from("sessions").select("exercise").eq("id", sessionId).maybeSingle();
+    return (data?.exercise as string) || "";
+  } catch { return ""; }
+}
+
 // For routes shared across exercises (e.g. /api/interview serves both the solo
 // and paired flows): resolve the session's own exercise and match on that.
 export async function experimentNudgeAuto(admin: any, sessionId: string): Promise<string> {
   if (!sessionId || !admin) return "";
-  try {
-    const { data: s } = await admin.from("sessions").select("exercise").eq("id", sessionId).maybeSingle();
-    if (!s?.exercise) return "";
-    return experimentNudge(admin, sessionId, s.exercise);
-  } catch {
-    return "";
-  }
+  const exercise = await resolveExercise(admin, sessionId);
+  if (!exercise) return "";
+  return experimentNudge(admin, sessionId, exercise);
 }
 
 // When an assigned run finishes in a SCORED engine (roleplay, negotiation, …),
