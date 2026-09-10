@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import PaperxReader from "@/components/PaperxReader";
+import DeleteModuleButton from "@/components/DeleteModuleButton";
 import type { PxGenome } from "@/lib/paperx/types";
 
 // Hoisted so inputs keep focus across keystrokes (a component defined inside the
@@ -71,6 +72,7 @@ export default function PaperxEditor({ spec, editSlug }: { spec: PxGenome; editS
         <div className="flex items-center gap-2">
           {savedSlug && <Link href={`/px/${savedSlug}/insights`} className="text-sm text-slate2 hover:text-ink">Insights</Link>}
           {savedSlug && <Link href={`/px/${savedSlug}`} className="text-sm text-slate2 hover:text-ink">Open →</Link>}
+          {savedSlug && <DeleteModuleButton kind="paper-explainer" slug={savedSlug} name={g.title} redirectTo="/studio/paper" />}
           <button onClick={() => save(false)} disabled={busy} className="btn-ghost text-sm">{busy ? "…" : "Save draft"}</button>
           <button onClick={() => save(true)} disabled={busy} className="btn-primary text-sm">{busy ? "…" : "Publish"}</button>
         </div>

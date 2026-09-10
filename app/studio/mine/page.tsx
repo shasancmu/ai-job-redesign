@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { roleFor } from "@/lib/orgs";
 import { listMyStudioModules } from "@/lib/studioIndex";
+import DeleteModuleButton from "@/components/DeleteModuleButton";
 import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
 
@@ -83,6 +84,7 @@ export default async function MyModulesPage() {
               <div className="flex shrink-0 items-center gap-1">
                 {m.runHref && <Link href={m.runHref} target="_blank" className="btn-ghost text-xs">Preview</Link>}
                 <Link href={m.editHref} className="btn-dark text-xs">Edit</Link>
+                <DeleteModuleButton kind={m.kind} slug={m.slug} name={m.name} />
               </div>
             </div>
           ))}
