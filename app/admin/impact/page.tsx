@@ -27,6 +27,7 @@ export default async function ImpactPage({ searchParams }: { searchParams: Recor
         <Logo href="/dashboard" />
         <div className="flex items-center gap-2">
           <Link href="/admin/conversations" className="text-sm text-slate2 hover:text-ink">← Conversations</Link>
+          <Link href="/admin/interventions" className="text-sm text-slate2 hover:text-ink">Which &amp; why →</Link>
           <HeaderNav />
         </div>
       </header>

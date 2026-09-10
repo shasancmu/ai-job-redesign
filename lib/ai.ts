@@ -3067,6 +3067,19 @@ export async function experimentNarrateAI(input: { name: string; metric: string;
   return complete([{ role: "system", content: system }, { role: "user", content: `Experiment: ${input.name}.\n${facts}` }], { temperature: 0.4, maxTokens: 260 });
 }
 
+// ---- Mechanism coder ------------------------------------------------------
+// Qualitative mechanism: given a sample of conversations from the adaptive policy
+// arm and from the frozen holdout (original prompt), name what CONCRETELY differs
+// in how the conversation goes. Grounds the numeric mediation in the transcripts.
+export async function mechanismCodeAI(input: { flowLabel: string; policy: string[]; holdout: string[] }): Promise<any> {
+  const trim = (xs: string[]) => xs.slice(0, 12).map((t, i) => `--- transcript ${i + 1} ---\n${t}`).join("\n\n").slice(0, 12000);
+  const system = `You are a conversation analyst. You are shown two samples of the SAME practice exercise: group A ran under an adjusted prompt (the "policy"), group B under the original prompt (the "holdout"). Identify what CONCRETELY differs in how the conversations go — not whether one is "better". Look at: who drives, question depth and follow-ups, concreteness/specificity, how much the human elaborates, whether they reach commitment or a decision, tone. Ground every point in what is actually visible; if there is no clear difference, say so plainly. Output STRICT JSON only:
+{"differences":[{"dimension":"a short label","policy":"what group A does","holdout":"what group B does"}],"mechanism":"one or two sentences: the likely pathway from the prompt change to any change in the conversation","confidence":"low"|"medium"|"high"}. 3-6 differences. No hype, no invented specifics.`;
+  const user = `Exercise: ${input.flowLabel}.\n\n=== GROUP A (policy) ===\n${trim(input.policy)}\n\n=== GROUP B (holdout) ===\n${trim(input.holdout)}`;
+  const raw = await complete([{ role: "system", content: system }, { role: "user", content: user }], { json: true, temperature: 0.4, maxTokens: 900 });
+  return extractJson(raw);
+}
+
 // ---- Domain Expertise Brief (Scientifiq) ----------------------------------
 // Writes the narrative on top of already-aggregated Scientifiq data. The counts
 // and scores are AUTHORITATIVE (computed from the API); the model interprets,
