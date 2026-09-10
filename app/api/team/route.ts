@@ -92,6 +92,14 @@ export async function POST(request: Request) {
       return Response.json({ ok: true });
     }
 
+    if (action === "hide_responses") {
+      // Whether staff "understanding" views hide learners' verbatim written work
+      // (they keep AI summaries + scores). Needs the hide_learner_responses column.
+      const { error } = await admin.from("organizations").update({ hide_learner_responses: body.value === true }).eq("id", orgId);
+      if (error) return Response.json({ error: "This needs sql/hide_learner_responses.sql applied first." }, { status: 500 });
+      return Response.json({ ok: true });
+    }
+
     if (action === "remove_invite") {
       const email = String(body.email || "").trim().toLowerCase();
       if (!email) return Response.json({ error: "Missing email." }, { status: 400 });

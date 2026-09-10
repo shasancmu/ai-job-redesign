@@ -17,7 +17,7 @@ async function post(body: any) {
   return d;
 }
 
-export default function TeamConsole({ orgId, people, invites, links = [], isSuperadmin = false, memberCanBrowse = false }: { orgId: string; people: TeamPerson[]; invites: TeamInvite[]; links?: StaffLink[]; isSuperadmin?: boolean; memberCanBrowse?: boolean }) {
+export default function TeamConsole({ orgId, people, invites, links = [], isSuperadmin = false, memberCanBrowse = false, hideResponses = false }: { orgId: string; people: TeamPerson[]; invites: TeamInvite[]; links?: StaffLink[]; isSuperadmin?: boolean; memberCanBrowse?: boolean; hideResponses?: boolean }) {
   const router = useRouter();
   const [emails, setEmails] = useState("");
   const [inviteRole, setInviteRole] = useState<"member" | "instructor">("member");
@@ -27,6 +27,7 @@ export default function TeamConsole({ orgId, people, invites, links = [], isSupe
   const [linkDomain, setLinkDomain] = useState("");
   const [copied, setCopied] = useState("");
   const [browse, setBrowse] = useState(memberCanBrowse);
+  const [hideResp, setHideResp] = useState(hideResponses);
   useEffect(() => { setOrigin(window.location.origin); }, []);
 
   async function act(body: any, tag: string) {
@@ -141,6 +142,23 @@ export default function TeamConsole({ orgId, people, invites, links = [], isSupe
               {browse
                 ? "On — members see every module you grant, plus their assigned work."
                 : "Off — members get a focused home showing only the work assigned to their cohort. The class/library structure stays with you and your instructors."}
+            </span>
+          </span>
+        </label>
+        <label className="mt-3 flex items-start gap-3 border-t border-line pt-3 text-sm text-ink">
+          <input
+            type="checkbox"
+            checked={hideResp}
+            onChange={(e) => { const v = e.target.checked; setHideResp(v); act({ action: "hide_responses", value: v }, "hide_responses"); }}
+            disabled={busy === "hide_responses"}
+            className="mt-0.5 h-4 w-4 accent-[color:var(--ink)]"
+          />
+          <span>
+            Hide learners&apos; written responses from staff
+            <span className="mt-0.5 block text-xs font-normal text-slate-400">
+              {hideResp
+                ? "On — staff see AI summaries, scores, and completion, but not the verbatim text learners wrote."
+                : "Off — staff can see learners' own words in the understanding views. Turn on for more privacy."}
             </span>
           </span>
         </label>

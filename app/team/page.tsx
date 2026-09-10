@@ -120,7 +120,7 @@ export default async function TeamPage() {
         </Link>
       )}
 
-      <TeamConsole orgId={org.id} people={people} invites={invites} links={(linkRows as any[]) || []} isSuperadmin={role.superadmin} memberCanBrowse={!!(org as any).member_can_browse} />
+      <TeamConsole orgId={org.id} people={people} invites={invites} links={(linkRows as any[]) || []} isSuperadmin={role.superadmin} memberCanBrowse={!!(org as any).member_can_browse} hideResponses={!!(org as any).hide_learner_responses} />
 
       <Tour
         steps={TEAM_TOUR}

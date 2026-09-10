@@ -35,7 +35,7 @@ export type Understanding = {
 // words), roleplay outcomes, and module summaries. This is the substance behind
 // "what would help them", grounded in their responses, not just which modules
 // they touched. Bounded and truncated. Staff-only, org-scoped.
-export async function gatherWork(admin: any, userId: string, org: { id: string }): Promise<string> {
+export async function gatherWork(admin: any, userId: string, org: { id: string; hide_learner_responses?: boolean }): Promise<string> {
   const { data: classes } = await admin.from("classes").select("id, code").eq("org_id", org.id);
   const codes = ((classes as any[]) || []).map((c) => c.code).filter(Boolean).slice(0, 4000);
   const clip = (s: any, n = 240) => String(s || "").replace(/\s+/g, " ").trim().slice(0, n);
@@ -47,7 +47,9 @@ export async function gatherWork(admin: any, userId: string, org: { id: string }
       .or(`host_id.eq.${userId},guest_id.eq.${userId}`).order("created_at", { ascending: false }).limit(30);
     sessionIds = ((sess as any[]) || []).map((s) => s.id);
   }
-  if (sessionIds.length) {
+  // When the org hides learner responses, we skip verbatim written work
+  // (their own words) and keep only AI summaries, scores, and module names below.
+  if (sessionIds.length && !org.hide_learner_responses) {
     const { data: wf } = await admin.from("workflow_docs").select("name, why, success, failure, better").in("session_id", sessionIds.slice(0, 20));
     for (const w of ((wf as any[]) || []).slice(0, 4)) {
       const bits = [w.name && `"${clip(w.name, 100)}"`, w.why && `why it matters: ${clip(w.why)}`, w.success && `success = ${clip(w.success)}`, w.failure && `failure = ${clip(w.failure)}`, w.better && `wants to improve: ${clip(w.better)}`].filter(Boolean);
@@ -71,7 +73,7 @@ export async function gatherWork(admin: any, userId: string, org: { id: string }
 
 // One person, understood. Returns null if they aren't in this org (gatherPerson
 // enforces that boundary).
-export async function gatherUnderstanding(admin: any, org: { id: string; name: string }, userId: string): Promise<Understanding | null> {
+export async function gatherUnderstanding(admin: any, org: { id: string; name: string; hide_learner_responses?: boolean }, userId: string): Promise<Understanding | null> {
   const person = await gatherPerson(admin, org, userId);
   if (!person) return null;
 
