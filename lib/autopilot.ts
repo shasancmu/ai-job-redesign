@@ -13,7 +13,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { computeAnalysis, armDynamics } from "@/lib/experimentStats";
 import { experimentProposeAI } from "@/lib/ai";
-import { EXPERIMENT_CAPABLE_EXERCISES, flowLabel, getBaseline, setBaseline, type Experiment, type Variant } from "@/lib/experiments";
+import { flowLabel, getBaseline, setBaseline, type Experiment, type Variant } from "@/lib/experiments";
+import { listExperimentModules } from "@/lib/experimentModules";
 
 export type AutopilotAction = { flow: string; action: string; detail: string };
 
@@ -21,8 +22,11 @@ const MAX_RUNNING = 10;   // never keep more than this many live human experimen
 const NEW_PER_RUN = 3;    // open at most this many brand-new flows per pass
 const MIN_BASELINE = 20;  // conversations a flow needs before we open a test there
 
-// Score-capable flows measure decision quality; the rest measure completion.
-const SCORED = new Set(["negotiation", "haggle", "raise", "vendor-deal", "lease", "earnings-call", "hot-seat", "star-hire"]);
+// A flow measures decision quality (score) unless it's a plain interview/canvas
+// module (completion). Registry-driven: the kind comes from listExperimentModules.
+function scoredKind(kind: string): boolean {
+  return kind !== "Interview";
+}
 
 export async function runAutopilot(admin: any, opts: { launch?: boolean } = {}): Promise<AutopilotAction[]> {
   const a = admin || createAdminClient();
@@ -81,18 +85,22 @@ export async function runAutopilot(admin: any, opts: { launch?: boolean } = {}):
   }
 
   // --- 5: open coverage on untested flows that have enough baseline data -----
+  // Registry-driven: every experimentable module — built-in AND authored/custom —
+  // is a candidate, so a new module auto-enrolls once it has baseline traffic.
+  let flows: { key: string; label: string; kind: string }[] = [];
+  try { flows = await listExperimentModules(a); } catch { flows = []; }
   let opened = 0;
-  for (const flow of EXPERIMENT_CAPABLE_EXERCISES) {
+  for (const f of flows) {
     if (runningCount >= MAX_RUNNING || opened >= NEW_PER_RUN) break;
-    if (flowsWithLive.has(flow)) continue;
+    if (flowsWithLive.has(f.key)) continue;
     let n = 0;
     try {
-      const { count } = await a.from("conversations").select("conversation_id", { count: "exact", head: true }).eq("module", flow);
+      const { count } = await a.from("conversations").select("conversation_id", { count: "exact", head: true }).eq("module", f.key);
       n = count || 0;
     } catch { n = 0; }
     if (n < MIN_BASELINE) continue;
-    const draftMsg = await openFresh(a, flow, "interview", launch, n);
-    if (draftMsg) { runningCount++; opened++; flowsWithLive.add(flow); log.push({ flow, action: "opened", detail: draftMsg }); }
+    const draftMsg = await openFresh(a, f.key, "interview", launch, n, scoredKind(f.kind));
+    if (draftMsg) { runningCount++; opened++; flowsWithLive.add(f.key); log.push({ flow: f.key, action: "opened", detail: draftMsg }); }
   }
 
   if (!log.length) log.push({ flow: "-", action: "no-op", detail: "nothing to do this pass (all live tests still collecting, nothing conclusive)" });
@@ -115,7 +123,8 @@ async function openNext(admin: any, prev: Experiment, controlNudge: string, laun
   const draft = await draftFor(admin, prev.flow, prev.target, extraGoal);
   if (!draft?.treatmentNudge) return null;
   const treatmentNudge = [controlNudge, draft.treatmentNudge].filter(Boolean).join(" ").slice(0, 800);
-  const metric = SCORED.has(prev.flow) ? "score" : normMetric(draft.metric);
+  // A follow-on keeps the same metric as the experiment it builds on.
+  const metric = prev.metric;
   const ok = await create(admin, {
     flow: prev.flow, target: prev.target, metric,
     name: String(draft.name || `${flowLabel(prev.flow)} refinement`).slice(0, 120),
@@ -126,12 +135,12 @@ async function openNext(admin: any, prev: Experiment, controlNudge: string, laun
   return ok ? `${draft.name || "next increment"} (${metric}${launch ? ", launched" : ", proposed"})` : null;
 }
 
-async function openFresh(admin: any, flow: string, target: "interview" | "report", launch: boolean, baselineN: number): Promise<string | null> {
+async function openFresh(admin: any, flow: string, target: "interview" | "report", launch: boolean, baselineN: number, scored: boolean): Promise<string | null> {
   const controlNudge = await getBaseline(admin, flow, target);
   const draft = await draftFor(admin, flow, target, controlNudge ? `The current baseline already includes: "${controlNudge}".` : "");
   if (!draft?.treatmentNudge) return null;
   const treatmentNudge = [controlNudge, draft.treatmentNudge].filter(Boolean).join(" ").slice(0, 800);
-  const metric = SCORED.has(flow) ? "score" : normMetric(draft.metric);
+  const metric = scored ? "score" : normMetric(draft.metric);
   const ok = await create(admin, {
     flow, target, metric,
     name: String(draft.name || `${flowLabel(flow)} experiment`).slice(0, 120),
