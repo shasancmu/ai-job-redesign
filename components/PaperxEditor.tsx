@@ -42,11 +42,21 @@ export default function PaperxEditor({ spec, editSlug }: { spec: PxGenome; editS
   function setAnswer(i: number, ci: number) {
     setG((p) => { const preds = [...p.predicts]; preds[i] = { ...preds[i], answer: ci }; return { ...p, predicts: preds }; });
   }
-  function setStat(i: number, field: "value" | "label", v: string) {
+  function setStat(i: number, field: "value" | "label" | "tone" | "icon", v: string) {
     setG((p) => {
       const info = p.evidence.infographic; if (!info) return p;
       const stats = [...info.stats]; stats[i] = { ...stats[i], [field]: v };
       return { ...p, evidence: { ...p.evidence, infographic: { ...info, stats } } };
+    });
+  }
+  function setPicto(field: "total" | "filled" | "label" | "icon" | "tone", v: string | number) {
+    setG((p) => {
+      const info = p.evidence.infographic; const pic = info?.pictograph; if (!info || !pic) return p;
+      let next: any = { ...pic, [field]: v };
+      // Keep the counts sane: 1–20 total, filled within [0, total].
+      if (field === "total") { const total = Math.max(1, Math.min(20, Number(v) || 1)); next = { ...pic, total, filled: Math.min(pic.filled, total) }; }
+      if (field === "filled") { next = { ...pic, filled: Math.max(0, Math.min(pic.total, Number(v) || 0)) }; }
+      return { ...p, evidence: { ...p.evidence, infographic: { ...info, pictograph: next } } };
     });
   }
 
@@ -113,12 +123,39 @@ export default function PaperxEditor({ spec, editSlug }: { spec: PxGenome; editS
                 <div className="text-xs font-semibold text-slate-500">Infographic numbers — verify each against the paper</div>
                 <div className="mt-2 space-y-2">
                   {g.evidence.infographic.stats.map((s, i) => (
-                    <div key={i} className="flex gap-2">
+                    <div key={i} className="flex flex-wrap items-center gap-2">
                       <input value={s.value} onChange={(e) => setStat(i, "value", e.target.value)} className="field w-24 text-sm" placeholder="+42%" />
-                      <input value={s.label} onChange={(e) => setStat(i, "label", e.target.value)} className="field w-full text-sm" placeholder="what it measures" />
+                      <input value={s.label} onChange={(e) => setStat(i, "label", e.target.value)} className="field min-w-[8rem] flex-1 text-sm" placeholder="what it measures" />
+                      <input value={s.icon || ""} onChange={(e) => setStat(i, "icon", e.target.value)} className="field w-14 text-center text-sm" placeholder="📄" aria-label="Icon (emoji)" maxLength={4} />
+                      <select value={s.tone || "neutral"} onChange={(e) => setStat(i, "tone", e.target.value)} className="field w-28 text-sm" aria-label="Direction">
+                        <option value="up">↑ up</option>
+                        <option value="down">↓ down</option>
+                        <option value="neutral">– neutral</option>
+                      </select>
                     </div>
                   ))}
                 </div>
+                <p className="mt-1 text-[11px] text-slate-400">Icon is one emoji. Direction sets the arrow and color (up = green, down = clay).</p>
+              </div>
+            )}
+            {g.evidence.infographic?.pictograph && (
+              <div className="mt-3">
+                <div className="text-xs font-semibold text-slate-500">Pictograph — a proportion made of icons</div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <label className="text-xs text-slate-500">Filled
+                    <input type="number" min={0} max={g.evidence.infographic.pictograph.total} value={g.evidence.infographic.pictograph.filled} onChange={(e) => setPicto("filled", e.target.value)} className="field mt-1 w-16 text-sm" />
+                  </label>
+                  <label className="text-xs text-slate-500">of Total
+                    <input type="number" min={1} max={20} value={g.evidence.infographic.pictograph.total} onChange={(e) => setPicto("total", e.target.value)} className="field mt-1 w-16 text-sm" />
+                  </label>
+                  <input value={g.evidence.infographic.pictograph.icon || ""} onChange={(e) => setPicto("icon", e.target.value)} className="field w-14 text-center text-sm" placeholder="📄" aria-label="Pictograph icon" maxLength={4} />
+                  <select value={g.evidence.infographic.pictograph.tone || "neutral"} onChange={(e) => setPicto("tone", e.target.value)} className="field w-28 text-sm" aria-label="Pictograph direction">
+                    <option value="up">↑ up</option>
+                    <option value="down">↓ down</option>
+                    <option value="neutral">– neutral</option>
+                  </select>
+                </div>
+                <input value={g.evidence.infographic.pictograph.label} onChange={(e) => setPicto("label", e.target.value)} className="field mt-2 w-full text-sm" placeholder="what the filled share represents" />
               </div>
             )}
             <p className="mt-2 text-xs text-slate-400">The numbers come from the paper. Double-check each one before publishing.</p></div>
