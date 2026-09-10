@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import LessonPredict from "@/components/lessons/LessonPredict";
+import { streamPost } from "@/lib/streamClient";
 import type { PxGenome, PxChart, PxInfographic, PxSeries, PxTeachback } from "@/lib/paperx/types";
 
 // The interactive, visual reader for a Paper Explainer. A guided vertical
@@ -237,6 +238,59 @@ function TeachBack({ slug, g, cohort, preview }: { slug: string; g: PxGenome; co
   );
 }
 
+// ---- Ask the paper — a grounded chat in a bottom sheet -----------------------
+function AskPaper({ slug, title, onClose }: { slug: string; title: string; onClose: () => void }) {
+  type Msg = { role: "user" | "assistant"; content: string };
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [input, setInput] = useState("");
+  const [streaming, setStreaming] = useState("");
+  const [busy, setBusy] = useState(false);
+  const scroller = useRef<HTMLDivElement>(null);
+  const suggestions = ["What's the main finding?", "How did they measure it?", "What are the limitations?", "Why does it matter?"];
+
+  async function ask(q: string) {
+    const text = q.trim();
+    if (!text || busy) return;
+    const next: Msg[] = [...messages, { role: "user", content: text }];
+    setMessages(next); setInput(""); setBusy(true); setStreaming("");
+    let acc = "";
+    try {
+      const reply = await streamPost("/api/paperx/ask", { slug, messages: next }, (d) => { acc += d; setStreaming(acc); scroller.current?.scrollTo({ top: 1e9 }); });
+      setMessages([...next, { role: "assistant", content: (reply || acc).trim() || "…" }]);
+    } catch {
+      setMessages([...next, { role: "assistant", content: "I couldn't answer that just now. Try again." }]);
+    }
+    setBusy(false); setStreaming("");
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40" onClick={onClose}>
+      <div className="mx-auto flex max-h-[85vh] w-full max-w-2xl flex-col rounded-t-2xl bg-white shadow-xl sm:mb-6 sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-line px-4 py-3">
+          <div><div className="text-sm font-bold text-ink">💬 Ask the paper</div><div className="text-xs text-slate-400">Grounded in “{title}”</div></div>
+          <button onClick={onClose} className="text-sm text-slate-400 hover:text-ink">Close</button>
+        </div>
+        <div ref={scroller} className="min-h-[120px] flex-1 space-y-3 overflow-y-auto px-4 py-3">
+          {messages.length === 0 && !streaming && (
+            <div className="flex flex-wrap gap-2">{suggestions.map((s) => (<button key={s} onClick={() => ask(s)} className="rounded-full border border-line bg-mist px-3 py-1.5 text-xs text-slate-600 transition hover:text-ink">{s}</button>))}</div>
+          )}
+          {messages.map((m, i) => (
+            <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
+              <div className={"max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-sm leading-relaxed " + (m.role === "user" ? "bg-ink text-white" : "bg-mist text-slate-800")}>{m.content}</div>
+            </div>
+          ))}
+          {streaming && <div className="flex justify-start"><div className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-mist px-3.5 py-2 text-sm leading-relaxed text-slate-800">{streaming}</div></div>}
+          {busy && !streaming && <div className="text-xs text-slate-400">Reading the paper…</div>}
+        </div>
+        <form onSubmit={(e) => { e.preventDefault(); ask(input); }} className="flex items-center gap-2 border-t border-line p-3">
+          <input className="field w-full" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask anything about this paper…" disabled={busy} />
+          <button className="btn-primary shrink-0" disabled={busy || !input.trim()}>Ask</button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ---- The reader — a paced card DECK (one beat per card) ----------------------
 export default function PaperxReader({ g, preview, cohort }: { g: PxGenome; preview?: boolean; cohort?: string | null }) {
   // Build the ordered deck of cards. Each is { eyebrow, body }.
@@ -285,6 +339,7 @@ export default function PaperxReader({ g, preview, cohort }: { g: PxGenome; prev
   ];
 
   const [i, setI] = useState(0);
+  const [askOpen, setAskOpen] = useState(false);
   const n = cards.length;
   const clamp = useCallback((k: number) => Math.max(0, Math.min(n - 1, k)), [n]);
   const go = useCallback((d: number) => setI((k) => clamp(k + d)), [clamp]);
@@ -336,6 +391,14 @@ export default function PaperxReader({ g, preview, cohort }: { g: PxGenome; prev
             : <button onClick={() => go(1)} className="btn-primary text-sm">{first ? "Start →" : "Next →"}</button>}
         </div>
       </div>
+
+      {/* Ask the paper — a floating companion (on the live page, not the draft preview). */}
+      {!preview && !askOpen && (
+        <button onClick={() => setAskOpen(true)} aria-label="Ask the paper" className="fixed bottom-[4.75rem] right-4 z-40 flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:opacity-90 sm:right-6">
+          <span aria-hidden>💬</span> Ask the paper
+        </button>
+      )}
+      {askOpen && <AskPaper slug={g.slug} title={g.title} onClose={() => setAskOpen(false)} />}
     </main>
   );
 }

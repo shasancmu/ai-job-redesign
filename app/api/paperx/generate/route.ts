@@ -39,6 +39,9 @@ export async function POST(request: Request) {
     if (!pxComplete(genome)) {
       return Response.json({ error: "The draft came back incomplete. Try again, or paste a cleaner copy of the paper." }, { status: 502 });
     }
+    // Keep the paper's text on the genome so the "Ask the paper" chat is grounded
+    // in the real source (stored in the module spec, never shown to the reader).
+    genome.sourceText = text.slice(0, 16000);
     return Response.json({ genome });
   } catch (e: any) {
     return Response.json({ error: e?.message || "Failed to generate." }, { status: 500 });

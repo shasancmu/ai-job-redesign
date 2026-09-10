@@ -4383,6 +4383,15 @@ export async function paperExplainerAI(input: { paperText: string; style?: strin
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.6, maxTokens: 4200, timeoutMs: 95000 });
 }
 
+// "Ask the paper" — a grounded companion that answers questions about ONE
+// paper, using the explainer context and (when available) the paper's own text.
+// Streamed. `context` is built by the route so this stays decoupled from types.
+export async function paperxAskReply(context: string, history: { role: "user" | "assistant"; content: string }[], onToken?: (d: string) => void): Promise<string> {
+  const system = `You are a sharp, plain-spoken guide helping someone understand ONE specific academic paper. Answer from the PAPER CONTEXT below. Be accurate and honest: explain in plain language, define any jargon, and distinguish what the paper actually shows from your own general knowledge. If the paper does not address something, say so briefly instead of inventing a finding or a number, and never fabricate statistics. Keep answers short (a few sentences) unless asked to go deeper. If a question is off-topic, answer briefly and steer back to the paper.\n\nPAPER CONTEXT:\n${context}`;
+  const convo: ChatMsg[] = history.length ? history : [{ role: "user", content: "(What would you like to know about this paper?)" }];
+  return complete([{ role: "system", content: system }, ...convo], { temperature: 0.3, maxTokens: 650, onToken });
+}
+
 // Grade a learner's teach-back attempt against the paper's core idea.
 export async function paperxTeachbackAI(input: { title: string; puzzle: string; idea: string; mechanism: string; audience: string; rubric: string[]; attempt: string }): Promise<any> {
   const system = `You are a warm but exacting teacher evaluating whether someone truly understood a research idea, by judging how they explained it to ${input.audience}. The test of understanding is a clear, honest explanation a non-expert could follow. Be encouraging but specific; never flatter a vague answer.\n\nReturn STRICT JSON: { "score": 0-100, "verdict": "one honest sentence", "strengths": ["what they nailed"], "gaps": ["what a listener would still be confused about, or what they got wrong"], "model": "a model 3-sentence explanation they can compare against" }\nRules: score on whether they captured the puzzle, the mechanism, and the evidence, AND whether it's clear to a non-expert. 1-3 strengths, 1-3 gaps. The model explanation must be genuinely excellent and jargon-free. No em dashes.`;
