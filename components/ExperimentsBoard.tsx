@@ -18,6 +18,8 @@ export default function ExperimentsBoard({ flows }: { flows?: { key: string; lab
   const [draft, setDraft] = useState<any>(null);
   const [busy, setBusy] = useState<string>("");
   const [err, setErr] = useState<string | null>(null);
+  const [autoLog, setAutoLog] = useState<{ flow: string; action: string; detail: string }[] | null>(null);
+  const [autoLaunch, setAutoLaunch] = useState(true);
 
   const load = useCallback(async () => {
     const d = await api("list");
@@ -40,6 +42,14 @@ export default function ExperimentsBoard({ flows }: { flows?: { key: string; lab
     else setErr(d.error || "Couldn't save.");
     setBusy("");
   }
+  async function runAutopilot() {
+    setBusy("autopilot"); setErr(null); setAutoLog(null);
+    const d = await api("autopilot", { launch: autoLaunch });
+    if (d.log) { setAutoLog(d.log); await load(); }
+    else setErr(d.error || "Autopilot failed.");
+    setBusy("");
+  }
+
   async function act(id: string, action: string) {
     setBusy(id + action); setErr(null);
     const d = await api(action, { id });
@@ -139,6 +149,36 @@ export default function ExperimentsBoard({ flows }: { flows?: { key: string; lab
         )}
       </div>
 
+      {/* Autopilot — the closed loop */}
+      <div className="card border-ai/30 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-sm font-bold text-ink">⚙️ Autopilot — the closed loop</div>
+            <p className="mt-1 max-w-xl text-xs text-slate-400">
+              One pass: adopt conclusive winners and <b>ratchet</b> them into each flow&apos;s baseline (live for everyone), retire flat tests, and open the next subtle change — each proposal informed by whether the conversation is getting deeper. Runs on its own daily; run it now here. Winners are decided by the stats, never a hunch.
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <label className="flex items-center gap-1.5 text-xs text-slate-500">
+              <input type="checkbox" checked={autoLaunch} onChange={(e) => setAutoLaunch(e.target.checked)} className="h-3.5 w-3.5 accent-[color:var(--ink)]" />
+              auto-launch
+            </label>
+            <button onClick={runAutopilot} disabled={busy === "autopilot"} className="btn-primary text-sm">{busy === "autopilot" ? "Running…" : "Run one pass"}</button>
+          </div>
+        </div>
+        {autoLog && (
+          <div className="mt-3 space-y-1.5">
+            {autoLog.map((l, i) => (
+              <div key={i} className="flex items-start gap-2 rounded-lg bg-mist px-3 py-1.5 text-xs">
+                <span className="shrink-0 rounded-full bg-white px-2 py-0.5 font-semibold text-slate-600">{l.action}</span>
+                {l.flow !== "-" && <span className="shrink-0 font-mono text-[11px] text-slate-400">{flowLabel(l.flow)}</span>}
+                <span className="text-slate-600">{l.detail}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {loading ? (
         <div className="rounded-xl bg-mist px-4 py-5 text-sm text-slate2">Loading…</div>
       ) : (
@@ -218,6 +258,14 @@ function Card({ e, busy, act }: { e: any; busy: string; act: (id: string, action
             {a.liftAbs != null && <span>lift {(a.liftAbs * 100).toFixed(1)} pts</span>}
             <span className={a.conclusive ? "font-semibold text-sage" : ""}>{a.conclusive ? "Conclusive" : a.reachedSample ? "No significant difference" : "Collecting data"}</span>
           </div>
+          {Array.isArray(a.dynamics) && a.dynamics.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
+              <span className="text-slate-300">conversation depth →</span>
+              {a.dynamics.map((d: any) => (
+                <span key={d.variant_key}>{d.variant_key}: <b className="text-slate-600">{d.avgDepth ?? "?"}</b>{d.avgMovement != null && <span> ({d.avgMovement > 0 ? "+" : ""}{d.avgMovement} mvmt)</span>}</span>
+              ))}
+            </div>
+          )}
           {e._narrative && <p className="mt-2 rounded-lg bg-sky-soft/40 px-3 py-2 text-sm text-slate-700">{e._narrative}</p>}
           {e.mode === "synthetic" && <p className="mt-1 text-[11px] text-amber">Synthetic estimate from AI personas, directional only. Promote to a live test to confirm on real people.</p>}
         </div>

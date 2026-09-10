@@ -197,11 +197,38 @@ export function successForSession(metric: string, depthThreshold: number, sessio
   return session?.status === "done" || !!canvas?.report || !!canvas?.verdict || !!canvas?.aggregate;
 }
 
+// --- The ratchet: the flow's adopted baseline nudge --------------------------
+// The autopilot writes a winning treatment here so it becomes the permanent floor
+// for a flow, applied through experimentNudge to EVERY run — whether or not an
+// experiment is live. Fail-safe: "" if the table isn't migrated yet.
+export async function getBaseline(admin: any, flow: string, target: "interview" | "report" = "interview"): Promise<string> {
+  if (!flow || !admin) return "";
+  try {
+    const { data } = await admin.from("experiment_baselines").select("nudge").eq("flow", flow).eq("target", target).maybeSingle();
+    return (data?.nudge || "").slice(0, 800);
+  } catch { return ""; }
+}
+export async function setBaseline(admin: any, flow: string, target: "interview" | "report", nudge: string, increment?: string): Promise<void> {
+  if (!flow || !admin) return;
+  try {
+    const { data: cur } = await admin.from("experiment_baselines").select("history").eq("flow", flow).eq("target", target).maybeSingle();
+    const history = Array.isArray(cur?.history) ? cur!.history : [];
+    if (increment) history.push({ increment, at: new Date().toISOString() });
+    await admin.from("experiment_baselines").upsert(
+      { flow, target, nudge: (nudge || "").slice(0, 800), history, updated_at: new Date().toISOString() },
+      { onConflict: "flow,target" },
+    );
+  } catch { /* table not migrated — the ratchet is simply not persisted yet */ }
+}
+
 // --- Runtime: assign a session to a variant and return the prompt nudge ------
 // Uses whatever supabase client is passed (the admin client at call sites).
-// Lazily records the assignment the first time a session hits the flow.
+// Lazily records the assignment the first time a session hits the flow. Always
+// applies the flow's adopted baseline (the ratchet) so proven wins stay live
+// even between experiments.
 export async function experimentNudge(admin: any, sessionId: string, flow: string, target: "interview" | "report" = "interview"): Promise<string> {
   if (!sessionId || !admin) return "";
+  const baseline = await getBaseline(admin, flow, target);
   try {
     const { data: exps } = await admin
       .from("experiments")
@@ -213,7 +240,7 @@ export async function experimentNudge(admin: any, sessionId: string, flow: strin
       .order("launched_at", { ascending: true })
       .limit(1);
     const exp = exps?.[0];
-    if (!exp) return "";
+    if (!exp) return baseline; // no live test — the adopted baseline still applies
 
     // Sticky: reuse an existing assignment if present.
     const { data: existing } = await admin
@@ -225,7 +252,7 @@ export async function experimentNudge(admin: any, sessionId: string, flow: strin
     let key = existing?.variant_key as string | undefined;
     if (!key) {
       const v = pickVariant(exp.variants || [], sessionId, exp.id);
-      if (!v) return "";
+      if (!v) return baseline;
       key = v.key;
       await admin.from("experiment_assignments").upsert(
         { experiment_id: exp.id, session_id: sessionId, variant_key: key },
@@ -233,9 +260,10 @@ export async function experimentNudge(admin: any, sessionId: string, flow: strin
       );
     }
     const v = (exp.variants || []).find((x: Variant) => x.key === key);
-    return (v?.nudge || "").slice(0, 600);
+    // Baseline (adopted floor) + this arm's own nudge (the increment being tested).
+    return [baseline, (v?.nudge || "")].filter(Boolean).join(" ").slice(0, 900);
   } catch {
-    return "";
+    return baseline;
   }
 }
 

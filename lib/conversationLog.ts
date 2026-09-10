@@ -5,6 +5,7 @@
 // this call. See sql/conversations.sql.
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { computeDynamics } from "@/lib/conversationDynamics";
 
 export type Turn = { speaker: "ai" | "human"; text: string; modality?: "text" | "voice" };
 
@@ -50,7 +51,15 @@ export async function logConversation(input: {
     if (input.outcome !== undefined) header.outcome = input.outcome;
     if (input.realOutcome !== undefined) header.real_outcome = input.realOutcome;
     if (input.intervention !== undefined) header.intervention = input.intervention;
-    if (input.dynamics !== undefined) header.dynamics = input.dynamics;
+    // Compute dynamics from the turns whenever we have them (the leading signal),
+    // and let any explicit dynamics the caller passes override/extend the computed
+    // fields. When no turns are sent (a terminal finalize), we leave dynamics as
+    // the last reply computed it — the upsert only touches the columns present.
+    if (input.turns && input.turns.length) {
+      header.dynamics = { ...computeDynamics(input.turns), ...(input.dynamics || {}) };
+    } else if (input.dynamics !== undefined) {
+      header.dynamics = input.dynamics;
+    }
     if (input.ended) header.ended_at = new Date().toISOString();
     await admin.from("conversations").upsert(header, { onConflict: "conversation_id" });
 

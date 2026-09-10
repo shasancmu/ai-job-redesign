@@ -2,7 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import { AI_ENABLED, experimentProposeAI, experimentNarrateAI, syntheticSimulateAI, syntheticJudgeAI } from "@/lib/ai";
-import { analyze, successForSession, scoreRows, completionRows, flowLabel, PERSONAS, type Experiment, type Variant } from "@/lib/experiments";
+import { analyze, flowLabel, PERSONAS, type Experiment, type Variant } from "@/lib/experiments";
+import { computeAnalysis } from "@/lib/experimentStats";
+import { runAutopilot } from "@/lib/autopilot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -156,43 +158,16 @@ export async function POST(request: Request) {
       return Response.json({ ok: true });
     }
 
+    if (action === "autopilot") {
+      // Run one closed-loop pass: adopt conclusive winners and ratchet the next
+      // refinement onto them, retire flat tests, and open coverage on untested
+      // flows — all informed by the conversation-dynamics signal.
+      const log = await runAutopilot(admin, { launch: body.launch !== false });
+      return Response.json({ log });
+    }
+
     return Response.json({ error: "unknown action" }, { status: 400 });
   } catch (e: any) {
     return Response.json({ error: e?.message || "Request failed." }, { status: 500 });
   }
-}
-
-// Join assignments to each session's current state and score the metric per arm.
-async function computeAnalysis(admin: any, exp: Experiment) {
-  // Scored engines (roleplay, negotiation, …) record per-run outcomes in
-  // experiment_outcomes. Score is the headline; completion rides along secondary.
-  if (exp.metric === "score") {
-    const { data: outs } = await admin.from("experiment_outcomes").select("variant_key, score, completed").eq("experiment_id", exp.id);
-    const rows = (outs || []) as { variant_key: string; score: number | null; completed: boolean }[];
-    const primary = analyze(exp, exp.variants || [], scoreRows(rows));
-    const completion = analyze({ ...exp, metric: "completion" } as any, exp.variants || [], completionRows(rows));
-    return { ...primary, secondary: { metric: "completion", arms: completion.arms } };
-  }
-
-  const { data: assigns } = await admin.from("experiment_assignments").select("session_id, variant_key").eq("experiment_id", exp.id);
-  const rowsRaw = assigns || [];
-  const sids = [...new Set(rowsRaw.map((a: any) => a.session_id))];
-  if (sids.length === 0) return analyze(exp, exp.variants || [], []);
-
-  const { data: sessions } = await admin.from("sessions").select("id, status, public_token, host_id").in("id", sids);
-  const { data: wss } = await admin.from("workspaces").select("session_id, canvas, author_id").in("session_id", sids);
-  const sById = new Map((sessions || []).map((s: any) => [s.id, s]));
-  const canvasBySession = new Map<string, any>();
-  for (const w of wss || []) {
-    const s: any = sById.get(w.session_id);
-    if (s && w.author_id === s.host_id) canvasBySession.set(w.session_id, w.canvas);
-    else if (!canvasBySession.has(w.session_id)) canvasBySession.set(w.session_id, w.canvas);
-  }
-  const rows = rowsRaw
-    .filter((a: any) => sById.has(a.session_id))
-    .map((a: any) => ({
-      variant_key: a.variant_key,
-      success: successForSession(exp.metric, exp.depth_threshold, sById.get(a.session_id), canvasBySession.get(a.session_id) || {}),
-    }));
-  return analyze(exp, exp.variants || [], rows);
 }
