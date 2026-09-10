@@ -218,7 +218,7 @@ function Interview({ state, setState, role, intent, onSkip }: { state: any; setS
           {busy && !streaming && messages.length > 0 && <div className="flex justify-start"><div className="rounded-2xl bg-slate-100 px-4 py-2.5 text-sm text-slate-400">…</div></div>}
         </div>
         {err && <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
-        <InterviewProgress msgs={messages} />
+        <InterviewProgress msgs={messages} turns={4} />
         <InterviewHelper module="career-roadmap" answered={messages.filter((m) => m.role === "user").length} hasDraft={!!input.trim()} onInsert={setInput} />
         <form onSubmit={send} className="mt-3 flex items-center gap-2">
           <input className="field" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t("room.typeAnswer")} disabled={busy} />

@@ -165,7 +165,7 @@ export default function EmpathyChat({ token, business }: { token: string; busine
           />
           <button onClick={send} disabled={waiting || !input.trim()} className="btn-primary shrink-0 px-4 py-2.5 disabled:opacity-40">{t("room.send")}</button>
         </div>
-        <InterviewProgress msgs={messages} />
+        <InterviewProgress msgs={messages} turns={8} />
         <InterviewHelper module="empathy" answered={answered} hasDraft={!!input.trim()} onInsert={setInput} />
         {answered >= 3 && (
           <p className="mt-2 text-center text-[11px] text-slate-400">Done sharing? Tap &ldquo;I&apos;m done&rdquo; up top anytime.</p>
