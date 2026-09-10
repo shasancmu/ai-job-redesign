@@ -6,6 +6,8 @@
 // sample size (this is the guardrail against calling fake early winners).
 // ============================================================================
 
+import { moduleByExercise } from "@/lib/modules";
+
 export type Variant = { key: string; label: string; nudge: string };
 export type Experiment = {
   id: string;
@@ -42,23 +44,20 @@ export const PERSONAS: { key: string; persona: string }[] = [
   { key: "confident-veteran", persona: "A confident industry veteran. Opinionated, has seen it all, tests whether the AI actually adds value before engaging fully." },
 ];
 
-// Flows that can be experimented on (the AI conversation surfaces). A subtle
-// "nudge" is appended to that flow's interview system prompt.
-export const EXPERIMENT_FLOWS: { key: string; label: string }[] = [
-  { key: "consult", label: "Diagnose Your Business" },
-  { key: "resume", label: "Refresh Your Résumé" },
-  { key: "empathy", label: "Understand Your Customer" },
-  { key: "superpower", label: "Find Your Superpower" },
-  { key: "board", label: "AI Board" },
-  { key: "solo", label: "Redesign Your Job with AI" },
-  { key: "workflow-solo", label: "Redesign a Workflow with AI" },
-  { key: "myopia-business", label: "Business Blind Spots" },
-  { key: "myopia-career", label: "Career Blind Spots" },
-  { key: "personal-network", label: "Map Your Personal Network" },
-  { key: "domain-brief", label: "Domain Expertise Brief" },
-  { key: "collaborators", label: "Find Collaborators" },
-  { key: "licensing-brief", label: "Licensing Brief" },
+// Exercise keys that can be experimented on today: their live route threads the
+// treatment "nudge" into the AI prompt (see experimentNudge callers) AND their
+// outcomes are measurable by the stats core (sessions + workspaces, via
+// successForSession). To add a module, wire BOTH for its engine, then add its
+// exercise key here — the dropdown label is pulled live from the module registry
+// so it never goes stale as modules are renamed or added.
+export const EXPERIMENT_CAPABLE_EXERCISES: string[] = [
+  "consult", "resume", "empathy", "superpower", "board", "solo", "workflow-solo",
+  "myopia-business", "myopia-career", "personal-network", "domain-brief", "collaborators", "licensing-brief",
 ];
+
+export const EXPERIMENT_FLOWS: { key: string; label: string }[] = EXPERIMENT_CAPABLE_EXERCISES
+  .map((ex) => ({ key: ex, label: moduleByExercise(ex)?.name || ex }))
+  .sort((a, b) => a.label.localeCompare(b.label));
 
 export const METRICS: { key: "completion" | "depth" | "shared"; label: string; help: string }[] = [
   { key: "completion", label: "Completion rate", help: "reached a finished report" },
