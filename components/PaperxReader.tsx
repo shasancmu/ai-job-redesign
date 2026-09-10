@@ -27,10 +27,15 @@ function Infographic({ info }: { info: PxInfographic }) {
         <div className={"stagger-in grid gap-3 " + (info.stats.length === 1 ? "grid-cols-1" : info.stats.length === 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3")}>
           {info.stats.map((s, i) => {
             const t = TONE[s.tone || "neutral"];
+            // The value is usually a short number ("+42%") but the model sometimes
+            // returns a phrase ("Local complementarity"). Scale the type to the
+            // length and allow wrapping so it never overflows the tile.
+            const len = (s.value || "").length;
+            const sizeCls = len <= 5 ? "text-3xl" : len <= 9 ? "text-2xl" : len <= 16 ? "text-xl" : "text-base";
             return (
-              <div key={i} className="rounded-2xl border border-line bg-white p-4 text-center">
+              <div key={i} className="min-w-0 rounded-2xl border border-line bg-white p-4 text-center">
                 {s.icon && <div className="text-2xl" aria-hidden>{s.icon}</div>}
-                <div className="mt-1 text-3xl font-extrabold leading-none tabular-nums" style={{ color: t.stroke }}>{arrow(s.tone)}{s.value}</div>
+                <div className={"mt-1 font-extrabold leading-tight tabular-nums break-words hyphens-auto " + sizeCls} style={{ color: t.stroke }}>{arrow(s.tone)}{s.value}</div>
                 <div className="mt-1.5 text-xs leading-snug text-slate-500">{s.label}</div>
               </div>
             );
