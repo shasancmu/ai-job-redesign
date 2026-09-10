@@ -7,6 +7,7 @@
 // ============================================================================
 
 import { moduleByExercise } from "@/lib/modules";
+import { isHoldout } from "@/lib/holdout";
 
 export type Variant = { key: string; label: string; nudge: string };
 export type Experiment = {
@@ -221,6 +222,17 @@ export async function setBaseline(admin: any, flow: string, target: "interview" 
   } catch { /* table not migrated — the ratchet is simply not persisted yet */ }
 }
 
+// How many adopted increments are live for a flow right now — the "dose" of the
+// policy at this moment (0 = original). Stamped on each conversation so the impact
+// analysis can do dose-response over the ratchet steps.
+export async function getBaselineVersion(admin: any, flow: string, target: "interview" | "report" = "interview"): Promise<number> {
+  if (!flow || !admin) return 0;
+  try {
+    const { data } = await admin.from("experiment_baselines").select("history").eq("flow", flow).eq("target", target).maybeSingle();
+    return Array.isArray(data?.history) ? data!.history.length : 0;
+  } catch { return 0; }
+}
+
 // --- Runtime: assign a session to a variant and return the prompt nudge ------
 // Uses whatever supabase client is passed (the admin client at call sites).
 // Lazily records the assignment the first time a session hits the flow. Always
@@ -228,6 +240,9 @@ export async function setBaseline(admin: any, flow: string, target: "interview" 
 // even between experiments.
 export async function experimentNudge(admin: any, sessionId: string, flow: string, target: "interview" | "report" = "interview"): Promise<string> {
   if (!sessionId || !admin) return "";
+  // Frozen holdout: this run gets the ORIGINAL prompt — no baseline, no experiment.
+  // It is the counterfactual, so it must never receive any adopted improvement.
+  if (isHoldout(sessionId)) return "";
   const baseline = await getBaseline(admin, flow, target);
   try {
     const { data: exps } = await admin

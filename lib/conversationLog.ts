@@ -6,6 +6,8 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { computeDynamics } from "@/lib/conversationDynamics";
+import { isHoldout, propensityFor } from "@/lib/holdout";
+import { getBaselineVersion } from "@/lib/experiments";
 
 export type Turn = { speaker: "ai" | "human"; text: string; modality?: "text" | "voice" };
 
@@ -30,6 +32,7 @@ export async function logConversation(input: {
   conversationId: string;
   personId: string;
   module: string;
+  abKey?: string;              // the A/B run key, if it differs from conversationId (holdout/propensity are keyed on it)
   cohort?: string | null;
   turns?: Turn[];
   outcome?: number | null;
@@ -70,5 +73,18 @@ export async function logConversation(input: {
         turn_index: i, speaker: t.speaker, text: t.text, modality: t.modality || "text",
       })));
     }
+
+    // Stamp the counterfactual fields in a SEPARATE best-effort update: the run's
+    // holdout membership and known propensity (pure from the run key — the same key
+    // the A/B engine assigns on) and the policy dose (adopted increments live now).
+    // Isolated so that if sql/conversation_counterfactual.sql isn't applied yet, the
+    // core log above still succeeds. abKey defaults to conversationId, which equals
+    // the A/B run key for every outcome-bearing header.
+    try {
+      const abKey = input.abKey || input.conversationId;
+      const cf: any = { holdout: isHoldout(abKey), propensity: propensityFor(abKey) };
+      if (input.module) cf.baseline_version = await getBaselineVersion(admin, input.module);
+      await admin.from("conversations").update(cf).eq("conversation_id", input.conversationId);
+    } catch { /* counterfactual columns not migrated yet — core log unaffected */ }
   } catch { /* store not migrated / transient — never block the learner */ }
 }
