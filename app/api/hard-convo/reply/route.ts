@@ -4,6 +4,7 @@ import { AI_ENABLED, roleplayReply } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { convoByKey, recipientSystem } from "@/lib/hardconvo";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
+import { logConversation, messagesToTurns } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,6 +23,8 @@ export async function POST(request: Request) {
   if (!convo) return Response.json({ error: "unknown scenario" }, { status: 400 });
   setFlow("hard-convo:reply");
 
+  const convoKey = String(body.convoKey || "");
+  try { await logConversation({ conversationId: `${user.id}:hard-convo:${convoKey}`, personId: user.id, module: "hard-convo", turns: messagesToTurns(messages) }); } catch { /* logging optional */ }
   const lang = await getUserLanguage(supabase, user.id);
   return streamingResponse((emit) => withLanguage(lang, () => roleplayReply(recipientSystem(convo), messages, emit)));
 }

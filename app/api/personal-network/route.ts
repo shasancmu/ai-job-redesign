@@ -4,6 +4,7 @@ import { AI_ENABLED, personalNetworkInterviewReply, personalNetworkFeedbackAI } 
 import { streamingResponse } from "@/lib/stream";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge } from "@/lib/experiments";
+import { logConversation, messagesToTurns, variantForRun } from "@/lib/conversationLog";
 import { computeEgoMetrics, type Contact, type Ties } from "@/lib/egonet";
 
 export const runtime = "nodejs";
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
     if (mode === "chat") {
       let nudge = "";
       try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "personal-network"); } catch {}
+      try { await logConversation({ conversationId: String(body.sessionId || ""), personId: user.id, module: "personal-network", turns: messagesToTurns(body.messages || []) }); } catch { /* logging optional */ }
       return streamingResponse((emit) => personalNetworkInterviewReply(body.messages || [], { roster: body.roster, goal: body.goal }, nudge, emit));
     }
     if (mode === "report") {
@@ -53,6 +55,10 @@ export async function POST(request: Request) {
         nudge,
       });
       if (!report) return Response.json({ error: "Couldn't read your network. Try again." }, { status: 502 });
+      try {
+        const admin = createAdminClient();
+        await logConversation({ conversationId: String(body.sessionId || ""), personId: user.id, module: "personal-network", turns: messagesToTurns(body.interview || []), intervention: await variantForRun(admin, String(body.sessionId || "")), dynamics: { size: metrics.size }, ended: true });
+      } catch { /* logging optional */ }
       return Response.json({ report, metrics });
     }
     return Response.json({ error: "unknown mode" }, { status: 400 });

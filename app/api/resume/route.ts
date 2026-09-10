@@ -4,6 +4,7 @@ import { AI_ENABLED, resumeInterviewReply, resumeVoiceInterviewReply, resumeRepo
 import { streamingResponse } from "@/lib/stream";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge } from "@/lib/experiments";
+import { logConversation, messagesToTurns, variantForRun } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
     if (mode === "chat") {
       let nudge = "";
       try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "resume"); } catch {}
+      try { await logConversation({ conversationId: String(body.sessionId || ""), personId: user.id, module: "resume", turns: messagesToTurns(body.messages || [], body.voice ? "voice" : "text") }); } catch { /* logging optional */ }
       return streamingResponse((emit) => body.voice
         ? resumeVoiceInterviewReply(body.messages || [], { source }, nudge, emit)
         : resumeInterviewReply(body.messages || [], { source }, nudge, emit));
@@ -46,6 +48,10 @@ export async function POST(request: Request) {
       try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "resume", "report"); } catch {}
       const report = await resumeReportAI({ source, interview: body.interview || [], nudge });
       if (!report) return Response.json({ error: "Couldn't build the changes. Try again." }, { status: 502 });
+      try {
+        const admin = createAdminClient();
+        await logConversation({ conversationId: String(body.sessionId || ""), personId: user.id, module: "resume", turns: messagesToTurns(body.interview || [], body.voice ? "voice" : "text"), intervention: await variantForRun(admin, String(body.sessionId || "")), ended: true });
+      } catch { /* logging optional */ }
       return Response.json({ report });
     }
     return Response.json({ error: "unknown mode" }, { status: 400 });

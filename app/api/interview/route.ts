@@ -4,6 +4,7 @@ import { AI_ENABLED, interviewReply, proposeRedesign, ChatMsg } from "@/lib/ai";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudgeAuto } from "@/lib/experiments";
+import { logConversation, messagesToTurns, variantForRun } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,6 +40,8 @@ export async function POST(request: Request) {
   };
 
   const language = await getUserLanguage(supabase, user.id);
+  const sessionId = String(body.sessionId || "");
+  const moduleName = String(body.slug || body.module || "interview");
   try {
     if (mode === "propose") {
       // Context can come from the interview transcript (solo) or captured notes (paired).
@@ -46,11 +49,18 @@ export async function POST(request: Request) {
         ? String(body.notes).slice(0, 4000)
         : history.map((m) => `${m.role === "user" ? "Them" : "Interviewer"}: ${m.content}`).join("\n");
       const result = await withLanguage(language, () => proposeRedesign(context, job));
+      // The interview produced its proposal — finalize the conversation spine.
+      try {
+        const admin = createAdminClient();
+        await logConversation({ conversationId: sessionId, personId: user.id, module: moduleName, turns: messagesToTurns(history), intervention: await variantForRun(admin, sessionId), ended: true });
+      } catch { /* logging optional */ }
       return Response.json(result);
     }
     let nudge = "";
-    try { nudge = await experimentNudgeAuto(createAdminClient(), String(body.sessionId || "")); } catch {}
+    try { nudge = await experimentNudgeAuto(createAdminClient(), sessionId); } catch {}
     const reply = await withLanguage(language, () => interviewReply(history, job, nudge));
+    // Persist the running conversation (both sides) keyed by session.
+    try { await logConversation({ conversationId: sessionId, personId: user.id, module: moduleName, turns: messagesToTurns([...history, { role: "assistant", content: reply }]) }); } catch { /* logging optional */ }
     return Response.json({ reply });
   } catch (e: any) {
     return Response.json(

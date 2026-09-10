@@ -4,6 +4,7 @@ import { AI_ENABLED, VISION_ENABLED, businessInterviewReply, businessVoiceInterv
 import { streamingResponse } from "@/lib/stream";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge } from "@/lib/experiments";
+import { logConversation, messagesToTurns, variantForRun } from "@/lib/conversationLog";
 import { wmsScore } from "@/lib/business";
 
 export const runtime = "nodejs";
@@ -36,6 +37,8 @@ export async function POST(request: Request) {
     if (mode === "chat") {
       let nudge = "";
       try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "consult"); } catch {}
+      // Persist the consult interview (both sides); voice interviews carry transcript text.
+      try { await logConversation({ conversationId: String(body.sessionId || ""), personId: user.id, module: "consult", turns: messagesToTurns(body.messages || [], body.voice ? "voice" : "text") }); } catch { /* logging optional */ }
       return streamingResponse((emit) => body.voice
         ? businessVoiceInterviewReply(body.messages || [], body.ctx || {}, nudge, emit)
         : businessInterviewReply(body.messages || [], body.ctx || {}, nudge, emit));
@@ -65,6 +68,11 @@ export async function POST(request: Request) {
         nudge,
       });
       if (!report) return Response.json({ error: "Couldn't build the report. Try again." }, { status: 502 });
+      // Finalize the consult conversation with the WMS management score as the outcome.
+      try {
+        const admin = createAdminClient();
+        await logConversation({ conversationId: String(body.sessionId || ""), personId: user.id, module: "consult", outcome: typeof wms?.overall === "number" ? wms.overall : null, intervention: await variantForRun(admin, String(body.sessionId || "")), ended: true });
+      } catch { /* logging optional */ }
       return Response.json({ report, wms });
     }
 

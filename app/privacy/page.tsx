@@ -30,6 +30,9 @@ export default function Privacy() {
             <li><b>Account data:</b> your name and email, and account settings.</li>
             <li><b>Exercise data:</b> what you type or say during exercises — for example a résumé, business details, or your
               answers — and the reports and artifacts produced from them.</li>
+            <li><b>Conversations:</b> the interactive exchanges during exercises — both your messages and the AI&apos;s responses,
+              turn by turn (voice as transcript, never audio) — which we record to run the exercise, produce your results, and
+              improve and research the service.</li>
             <li><b>Organization data:</b> which organizations and cohorts you belong to, and your role.</li>
             <li><b>Usage data:</b> which exercises you run and when.</li>
             <li><b>Voice:</b> for spoken exercises, your browser converts speech to text on your device; we store only the
@@ -43,8 +46,11 @@ export default function Privacy() {
             <li>To keep the service secure and working — <i>legitimate interests</i>.</li>
             <li>To let a facilitator or organization see participation and aggregate insight for a cohort they run — on the
               organization&apos;s <i>legitimate interests</i> or your <i>consent</i>, as applicable.</li>
+            <li>To improve the exercises and conduct research on learning and decision-making, and to develop our own models
+              that make the service better — using de-identified data, with your <i>consent</i>.</li>
           </ul>
-          We do not sell your data, and we do not use it to train third-party AI models.
+          We do not sell your data, and we do not use it to train third-party AI models. Any model we develop from this data
+          is our own and is used to operate and improve the service.
         </Section>
 
         <Section title="AI processing">

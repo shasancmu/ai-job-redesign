@@ -5,6 +5,7 @@ import { AI_ENABLED, canvasInterviewReply } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 import { resolveCanvasDefForUser } from "@/lib/customModules";
+import { logConversation, messagesToTurns } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,6 +31,8 @@ export async function POST(request: Request) {
 
   const messages = Array.isArray(body.messages) ? body.messages : [];
   if (messages.length === 0) await recordModuleEvent(def.exercise, "interview", "start", user.id);
+  const convId = String(body.sessionId || `${user.id}:${def.exercise}`);
+  try { await logConversation({ conversationId: convId, personId: user.id, module: def.exercise, turns: messagesToTurns(messages) }); } catch { /* logging optional */ }
   try {
     const lang = await getUserLanguage(supabase, user.id);
     return streamingResponse((emit) => withLanguage(lang, () =>

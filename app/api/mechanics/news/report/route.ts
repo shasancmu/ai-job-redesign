@@ -6,6 +6,7 @@ import { AI_ENABLED, roleplayExaminerAI } from "@/lib/ai";
 import { getNewsSpec } from "@/lib/mechanics/newsStore";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge, recordExperimentOutcome } from "@/lib/experiments";
+import { logConversation, variantForRun } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,7 +43,11 @@ Output ONLY JSON: {"score":0-100,"framework_use":[{"field":"the field label","qu
   try {
     const report = await roleplayExaminerAI(sys, userMsg, 2200);
     if (!report) return Response.json({ error: "Couldn't grade. Try again." }, { status: 502 });
-    try { await recordExperimentOutcome(admin, `${user.id}:${slug}`, { score: typeof report?.score === "number" ? report.score : null, completed: true }); } catch { /* optional */ }
+    const nwKey = `${user.id}:${slug}`;
+    const score = typeof report?.score === "number" ? report.score : null;
+    try { await recordExperimentOutcome(admin, nwKey, { score, completed: true }); } catch { /* optional */ }
+    // The learner's framework application is the human turn; the analyst read is the AI turn.
+    try { await logConversation({ conversationId: nwKey, personId: user.id, module: slug, turns: [{ speaker: "human", text: learnerWork }, { speaker: "ai", text: String(report?.analyst_read || "") }], outcome: score, intervention: await variantForRun(admin, nwKey), ended: true }); } catch { /* logging optional */ }
     await recordMechanicsResult("newsframe", String(body.slug || ""), user?.id, typeof report?.score === "number" ? report.score : null, `${spec.framework}: ${report?.verdict_note || ""}${report?.best_miss ? ` | missed: ${report.best_miss}` : ""}`);
     await recordModuleEvent(String(body.slug || ""), "newsframe", "complete", user?.id);
     return Response.json({ report });

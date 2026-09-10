@@ -182,7 +182,7 @@ function LoginInner() {
           {creating && (
             <label className="flex items-start gap-2 text-sm text-slate-600">
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--ink)]" />
-              <span>I agree to the <Link href="/terms" className="text-sage underline">Terms</Link> and <Link href="/privacy" className="text-sage underline">Privacy Policy</Link>.</span>
+              <span>I agree to the <Link href="/terms" className="text-sage underline">Terms</Link> and <Link href="/privacy" className="text-sage underline">Privacy Policy</Link>, including that my interactions and conversations may be recorded and used to operate, improve, and research the service.</span>
             </label>
           )}
           <Alert err={err} msg={msg} />
@@ -198,7 +198,7 @@ function LoginInner() {
           {creating && (
             <label className="flex items-start gap-2 text-sm text-slate-600">
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--ink)]" />
-              <span>I agree to the <Link href="/terms" className="text-sage underline">Terms</Link> and <Link href="/privacy" className="text-sage underline">Privacy Policy</Link>.</span>
+              <span>I agree to the <Link href="/terms" className="text-sage underline">Terms</Link> and <Link href="/privacy" className="text-sage underline">Privacy Policy</Link>, including that my interactions and conversations may be recorded and used to operate, improve, and research the service.</span>
             </label>
           )}
           <Alert err={err} msg={msg} />
@@ -235,7 +235,7 @@ function LoginInner() {
       )}
 
       <p className="mt-5 text-center text-xs text-slate-400">
-        By continuing you agree to our <Link href="/terms" className="underline">Terms</Link> and <Link href="/privacy" className="underline">Privacy Policy</Link>.
+        By continuing you agree to our <Link href="/terms" className="underline">Terms</Link> and <Link href="/privacy" className="underline">Privacy Policy</Link>. Your interactions and conversations may be recorded to operate, improve, and research the service.
       </p>
 
       <button

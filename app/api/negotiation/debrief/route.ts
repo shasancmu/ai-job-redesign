@@ -6,6 +6,7 @@ import { analyze, debriefFacts, scenarioByExercise } from "@/lib/negotiation";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { recordExperimentOutcome } from "@/lib/experiments";
+import { logConversation, variantForRun } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,7 +42,11 @@ export async function POST(request: Request) {
 
   const a = analyze(scn, terms, noDeal);
   const exercise = String(body.exercise || "negotiation");
-  try { await recordExperimentOutcome(createAdminClient(), `${user.id}:${exercise}`, { score: typeof (a as any)?.efficiency === "number" ? (a as any).efficiency : null, completed: true }); } catch { /* optional */ }
+  const negKey = `${user.id}:${exercise}`;
+  const admin = createAdminClient();
+  try { await recordExperimentOutcome(admin, negKey, { score: typeof (a as any)?.efficiency === "number" ? (a as any).efficiency : null, completed: true }); } catch { /* optional */ }
+  // Finalize the conversation spine with the negotiation's efficiency + realized joint value.
+  try { await logConversation({ conversationId: negKey, personId: user.id, module: exercise, outcome: typeof (a as any)?.efficiency === "number" ? (a as any).efficiency : null, realOutcome: typeof (a as any)?.joint === "number" ? (a as any).joint : null, intervention: await variantForRun(admin, negKey), ended: true }); } catch { /* logging optional */ }
   const facts = debriefFacts(scn, a);
   const user_msg = `FACTS:\n${JSON.stringify(facts, null, 2)}\n\nTranscript excerpt:\n${transcript || "(none)"}`;
   const lang = await getUserLanguage(supabase, user.id);

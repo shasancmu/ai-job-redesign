@@ -6,6 +6,7 @@ import { AI_ENABLED, roleplayExaminerAI } from "@/lib/ai";
 import { selectScenario, examinerPrompt } from "@/lib/mechanics/roleplay";
 import { getSpec } from "@/lib/mechanics/store";
 import { experimentNudge, recordExperimentOutcome } from "@/lib/experiments";
+import { logConversation, variantForRun } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,6 +43,8 @@ export async function POST(request: Request) {
     if (!report) return Response.json({ error: "Couldn't grade. Try again." }, { status: 502 });
     // Record the run's outcome for any experiment it was assigned to (score + completion).
     try { await recordExperimentOutcome(admin, code, { score: typeof report.score === "number" ? report.score : null, completed: true }); } catch { /* optional */ }
+    // Finalize the conversation spine: attach the outcome + the A/B intervention it ran under.
+    try { await logConversation({ conversationId: code, personId: user.id, module: slug, cohort: body.cohort ? String(body.cohort).slice(0, 64) : null, outcome: typeof report.score === "number" ? report.score : null, intervention: await variantForRun(admin, code), ended: true }); } catch { /* logging optional */ }
     // Persist the run so the module's author can observe how learners do. Best
     // effort: a missing table or write error must never block the learner.
     try {

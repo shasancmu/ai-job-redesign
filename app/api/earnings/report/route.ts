@@ -4,6 +4,7 @@ import { AI_ENABLED, earningsReportAI } from "@/lib/ai";
 import { scenarioForCode } from "@/lib/earnings";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { recordExperimentOutcome } from "@/lib/experiments";
+import { logConversation, variantForRun } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,7 +46,11 @@ export async function POST(request: Request) {
       verdict,
     });
     if (!report) return Response.json({ error: "Couldn't grade the call. Try again." }, { status: 502 });
-    try { await recordExperimentOutcome(createAdminClient(), code, { score: typeof (report as any)?.score === "number" ? (report as any).score : null, completed: true }); } catch { /* optional */ }
+    const admin = createAdminClient();
+    const score = typeof (report as any)?.score === "number" ? (report as any).score : null;
+    try { await recordExperimentOutcome(admin, code, { score, completed: true }); } catch { /* optional */ }
+    // Finalize the conversation spine: the graded score is the outcome.
+    try { await logConversation({ conversationId: code, personId: user.id, module: "earnings-call", cohort: body.cohort || null, outcome: score, intervention: await variantForRun(admin, code), ended: true }); } catch { /* logging optional */ }
     return Response.json({ report });
   } catch (e: any) {
     return Response.json({ error: e?.message || "AI request failed." }, { status: 500 });

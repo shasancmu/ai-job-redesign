@@ -7,6 +7,7 @@ import { getNegScenario } from "@/lib/mechanics/negStore";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge } from "@/lib/experiments";
+import { logConversation, messagesToTurns } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,6 +32,8 @@ export async function POST(request: Request) {
   let nudge = ""; try { nudge = await experimentNudge(createAdminClient(), `${user.id}:${slug}`, slug, "interview"); } catch { /* optional */ }
   const base = counterpartSystem(scn);
   const system = nudge ? `${base}\n\nEXPERIMENT NOTE (stay in character, keep it subtle): ${nudge}` : base;
+  // Persist the conversation (both sides) under the same run key A/B uses.
+  try { await logConversation({ conversationId: `${user.id}:${slug}`, personId: user.id, module: slug, turns: messagesToTurns(messages), cohort: body.cohort || null }); } catch { /* logging optional */ }
   const lang = await getUserLanguage(supabase, user.id);
   return streamingResponse((emit) => withLanguage(lang, () => roleplayReply(system, messages, emit)));
 }

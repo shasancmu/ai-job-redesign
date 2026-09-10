@@ -5,6 +5,7 @@ import { unsealScenario } from "@/lib/starhire/seal";
 import { scoreCandidates, decisionScore } from "@/lib/starhire/value";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { recordExperimentOutcome } from "@/lib/experiments";
+import { logConversation, variantForRun } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,7 +40,12 @@ export async function POST(request: Request) {
   const best = [...scored].sort((a, b) => a.rank - b.rank)[0];
   const ds = decisionScore(scored, pickId);
   // A/B outcome: the objective decision score (0-100) is decision quality.
-  try { await recordExperimentOutcome(createAdminClient(), `${user.id}:star-hire`, { score: ds, completed: true }); } catch { /* optional */ }
+  const shKey = `${user.id}:star-hire`;
+  const admin = createAdminClient();
+  try { await recordExperimentOutcome(admin, shKey, { score: ds, completed: true }); } catch { /* optional */ }
+  // Finalize the exercise-level decision as its own conversation (the per-candidate
+  // interviews were logged at reply time); realOutcome is whether they picked the best.
+  try { await logConversation({ conversationId: shKey, personId: user.id, module: "star-hire", outcome: ds, realOutcome: pickId === best.id ? 1 : 0, intervention: await variantForRun(admin, shKey), dynamics: { pick: pickId, best: best.id, confidence: pick.confidence }, ended: true }); } catch { /* logging optional */ }
 
   // format transcripts (chats: { candidateId: {role, content}[] })
   const chats = body.chats && typeof body.chats === "object" ? body.chats : {};

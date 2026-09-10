@@ -6,6 +6,7 @@ import { scenarioForCode, vossSystem } from "@/lib/earnings";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge } from "@/lib/experiments";
+import { logConversation, messagesToTurns } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,5 +36,6 @@ export async function POST(request: Request) {
   const lang = await getUserLanguage(supabase, user.id);
   let nudge = ""; try { nudge = await experimentNudge(createAdminClient(), code, "earnings-call", "interview"); } catch { /* optional */ }
   const system = nudge ? `${vossSystem(scn)}\n\nEXPERIMENT NOTE (stay in character, keep it subtle): ${nudge}` : vossSystem(scn);
+  try { await logConversation({ conversationId: code, personId: user.id, module: "earnings-call", turns: messagesToTurns(messages), cohort: body.cohort || null }); } catch { /* logging optional */ }
   return streamingResponse((emit) => withLanguage(lang, () => roleplayReply(system, messages, emit)));
 }

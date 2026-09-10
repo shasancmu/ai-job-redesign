@@ -6,6 +6,7 @@ import { loadLivingCase } from "@/lib/cases/store";
 import { caseTutorSystem } from "@/lib/cases/tutor";
 import { logCaseEvent } from "@/lib/cases/events";
 import { enforceChatLimit, tooMany } from "@/lib/ratelimit";
+import { logConversation, messagesToTurns } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,6 +42,8 @@ export async function POST(request: Request) {
   try {
     const reply = await roleplayReply(caseTutorSystem(genome), history, undefined, { low: true });
     void logCaseEvent({ slug, kind: "ask", userId: user.id, cohort: typeof body.cohort === "string" ? body.cohort : null, data: { q: history[history.length - 1].content.slice(0, 300) } });
+    // Persist the tutor conversation (both sides), keyed per learner+case.
+    try { await logConversation({ conversationId: `${user.id}:case:${slug}`, personId: user.id, module: "living-case", cohort: typeof body.cohort === "string" ? body.cohort : null, turns: messagesToTurns([...history, { role: "assistant", content: reply }]) }); } catch { /* logging optional */ }
     return Response.json({ reply });
   } catch (e: any) {
     return Response.json({ error: e?.message || "The tutor didn't respond. Try again." }, { status: 500 });

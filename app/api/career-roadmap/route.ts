@@ -3,6 +3,7 @@ import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, careerRoadmapAI, careerRoadmapProfileAI, careerRoadmapInterview, careerGrowthAI } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
+import { logConversation, messagesToTurns } from "@/lib/conversationLog";
 import {
   matchOccupation,
   matchTitle,
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
 
   // ---- interview turn ------------------------------------------------------
   if (body.mode === "chat") {
+    try { await logConversation({ conversationId: `${user.id}:career-roadmap:${intent}`, personId: user.id, module: "career-roadmap", turns: messagesToTurns(body.messages || []) }); } catch { /* logging optional */ }
     return streamingResponse((emit) => withLanguage(lang, () =>
       careerRoadmapInterview(body.messages || [], { role: String(body.role || "") }, intent, emit)
     ));

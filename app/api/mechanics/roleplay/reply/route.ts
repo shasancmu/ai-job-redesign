@@ -7,6 +7,7 @@ import { selectScenario, characterSystem } from "@/lib/mechanics/roleplay";
 import { getSpec, characterRole } from "@/lib/mechanics/store";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge } from "@/lib/experiments";
+import { logConversation, messagesToTurns } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,6 +42,8 @@ export async function POST(request: Request) {
   let nudge = "";
   try { nudge = await experimentNudge(createAdminClient(), code, slug, "interview"); } catch { /* experiments optional */ }
   const system = nudge ? `${baseSystem}\n\nEXPERIMENT NOTE (stay in character, keep it subtle): ${nudge}` : baseSystem;
+  // Persist the conversation (both sides) — the platform's core data substrate.
+  try { await logConversation({ conversationId: code, personId: user.id, module: slug, turns: messagesToTurns(messages), cohort: body.cohort || null }); } catch { /* logging optional */ }
   setFlow(`roleplay:${slug}`);
   const lang = spec.guardrails?.language;
   return streamingResponse((emit) => withLanguage(lang && lang !== "en" ? lang : undefined, () =>

@@ -4,6 +4,7 @@ import { AI_ENABLED, coachReply } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { convoByKey, COACH_SYSTEM } from "@/lib/hardconvo";
 import { getUserLanguage, withLanguage } from "@/lib/lang";
+import { logConversation } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,6 +24,8 @@ export async function POST(request: Request) {
   setFlow("hard-convo:debrief");
 
   const user_msg = `SCENARIO: ${convo.name} — ${convo.youRole} speaking with ${convo.counterpartName} (${convo.counterpartRole}).\nThe situation: ${convo.situation}\nWhat good looks like: ${convo.yourGoal}\n\nTranscript:\n${transcript || "(none)"}`;
+  // Finalize the hard-conversation spine (the debrief marks the practice as complete).
+  try { await logConversation({ conversationId: `${user.id}:hard-convo:${String(body.convoKey || "")}`, personId: user.id, module: "hard-convo", ended: true }); } catch { /* logging optional */ }
   const lang = await getUserLanguage(supabase, user.id);
   return streamingResponse((emit) => withLanguage(lang, () => coachReply(COACH_SYSTEM, user_msg, 0.6, emit)));
 }

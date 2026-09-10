@@ -4,6 +4,7 @@ import { AI_ENABLED, superpowerInterviewReply, superpowerReportAI } from "@/lib/
 import { streamingResponse } from "@/lib/stream";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge } from "@/lib/experiments";
+import { logConversation, messagesToTurns, variantForRun } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
     if (mode === "chat") {
       let nudge = "";
       try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "superpower"); } catch {}
+      try { await logConversation({ conversationId: String(body.sessionId || ""), personId: user.id, module: "superpower", turns: messagesToTurns(body.messages || []) }); } catch { /* logging optional */ }
       return streamingResponse((emit) => superpowerInterviewReply(body.messages || [], { seeds: body.seeds }, nudge, emit));
     }
     if (mode === "report") {
@@ -38,6 +40,10 @@ export async function POST(request: Request) {
       try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "superpower", "report"); } catch {}
       const report = await superpowerReportAI({ seeds: body.seeds, interview: body.interview || [], nudge });
       if (!report) return Response.json({ error: "Couldn't build the report. Try again." }, { status: 502 });
+      try {
+        const admin = createAdminClient();
+        await logConversation({ conversationId: String(body.sessionId || ""), personId: user.id, module: "superpower", turns: messagesToTurns(body.interview || []), intervention: await variantForRun(admin, String(body.sessionId || "")), ended: true });
+      } catch { /* logging optional */ }
       return Response.json({ report });
     }
     return Response.json({ error: "unknown mode" }, { status: 400 });

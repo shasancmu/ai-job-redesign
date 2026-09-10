@@ -5,6 +5,7 @@ import { useOrgAi } from "@/lib/orgAi";
 import { AI_ENABLED, portraitInterviewReply } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { setFlow } from "@/lib/aiflow";
+import { logConversation, messagesToTurns } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,5 +36,6 @@ export async function POST(request: Request) {
   } catch { /* optional */ }
 
   setFlow("portrait:interview");
+  try { await logConversation({ conversationId: `${user.id}:portrait`, personId: user.id, module: "portrait", turns: messagesToTurns(history) }); } catch { /* logging optional */ }
   return streamingResponse((emit) => portraitInterviewReply(history, { orgName: org?.name, learnerName }, emit));
 }

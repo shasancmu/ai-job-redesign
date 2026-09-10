@@ -4,6 +4,7 @@ import { AI_ENABLED, paperxAskReply } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { loadPaperx } from "@/lib/paperx/store";
 import { enforceChatLimit, tooMany } from "@/lib/ratelimit";
+import { logConversation, messagesToTurns } from "@/lib/conversationLog";
 import type { PxGenome } from "@/lib/paperx/types";
 
 export const runtime = "nodejs";
@@ -33,6 +34,8 @@ export async function POST(request: Request) {
   if (!g) return Response.json({ error: "Explainer not found." }, { status: 404 });
 
   setFlow("paperx:ask");
+  // Persist the "ask the paper" conversation (both sides) keyed per learner+paper.
+  try { await logConversation({ conversationId: `${user.id}:paperx:${slug}`, personId: user.id, module: "paper-explainer", turns: messagesToTurns(messages) }); } catch { /* logging optional */ }
   return streamingResponse((emit) => paperxAskReply(buildContext(g), messages, emit));
 }
 

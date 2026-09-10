@@ -4,6 +4,7 @@ import { AI_ENABLED, myopiaInterviewReply, myopiaReportAI } from "@/lib/ai";
 import { streamingResponse } from "@/lib/stream";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge } from "@/lib/experiments";
+import { logConversation, messagesToTurns, variantForRun } from "@/lib/conversationLog";
 import type { MyopiaDomain } from "@/lib/myopia";
 
 export const runtime = "nodejs";
@@ -38,6 +39,7 @@ export async function POST(request: Request) {
     if (mode === "chat") {
       let nudge = "";
       try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), flow, "interview"); } catch {}
+      try { await logConversation({ conversationId: String(body.sessionId || ""), personId: user.id, module: flow, turns: messagesToTurns(body.messages || []) }); } catch { /* logging optional */ }
       return streamingResponse((emit) => myopiaInterviewReply(domain, body.messages || [], { subject }, nudge, emit));
     }
     if (mode === "report") {
@@ -45,6 +47,10 @@ export async function POST(request: Request) {
       try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), flow, "report"); } catch {}
       const report = await myopiaReportAI({ domain, subject, interview: body.interview || [], nudge });
       if (!report) return Response.json({ error: "Couldn't build the diagnosis. Try again." }, { status: 502 });
+      try {
+        const admin = createAdminClient();
+        await logConversation({ conversationId: String(body.sessionId || ""), personId: user.id, module: flow, turns: messagesToTurns(body.interview || []), intervention: await variantForRun(admin, String(body.sessionId || "")), ended: true });
+      } catch { /* logging optional */ }
       return Response.json({ report });
     }
     return Response.json({ error: "unknown mode" }, { status: 400 });

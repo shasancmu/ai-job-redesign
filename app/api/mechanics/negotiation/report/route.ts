@@ -7,6 +7,7 @@ import { analyze } from "@/lib/negotiation";
 import { getNegScenario } from "@/lib/mechanics/negStore";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { recordExperimentOutcome } from "@/lib/experiments";
+import { logConversation, variantForRun } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,7 +42,11 @@ export async function POST(request: Request) {
   }
 
   // A/B outcome: value-claiming efficiency (0-100) is the decision-quality score.
-  try { await recordExperimentOutcome(createAdminClient(), `${user!.id}:${String(body.slug || "")}`, { score: typeof a?.efficiency === "number" ? a.efficiency : null, completed: true }); } catch { /* optional */ }
+  const negKey = `${user!.id}:${String(body.slug || "")}`;
+  const admin = createAdminClient();
+  try { await recordExperimentOutcome(admin, negKey, { score: typeof a?.efficiency === "number" ? a.efficiency : null, completed: true }); } catch { /* optional */ }
+  // Finalize the conversation spine: efficiency is the outcome; the deal joint value is the real outcome.
+  try { await logConversation({ conversationId: negKey, personId: user!.id, module: String(body.slug || ""), outcome: typeof a?.efficiency === "number" ? a.efficiency : null, realOutcome: typeof (a as any)?.joint === "number" ? (a as any).joint : null, intervention: await variantForRun(admin, negKey), ended: true }); } catch { /* logging optional */ }
   await recordMechanicsResult("negotiation", String(body.slug || ""), user?.id, typeof a?.efficiency === "number" ? a.efficiency : null, `joint ${a?.joint}/${a?.maxJoint} (${a?.efficiency}% efficient), beat BATNA: ${a?.beatBATNA}`);
   await recordModuleEvent(String(body.slug || ""), "negotiation", "complete", user?.id);
   return Response.json({ analysis: a, debrief });

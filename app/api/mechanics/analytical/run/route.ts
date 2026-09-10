@@ -6,6 +6,7 @@ import { AI_ENABLED, roleplayExaminerAI } from "@/lib/ai";
 import { getAnalyticalSpec } from "@/lib/mechanics/analyticalStore";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge, recordExperimentOutcome } from "@/lib/experiments";
+import { logConversation, variantForRun } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,7 +45,10 @@ Output ONLY JSON: {"units":[{"label":"the ${spec.unitLabel}","level":"<one level
     const units = (out.units as any[]).filter((u) => u && u.label).map((u) => ({ label: String(u.label), level: valueOf[u.level] != null ? u.level : spec.levels[0].key, note: String(u.note || "") }));
     const vals = units.map((u) => valueOf[u.level] ?? 0);
     const aggregate = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
-    try { await recordExperimentOutcome(admin, `${user.id}:${slug}`, { score: aggregate, completed: true }); } catch { /* optional */ }
+    const anKey = `${user.id}:${slug}`;
+    try { await recordExperimentOutcome(admin, anKey, { score: aggregate, completed: true }); } catch { /* optional */ }
+    // A single-shot instrument, still a conversation: the input is the human turn, the summary the AI turn.
+    try { await logConversation({ conversationId: anKey, personId: user.id, module: slug, turns: [{ speaker: "human", text: input }, { speaker: "ai", text: String(out.summary || "") }], outcome: aggregate, intervention: await variantForRun(admin, anKey), ended: true }); } catch { /* logging optional */ }
     await recordMechanicsResult("analytical", String(body.slug || ""), user?.id, aggregate, `${spec.name || spec.slug}: ${spec.aggregateLabel || "aggregate"} ${aggregate}. ${String(out.summary || "")}`);
     await recordModuleEvent(String(body.slug || ""), "analytical", "complete", user?.id);
     return Response.json({ units, aggregate, summary: String(out.summary || ""), levels: spec.levels, aggregateLabel: spec.aggregateLabel });

@@ -2,8 +2,16 @@ import { createClient } from "@/lib/supabase/server";
 import { AI_ENABLED, VISION_ENABLED, boardRoundAI, boardVerdictAI, photoDescribeAI } from "@/lib/ai";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge } from "@/lib/experiments";
+import { logConversation, variantForRun, type Turn } from "@/lib/conversationLog";
 
 export const runtime = "nodejs";
+
+// Board transcript entries are { who, text }: "you" is the human, a board member is AI.
+function boardTurns(transcript: any[]): Turn[] {
+  return (Array.isArray(transcript) ? transcript : [])
+    .filter((e) => e && typeof e.text === "string" && e.text.trim() && e.who !== "attach")
+    .map((e) => ({ speaker: (e.who === "you" ? "human" : "ai") as "ai" | "human", text: String(e.text).slice(0, 8000) }));
+}
 import { setFlow } from "@/lib/aiflow";
 import { extractPdfText } from "@/lib/mechanics/pdf";
 export const dynamic = "force-dynamic";
@@ -42,6 +50,11 @@ export async function POST(request: Request) {
       try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "board"); } catch {}
       const { round, replies } = await boardRoundAI({ decision, context: body.context, materials, transcript: body.transcript || [], nudge });
       if (!round.length) return Response.json({ error: "The board went quiet. Try again." }, { status: 502 });
+      // Persist the debate so far (both sides) plus the new AI round.
+      try {
+        const turns = [...boardTurns(body.transcript || []), ...round.filter((r: any) => r && r.text).map((r: any) => ({ speaker: "ai" as const, text: String(r.text).slice(0, 8000) }))];
+        await logConversation({ conversationId: String(body.sessionId || ""), personId: user.id, module: "board", turns });
+      } catch { /* logging optional */ }
       return Response.json({ round, replies });
     }
     if (mode === "verdict") {
@@ -49,6 +62,11 @@ export async function POST(request: Request) {
       try { nudge = await experimentNudge(createAdminClient(), String(body.sessionId || ""), "board", "report"); } catch {}
       const verdict = await boardVerdictAI({ decision, context: body.context, materials, transcript: body.transcript || [], nudge });
       if (!verdict) return Response.json({ error: "Couldn't reach a verdict. Try again." }, { status: 502 });
+      // Finalize the board conversation with the debate transcript and its intervention.
+      try {
+        const admin = createAdminClient();
+        await logConversation({ conversationId: String(body.sessionId || ""), personId: user.id, module: "board", turns: boardTurns(body.transcript || []), intervention: await variantForRun(admin, String(body.sessionId || "")), ended: true });
+      } catch { /* logging optional */ }
       return Response.json({ verdict });
     }
     return Response.json({ error: "unknown mode" }, { status: 400 });
