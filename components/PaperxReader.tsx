@@ -40,13 +40,15 @@ function fit(pts: { x: number; y: number }[]) {
 }
 
 function Chart({ chart }: { chart: PxChart }) {
-  const W = 560, H = 250, padT = 16, padB = 36;
+  const W = 560, padT = 16, padB = 36;
   const kind = chart.kind;
   const series = chart.series;
   const s0 = series[0];
   const cats = s0?.points.map((p) => p.x) || [];
   const nCat = Math.max(1, cats.length);
   const horizontal = kind === "hbars" || kind === "coef";
+  // Horizontal charts size to their row count so a 1-3 row plot isn't a tall empty box.
+  const H = horizontal ? Math.max(110, padT + padB + nCat * 42) : 250;
   const padL = horizontal ? 108 : 46, padR = 18;
   const plotW = W - padL - padR, plotH = H - padT - padB;
 

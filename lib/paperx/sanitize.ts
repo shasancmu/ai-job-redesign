@@ -8,7 +8,7 @@ const KINDS = ["slope", "bars", "stacked", "hbars", "line", "area", "scatter", "
 const optNum = (v: any) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
 function chart(raw: any): PxChart | undefined {
   if (!raw || typeof raw !== "object") return undefined;
-  const kind = KINDS.includes(raw.kind) ? raw.kind : "bars";
+  let kind = KINDS.includes(raw.kind) ? raw.kind : "bars";
   const series: PxSeries[] = (Array.isArray(raw.series) ? raw.series : []).slice(0, 3).map((s: any) => ({
     label: str(s?.label),
     tone: (["up", "down", "neutral"].includes(s?.tone) ? s.tone : "neutral") as PxTone,
@@ -16,6 +16,12 @@ function chart(raw: any): PxChart | undefined {
     points: (Array.isArray(s?.points) ? s.points : []).slice(0, 24).map((p: any) => ({ x: str(p?.x, ""), y: clampNum(p?.y), lo: optNum(p?.lo), hi: optNum(p?.hi) })).filter((p: any) => p.x !== ""),
   })).filter((s: PxSeries) => s.points.length > 0);
   if (!series.length) return undefined;
+  // 'coef' is only meaningful as an effect-size plot of >=2 real coefficients
+  // with intervals; a single point (a summary stat misused as coef) renders as a
+  // lonely dot, so fall back to a bar.
+  const coefPts = series.reduce((n, s) => n + s.points.length, 0);
+  const hasCI = series.some((s) => s.points.some((p) => p.lo !== undefined && p.hi !== undefined));
+  if (kind === "coef" && (coefPts < 2 || !hasCI)) kind = "bars";
   return { kind, title: str(raw.title, "The finding"), caption: str(raw.caption) || undefined, xLabel: str(raw.xLabel) || undefined, yLabel: str(raw.yLabel) || undefined, series, annotation: str(raw.annotation) || undefined };
 }
 
