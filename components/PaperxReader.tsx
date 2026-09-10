@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import LessonPredict from "@/components/lessons/LessonPredict";
-import type { PxGenome, PxChart, PxSeries, PxTeachback } from "@/lib/paperx/types";
+import type { PxGenome, PxChart, PxInfographic, PxSeries, PxTeachback } from "@/lib/paperx/types";
 
 // The interactive, visual reader for a Paper Explainer. A guided vertical
 // narrative: hook → the null everyone believes → predict → the puzzle → the
@@ -16,6 +16,43 @@ const TONE = {
   down: { stroke: "#C0603A", fill: "rgba(192,96,58,0.12)", chip: "text-clay" },
   neutral: { stroke: "#4E79C9", fill: "rgba(78,121,201,0.12)", chip: "text-sky" },
 } as const;
+
+// ---- Infographic — the evidence, designed (not a data chart) -----------------
+function Infographic({ info }: { info: PxInfographic }) {
+  const arrow = (t?: string) => (t === "up" ? "↑" : t === "down" ? "↓" : "");
+  return (
+    <div className="my-5">
+      {info.stats.length > 0 && (
+        <div className={"stagger-in grid gap-3 " + (info.stats.length === 1 ? "grid-cols-1" : info.stats.length === 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3")}>
+          {info.stats.map((s, i) => {
+            const t = TONE[s.tone || "neutral"];
+            return (
+              <div key={i} className="rounded-2xl border border-line bg-white p-4 text-center">
+                {s.icon && <div className="text-2xl" aria-hidden>{s.icon}</div>}
+                <div className="mt-1 text-3xl font-extrabold leading-none tabular-nums" style={{ color: t.stroke }}>{arrow(s.tone)}{s.value}</div>
+                <div className="mt-1.5 text-xs leading-snug text-slate-500">{s.label}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {info.pictograph && (() => {
+        const p = info.pictograph; const t = TONE[p.tone || "neutral"]; const icon = p.icon || "▮";
+        return (
+          <div className="mt-3 rounded-2xl border border-line bg-white p-4">
+            <div className="flex flex-wrap gap-1 text-xl leading-none">
+              {Array.from({ length: p.total }).map((_, k) => (
+                <span key={k} aria-hidden className="transition" style={{ opacity: k < p.filled ? 1 : 0.2, filter: k < p.filled ? undefined : "grayscale(1)", color: p.icon ? undefined : (k < p.filled ? t.stroke : "#cbd5e1") }}>{icon}</span>
+              ))}
+            </div>
+            <div className="mt-2 text-sm text-slate-600"><b className="tabular-nums" style={{ color: t.stroke }}>{p.filled} of {p.total}</b> {p.label}</div>
+          </div>
+        );
+      })()}
+      {info.caption && <p className="mt-2 text-xs text-slate-400">{info.caption}</p>}
+    </div>
+  );
+}
 
 // ---- Inline SVG chart --------------------------------------------------------
 const col = (s: PxSeries) => TONE[s.tone || "neutral"].stroke;
@@ -223,17 +260,11 @@ export default function PaperxReader({ g, preview, cohort }: { g: PxGenome; prev
         <div className="rounded-xl border-2 border-clay/40 bg-clay-soft/30 p-3"><span className="text-[11px] font-semibold uppercase tracking-wide text-clay">But we observe</span><p className="mt-0.5 font-semibold text-ink">{g.puzzle.observe}</p></div>
       </div>
     ) },
-    { eyebrow: "The evidence", body: <><h2 className="text-xl font-bold text-ink">{g.evidence.headline}</h2>{g.evidence.chart && <Chart chart={g.evidence.chart} />}<p className="mt-2 leading-relaxed text-slate-700">{g.evidence.takeaway}</p></> },
+    { eyebrow: "The evidence", body: <><h2 className="text-xl font-bold text-ink">{g.evidence.headline}</h2>{g.evidence.infographic ? <Infographic info={g.evidence.infographic} /> : g.evidence.chart ? <Chart chart={g.evidence.chart} /> : null}<p className="mt-2 leading-relaxed text-slate-700">{g.evidence.takeaway}</p></> },
     { eyebrow: "The idea", body: (
-      <>
-        <p className="mb-4 text-sm text-slate-500">Every research idea is really a conditional relationship. Here is this one:</p>
-        <div className="space-y-2">
-          <div className="flex items-start gap-3 rounded-xl border border-line bg-white p-3"><span className="flex-none rounded-md bg-ink px-2 py-1 text-[11px] font-bold text-white">IF</span><p className="text-ink">{g.idea.if_}</p></div>
-          <div className="flex items-start gap-3 rounded-xl border border-line bg-white p-3"><span className="flex-none rounded-md bg-sage px-2 py-1 text-[11px] font-bold text-white">THEN</span><p className="text-ink">{g.idea.then_}</p></div>
-          <div className="flex items-start gap-3 rounded-xl border border-line bg-white p-3"><span className="flex-none rounded-md bg-sky px-2 py-1 text-[11px] font-bold text-white">WHEN</span><p className="text-ink">{g.idea.whenZ}</p></div>
-          <div className="flex items-start gap-3 rounded-xl border-2 border-amber/40 bg-amber-soft/30 p-3"><span className="flex-none rounded-md bg-amber px-2 py-1 text-[11px] font-bold text-white">BECAUSE</span><p className="font-medium text-ink">{g.idea.because}</p></div>
-        </div>
-      </>
+      <div className="rounded-2xl border-2 border-sage/30 bg-sage-soft/30 p-5">
+        <p className="text-xl font-semibold leading-relaxed text-ink">{g.ideaStatement}</p>
+      </div>
     ) },
     { eyebrow: "Why it happens", body: <><h2 className="text-xl font-bold text-ink">{g.mechanism.headline}</h2><p className="mt-2 leading-relaxed text-slate-700">{g.mechanism.body}</p></> },
     { eyebrow: "So what", body: <><h2 className="text-xl font-bold text-ink">{g.soWhat.headline}</h2><p className="mt-2 leading-relaxed text-slate-700">{g.soWhat.body}</p></> },

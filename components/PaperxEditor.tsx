@@ -41,6 +41,13 @@ export default function PaperxEditor({ spec, editSlug }: { spec: PxGenome; editS
   function setAnswer(i: number, ci: number) {
     setG((p) => { const preds = [...p.predicts]; preds[i] = { ...preds[i], answer: ci }; return { ...p, predicts: preds }; });
   }
+  function setStat(i: number, field: "value" | "label", v: string) {
+    setG((p) => {
+      const info = p.evidence.infographic; if (!info) return p;
+      const stats = [...info.stats]; stats[i] = { ...stats[i], [field]: v };
+      return { ...p, evidence: { ...p.evidence, infographic: { ...info, stats } } };
+    });
+  }
 
   async function save(publish: boolean) {
     setBusy(true); setErr(null);
@@ -92,16 +99,27 @@ export default function PaperxEditor({ spec, editSlug }: { spec: PxGenome; editS
               <Field label="So we'd expect…" value={g.puzzle.expect} onChange={(v) => setG((p) => ({ ...p, puzzle: { ...p.puzzle, expect: v } }))} />
               <Field label="But we observe…" value={g.puzzle.observe} onChange={(v) => setG((p) => ({ ...p, puzzle: { ...p.puzzle, observe: v } }))} />
             </div></div>
-          <div className="rounded-xl border border-line p-3"><div className="text-xs font-bold uppercase tracking-wide text-slate-400">The idea (interaction)</div>
+          <div className="rounded-xl border border-line p-3"><div className="text-xs font-bold uppercase tracking-wide text-slate-400">The core idea</div>
+            <div className="mt-2"><Field label="The idea, in one or two plain sentences" value={g.ideaStatement} onChange={(v) => up("ideaStatement", v)} area /></div></div>
+          <div className="rounded-xl border border-line p-3"><div className="text-xs font-bold uppercase tracking-wide text-slate-400">Evidence</div>
             <div className="mt-2 space-y-2">
-              <Field label="IF" value={g.idea.if_} onChange={(v) => setG((p) => ({ ...p, idea: { ...p.idea, if_: v } }))} />
-              <Field label="THEN" value={g.idea.then_} onChange={(v) => setG((p) => ({ ...p, idea: { ...p.idea, then_: v } }))} />
-              <Field label="ESPECIALLY/EXCEPT WHEN" value={g.idea.whenZ} onChange={(v) => setG((p) => ({ ...p, idea: { ...p.idea, whenZ: v } }))} />
-              <Field label="BECAUSE" value={g.idea.because} onChange={(v) => setG((p) => ({ ...p, idea: { ...p.idea, because: v } }))} />
-            </div></div>
-          <div className="rounded-xl border border-line p-3"><div className="text-xs font-bold uppercase tracking-wide text-slate-400">Evidence takeaway</div>
-            <div className="mt-2"><Field label="Takeaway" value={g.evidence.takeaway} onChange={(v) => setG((p) => ({ ...p, evidence: { ...p.evidence, takeaway: v } }))} area /></div>
-            <p className="mt-2 text-xs text-slate-400">The chart is generated from the paper's numbers. If it looks wrong, verify the figures against your paper before publishing.</p></div>
+              <Field label="Headline" value={g.evidence.headline} onChange={(v) => setG((p) => ({ ...p, evidence: { ...p.evidence, headline: v } }))} />
+              <Field label="Takeaway" value={g.evidence.takeaway} onChange={(v) => setG((p) => ({ ...p, evidence: { ...p.evidence, takeaway: v } }))} area />
+            </div>
+            {g.evidence.infographic && g.evidence.infographic.stats.length > 0 && (
+              <div className="mt-3">
+                <div className="text-xs font-semibold text-slate-500">Infographic numbers — verify each against the paper</div>
+                <div className="mt-2 space-y-2">
+                  {g.evidence.infographic.stats.map((s, i) => (
+                    <div key={i} className="flex gap-2">
+                      <input value={s.value} onChange={(e) => setStat(i, "value", e.target.value)} className="field w-24 text-sm" placeholder="+42%" />
+                      <input value={s.label} onChange={(e) => setStat(i, "label", e.target.value)} className="field w-full text-sm" placeholder="what it measures" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <p className="mt-2 text-xs text-slate-400">The numbers come from the paper. Double-check each one before publishing.</p></div>
           <div className="rounded-xl border border-line p-3"><div className="text-xs font-bold uppercase tracking-wide text-slate-400">Why it happens</div>
             <div className="mt-2 space-y-2"><Field label="Headline" value={g.mechanism.headline} onChange={(v) => upSection("mechanism", "headline", v)} /><Field label="Body" value={g.mechanism.body} onChange={(v) => upSection("mechanism", "body", v)} area /></div></div>
           <div className="rounded-xl border border-line p-3"><div className="text-xs font-bold uppercase tracking-wide text-slate-400">So what</div>

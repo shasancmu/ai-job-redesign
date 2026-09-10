@@ -38,6 +38,13 @@ export type PxChart = {
 // and the truth is the teaching moment.
 export type PxPredict = { prompt: string; choices: string[]; answer: number; reveal: string };
 
+// An infographic of the paper's key result — designed, not a data chart. A few
+// big-number callouts (with a direction), and optionally one pictograph that
+// makes a proportion tangible (e.g. 7 of 10 icons filled).
+export type PxStat = { value: string; label: string; tone?: PxTone; icon?: string };
+export type PxPictograph = { total: number; filled: number; label: string; icon?: string; tone?: PxTone };
+export type PxInfographic = { stats: PxStat[]; pictograph?: PxPictograph; caption?: string };
+
 export type PxGenome = {
   slug: string;
   // Provenance — the actual paper.
@@ -54,12 +61,14 @@ export type PxGenome = {
   nullBelief: { headline: string; body: string }; // the conventional wisdom / null
   puzzle: { believe: string; expect: string; observe: string }; // violated expectation
   predicts: PxPredict[]; // 1–2 predict-then-reveal checkpoints
-  idea: { if_: string; then_: string; whenZ: string; because: string }; // the interaction
-  evidence: { headline: string; chart?: PxChart; takeaway: string };
+  ideaStatement: string; // the core insight in plain prose (what the reader sees)
+  idea: { if_: string; then_: string; whenZ: string; because: string }; // structured form, used for teach-back grading (not shown)
+  evidence: { headline: string; infographic?: PxInfographic; chart?: PxChart; takeaway: string }; // prefer the infographic; chart is an optional fallback
   mechanism: { headline: string; body: string }; // the twist / why it happens
   soWhat: { headline: string; body: string }; // implications
   teachBack: { prompt: string; audience: string; rubric: string[] }; // the Feynman payoff
   glossary?: { term: string; def: string }[];
+  sourceText?: string; // the paper's extracted text, stored to ground the "Ask the paper" chat (never displayed)
   generated?: boolean; // AI-drafted (shows the verify-before-publish banner)
   access?: "public" | "enrolled";
   cohorts?: string[]; // class codes for enrolled access
