@@ -554,7 +554,7 @@ export const MODULES: ModuleDef[] = [
     slug: "ai-canvas",
     exercise: "gas",
     name: "Find Where AI Fits a Workflow",
-    tagline: "Map one workflow to find where AI actually belongs: the human/AI split, the risks, and how to deploy it. You leave with an implementation-grade plan.",
+    tagline: "Map one workflow to find where AI actually belongs — and leave with an implementation-grade plan.",
     description:
       "An AI partner interviews you about one workflow, then drafts the GAS canvas: the outcome, the accuracy and generality it needs, the human/AI split, where complexity lives, the risks, and how to deploy. You leave with an implementation-grade plan.",
     partner: "ai",
