@@ -61,3 +61,22 @@ class Encoder:
             pooled = (summed / counts).cpu().numpy().astype(np.float32)
             out.append(pooled)
         return np.vstack(out) if out else np.zeros((0, self.dim), dtype=np.float32)
+
+
+# Loading a transformer encoder (tokenizer + ~440MB SciBERT weights) is THE heavy
+# cost, and every task uses the same one. Without sharing, each task's Predictor
+# would load its own copy — so a cold service loading three tasks would load
+# SciBERT three times (~90s each), the direct cause of scores timing out and only
+# one dimension coming back. Cache by (name, device, max_length) so all tasks
+# share a single encoder: the first load pays the ~90s, every other task is instant.
+_ENCODER_CACHE: dict[tuple, "Encoder"] = {}
+
+
+def get_encoder(name: str = "scibert", device: str | None = None, max_length: int = 256) -> "Encoder":
+    dev = device or pick_device()
+    key = (name, dev, max_length)
+    enc = _ENCODER_CACHE.get(key)
+    if enc is None:
+        enc = Encoder(name, device=dev, max_length=max_length)
+        _ENCODER_CACHE[key] = enc
+    return enc

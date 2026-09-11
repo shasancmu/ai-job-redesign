@@ -47,6 +47,23 @@ class ScoreIn(BaseModel):
     texts: Optional[list[str]] = None
 
 
+@app.on_event("startup")
+def _preload():
+    """Load every trained task when the container boots, not on the first request.
+    With min-instances >= 1 the instance is then held fully warm, so no user ever
+    waits on a cold model load. Predictors share one encoder (see get_encoder), so
+    this loads SciBERT once and each head after that. Best-effort: a bad task dir
+    is skipped rather than crashing startup."""
+    if not os.path.isdir(MODEL_DIR):
+        return
+    for task in sorted(d for d in os.listdir(MODEL_DIR) if os.path.isdir(os.path.join(MODEL_DIR, d))):
+        try:
+            _predictor(task)
+        except Exception as e:  # noqa: BLE001 — never let one task block the rest
+            print(f"[sciscore] preload skipped task '{task}': {e}", flush=True)
+    print(f"[sciscore] preloaded tasks: {list(_cache)}", flush=True)
+
+
 @app.get("/health")
 def health():
     return {"ok": True, "model_dir": MODEL_DIR, "loaded": list(_cache)}

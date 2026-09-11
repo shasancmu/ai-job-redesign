@@ -5,7 +5,7 @@ import json
 import os
 from typing import List
 
-from .encoders import Encoder
+from .encoders import get_encoder
 
 
 class Predictor:
@@ -16,7 +16,8 @@ class Predictor:
             self.meta = json.load(f)
         self.kind = self.meta.get("kind", "binary")
         self.model = joblib.load(os.path.join(model_dir, "head.joblib"))
-        self.encoder = Encoder(self.meta["encoder"], max_length=self.meta.get("max_length", 256))
+        # Shared across tasks — see get_encoder. The heavy SciBERT base loads once.
+        self.encoder = get_encoder(self.meta["encoder"], max_length=self.meta.get("max_length", 256))
 
     def _stars(self, s: float) -> int:
         # both heads output a 0-1 score, so stars map the same way
