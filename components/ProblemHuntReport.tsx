@@ -40,12 +40,14 @@ export default function ProblemHuntReport({ mode, report }: { mode: HuntMode; re
                   {o.blindSpot && <span className="rounded-full bg-sky-soft/60 px-2 py-0.5 text-[10px] font-semibold text-slate-600">blind spot</span>}
                 </div>
                 <p className="mt-1 text-sm text-slate-600">{o.whereValueLeaks}</p>
+                {o.rootCause && <p className="mt-1 text-xs text-slate-500"><b className="text-slate-600">Root cause:</b> {o.rootCause}</p>}
                 <div className="mt-2 grid gap-1 text-xs text-slate-500 sm:grid-cols-2">
                   <div><b className="text-slate-600">Value:</b> {o.expectedValue}</div>
                   <div><b className="text-slate-600">Odds:</b> {o.probability}</div>
                   <div><b className="text-slate-600">Needs:</b> {o.resources}</div>
                   <div><b className="text-slate-600">Stop to fund:</b> {o.stopToFund}</div>
                 </div>
+                {o.killTest && <p className="mt-2 rounded-lg bg-mist px-2.5 py-1.5 text-xs text-slate-600"><b className="text-ink">Cheapest test:</b> {o.killTest}</p>}
               </div>
             ))}
           </div>

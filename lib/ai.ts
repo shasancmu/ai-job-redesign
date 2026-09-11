@@ -872,10 +872,10 @@ export async function problemHuntReportAI(input: { mode: "seller" | "leader"; tr
 }`;
   const leaderShape = `{
   "context":"one line on the organization/situation",
-  "opportunities":[{"name":"short name","whereValueLeaks":"one line","expectedValue":"$ figure + basis","probability":"low|medium|high + why","resources":"what it would take","stopToFund":"what to stop doing to fund it","blindSpot":true}],
+  "opportunities":[{"name":"short name","whereValueLeaks":"2-3 sentences: the specific waste, and the root cause — why it persists","rootCause":"one sentence naming the underlying reason it has not been fixed","expectedValue":"$ figure or range + the concrete basis for it","probability":"low|medium|high + why","resources":"what it would take (roles, time, systems)","stopToFund":"what to stop doing to fund it","killTest":"the single cheapest concrete experiment to validate THIS opportunity, specific enough to run in weeks (name the data, the model or step, and the signal that would confirm it)","blindSpot":true}],
   "topPick":"which opportunity to pursue first and why",
-  "killTest":"the cheapest internal experiment to validate the top pick before committing",
-  "handoff":"how to turn the top pick into a running, measured experiment",
+  "killTest":"the FULL, detailed cheapest experiment for the top pick — concrete and step-by-step, the kind someone could start Monday (name the exact data to pull, the analysis to run, and the threshold that validates the hypothesis)",
+  "handoff":"how to turn the top pick into a running, measured experiment — a concrete controlled pilot with arms, a measurement window, and a roll-out threshold",
   "verdict":"2-3 sentences on the portfolio",
   "gaps":["1-3 weakest spots in the analysis"]
 }`;
@@ -885,7 +885,11 @@ export async function problemHuntReportAI(input: { mode: "seller" | "leader"; tr
   const shape = input.mode === "leader" ? leaderShape : sellerShape;
   const leaderRule = input.mode === "leader" ? `
 
-CRITICAL for the opportunity map: return 4 to 7 DISTINCT opportunities in DIFFERENT parts of the organization — spanning several value-leak types (misallocated attention, capital/initiatives, latent revenue or pricing, dispersed information/decisions, operational waste, talent misallocation). They MUST be genuinely different problems. NEVER list phases, sub-steps, or facets of a single initiative as separate opportunities (e.g. "build the model", "benchmark the model", "segment with the model" are ONE opportunity, not three) — collapse those into one and spend the other slots on OTHER parts of the organization. If the interview only surfaced one or two areas, propose additional plausible value-leak areas for an organization of this type as candidates to investigate, set their "blindSpot" to true, keep their "expectedValue" qualitative or a wide range (never a fabricated precise number), and make clear in the name/whereValueLeaks that they are hypotheses to test. Order the array from highest expected value to lowest.` : "";
+CRITICAL for the opportunity map — BREADTH and DEPTH, not a trade-off:
+- BREADTH: return 4 to 7 DISTINCT opportunities in DIFFERENT parts of the organization, spanning several value-leak types (misallocated attention, capital/initiatives, latent revenue or pricing, dispersed information/decisions, operational waste, talent misallocation). They MUST be genuinely different problems. NEVER list phases, sub-steps, or facets of a single initiative as separate opportunities (e.g. "build the model", "benchmark the model", "segment with the model" are ONE opportunity, not three) — collapse those into one and spend the other slots on OTHER parts of the organization.
+- DEPTH: every opportunity must be as RICH and specific as a standalone analysis — a real root cause, a concrete value basis, honest odds with reasoning, the resources it needs, what to stop to fund it, and a concrete cheapest test someone could actually run in weeks. Do NOT reduce any opportunity to a one-liner just because there are several. The reader should be able to act on any single row.
+- If the interview only surfaced one or two areas, propose additional plausible value-leak areas for an organization of this type as candidates to investigate, set their "blindSpot" to true, keep their "expectedValue" qualitative or a wide range (never a fabricated precise number), and make clear in the name/whereValueLeaks that they are hypotheses to test.
+- Order the array from highest expected value to lowest.` : "";
   const system = `You are a rigorous strategy coach producing the final report of a problem hunt. Be honest and specific; do not flatter. Ground the reality check ONLY in the web evidence provided (it is authoritative); if the evidence is thin or absent, say the problem is asserted but not yet externally corroborated, and lower the relevant score. Never invent a statistic or a source.${leaderRule}
 
 Output STRICT JSON only, EXACTLY these keys plus scores and an evidence block:
@@ -896,7 +900,7 @@ ${shape.slice(0, shape.length - 1)},
 Scores are 0-5 integers, honest. Put the REAL sources given below into evidence.sources (title + url), never fabricated ones. No em dashes.`;
   const srcList = input.sources.length ? input.sources.map((s) => `- ${s.title} — ${s.url}`).join("\n") : "(no sources found)";
   const user = `MODE: ${input.mode}\nCANDIDATE PROBLEM: ${input.problem || "(infer from transcript)"}\n\nINTERVIEW TRANSCRIPT:\n${input.transcript.slice(0, 7000)}\n\nWEB EVIDENCE (authoritative for the reality check):\n${input.evidence ? input.evidence.slice(0, 6000) : "(no web evidence available)"}\n\nREAL SOURCES (use these exact links in evidence.sources):\n${srcList}`;
-  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens: input.mode === "leader" ? 2800 : 1800, timeoutMs: 75000 });
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens: input.mode === "leader" ? 4200 : 1800, timeoutMs: 90000 });
 }
 
 // Helps an interviewer dig past tasks to the VALUE the other person creates.
