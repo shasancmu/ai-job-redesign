@@ -44,6 +44,7 @@ export type ModuleDef = {
     | "hard-convo"
     | "vision"
     | "vision-voice"
+    | "vision-voice-ai"
     | "career-xray"
     | "jd-xray"
     | "career-roadmap"
@@ -437,6 +438,21 @@ export const MODULES: ModuleDef[] = [
     tagline: "The vision conversation as a hands-free voice session. Just talk while an AI facilitator draws out what your organization stands for and where it's headed, then get your vision written up.",
     description:
       "Shape Your Company Vision as a spoken conversation. A facilitator interviews you out loud, drawing out your core values and purpose and the bold future you're building toward, then synthesizes it (grounded in the Collins and Porras vision framework) into a clear vision. Uses your browser's speech; nothing is recorded, only the transcript is kept.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 25,
+    ai: true,
+    emoji: "🎙️",
+    priceCents: 500,
+    priceEnv: "STRIPE_PRICE_SOLO",
+  },
+  {
+    slug: "define-vision-voice-ai",
+    exercise: "vision-voice-ai",
+    name: "Talk Through Your Vision (OpenAI Voice)",
+    tagline: "The vision conversation as a hands-free voice session, powered by OpenAI's voice models. Just talk while a facilitator draws out where your organization is headed.",
+    description:
+      "Shape Your Company Vision as a spoken conversation, powered by OpenAI's voice models. A facilitator interviews you out loud, drawing out your core values and purpose and the bold future you're building toward, then synthesizes it (grounded in the Collins and Porras vision framework) into a clear vision. Uses OpenAI transcription and text-to-speech; nothing is recorded, only the transcript is kept.",
     partner: "ai",
     mode: "With AI",
     minutes: 25,
@@ -1779,6 +1795,7 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "personal-network": "career",
   "define-vision": "business",
   "define-vision-voice": "business",
+  "define-vision-voice-ai": "business",
   "domain-brief": "commercialize",
   "find-collaborators": "commercialize",
   "licensing-brief": "commercialize",
@@ -1914,6 +1931,7 @@ const OUTCOME_OF: Record<string, string> = {
   "business-myopia": "Your business's three blind spots, named",
   "define-vision": "A usable company vision",
   "define-vision-voice": "A usable company vision",
+  "define-vision-voice-ai": "A usable company vision",
   "earnings-call": "A forensic read on a CEO's hidden truth",
   "star-hire": "Your hire, scored against the truth",
   "incentive-lab": "An incentive system that resists gaming",
@@ -2031,7 +2049,7 @@ const CATALOG_ORDER: string[] = [
   // Sharpen a decision
   "good-business", "customer-empathy", "opportunity-capability", "test-the-bet",
   "ai-canvas", "balanced-scorecard", "execution-4a", "business-consult", "voice-consult",
-  "ai-board", "business-myopia", "define-vision", "define-vision-voice", "deeptech-canvas",
+  "ai-board", "business-myopia", "define-vision", "define-vision-voice", "define-vision-voice-ai", "deeptech-canvas",
   "domain-brief", "licensing-brief", "score-my-invention", "rank-disclosures", "find-a-cofounder", "diligence-the-science", "nearest-expert", "science-radar", "science-intel", "earnings-call", "star-hire", "incentive-lab", "hot-seat", "the-number", "technology-landscape", "deep-tech-deal-sourcing", "commercialization-scorecard", "field-trajectory", "vendor-disclosure",
   // Negotiate
   "name-your-price", "close-the-offer", "ask-for-a-raise", "close-the-vendor-deal",
@@ -2126,6 +2144,7 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "business-myopia": ["strategy", "innovation", "leadership"],
   "define-vision": ["strategy", "leadership", "entrepreneurship"],
   "define-vision-voice": ["strategy", "leadership", "entrepreneurship"],
+  "define-vision-voice-ai": ["strategy", "leadership", "entrepreneurship"],
   // Negotiation
   "close-the-offer": ["negotiation", "career"],
   "name-your-price": ["negotiation"],
@@ -2206,7 +2225,7 @@ export const FEATURES: { key: FeatureKey; label: string }[] = [
   { key: "camera", label: "Photo" },
 ];
 
-const VOICE_MODULES = new Set(["voice-consult", "refresh-resume-voice", "rehearse-hard-conversation", "define-vision-voice"]);
+const VOICE_MODULES = new Set(["voice-consult", "refresh-resume-voice", "rehearse-hard-conversation", "define-vision-voice", "define-vision-voice-ai"]);
 const CAMERA_MODULES = new Set(["business-consult"]); // has a photograph-the-operation step
 
 export function moduleFeatures(slug: string): FeatureKey[] {
