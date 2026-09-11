@@ -17,15 +17,17 @@ COPY requirements.txt .
 RUN pip install torch --index-url https://download.pytorch.org/whl/cpu \
  && pip install -r requirements.txt
 
+# Pre-download SciBERT into the image so the first request is fast. This sits
+# ABOVE the app-code COPYs on purpose: it depends only on the installed deps, so
+# editing sciscore/*.py no longer busts this layer and re-downloads the 440MB model.
+RUN python -c "from transformers import AutoModel, AutoTokenizer; \
+AutoTokenizer.from_pretrained('allenai/scibert_scivocab_uncased'); \
+AutoModel.from_pretrained('allenai/scibert_scivocab_uncased')"
+
 COPY sciscore ./sciscore
 COPY tasks ./tasks
 # Your trained model(s), baked into the image:
 COPY models ./models
-
-# Pre-download SciBERT into the image so the first request is fast.
-RUN python -c "from transformers import AutoModel, AutoTokenizer; \
-AutoTokenizer.from_pretrained('allenai/scibert_scivocab_uncased'); \
-AutoModel.from_pretrained('allenai/scibert_scivocab_uncased')"
 
 ENV SCISCORE_MODEL_DIR=/app/models
 EXPOSE 8080
