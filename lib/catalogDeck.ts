@@ -10,11 +10,16 @@ import type { Slide, DeckCard } from "@/lib/deckTypes";
 // Which certificates a category leads toward (bundle keys).
 const CATEGORY_BUNDLES: Record<CategoryKey, string[]> = {
   redesign: ["ai-ready", "career-navigator"],
+  career: ["career-navigator"],
   strategy: ["strategist", "founder"],
+  opportunity: ["founder", "strategist"],
+  business: ["strategist"],
   commercialize: ["founder"],
   negotiate: ["negotiator"],
   live: [],
   research: ["research"],
+  craft: ["research"],
+  publish: ["research"],
   phd: ["phd-path"],
   foundations: ["ai-literacy"],
   governance: [],
