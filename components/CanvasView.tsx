@@ -4,6 +4,7 @@ import Link from "next/link";
 import Logo from "@/components/Logo";
 import ShareReport from "@/components/ShareReport";
 import { accentColor, scoreColor, type CanvasDef } from "@/lib/canvases";
+import { coerceLine, coercePair } from "@/lib/canvasCoerce";
 import FrontierPlot, { complexityLevel, QuadrantPlot } from "@/components/FrontierPlot";
 import UnitEconomics from "@/components/UnitEconomics";
 import PrintButton from "@/components/PrintButton";
@@ -155,7 +156,7 @@ export default function CanvasView({
                           <p className="mt-1 text-sm text-slate-300">—</p>
                         ) : f.kind === "pairs" ? (
                           <ul className="mt-1.5 space-y-1.5">
-                            {(v as { a: string; b: string }[]).map((p, i) => (
+                            {(Array.isArray(v) ? v : []).map(coercePair).filter((p) => p.a || p.b).map((p, i) => (
                               <li key={i} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
                                 <span className="text-slate-700">{p.a}</span>
                                 {p.b && (
@@ -168,7 +169,7 @@ export default function CanvasView({
                           </ul>
                         ) : f.kind === "list" ? (
                           <ul className="mt-1.5 space-y-1">
-                            {(v as string[]).map((it, i) => (
+                            {(Array.isArray(v) ? v : []).map(coerceLine).filter(Boolean).map((it, i) => (
                               <li key={i} className="flex gap-2 text-sm text-slate-700">
                                 <span style={{ color }}>•</span>
                                 <span>{it}</span>
@@ -176,7 +177,7 @@ export default function CanvasView({
                             ))}
                           </ul>
                         ) : (
-                          <p className="mt-1 text-sm leading-relaxed text-slate-700">{v}</p>
+                          <p className="mt-1 text-sm leading-relaxed text-slate-700">{coerceLine(v)}</p>
                         )}
                       </div>
                     </div>

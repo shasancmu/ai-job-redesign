@@ -39,6 +39,7 @@ export const VISION_ENABLED = !!VISION_API_KEY;
 export type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
 
 import type { CanvasDef } from "./canvases";
+import { coerceLine, coercePair } from "./canvasCoerce";
 import { currentLanguage } from "./lang";
 import { ADVICE_PRINCIPLES, BOTTOM_LINE_JSON } from "./advice";
 import { RESUME_CRAFT } from "./resume";
@@ -2531,7 +2532,7 @@ Return STRICT JSON only, no prose, no code fences:
 ${fieldLines}
 ${extra.join("\n")}
 }
-Rules: fill EVERY field, grounded in the interview and specific to this ${def.subjectLabel}. List fields get 2–4 tight items. No vague filler.`;
+Rules: fill EVERY field, grounded in the interview and specific to this ${def.subjectLabel}. A list field is an array of 2–4 plain STRINGS (never objects). A pairs field is an array of objects each with exactly the keys "a" and "b". No vague filler.`;
 
   const user = `The ${def.subjectLabel}: ${subject || "(unnamed)"}\n\nInterview:\n${transcript || "(none)"}`;
   try {
@@ -2546,13 +2547,16 @@ Rules: fill EVERY field, grounded in the interview and specific to this ${def.su
     for (const f of def.fields) {
       const v = p[f.key];
       if (f.kind === "list") {
-        fields[f.key] = Array.isArray(v) ? v.slice(0, 6).map((x: any) => String(x)) : [];
+        // The model is asked for strings, but it sometimes returns objects or
+        // null entries; coerceLine turns any of those into a clean line (never
+        // "undefined" or "[object Object]") and empties are dropped.
+        fields[f.key] = (Array.isArray(v) ? v : []).map(coerceLine).filter(Boolean).slice(0, 6);
       } else if (f.kind === "pairs") {
-        fields[f.key] = Array.isArray(v)
-          ? v.slice(0, 6).map((x: any) => ({ a: String(x?.a || ""), b: String(x?.b || "") })).filter((x: any) => x.a || x.b)
-          : [];
+        // Same defense for pairs: tolerate a plain string, {a,b}, or an object
+        // that used different keys than a/b, rather than silently dropping it.
+        fields[f.key] = (Array.isArray(v) ? v : []).map(coercePair).filter((x) => x.a || x.b).slice(0, 6);
       } else {
-        fields[f.key] = String(v || "");
+        fields[f.key] = coerceLine(v);
       }
     }
     const out: any = { fields, synthesis: String(p.synthesis || ""), _raw: JSON.stringify(p) };

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
 import InterviewHelper from "@/components/InterviewHelper";
 import { CANVAS_STEPS, accentColor, type CanvasDef, type CanvasField } from "@/lib/canvases";
+import { coerceLine, coercePair } from "@/lib/canvasCoerce";
 import CanvasView from "@/components/CanvasView";
 import ReflectCommit from "@/components/ReflectCommit";
 import ResearchBehind from "@/components/ResearchBehind";
@@ -517,12 +518,12 @@ function FieldInput({ field, value, onChange }: { field: CanvasField; value: any
       </label>
       {field.hint && <div className="mt-0.5 text-xs text-slate-500">{field.hint}</div>}
       {field.kind === "pairs" ? (
-        <PairsEditor field={field} value={Array.isArray(value) ? value : []} onChange={onChange} />
+        <PairsEditor field={field} value={(Array.isArray(value) ? value : []).map(coercePair)} onChange={onChange} />
       ) : field.kind === "list" ? (
         <textarea
           className="field mt-1.5"
           placeholder={t("canvas.onePerLine")}
-          value={Array.isArray(value) ? value.join("\n") : ""}
+          value={Array.isArray(value) ? value.map(coerceLine).filter(Boolean).join("\n") : ""}
           onChange={(e) => onChange(e.target.value.split("\n").map((s) => s.trim()).filter(Boolean))}
         />
       ) : field.kind === "long" ? (
