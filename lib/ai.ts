@@ -3430,7 +3430,7 @@ Return STRICT JSON only, plain text values (no markdown):
   "strongest": "which potential is strongest, and what that implies for what to do with it",
   "readCommercial": "1-2 sentences interpreting the commercial score for this idea",
   "readScientific": "1-2 sentences interpreting the scientific score",
-  "readSocial": "1-2 sentences interpreting the social score",${deepBits.length ? `\n  "readDeeper": "1-2 sentences on the deeper dimensions above — what the complex-invention / interdisciplinary${typeof e.defense === "number" && e.defense >= 0 ? " / defense" : ""} scores say about this idea and who that opens doors with",` : ""}
+  "readSocial": "1-2 sentences interpreting the social score",${typeof e.complex_invention === "number" && e.complex_invention >= 0 ? `\n  "readComplex": "1-2 sentences interpreting the complex-invention score for this idea (does it genuinely span multiple technical disciplines, and what that means)",` : ""}${typeof e.interdisciplinary === "number" && e.interdisciplinary >= 0 ? `\n  "readInterdisciplinary": "1-2 sentences interpreting the interdisciplinary score (how likely to influence fields beyond its own, and who that reaches)",` : ""}${typeof e.defense === "number" && e.defense >= 0 ? `\n  "readDefense": "1-2 sentences interpreting the defense-relevance score (potential relevance to government / national-security technology, honestly, not inflated)",` : ""}
   "raise": ["3-4 concrete, specific ways to strengthen or reframe THIS idea to raise its potential, especially commercial"],
   "whoCares": ["2-3 specific types of people or organizations who would care if this delivers"],
   "verdict": "one of: Pursue | Develop further | Weak case, followed by one line on why"

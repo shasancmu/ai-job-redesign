@@ -4,7 +4,8 @@ type Score = { raw: number; stars: number };
 type Scores = { commercial: Score; scientific: Score; social: Score };
 type Read = {
   headline?: string; strongest?: string;
-  readCommercial?: string; readScientific?: string; readSocial?: string; readDeeper?: string;
+  readCommercial?: string; readScientific?: string; readSocial?: string;
+  readComplex?: string; readInterdisciplinary?: string; readDefense?: string;
   raise?: string[]; whoCares?: string[]; verdict?: string;
 };
 
@@ -30,14 +31,16 @@ function ScoreCard({ label, s, note }: { label: string; s?: Score; note?: string
 }
 
 const EXTRA_LABEL: Record<string, string> = { complex_invention: "Complex-invention", interdisciplinary: "Interdisciplinary", defense: "Defense" };
+const EXTRA_READ: Record<string, keyof Read> = { complex_invention: "readComplex", interdisciplinary: "readInterdisciplinary", defense: "readDefense" };
 
-function MiniPot({ label, v }: { label: string; v: number }) {
+function MiniPot({ label, v, note }: { label: string; v: number; note?: string }) {
   const color = v >= 66 ? "#3F7A52" : v >= 33 ? "#CE8F2C" : "#C06A47";
   return (
-    <div className="rounded-xl border border-line bg-white p-3">
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</div>
-      <div className="mt-0.5 flex items-baseline gap-1"><span className="text-lg font-bold text-ink">{v}</span><span className="text-[11px] text-slate-400">/100</span></div>
-      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-mist"><div className="h-full rounded-full" style={{ width: `${v}%`, background: color }} /></div>
+    <div className="card p-4">
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label} potential</div>
+      <div className="mt-1 flex items-baseline gap-2"><span className="text-2xl font-bold text-ink">{v}</span><span className="text-xs text-slate-400">/100</span></div>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-mist"><div className="h-full rounded-full" style={{ width: `${v}%`, background: color }} /></div>
+      {note && <p className="mt-2 text-sm text-slate-600">{note}</p>}
     </div>
   );
 }
@@ -64,10 +67,9 @@ export default function ScoreInventionReport({ read, scores, extra, deeperOfflin
       {extraEntries.length > 0 ? (
         <div>
           <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Deeper potential <span className="normal-case text-slate-300">· from our own trained models</span></div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {extraEntries.map(([k, v]) => <MiniPot key={k} label={EXTRA_LABEL[k] || k} v={v} />)}
+          <div className="grid gap-3 sm:grid-cols-3">
+            {extraEntries.map(([k, v]) => <MiniPot key={k} label={EXTRA_LABEL[k] || k} v={v} note={r[EXTRA_READ[k]] as string | undefined} />)}
           </div>
-          {r.readDeeper && <p className="mt-2 text-sm text-slate-600">{r.readDeeper}</p>}
         </div>
       ) : deeperOffline ? (
         <div className="rounded-xl border border-dashed border-line bg-mist/40 px-4 py-3 text-xs text-slate-500">

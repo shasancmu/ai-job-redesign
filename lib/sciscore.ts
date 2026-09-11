@@ -47,7 +47,7 @@ export async function scoreTextBatch(task: string, texts: string[], timeoutMs = 
 // base on its first request (~30s), and a 20s window would abort mid-cold-start
 // and silently drop that dimension. One retry recovers a transient cold miss —
 // the base is warm by the second try, so it returns in well under a second.
-export async function scoreText(task: string, text: string, timeoutMs = 45000): Promise<ModelScore | null> {
+export async function scoreText(task: string, text: string, timeoutMs = 60000): Promise<ModelScore | null> {
   if (!BASE) return null;
   const t = (text || "").trim();
   if (t.length < 40) return null;
