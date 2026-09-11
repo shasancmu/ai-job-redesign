@@ -98,12 +98,42 @@ export function masterCohortCode(orgId: string): string {
 
 // Create the org's master cohort if it doesn't exist yet; returns its code (or
 // null if it can't be created — e.g. no owner to satisfy the classes FK).
+// The "master class": a default class_unit auto-created per org, inheriting the
+// org's module list at creation. Every org gets one default Class + one default
+// Cohort (the master cohort, below) so the hierarchy exists out of the box and a
+// director never has to build it by hand. Idempotent; best-effort.
+export async function ensureMasterClass(org: Pick<Org, "id" | "name" | "owner_id" | "modules">): Promise<string | null> {
+  const db = admin();
+  if (!db || !org.owner_id) return null;
+  try {
+    const { data: existing } = await db.from("class_units").select("id").eq("org_id", org.id).eq("is_default", true).maybeSingle();
+    if (existing) return (existing as any).id;
+    const { data, error } = await db.from("class_units").insert({
+      org_id: org.id,
+      owner_id: org.owner_id,
+      name: `${org.name} — All`,
+      slug: "all-" + org.id.replace(/-/g, "").slice(0, 12),
+      modules: org.modules || [],
+      is_default: true,
+    }).select("id").maybeSingle();
+    return error ? null : ((data as any)?.id || null);
+  } catch { return null; }
+}
+
 export async function ensureMasterCohort(org: Pick<Org, "id" | "name" | "owner_id" | "modules">): Promise<string | null> {
   const db = admin();
   if (!db) return null;
+  // Ensure the default Class exists first; the master Cohort sits under it, and both
+  // inherit the org's module list. Also backfills the link for orgs created earlier.
+  const classUnitId = await ensureMasterClass(org).catch(() => null);
   const code = masterCohortCode(org.id);
-  const { data: existing } = await db.from("classes").select("code").eq("code", code).maybeSingle();
-  if (existing) return code;
+  const { data: existing } = await db.from("classes").select("code, class_unit_id").eq("code", code).maybeSingle();
+  if (existing) {
+    if (classUnitId && !(existing as any).class_unit_id) {
+      try { await db.from("classes").update({ class_unit_id: classUnitId }).eq("code", code); } catch { /* best effort */ }
+    }
+    return code;
+  }
   if (!org.owner_id) return null; // classes.owner_id is NOT NULL
   const { error } = await db.from("classes").insert({
     code,
@@ -112,8 +142,24 @@ export async function ensureMasterCohort(org: Pick<Org, "id" | "name" | "owner_i
     org_id: org.id,
     is_default: true,
     modules: org.modules || [],
+    ...(classUnitId ? { class_unit_id: classUnitId } : {}),
   });
   return error ? null : code;
+}
+
+// Keep the org's DEFAULT class + DEFAULT cohort mirroring the org's master module
+// list, so "All members" always reflects what the org offers. Custom subsets are
+// what non-default classes/cohorts are for; those are never touched. Call after
+// the org's modules are saved. Best-effort.
+export async function syncMasterModules(org: Pick<Org, "id" | "name" | "owner_id" | "modules">): Promise<void> {
+  const db = admin();
+  if (!db) return;
+  const mods = org.modules || [];
+  try {
+    await ensureMasterClass(org); // create the default Class if it's missing
+    await db.from("class_units").update({ modules: mods }).eq("org_id", org.id).eq("is_default", true);
+    await db.from("classes").update({ modules: mods }).eq("code", masterCohortCode(org.id)).eq("is_default", true);
+  } catch { /* best effort */ }
 }
 
 // Idempotently add a user to their org's master cohort.

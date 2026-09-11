@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isSuperadmin, canEditOrgBranding, getOrgById, ensureMasterCohort, joinMasterCohort } from "@/lib/orgs";
+import { isSuperadmin, canEditOrgBranding, getOrgById, ensureMasterCohort, joinMasterCohort, syncMasterModules } from "@/lib/orgs";
 import { MODULES } from "@/lib/modules";
 
 const VALID_MODULES = new Set(MODULES.map((m) => m.slug));
@@ -81,6 +81,8 @@ export async function POST(request: Request) {
         }
         const { data, error } = await admin.from("organizations").update(row).eq("id", editId).select().single();
         if (error) return Response.json({ error: error.message }, { status: 400 });
+        // Keep the default Class + Cohort mirroring the org's module list.
+        if (data && Object.prototype.hasOwnProperty.call(row, "modules")) await syncMasterModules(data as any).catch(() => {});
         return Response.json({ org: data });
       }
 
@@ -98,8 +100,8 @@ export async function POST(request: Request) {
       };
       const { data, error } = await admin.from("organizations").insert(row).select().single();
       if (error) return Response.json({ error: error.message.includes("duplicate") ? `The slug "${slug}" is taken.` : error.message }, { status: 400 });
-      // Give the new org its master cohort (the default "everyone" group).
-      if (data) await ensureMasterCohort(data as any);
+      // Give the new org its default Class + Cohort, inheriting its module list.
+      if (data) { await ensureMasterCohort(data as any); await syncMasterModules(data as any).catch(() => {}); }
       return Response.json({ org: data });
     }
 
