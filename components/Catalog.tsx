@@ -212,7 +212,7 @@ export default function Catalog({
               {/* Hover-preview: the fuller description reveals on hover (motion); non-essential, so it stays folded otherwise and respects reduced-motion. */}
               <div className="grid grid-rows-[0fr] opacity-0 transition-all duration-300 ease-out group-hover:grid-rows-[1fr] group-hover:opacity-100 motion-reduce:transition-none">
                 <div className="overflow-hidden">
-                  <p className="mt-2 text-xs leading-relaxed text-slate-500 line-clamp-3">{m.description}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-500">{m.description}</p>
                 </div>
               </div>
               <div className="mt-2 flex flex-1 flex-wrap content-start gap-1">
