@@ -109,3 +109,44 @@ export async function researchForCase(intent: string, sourceText: string): Promi
     return { block, videos, images };
   } catch { return EMPTY; }
 }
+
+// Generic web evidence: run a few focused queries and return a readable block
+// plus real source links, for corroborating that a claimed problem is real.
+// Same capped, fail-closed budget as the case researcher — one credit per query.
+export type Evidence = { block: string; sources: Suggest[] };
+const NO_EVIDENCE: Evidence = { block: "", sources: [] };
+
+async function searchOne(query: string): Promise<{ lines: string[]; sources: Suggest[] }> {
+  const q = query.replace(/\s+/g, " ").trim().slice(0, 380);
+  if (!q || !(await claimCredit())) return { lines: [], sources: [] };
+  try {
+    const res = await fetch("https://api.tavily.com/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ api_key: TAVILY_KEY, query: q, search_depth: "advanced", max_results: 6, include_images: false, include_answer: false }),
+    });
+    if (!res.ok) return { lines: [], sources: [] };
+    const data = await res.json().catch(() => null);
+    const results: any[] = Array.isArray(data?.results) ? data.results : [];
+    const sources: Suggest[] = results.slice(0, 4).map((r) => ({ url: String(r.url || ""), title: String(r.title || "Source") })).filter((s) => /^https?:\/\//.test(s.url));
+    const lines = results.slice(0, 5).map((r) => `- ${String(r.title || "").trim()} — ${r.url}\n  ${String(r.content || "").replace(/\s+/g, " ").trim().slice(0, 240)}`);
+    return { lines, sources };
+  } catch { return { lines: [], sources: [] }; }
+}
+
+export async function webEvidence(queries: string[]): Promise<Evidence> {
+  if (!WEB_RESEARCH_ENABLED) return NO_EVIDENCE;
+  const qs = (Array.isArray(queries) ? queries : []).map((s) => String(s || "")).filter(Boolean).slice(0, 3);
+  if (!qs.length) return NO_EVIDENCE;
+  const parts = await Promise.all(qs.map(searchOne));
+  const lines: string[] = [];
+  const seen = new Set<string>();
+  const sources: Suggest[] = [];
+  parts.forEach((p, i) => {
+    if (p.lines.length) { lines.push(`QUERY: ${qs[i]}`); lines.push(...p.lines); }
+    for (const s of p.sources) { if (!seen.has(s.url)) { seen.add(s.url); sources.push(s); } }
+  });
+  return { block: lines.join("\n").slice(0, 6000), sources: sources.slice(0, 10) };
+}
+
+export { WEB_RESEARCH_ENABLED as EVIDENCE_ENABLED };

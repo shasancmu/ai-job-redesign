@@ -830,6 +830,72 @@ export async function workflowInterviewReply(
   );
 }
 
+// ============================================================================
+// Problem Hunt — coached search for the highest-value problem to solve. The
+// mode-specific system prompt is passed in (from lib/problemhunt) so this file
+// stays free of that dependency. Streams the interview; a separate call turns
+// the transcript into web-search queries; a third grades the thesis / map.
+// ============================================================================
+export async function problemHuntReply(system: string, history: ChatMsg[], turns: number, nudge: string | undefined, onToken?: (d: string) => void): Promise<string> {
+  const conversation: ChatMsg[] = history.length ? history : [{ role: "user", content: "Please begin. Ask your first question." }];
+  if (interviewOverBudget(history, turns)) return interviewClosingReply(history, turns, "Coaching a search for a valuable problem.", onToken);
+  return complete(
+    [{ role: "system", content: `${system}${expNudge(nudge)}${pacingDirective(history, turns)}` }, ...conversation],
+    { temperature: 0.7, onToken }
+  );
+}
+
+// From the interview so far, name the candidate problem and 2-3 focused web
+// queries that would CORROBORATE (or undercut) that it is real, prevalent, and
+// expensive — evidence the person could not just assert.
+export async function problemHuntQueriesAI(mode: "seller" | "leader", transcript: string): Promise<{ problem: string; queries: string[] }> {
+  const system = `You extract, from a coaching transcript, the single candidate problem the person is circling, then propose web searches to test whether it is REAL and valuable in the world (prevalence, cost/market size, evidence others struggle with it, willingness to pay). ${mode === "leader" ? "The context is a problem inside one organization, so bias the queries toward the industry/benchmark evidence that the problem is common and costly across peers." : "The context is a market opportunity, so bias the queries toward market size, buyer pain, and existing spend."} Output STRICT JSON only: {"problem":"one crisp sentence naming the problem","queries":["2 to 3 specific search queries, each a real phrase you would type into a search engine"]}. No em dashes.`;
+  const raw = await complete([{ role: "system", content: system }, { role: "user", content: `Transcript:\n${transcript.slice(0, 6000)}` }], { json: true, temperature: 0.4, maxTokens: 400 });
+  const j = extractJson(raw) || {};
+  return { problem: String(j.problem || ""), queries: Array.isArray(j.queries) ? j.queries.map((q: any) => String(q)).slice(0, 3) : [] };
+}
+
+// Grade the hunt and produce the mode-specific report, weaving in the real web
+// evidence (which is AUTHORITATIVE for the reality check — never invent sources).
+export async function problemHuntReportAI(input: { mode: "seller" | "leader"; transcript: string; problem: string; evidence: string; sources: { title: string; url: string }[] }): Promise<any> {
+  const sellerShape = `{
+  "problem":"one-line statement of the problem",
+  "whoHasIt":"the buyer segment who has it",
+  "whyNow":"the shift that makes it newly solvable",
+  "yourEdge":"the unfair advantage / proximity this person has",
+  "sizing":"the value at stake for a customer ($ figure + one line of reasoning; the customer's economics, not the price)",
+  "repeatable":"why it is one problem solvable many times (a business), or the honest risk it is bespoke",
+  "willBuy":"the evidence a real buyer has budget and would pay",
+  "killTest":"the single cheapest experiment to try to DISPROVE it (customer discovery, a pre-sale)",
+  "verdict":"go | sharpen | kill — then 2 sentences",
+  "gaps":["1-3 weakest spots to shore up"]
+}`;
+  const leaderShape = `{
+  "context":"one line on the organization/situation",
+  "opportunities":[{"name":"short name","whereValueLeaks":"one line","expectedValue":"$ figure + basis","probability":"low|medium|high + why","resources":"what it would take","stopToFund":"what to stop doing to fund it","blindSpot":true}],
+  "topPick":"which opportunity to pursue first and why",
+  "killTest":"the cheapest internal experiment to validate the top pick before committing",
+  "handoff":"how to turn the top pick into a running, measured experiment",
+  "verdict":"2-3 sentences on the portfolio",
+  "gaps":["1-3 weakest spots in the analysis"]
+}`;
+  const scores = input.mode === "leader"
+    ? `"scores":{"evidence":0-5,"sized":0-5,"opportunityCost":0-5,"feasibility":0-5,"blindspot":0-5,"falsifiable":0-5}`
+    : `"scores":{"recurring":0-5,"sized":0-5,"whyNow":0-5,"edge":0-5,"purchasable":0-5,"repeatable":0-5,"falsifiable":0-5}`;
+  const shape = input.mode === "leader" ? leaderShape : sellerShape;
+  const system = `You are a rigorous strategy coach producing the final report of a problem hunt. Be honest and specific; do not flatter. Ground the reality check ONLY in the web evidence provided (it is authoritative); if the evidence is thin or absent, say the problem is asserted but not yet externally corroborated, and lower the relevant score. Never invent a statistic or a source.
+
+Output STRICT JSON only, EXACTLY these keys plus scores and an evidence block:
+${shape.slice(0, shape.length - 1)},
+  ${scores},
+  "evidence":{"verdict":"strong|mixed|weak","note":"2 sentences on what the web evidence does and does not support","sources":[{"title":"...","url":"..."}]}
+}
+Scores are 0-5 integers, honest. Put the REAL sources given below into evidence.sources (title + url), never fabricated ones. No em dashes.`;
+  const srcList = input.sources.length ? input.sources.map((s) => `- ${s.title} — ${s.url}`).join("\n") : "(no sources found)";
+  const user = `MODE: ${input.mode}\nCANDIDATE PROBLEM: ${input.problem || "(infer from transcript)"}\n\nINTERVIEW TRANSCRIPT:\n${input.transcript.slice(0, 7000)}\n\nWEB EVIDENCE (authoritative for the reality check):\n${input.evidence ? input.evidence.slice(0, 6000) : "(no web evidence available)"}\n\nREAL SOURCES (use these exact links in evidence.sources):\n${srcList}`;
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens: 1800, timeoutMs: 60000 });
+}
+
 // Helps an interviewer dig past tasks to the VALUE the other person creates.
 export async function deeperInterviewAI(ctx: {
   jobTitle?: string;
