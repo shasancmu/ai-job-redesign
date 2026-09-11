@@ -21,7 +21,7 @@ export default async function AdminPage() {
   if (!(role.superadmin || isDirector)) redirect("/dashboard");
 
   const org = [
-    { icon: "🏢", title: "Organization overview", desc: "Your org's members, cohorts, and settings.", href: "/team" },
+    { icon: "🏢", title: "Organization overview", desc: "Your org's members, cohorts, and settings.", href: "/organization" },
     { icon: "📊", title: "Usage", desc: "Activity for your organization's members only.", href: "/team/usage" },
     { icon: "🏅", title: "Certificates", desc: "The certificates your organization issues.", href: "/team/certificates" },
   ];
