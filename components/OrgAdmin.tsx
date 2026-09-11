@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MODULES, CATEGORIES, moduleCategory } from "@/lib/modules";
+import { MODULES } from "@/lib/modules";
+import ModulePicker from "@/components/ModulePicker";
 
 const PICKABLE = MODULES.filter((m) => !m.hidden);
+const PICK_ITEMS = PICKABLE.map((m) => ({ slug: m.slug, name: m.name }));
 
 type Highlight = { title: string; body: string };
 type Faculty = { name: string; title?: string; image_url?: string };
@@ -86,9 +88,6 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
   const [err, setErr] = useState<string | null>(null);
 
   const toggleMod = (slug: string) => setMods((s) => { const n = new Set(s); n.has(slug) ? n.delete(slug) : n.add(slug); return n; });
-  const [modQuery, setModQuery] = useState("");
-  const filteredMods = PICKABLE.filter((m) => !modQuery.trim() || m.name.toLowerCase().includes(modQuery.trim().toLowerCase()));
-  const modGroups = CATEGORIES.map((c) => ({ key: c.key, title: c.title, mods: filteredMods.filter((m) => moduleCategory(m.slug) === c.key) })).filter((g) => g.mods.length);
   const setGroup = (slugs: string[], on: boolean) => setMods((s) => { const n = new Set(s); slugs.forEach((sl) => (on ? n.add(sl) : n.delete(sl))); return n; });
 
   async function save() {
@@ -147,31 +146,7 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
           </div>
         </div>
         <div className="mb-1.5 text-xs text-slate-400">{mods.size === 0 ? "Empty = members get every module." : `${mods.size} selected — members get only these.`}</div>
-        <input value={modQuery} onChange={(e) => setModQuery(e.target.value)} placeholder="Search modules…" className="field mb-1.5 text-sm" />
-        <div className="max-h-72 space-y-3 overflow-y-auto rounded-lg border border-line p-2">
-          {modGroups.length === 0 ? (
-            <div className="px-1 py-4 text-center text-xs text-slate-400">No modules match &ldquo;{modQuery}&rdquo;.</div>
-          ) : modGroups.map((g) => {
-            const slugs = g.mods.map((m) => m.slug);
-            const selCount = slugs.filter((s) => mods.has(s)).length;
-            const allSel = selCount === slugs.length;
-            return (
-              <div key={g.key}>
-                <div className="mb-1 flex items-center justify-between px-0.5">
-                  <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{g.title} <span className="text-slate-300">{selCount}/{slugs.length}</span></span>
-                  <button type="button" onClick={() => setGroup(slugs, !allSel)} className="text-[11px] text-sky hover:underline">{allSel ? "Clear" : "All"}</button>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {g.mods.map((m) => (
-                    <button key={m.slug} type="button" onClick={() => toggleMod(m.slug)} className={"rounded-full px-2.5 py-1 text-xs font-medium transition " + (mods.has(m.slug) ? "bg-ink text-white" : "bg-mist text-slate2 hover:bg-slate-200")}>
-                      {m.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <ModulePicker available={PICK_ITEMS} selected={mods} onToggle={toggleMod} onSetMany={setGroup} />
         <label className="mt-2.5 flex items-start gap-2 text-sm text-ink">
           <input type="checkbox" checked={memberBrowse} onChange={(e) => setMemberBrowse(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[color:var(--ink)]" />
           <span>Let members browse the full library<span className="block text-xs font-normal text-slate-400">Off (default): members see a focused home — just the work assigned to their cohort. On: members can also explore every module above.</span></span>

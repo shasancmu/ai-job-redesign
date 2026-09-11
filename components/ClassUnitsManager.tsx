@@ -4,23 +4,28 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { MODULES } from "@/lib/modules";
 import ProgramDirectorsPanel from "@/components/ProgramDirectorsPanel";
+import ModulePicker from "@/components/ModulePicker";
 
 type DynModule = { slug: string; name: string; emoji?: string; mode?: "Solo" | "Paired" | "Live" };
 type ClassUnit = { id: string; name: string; slug?: string; modules: string[]; is_default: boolean; cohorts: number; canEdit?: boolean };
 
 // Manage the CLASS tier (dept/course): a class owns a module set that every
 // cohort under it inherits. Director / superadmin of the active school only.
-export default function ClassUnitsManager({ roleplayModules = [], interviewModules = [], authoredModules = [], orgName }: { roleplayModules?: DynModule[]; interviewModules?: DynModule[]; authoredModules?: DynModule[]; orgName?: string | null }) {
+export default function ClassUnitsManager({ roleplayModules = [], interviewModules = [], authoredModules = [], orgName, orgModules = null }: { roleplayModules?: DynModule[]; interviewModules?: DynModule[]; authoredModules?: DynModule[]; orgName?: string | null; orgModules?: string[] | null }) {
+  // A class can only draw from the ORG'S master list (org.modules), plus the org's
+  // own authored/role-play modules. null/empty master = the org grants everything.
+  const allowed = orgModules && orgModules.length ? new Set(orgModules) : null;
   const available = useMemo(() => {
     const seen = new Set<string>();
     const list: DynModule[] = [];
     // Every module is a template in one library; the mode says how it runs:
     // group → Live (instructor runs it for the room), human → Paired, ai → Solo.
     const modeFor = (partner?: string): DynModule["mode"] => partner === "group" ? "Live" : partner === "human" ? "Paired" : "Solo";
-    for (const m of MODULES) { if ((m as any).hidden) continue; if (seen.has(m.slug)) continue; seen.add(m.slug); list.push({ slug: m.slug, name: m.name, emoji: (m as any).emoji, mode: modeFor((m as any).partner) }); }
+    for (const m of MODULES) { if ((m as any).hidden) continue; if (allowed && !allowed.has(m.slug)) continue; if (seen.has(m.slug)) continue; seen.add(m.slug); list.push({ slug: m.slug, name: m.name, emoji: (m as any).emoji, mode: modeFor((m as any).partner) }); }
     for (const m of [...roleplayModules, ...interviewModules, ...authoredModules]) { if (seen.has(m.slug)) continue; seen.add(m.slug); list.push({ ...m, mode: m.mode || "Solo" }); }
     return list;
-  }, [roleplayModules, interviewModules, authoredModules]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleplayModules, interviewModules, authoredModules, orgModules]);
   const nameOf = (slug: string) => available.find((m) => m.slug === slug)?.name || slug;
 
   const [classes, setClasses] = useState<ClassUnit[] | null>(null);
@@ -47,6 +52,7 @@ export default function ClassUnitsManager({ roleplayModules = [], interviewModul
   function startEdit(c: ClassUnit) { setEditing(c.id); setName(c.name); setSel(new Set(c.modules)); setErr(""); }
   function startDuplicate(c: ClassUnit) { setEditing("new"); setName(`${c.name} (copy)`); setSel(new Set(c.modules)); setErr(""); }
   const toggle = (slug: string) => setSel((s) => { const n = new Set(s); n.has(slug) ? n.delete(slug) : n.add(slug); return n; });
+  const setMany = (slugs: string[], on: boolean) => setSel((s) => { const n = new Set(s); slugs.forEach((sl) => (on ? n.add(sl) : n.delete(sl))); return n; });
 
   async function save() {
     if (!name.trim()) { setErr("Give the class a name."); return; }
@@ -74,15 +80,7 @@ export default function ClassUnitsManager({ roleplayModules = [], interviewModul
             <div className="mt-4">
               <div className="lbl">Modules every cohort in this class inherits</div>
               <p className="mb-2 text-xs text-slate-500">Cohorts (sections/sessions) under this class get these automatically, and can add their own on top.</p>
-              <div className="grid max-h-72 grid-cols-1 gap-1.5 overflow-y-auto rounded-xl border border-line p-2 sm:grid-cols-2">
-                {available.map((m) => (
-                  <label key={m.slug} className={`flex cursor-pointer items-center gap-2 rounded-lg border p-2 text-sm ${sel.has(m.slug) ? "border-ai bg-ai/5" : "border-transparent hover:bg-mist"}`}>
-                    <input type="checkbox" checked={sel.has(m.slug)} onChange={() => toggle(m.slug)} />
-                    <span className="min-w-0 flex-1 truncate">{m.emoji ? m.emoji + " " : ""}{m.name}</span>
-                    {m.mode && <span className={"shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold " + (m.mode === "Live" ? "bg-sage/10 text-sage" : m.mode === "Paired" ? "bg-sky-soft text-sky" : "bg-mist text-slate-400")}>{m.mode}</span>}
-                  </label>
-                ))}
-              </div>
+              <ModulePicker available={available.map((m) => ({ slug: m.slug, name: m.name }))} selected={sel} onToggle={toggle} onSetMany={setMany} emptyNote="This org hasn't granted any modules yet — set them in Organization settings." />
               <div className="mt-1 text-xs text-slate-400">{sel.size} selected</div>
             </div>
             {err && <p className="mt-3 text-sm text-red-700">{err}</p>}

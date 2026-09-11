@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { MODULES } from "@/lib/modules";
+import ModulePicker from "@/components/ModulePicker";
 import { normalizeCode } from "@/lib/classes";
 import { LANGUAGES } from "@/components/LanguagePicker";
 import { I18N_ENABLED } from "@/lib/flags";
@@ -12,7 +13,7 @@ type ClassUnitLite = { id: string; name: string; modules: string[] };
 
 type DynModule = { slug: string; name: string; emoji?: string };
 
-export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayModules = [], interviewModules = [], authoredModules = [] }: { orgs?: { id: string; name: string }[]; defaultOrgId?: string; roleplayModules?: DynModule[]; interviewModules?: DynModule[]; authoredModules?: DynModule[] }) {
+export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayModules = [], interviewModules = [], authoredModules = [], orgModules = {} }: { orgs?: { id: string; name: string }[]; defaultOrgId?: string; roleplayModules?: DynModule[]; interviewModules?: DynModule[]; authoredModules?: DynModule[]; orgModules?: Record<string, string[] | null> }) {
   const rpBySlug = useMemo(() => Object.fromEntries(roleplayModules.map((m) => [m.slug, m])), [roleplayModules]);
   const ivBySlug = useMemo(() => Object.fromEntries(interviewModules.map((m) => [m.slug, m])), [interviewModules]);
   const auBySlug = useMemo(() => Object.fromEntries(authoredModules.map((m) => [m.slug, m])), [authoredModules]);
@@ -78,6 +79,25 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
     const au = authoredModules.map((m) => ({ slug: m.slug, name: m.name, tag: "module" }));
     return [...base, ...rp, ...iv, ...au].filter((m) => !order.includes(m.slug));
   }, [order, roleplayModules, interviewModules, authoredModules]);
+
+  // A cohort can only draw from its CLASS's modules (if it's in a class), else the
+  // ORG'S master list. null/empty at both levels = everything (uncurated org).
+  const cohortAllowed = (() => {
+    const cm = selectedClassUnit?.modules;
+    if (cm && cm.length) return new Set(cm);
+    const om = orgModules[orgId];
+    if (om && om.length) return new Set(om);
+    return null as Set<string> | null;
+  })();
+  const pickable = (() => {
+    const out: { slug: string; name: string }[] = [];
+    const seen = new Set<string>();
+    for (const m of MODULES) { if ((m as any).hidden) continue; if (cohortAllowed && !cohortAllowed.has(m.slug)) continue; if (seen.has(m.slug)) continue; seen.add(m.slug); out.push({ slug: m.slug, name: m.name }); }
+    for (const m of [...roleplayModules, ...interviewModules, ...authoredModules]) { if (seen.has(m.slug)) continue; seen.add(m.slug); out.push({ slug: m.slug, name: m.name }); }
+    return out;
+  })();
+  const toggleOrder = (slug: string) => (order.includes(slug) ? remove(slug) : add(slug));
+  const setManyOrder = (slugs: string[], on: boolean) => setOrder((o) => (on ? [...o, ...slugs.filter((s) => !o.includes(s))] : o.filter((s) => !slugs.includes(s))));
 
   function edit(k: Klass) {
     setName(k.name);
@@ -323,23 +343,10 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
             </ol>
           )}
 
-          {available.length > 0 && (
-            <div className="mt-3">
-              <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate2">Add a module</div>
-              <div className="flex flex-wrap gap-2">
-                {available.map((m) => (
-                  <button
-                    key={m.slug}
-                    type="button"
-                    onClick={() => add(m.slug)}
-                    className="rounded-full border border-line px-3 py-1.5 text-sm text-ink hover:border-sage hover:bg-sage-soft"
-                  >
-                    + {m.name}{m.tag && <span className="ml-1 rounded-full bg-amber-soft px-1.5 py-0.5 text-[10px] font-semibold text-amber">{m.tag}</span>}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          <div className="mt-3">
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate2">{selectedClassUnit?.modules?.length ? `Add from ${selectedClassUnit.name}'s modules` : "Add a module"}</div>
+            <ModulePicker available={pickable} selected={new Set(order)} onToggle={toggleOrder} onSetMany={setManyOrder} height="max-h-64" emptyNote="No modules available — the org (or this class) hasn't granted any. Set them in Organization settings." />
+          </div>
         </div>
 
         {err && <p className="mt-3 text-sm text-clay">{err}</p>}

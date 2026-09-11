@@ -31,6 +31,10 @@ export default async function Classes() {
   const [myOrgs, activeOrg, interviewModules, authoredModules] = await Promise.all([getMyOrgs(user.id), getActiveOrg(user), listAssignableInterviewModules(user.id), listAuthoredModules()]);
   const roleplayModules = await listAssignableRoleplay(user.id, activeOrg?.id || null);
   const staffOrgs = myOrgs.filter((m) => m.role !== "member").map((m) => ({ id: m.org.id, name: m.org.name }));
+  // Each staff org's master module list, so the cohort picker scopes to it.
+  const orgModulesById: Record<string, string[] | null> = Object.fromEntries(
+    myOrgs.filter((m) => m.role !== "member").map((m) => [m.org.id, m.org.modules || null])
+  );
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-8">
@@ -47,7 +51,7 @@ export default async function Classes() {
         A cohort is a section or session of a <Link href="/facilitator/classes" className="font-medium text-ai hover:underline">Class</Link> (a department or course). Put a cohort in a class to reuse that class&apos;s module set across all its sections.
       </p>
       <div className="mb-6"><Link href="/facilitator/ask" className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-3.5 py-1.5 text-sm font-medium text-ink hover:border-ai hover:text-ai">💬 Ask a cohort about its data</Link></div>
-      <ClassManager orgs={staffOrgs} defaultOrgId={activeOrg?.id || ""} roleplayModules={roleplayModules} interviewModules={interviewModules} authoredModules={authoredModules} />
+      <ClassManager orgs={staffOrgs} defaultOrgId={activeOrg?.id || ""} roleplayModules={roleplayModules} interviewModules={interviewModules} authoredModules={authoredModules} orgModules={orgModulesById} />
       <Tour
         steps={COHORT_TOUR}
         storageKey="tour-cohort-v1"
