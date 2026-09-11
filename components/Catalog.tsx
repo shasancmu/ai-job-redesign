@@ -209,15 +209,12 @@ export default function Catalog({
                 <div className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-sage">🏅 Counts toward {certByModule[m.slug]}</div>
               )}
               <p className="mt-1.5 text-sm leading-relaxed text-slate2 line-clamp-2">{tf("modules." + m.slug + ".tagline", m.tagline)}</p>
-              {/* Full description lives in the detail modal, opened by the (i) button
-                  (top-right) — keeps the card compact and the grid from jumping. */}
-              <button
-                type="button"
-                onClick={() => setDetail(m.slug)}
-                className="mt-1.5 self-start text-xs font-medium text-ai hover:underline"
-              >
-                Read more →
-              </button>
+              {/* Hover-preview: the fuller description reveals on hover (motion); non-essential, so it stays folded otherwise and respects reduced-motion. */}
+              <div className="grid grid-rows-[0fr] opacity-0 transition-all duration-300 ease-out group-hover:grid-rows-[1fr] group-hover:opacity-100 motion-reduce:transition-none">
+                <div className="overflow-hidden">
+                  <p className="mt-2 text-xs leading-relaxed text-slate-500">{m.description}</p>
+                </div>
+              </div>
               <div className="mt-2 flex flex-1 flex-wrap content-start gap-1">
                 {modulePills(m.slug).map((p) => (
                   <button
