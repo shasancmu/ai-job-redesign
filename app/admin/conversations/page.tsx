@@ -42,7 +42,7 @@ export default async function ConversationsPage({ searchParams }: { searchParams
       <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Platform · research</div>
       <h1 className="text-3xl text-ink">Conversations</h1>
       <p className="mb-6 mt-1 max-w-2xl text-sm text-slate2">
-        Every conversation across every engine — both sides, turn by turn, text and voice-as-transcript. This is the platform&apos;s
+        Every conversation across every engine: both sides, turn by turn, text and voice-as-transcript. This is the platform&apos;s
         data spine: {facets.total.toLocaleString()} recorded. Consent is granted at signup; this superadmin view is your lab.
       </p>
 
@@ -63,7 +63,7 @@ export default async function ConversationsPage({ searchParams }: { searchParams
 
           {/* Intervention rollup — the leading signal by arm */}
           <h2 className="eyebrow mb-2">By intervention{module ? ` · ${module}` : ""}</h2>
-          <p className="mb-2 text-xs text-slate-400">Is the conversation moving forward (depth, movement) and ending in value (outcome)? Averaged per A/B arm — the leading indicator the autopilot reads.</p>
+          <p className="mb-2 text-xs text-slate-400">Is the conversation moving forward (depth, movement) and ending in value (outcome)? Averaged per A/B arm, the leading indicator the autopilot reads.</p>
           <div className="mb-8 overflow-x-auto rounded-2xl border border-line bg-white">
             <table className="w-full text-sm">
               <thead>

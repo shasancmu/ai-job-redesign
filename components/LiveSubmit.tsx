@@ -28,7 +28,7 @@ export default function LiveSubmit({ spec, code }: { spec: any; code: string }) 
     <div className="mx-auto max-w-md text-center">
       <div className="rounded-2xl border border-line bg-white p-8 shadow-sm">
         <div className="text-3xl">✓</div>
-        <div className="mt-2 font-serif text-xl text-ink">Thanks — it's in.</div>
+        <div className="mt-2 font-serif text-xl text-ink">Thanks, it's in.</div>
         <p className="mt-1 text-sm text-slate-500">Watch the screen.</p>
       </div>
     </div>

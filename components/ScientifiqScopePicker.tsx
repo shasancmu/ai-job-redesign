@@ -149,7 +149,7 @@ export default function ScientifiqScopePicker({ initial, onChange }: { initial?:
                   </label>
                 ))}
               </div>
-              <p className="mt-1 px-1 text-[11px] leading-snug text-slate-400">Add the main institution plus any affiliated units (medical center, health system) — or several different institutions.</p>
+              <p className="mt-1 px-1 text-[11px] leading-snug text-slate-400">Add the main institution plus any affiliated units (medical center, health system), or several different institutions.</p>
             </div>
           ) : (
             <p className="mt-1.5 text-xs text-slate-400">{loading ? "Searching…" : orgQuery.trim().length >= 2 ? "No matching institution found. Try the full official name." : selectedOrgs.length ? "Type to add another, or scan with the ones above." : "Type an institution name."}</p>

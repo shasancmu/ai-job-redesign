@@ -128,7 +128,7 @@ export default async function TeamPage() {
         steps={TEAM_TOUR}
         storageKey="tour-team-v1"
         welcomeTitle={`${org.name} on Superadditive`}
-        welcomeBody={`You run ${org.name}'s space on Superadditive — its people and cohorts. Here's a 30-second tour of what you manage.`}
+        welcomeBody={`You run ${org.name}'s space on Superadditive: its people and cohorts. Here's a 30-second tour of what you manage.`}
       />
     </main>
   );

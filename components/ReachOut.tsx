@@ -24,8 +24,8 @@ export default function ReachOut({ userId, name }: { userId: string; name: strin
     try {
       const d = await fetch("/api/team/note", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "draft", userId }) }).then((r) => r.json());
       if (d?.draft) setText(d.draft);
-      else setErr(d?.error || "Couldn't draft — write your own below.");
-    } catch { setErr("Couldn't draft — write your own below."); }
+      else setErr(d?.error || "Couldn't draft. Write your own below.");
+    } catch { setErr("Couldn't draft. Write your own below."); }
     setLoading(false);
   }
   async function send() {
@@ -54,7 +54,7 @@ export default function ReachOut({ userId, name }: { userId: string; name: strin
             {sent ? (
               <div className="py-8 text-center">
                 <div className="text-2xl">✓</div>
-                <div className="mt-1 text-sm font-medium text-ink">Sent — from you, to {name}.</div>
+                <div className="mt-1 text-sm font-medium text-ink">Sent. From you, to {name}.</div>
               </div>
             ) : (
               <>
@@ -70,7 +70,7 @@ export default function ReachOut({ userId, name }: { userId: string; name: strin
                   <button onClick={send} disabled={busy || loading || !text.trim()} className="btn-primary text-sm">{busy ? "Sending…" : "Send"}</button>
                   <button onClick={() => setOpen(false)} disabled={busy} className="btn-ghost text-sm">Cancel</button>
                 </div>
-                <p className="mt-3 text-xs text-slate-400">This is a starting point, not an outbox. Edit it into your own words — it goes to {name}&apos;s inbox from you, and nothing sends until you press Send.</p>
+                <p className="mt-3 text-xs text-slate-400">This is a starting point, not an outbox. Edit it into your own words. It goes to {name}&apos;s inbox from you, and nothing sends until you press Send.</p>
               </>
             )}
           </div>

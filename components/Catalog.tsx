@@ -334,7 +334,7 @@ export default function Catalog({
                     <input
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Search exercises — a topic, a skill, a name…"
+                      placeholder="Search exercises: a topic, a skill, a name…"
                       aria-label="Search exercises"
                       className="w-full rounded-full border border-line bg-white py-3.5 pl-12 pr-10 text-base shadow-sm transition focus:border-ai/50 focus:outline-none focus:ring-2 focus:ring-ai/20"
                     />

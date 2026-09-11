@@ -67,7 +67,7 @@ export default function AdsAdmin({ orgId, initialAds, stats, interested }: {
             </div>
             <div className="flex-1">
               <label className="lbl">Title</label>
-              <input className="field mt-1" value={editing.title || ""} onChange={(e) => set({ title: e.target.value })} placeholder="e.g. Applied AI Strategy — Fall cohort" />
+              <input className="field mt-1" value={editing.title || ""} onChange={(e) => set({ title: e.target.value })} placeholder="e.g. Applied AI Strategy: Fall cohort" />
             </div>
           </div>
           <div>
@@ -76,7 +76,7 @@ export default function AdsAdmin({ orgId, initialAds, stats, interested }: {
           </div>
           <div>
             <label className="lbl">Landing page</label>
-            <textarea className="field mt-1 min-h-[140px] text-sm" value={editing.body || ""} onChange={(e) => set({ body: e.target.value })} placeholder="The details a member sees when they open it — what it is, who it's for, dates, what they'll get." />
+            <textarea className="field mt-1 min-h-[140px] text-sm" value={editing.body || ""} onChange={(e) => set({ body: e.target.value })} placeholder="The details a member sees when they open it: what it is, who it's for, dates, what they'll get." />
           </div>
           <div>
             <label className="lbl">Hero image URL <span className="font-normal text-slate-400">(optional)</span></label>

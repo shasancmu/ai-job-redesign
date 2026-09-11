@@ -120,7 +120,7 @@ export default function PaperxEditor({ spec, editSlug }: { spec: PxGenome; editS
             </div>
             {g.evidence.infographic && g.evidence.infographic.stats.length > 0 && (
               <div className="mt-3">
-                <div className="text-xs font-semibold text-slate-500">Infographic numbers — verify each against the paper</div>
+                <div className="text-xs font-semibold text-slate-500">Infographic numbers: verify each against the paper</div>
                 <div className="mt-2 space-y-2">
                   {g.evidence.infographic.stats.map((s, i) => (
                     <div key={i} className="flex flex-wrap items-center gap-2">
@@ -140,7 +140,7 @@ export default function PaperxEditor({ spec, editSlug }: { spec: PxGenome; editS
             )}
             {g.evidence.infographic?.pictograph && (
               <div className="mt-3">
-                <div className="text-xs font-semibold text-slate-500">Pictograph — a proportion made of icons</div>
+                <div className="text-xs font-semibold text-slate-500">Pictograph: a proportion made of icons</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <label className="text-xs text-slate-500">Filled
                     <input type="number" min={0} max={g.evidence.infographic.pictograph.total} value={g.evidence.infographic.pictograph.filled} onChange={(e) => setPicto("filled", e.target.value)} className="field mt-1 w-16 text-sm" />
@@ -171,7 +171,7 @@ export default function PaperxEditor({ spec, editSlug }: { spec: PxGenome; editS
                 {g.predicts.map((pr, i) => (
                   <div key={i} className="rounded-lg bg-mist/50 p-3">
                     <Field label={`Question ${i + 1}`} value={pr.prompt} onChange={(v) => upPredict(i, "prompt", v)} />
-                    <div className="mt-2 text-xs font-semibold text-slate-500">Choices — select the correct one</div>
+                    <div className="mt-2 text-xs font-semibold text-slate-500">Choices: select the correct one</div>
                     <div className="mt-1 space-y-1.5">
                       {pr.choices.map((c, ci) => (
                         <label key={ci} className="flex items-center gap-2">

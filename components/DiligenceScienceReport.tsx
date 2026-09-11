@@ -66,13 +66,13 @@ export default function DiligenceScienceReport({ read, scores, comparables = [],
           {comparables.length > 0 && (
             <div className="rounded-2xl border border-line bg-white p-4">
               <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Comparable science</div>
-              <ul className="mt-2 space-y-1.5 text-xs text-slate-600">{comparables.slice(0, 6).map((c, i) => <li key={i}>{c.title}{c.year ? ` (${c.year})` : ""}{c.authors ? ` — ${c.authors}` : ""}</li>)}</ul>
+              <ul className="mt-2 space-y-1.5 text-xs text-slate-600">{comparables.slice(0, 6).map((c, i) => <li key={i}>{c.title}{c.year ? ` (${c.year})` : ""}{c.authors ? `, ${c.authors}` : ""}</li>)}</ul>
             </div>
           )}
           {patents.length > 0 && (
             <div className="rounded-2xl border border-line bg-white p-4">
               <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Nearby patents</div>
-              <ul className="mt-2 space-y-1.5 text-xs text-slate-600">{patents.slice(0, 6).map((p, i) => <li key={i}>{p.title}{p.year ? ` (${p.year})` : ""}{p.assignees ? ` — ${p.assignees}` : ""}</li>)}</ul>
+              <ul className="mt-2 space-y-1.5 text-xs text-slate-600">{patents.slice(0, 6).map((p, i) => <li key={i}>{p.title}{p.year ? ` (${p.year})` : ""}{p.assignees ? `, ${p.assignees}` : ""}</li>)}</ul>
             </div>
           )}
         </div>

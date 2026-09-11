@@ -188,7 +188,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
       const d = await res.json().catch(() => ({}));
       if (res.status === 422) { setPromoteMissing(d.missing || ["Not eligible yet."]); }
       else if (!res.ok) { setPromoteMissing([d.error || "Couldn't submit."]); }
-      else { setPromoteMsg(t === "global" ? "Submitted for global review ✓ — a curator will decide." : "Submitted for org-wide review ✓ — a director will decide."); }
+      else { setPromoteMsg(t === "global" ? "Submitted for global review ✓. A curator will decide." : "Submitted for org-wide review ✓. A director will decide."); }
     } catch (e: any) { setPromoteMissing([e?.message || "Failed."]); }
     finally { setBusy(""); }
   }
@@ -226,7 +226,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
               </div>
               <div><label className="lbl">Hidden narrative (character + examiner only)</label><textarea className="field text-sm" rows={3} value={scn.narrative || ""} onChange={(e) => setScn(si, { narrative: e.target.value })} /></div>
               <div className="grid grid-cols-2 gap-2">
-                <div><label className="lbl">The tell — what actually discriminated it</label><textarea className="field text-xs" rows={2} value={scn.tell || ""} onChange={(e) => setScn(si, { tell: e.target.value })} /></div>
+                <div><label className="lbl">The tell: what actually discriminated it</label><textarea className="field text-xs" rows={2} value={scn.tell || ""} onChange={(e) => setScn(si, { tell: e.target.value })} /></div>
                 <div><label className="lbl">The naive-AI wrong read</label><textarea className="field text-xs" rows={2} value={scn.foil || ""} onChange={(e) => setScn(si, { foil: e.target.value })} /></div>
               </div>
               <div>
@@ -268,7 +268,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
     return (
       <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-900">
         <span className="font-semibold">🔍 The critic flagged {fs.length} issue{fs.length > 1 ? "s" : ""} here:</span>
-        <ul className="mt-1 list-disc pl-4">{fs.map((f, i) => <li key={i}>{f.title}{f.fix ? <> — <span className="text-amber-800">{f.fix}</span></> : null}</li>)}</ul>
+        <ul className="mt-1 list-disc pl-4">{fs.map((f, i) => <li key={i}>{f.title}{f.fix ? <>: <span className="text-amber-800">{f.fix}</span></> : null}</li>)}</ul>
       </div>
     );
   }
@@ -321,7 +321,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
     setStatus(st); setErrors([]);
     // Snapshot this save into version history (best effort), and refresh the tab.
     supabase.from("module_spec_versions").insert({ slug: spec.slug, owner_id: me, spec, label: nextStatus === "published" ? "published" : null }).then(() => setHistory(null), () => {});
-    setMsg(nextStatus === "published" ? "Published ✓ — now assignable to a class" : nextStatus === "draft" ? "Unpublished" : "Saved ✓");
+    setMsg(nextStatus === "published" ? "Published ✓. Now assignable to a class" : nextStatus === "draft" ? "Unpublished" : "Saved ✓");
   }
 
   // advanced raw JSON, kept in sync
@@ -329,7 +329,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
   const rawValue = rawText ?? JSON.stringify(spec, null, 2);
   function onRaw(v: string) {
     setRawText(v);
-    try { const parsed = JSON.parse(v); setSpec(parsed); setErrors([]); } catch { setErrors(["The JSON is invalid — the form and preview show the last valid version."]); }
+    try { const parsed = JSON.parse(v); setSpec(parsed); setErrors([]); } catch { setErrors(["The JSON is invalid. The form and preview show the last valid version."]); }
   }
 
   const slug = spec?.slug || "";
@@ -429,8 +429,8 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                 <div><label className="lbl">Minutes</label><input type="number" className="field" value={spec.meta?.minutes ?? ""} onChange={(e) => setMeta({ minutes: Number(e.target.value) || undefined })} /></div>
               </div>
               <div><label className="lbl">Slug (the URL, lowercase-with-dashes)</label><input className="field font-mono text-sm" value={spec.slug || ""} onChange={(e) => patch({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-") })} placeholder="earnings-call" /></div>
-              <div><label className="lbl">Learning goal — what they get better at</label><textarea className="field text-sm" rows={2} value={spec.objective?.goal || ""} onChange={(e) => setObjective({ goal: e.target.value })} /></div>
-              <div><label className="lbl">The aha — the transferable lesson</label><textarea className="field text-sm" rows={2} value={spec.objective?.aha || ""} onChange={(e) => setObjective({ aha: e.target.value })} /></div>
+              <div><label className="lbl">Learning goal: what they get better at</label><textarea className="field text-sm" rows={2} value={spec.objective?.goal || ""} onChange={(e) => setObjective({ goal: e.target.value })} /></div>
+              <div><label className="lbl">The aha: the transferable lesson</label><textarea className="field text-sm" rows={2} value={spec.objective?.aha || ""} onChange={(e) => setObjective({ aha: e.target.value })} /></div>
             </>
           )}
 
@@ -472,16 +472,16 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                 </label>
                 {char.openPersona && (
                   <div className="mt-2 space-y-2">
-                    <input className="field text-sm" value={char.openPersona.ask || ""} onChange={(e) => setChar({ openPersona: { ...char.openPersona, ask: e.target.value } })} placeholder="What to ask the learner — e.g. Who do you want to have this difficult conversation with?" />
+                    <input className="field text-sm" value={char.openPersona.ask || ""} onChange={(e) => setChar({ openPersona: { ...char.openPersona, ask: e.target.value } })} placeholder="What to ask the learner, e.g. Who do you want to have this difficult conversation with?" />
                     <input className="field text-sm" value={char.openPersona.placeholder || ""} onChange={(e) => setChar({ openPersona: { ...char.openPersona, placeholder: e.target.value } })} placeholder="Hint text for their answer (optional)" />
-                    <p className="text-[11px] text-slate-400">The learner's answer fills the persona at run time; the persona below is the fallback/example. Everything else — the behavior, scenario, and coaching — is yours.</p>
+                    <p className="text-[11px] text-slate-400">The learner's answer fills the persona at run time; the persona below is the fallback/example. Everything else (the behavior, scenario, and coaching) is yours.</p>
                   </div>
                 )}
               </div>
 
-              <div><label className="lbl">Persona — voice and personality</label><textarea className="field text-sm" rows={3} value={char.persona || ""} onChange={(e) => setChar({ persona: e.target.value })} placeholder="Confident, media-trained founder-CEO who believes in the company." /></div>
+              <div><label className="lbl">Persona: voice and personality</label><textarea className="field text-sm" rows={3} value={char.persona || ""} onChange={(e) => setChar({ persona: e.target.value })} placeholder="Confident, media-trained founder-CEO who believes in the company." /></div>
               <div>
-                <label className="lbl">Behavior contract — the immutable rules</label>
+                <label className="lbl">Behavior contract: the immutable rules</label>
                 <p className="mb-1 text-xs text-slate-400">How the character handles the truth. The engine enforces this. Never lies; affirms true-favorable facts, hedges true-unfavorable ones, declines what isn't true.</p>
                 <textarea className="field text-sm" rows={8} value={char.behavior || ""} onChange={(e) => setChar({ behavior: e.target.value })} />
               </div>
@@ -492,7 +492,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
           {/* ---------------- PROBES ---------------- */}
           {tab === "probes" && (
             <>
-              <p className="text-sm text-slate-500">The cuts a learner can probe — the same set of topics across every scenario. The <em>answer</em> to each moves per scenario; that's what makes it un-memorizable.</p>
+              <p className="text-sm text-slate-500">The cuts a learner can probe: the same set of topics across every scenario. The <em>answer</em> to each moves per scenario; that's what makes it un-memorizable.</p>
               {probes.map((p, i) => (
                 <div key={i} className="flex items-start gap-2 rounded-lg border border-line p-2">
                   <input className="field w-32 font-mono text-xs" value={p.key || ""} onChange={(e) => setProbe(i, { key: e.target.value.replace(/[^a-zA-Z0-9]/g, "") })} placeholder="key" />
@@ -513,7 +513,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                 getData={() => ({ probes: spec.probes || [], scenarios: spec.scenarios || [] })}
                 onInsert={(d) => setSpec((s: any) => ({ ...s, probes: d.probes || [], scenarios: d.scenarios || [] }))} />
               <p className="text-sm text-slate-500">The hidden truths. Learners are assigned one at random from the session code and never told which. Give each the same probes, with different answers, and include one that's genuinely ambiguous.</p>
-              {probes.length === 0 && <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">Define your probes first — scenarios answer them.</div>}
+              {probes.length === 0 && <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">Define your probes first. Scenarios answer them.</div>}
               {scenarioEditors()}
             </>
           )}
@@ -612,7 +612,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                   )}
 
                   <div>
-                    <div className="lbl">Probe coverage — how often learners ask each cut</div>
+                    <div className="lbl">Probe coverage: how often learners ask each cut</div>
                     <div className="mt-2 space-y-1.5">
                       {insights.probes.map((p: any) => (
                         <div key={p.key} className="flex items-center gap-2">
@@ -639,7 +639,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                 <>
                   <div className={`rounded-xl p-3 text-sm ${critique.readiness === "ready" ? "bg-sage-soft text-sage" : critique.readiness === "not-ready" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-900"}`}>
                     <span className="font-semibold">{critique.readiness === "ready" ? "Looks ready ✓" : critique.readiness === "not-ready" ? "Not ready" : "Needs work"}</span>
-                    {critique.summary && <span> — {critique.summary}</span>}
+                    {critique.summary && <span>: {critique.summary}</span>}
                   </div>
                   <div className="space-y-2">
                     {(critique.findings || []).length === 0 ? (
@@ -677,7 +677,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
               {playtest && (
                 <>
                   <div className={`rounded-xl p-3 text-sm ${playtest.separates ? "bg-sage-soft text-sage" : "bg-amber-50 text-amber-900"}`}>
-                    <span className="font-semibold">{playtest.separates ? "The module discriminates ✓" : "Weak signal"}</span> — {playtest.note}
+                    <span className="font-semibold">{playtest.separates ? "The module discriminates ✓" : "Weak signal"}</span>: {playtest.note}
                     <div className="mt-1 text-[11px] opacity-80">Tested on scenario “{playtest.scenario?.id}” (truth: {playtest.scenario?.truth}) · {playtest.budget} questions</div>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -724,7 +724,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                         <div className="text-sm font-medium text-ink">{new Date(h.created_at).toLocaleString()}{i === 0 && <span className="ml-2 rounded-full bg-mist px-1.5 py-0.5 text-[10px] text-slate-500">latest</span>}{h.label && <span className="ml-1 rounded-full bg-sage-soft px-1.5 py-0.5 text-[10px] font-semibold text-sage">{h.label}</span>}</div>
                         <div className="truncate text-[11px] text-slate-400">{h.spec?.meta?.name} · {h.spec?.scenarios?.length || 0} scenarios · {h.spec?.probes?.length || 0} probes</div>
                       </div>
-                      <button onClick={() => { setSpec(h.spec); setMsg("Restored — Save to keep it"); setTab("overview"); }} className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-ink shadow-sm hover:text-ai">Restore</button>
+                      <button onClick={() => { setSpec(h.spec); setMsg("Restored. Save to keep it"); setTab("overview"); }} className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-ink shadow-sm hover:text-ai">Restore</button>
                     </div>
                   ))}
                 </div>
@@ -754,7 +754,7 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
           {/* ---------------- ADVANCED ---------------- */}
           {tab === "advanced" && (
             <>
-              <p className="text-sm text-slate-500">The full spec as JSON — for guardrails, flow, report layout, and rubric output fields. Edits here flow back to the form.</p>
+              <p className="text-sm text-slate-500">The full spec as JSON: for guardrails, flow, report layout, and rubric output fields. Edits here flow back to the form.</p>
               <textarea className="field font-mono text-xs" style={{ minHeight: "58vh" }} value={rawValue} onChange={(e) => onRaw(e.target.value)} spellCheck={false} onBlur={() => setRawText(null)} />
             </>
           )}
@@ -798,8 +798,8 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
                 <div><label className="lbl">Character name</label><input className="field text-sm" value={char?.name || ""} onChange={(e) => setChar({ name: e.target.value })} placeholder="Daniel Voss" /></div>
                 <div><label className="lbl">Questions the learner gets</label><input type="number" className="field text-sm" value={convBudget ?? ""} onChange={(e) => setBudget(Number(e.target.value) || 0)} /></div>
               </div>
-              <div><label className="lbl">Persona — voice and personality</label><input className="field text-sm" value={char?.persona || ""} onChange={(e) => setChar({ persona: e.target.value })} placeholder="Confident, media-trained founder-CEO who believes in the company." /></div>
-              <details><summary className="cursor-pointer text-xs font-semibold text-slate-500">Behavior contract — how they handle the truth</summary><textarea className="field mt-1 text-sm" rows={5} value={char?.behavior || ""} onChange={(e) => setChar({ behavior: e.target.value })} /></details>
+              <div><label className="lbl">Persona: voice and personality</label><input className="field text-sm" value={char?.persona || ""} onChange={(e) => setChar({ persona: e.target.value })} placeholder="Confident, media-trained founder-CEO who believes in the company." /></div>
+              <details><summary className="cursor-pointer text-xs font-semibold text-slate-500">Behavior contract: how they handle the truth</summary><textarea className="field mt-1 text-sm" rows={5} value={char?.behavior || ""} onChange={(e) => setChar({ behavior: e.target.value })} /></details>
               <div>
                 <label className="lbl">The cuts a learner can probe</label>
                 <div className="mt-1 space-y-1.5">
@@ -817,11 +817,11 @@ export default function SpecEditor({ me, initial, insights, initialStatus, cohor
 
             {/* Hidden layer */}
             <div className="rounded-2xl border-2 border-dashed border-line bg-mist/30 p-4">
-              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">🎭 Hidden layer — learners never see this</div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">🎭 Hidden layer: learners never see this</div>
               <p className="mt-0.5 text-[11px] text-slate-400">The scenarios behind the conversation. One is chosen at random each run; the character and examiner know it, the learner never does. Keep the same probes with different answers, and include one that's genuinely ambiguous.</p>
               <div className="mt-3 space-y-3">
                 <SectionCritique re={/scenario|probe|tell|discrimin|ambig|separate/} />
-                {probes.length === 0 && <div className="rounded-lg bg-amber-50 p-2.5 text-xs text-amber-800">Add probes above first — scenarios answer them.</div>}
+                {probes.length === 0 && <div className="rounded-lg bg-amber-50 p-2.5 text-xs text-amber-800">Add probes above first. Scenarios answer them.</div>}
                 {scenarioEditors()}
               </div>
             </div>

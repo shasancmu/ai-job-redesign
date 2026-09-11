@@ -26,9 +26,9 @@ const LOADING = ["Reading your materials…", "Finding the interactive core…",
 // they can edit it after. Grounded in the formats the platform does best.
 const TEMPLATES: { kind: string; emoji: string; title: string; concept: string }[] = [
   { kind: "roleplay", emoji: "🗣️", title: "A difficult conversation", concept: "The learner role-plays a hard conversation with a person they name at the start (deliver tough feedback, say no to a stakeholder, manage up). The AI stays in character under a hidden goal; the learner is graded on how they handle it, not on a right answer." },
-  { kind: "roleplay", emoji: "🔍", title: "Grill the identification strategy", concept: "An econometrician interrogates the learner about the causal-identification strategy behind a claim the learner brings — pushing on confounds, selection, and what would falsify it. Graded on the rigor of their reasoning." },
+  { kind: "roleplay", emoji: "🔍", title: "Grill the identification strategy", concept: "An econometrician interrogates the learner about the causal-identification strategy behind a claim the learner brings: pushing on confounds, selection, and what would falsify it. Graded on the rigor of their reasoning." },
   { kind: "interview", emoji: "🗂️", title: "Apply a framework to your own case", concept: "An AI interviews the learner about their own situation and then drafts a filled-in canvas / scorecard for a framework the author chooses, so they leave with an analysis of their real case." },
-  { kind: "negotiation", emoji: "🤝", title: "Negotiate a live deal", concept: "The learner negotiates a scored deal against an AI counterpart that has a hidden payoff table — trading across several issues to find value, then sees how they did." },
+  { kind: "negotiation", emoji: "🤝", title: "Negotiate a live deal", concept: "The learner negotiates a scored deal against an AI counterpart that has a hidden payoff table, trading across several issues to find value, then sees how they did." },
   { kind: "benchmark", emoji: "⏱️", title: "Concept check with calibration", concept: "A short timed multiple-choice quiz on the key concepts, scored server-side, that also measures how well-calibrated the learner's confidence is." },
   { kind: "newsframe", emoji: "🗞️", title: "This week, in the news", concept: "The learner applies a business framework to a real, current news story pulled live, and writes up what the framework reveals." },
   { kind: "case", emoji: "🎬", title: "A living case study", concept: "An interactive, decision-first case built from your materials: it names a real situation and protagonist, walks the learner through the evidence with drill-downs and sources, makes them commit a call under uncertainty, then reveals what happened. Grounded in the documents you upload." },
@@ -377,10 +377,10 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode, format }:
       <div className="text-center">
         <div className="text-3xl">{pinned ? KINDS[pinned].emoji : "📎"}</div>
         <h1 className="mt-2 font-serif text-3xl text-ink">{pinned ? `Build ${/^[aeiou]/i.test(pinnedNoun) ? "an" : "a"} ${pinnedNoun}` : "Turn your teaching materials into modules"}</h1>
-        <p className="mt-2 text-slate2">{pinned ? "Share your context — upload materials, paste links, or talk it through — and it drafts the module, grounded in what you give it. Everything is editable after." : "Drop your slides, readings, or notes. It reads them and proposes several modules you can build — pick one or many."}</p>
+        <p className="mt-2 text-slate2">{pinned ? "Share your context (upload materials, paste links, or talk it through) and it drafts the module, grounded in what you give it. Everything is editable after." : "Drop your slides, readings, or notes. It reads them and proposes several modules you can build — pick one or many."}</p>
       </div>
       {pinned === "newsframe" && (
-        <p className="mt-4 rounded-xl bg-mist/60 px-4 py-2.5 text-center text-xs leading-relaxed text-slate-600">You&apos;re setting the <b className="text-ink">framework</b> and the <b className="text-ink">news beat</b>. Real, current stories are pulled in live every time a learner runs it — so the module never goes stale.</p>
+        <p className="mt-4 rounded-xl bg-mist/60 px-4 py-2.5 text-center text-xs leading-relaxed text-slate-600">You&apos;re setting the <b className="text-ink">framework</b> and the <b className="text-ink">news beat</b>. Real, current stories are pulled in live every time a learner runs it, so the module never goes stale.</p>
       )}
       {pinned && (
         <div className="mt-6">
@@ -399,7 +399,7 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode, format }:
         </div>
       )}
       <div className="mt-3">
-        <textarea value={links} onChange={(e) => setLinks(e.target.value)} placeholder="Optional: paste article or video links (one per line) — the studio reads them too" className="field min-h-[64px] w-full text-sm" />
+        <textarea value={links} onChange={(e) => setLinks(e.target.value)} placeholder="Optional: paste article or video links (one per line), the studio reads them too" className="field min-h-[64px] w-full text-sm" />
       </div>
       {pinned ? (
         <button onClick={buildPinned} disabled={!files.length && !concept.trim()} className="btn-primary mt-3 w-full text-base disabled:opacity-50">{busy === "prep" ? "Reading your materials…" : `Build the ${pinnedNoun} →`}</button>
@@ -413,7 +413,7 @@ export default function AutoBuild({ me, canGlobal, orgName, startMode, format }:
         <div className="text-2xl">🎙️</div>
         <div className="min-w-0 flex-1">
           <div className="text-sm font-bold text-ink">{files.length ? "Talk it through first" : "Talk it through"}</div>
-          <div className="text-xs text-slate-500">{pinned ? (files.length ? `A few questions by voice or text, building on the files you added — then it drafts your ${pinnedNoun}.` : `A few questions by voice or text, then it drafts your ${pinnedNoun}. Add files above and it uses both.`) : (files.length ? "A few questions by voice or text, building on the files you added — then it proposes what to build." : "A few questions by voice or text, and it proposes what to build. Add files above and it uses both.")}</div>
+          <div className="text-xs text-slate-500">{pinned ? (files.length ? `A few questions by voice or text, building on the files you added, then it drafts your ${pinnedNoun}.` : `A few questions by voice or text, then it drafts your ${pinnedNoun}. Add files above and it uses both.`) : (files.length ? "A few questions by voice or text, building on the files you added, then it proposes what to build." : "A few questions by voice or text, and it proposes what to build. Add files above and it uses both.")}</div>
         </div>
         <span className="shrink-0 text-sm font-semibold text-ai">→</span>
       </button>

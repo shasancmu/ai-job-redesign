@@ -109,11 +109,11 @@ export default async function InterventionsPage({ searchParams }: { searchParams
           </div>
           <p className="mb-8 text-[11px] text-slate-400">
             The treatment is randomized (holdout) but depth is not, so the mediated share assumes no unmeasured depth→outcome confounder.
-            The clean confirmation is an experiment that targets depth directly — then this becomes causal, not just consistent.
+            The clean confirmation is an experiment that targets depth directly. Then this becomes causal, not just consistent.
           </p>
 
           {/* 3 — Mechanism coder */}
-          <h2 className="eyebrow mb-2">Why — the mechanism</h2>
+          <h2 className="eyebrow mb-2">Why: the mechanism</h2>
           <div className="mb-8"><MechanismCoder flow={flow} /></div>
         </>
       )}

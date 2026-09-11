@@ -89,7 +89,7 @@ export default function DraftReview({
         {busy ? (
           <div className="flex items-center gap-3 text-sm text-slate2">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-ai" aria-hidden />
-            Rewriting it — {Math.round(progress / 5.5).toLocaleString()} words so far
+            Rewriting it, {Math.round(progress / 5.5).toLocaleString()} words so far
           </div>
         ) : editing !== null ? (
           <div>
@@ -115,7 +115,7 @@ export default function DraftReview({
       {!busy && editing === null && (
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <button onClick={next} className="btn-primary">
-            {last ? "Done — open the editor →" : "Keep it →"}
+            {last ? "Done, open the editor →" : "Keep it →"}
           </button>
           <button onClick={reroll} className="btn-ghost text-sm">Try a different one</button>
           {step.write && (
@@ -127,7 +127,7 @@ export default function DraftReview({
       )}
 
       <p className="mt-6 text-xs text-slate-400">
-        A quick walk through the choices that shape it — keep each, tweak it, or have the AI try another. It&apos;s already saved as a draft, and you can fine-tune every detail in the full editor after.
+        A quick walk through the choices that shape it: keep each, tweak it, or have the AI try another. It&apos;s already saved as a draft, and you can fine-tune every detail in the full editor after.
       </p>
     </div>
   );

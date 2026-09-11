@@ -132,7 +132,7 @@ export default function OrgBrandingEditor({ org }: { org: BrandingOrg }) {
         </div>
         <div>
           <label className="lbl">About</label>
-          <textarea className="field min-h-[80px]" value={about} onChange={(e) => setAbout(e.target.value)} placeholder="A private Superadditive workspace for your teams — hands-on exercises for the decisions they actually face." />
+          <textarea className="field min-h-[80px]" value={about} onChange={(e) => setAbout(e.target.value)} placeholder="A private Superadditive workspace for your teams: hands-on exercises for the decisions they actually face." />
         </div>
         <div>
           <label className="lbl">Primary color</label>
@@ -147,7 +147,7 @@ export default function OrgBrandingEditor({ org }: { org: BrandingOrg }) {
       <section className="card space-y-4 p-5">
         <div>
           <h2 className="text-sm font-semibold text-ink">Your presence</h2>
-          <p className="mt-0.5 text-xs text-slate2">A warm voice that greets returning learners by what they were last working on and remembers them over time — the institution as a someone, not a portal.</p>
+          <p className="mt-0.5 text-xs text-slate2">A warm voice that greets returning learners by what they were last working on and remembers them over time: the institution as a someone, not a portal.</p>
         </div>
         <div>
           <label className="lbl">What it's called</label>
@@ -155,8 +155,8 @@ export default function OrgBrandingEditor({ org }: { org: BrandingOrg }) {
           <p className="mt-1 text-[11px] text-slate-400">Shown as the voice on the learner's dashboard. Leave blank to use your org's name.</p>
         </div>
         <div>
-          <label className="lbl">How it speaks <span className="font-normal text-slate-400">— tone &amp; personality</span></label>
-          <textarea className="field min-h-[80px]" value={presenceVoice} onChange={(e) => setPresenceVoice(e.target.value)} placeholder="e.g. Warm, direct, a little wry. Speaks like a favorite professor who remembers you — never salesy, never corporate. Encouraging but honest." />
+          <label className="lbl">How it speaks <span className="font-normal text-slate-400">(tone &amp; personality)</span></label>
+          <textarea className="field min-h-[80px]" value={presenceVoice} onChange={(e) => setPresenceVoice(e.target.value)} placeholder="e.g. Warm, direct, a little wry. Speaks like a favorite professor who remembers you: never salesy, never corporate. Encouraging but honest." />
           <p className="mt-1 text-[11px] text-slate-400">Guides how the presence writes to your people. It always references something real about them and never sells or assigns.</p>
         </div>
       </section>

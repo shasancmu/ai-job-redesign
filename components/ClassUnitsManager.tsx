@@ -80,7 +80,7 @@ export default function ClassUnitsManager({ roleplayModules = [], interviewModul
             <div className="mt-4">
               <div className="lbl">Modules every cohort in this class inherits</div>
               <p className="mb-2 text-xs text-slate-500">Cohorts (sections/sessions) under this class get these automatically, and can add their own on top.</p>
-              <ModulePicker available={available.map((m) => ({ slug: m.slug, name: m.name }))} selected={sel} onToggle={toggle} onSetMany={setMany} emptyNote="This org hasn't granted any modules yet — set them in Organization settings." />
+              <ModulePicker available={available.map((m) => ({ slug: m.slug, name: m.name }))} selected={sel} onToggle={toggle} onSetMany={setMany} emptyNote="This org hasn't granted any modules yet. Set them in Organization settings." />
               <div className="mt-1 text-xs text-slate-400">{sel.size} selected</div>
             </div>
             {err && <p className="mt-3 text-sm text-red-700">{err}</p>}

@@ -133,7 +133,7 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
       </div>
       <div>
         <label className="lbl">About <span className="font-normal text-slate-400">(short intro under the headline)</span></label>
-        <textarea className="field min-h-[70px]" value={about} onChange={(e) => setAbout(e.target.value)} placeholder="A private Superadditive workspace for Duke — hands-on exercises for your teams." />
+        <textarea className="field min-h-[70px]" value={about} onChange={(e) => setAbout(e.target.value)} placeholder="A private Superadditive workspace for Duke: hands-on exercises for your teams." />
       </div>
       <div className="flex flex-wrap items-center gap-4">
         <label className="flex items-center gap-2 text-sm">
@@ -154,11 +154,11 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
             <button type="button" onClick={() => setMods(new Set())} className="text-slate-400 hover:text-ink">None</button>
           </div>
         </div>
-        <div className="mb-1.5 text-xs text-slate-400">{mods.size === 0 ? "Empty = members get every module." : `${mods.size} selected — members get only these.`}</div>
+        <div className="mb-1.5 text-xs text-slate-400">{mods.size === 0 ? "Empty = members get every module." : `${mods.size} selected: members get only these.`}</div>
         <ModulePicker available={PICK_ITEMS} selected={mods} onToggle={toggleMod} onSetMany={setGroup} />
         <label className="mt-2.5 flex items-start gap-2 text-sm text-ink">
           <input type="checkbox" checked={memberBrowse} onChange={(e) => setMemberBrowse(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[color:var(--ink)]" />
-          <span>Let members browse the full library<span className="block text-xs font-normal text-slate-400">Off (default): members see a focused home — just the work assigned to their cohort. On: members can also explore every module above.</span></span>
+          <span>Let members browse the full library<span className="block text-xs font-normal text-slate-400">Off (default): members see a focused home, just the work assigned to their cohort. On: members can also explore every module above.</span></span>
         </label>
       </div>
       {/* Institution factors */}
@@ -319,7 +319,7 @@ function OrgCard({ org, count, invites, users, onChanged }: { org: Org; count?: 
 
       {/* Member invites */}
       <div className="mt-4 rounded-lg border border-line p-3">
-        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Invited members {org.invite_only ? "" : "(org is open — anyone can join)"}</div>
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Invited members {org.invite_only ? "" : "(org is open, anyone can join)"}</div>
         <div className="flex gap-1.5">
           <input className="field" value={memEmails} onChange={(e) => setMemEmails(e.target.value)} placeholder="a@duke.edu, b@duke.edu" />
           <button onClick={() => act({ action: "add_invites", orgId: org.id, emails: memEmails.split(/[,\s]+/).filter(Boolean) }, "mem").then(() => setMemEmails(""))} disabled={busy === "mem" || !memEmails.includes("@")} className="btn-dark shrink-0 text-sm">Invite</button>

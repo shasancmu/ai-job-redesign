@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   const genome = builtin || (await loadLivingCase(slug, user.id));
   if (!genome) return Response.json({ error: "Not found." }, { status: 404 });
   const ins = await caseInsights(slug);
-  if (ins.readers === 0) return Response.json({ error: "No engagement yet — share the case with a class first, then come back for data-driven suggestions." }, { status: 400 });
+  if (ins.readers === 0) return Response.json({ error: "No engagement yet. Share the case with a class first, then come back for data-driven suggestions." }, { status: 400 });
 
   setFlow("cases:improve");
   try {

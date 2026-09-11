@@ -30,7 +30,7 @@ export default async function StudioLive() {
       <span className="eyebrow text-sage">Live templates</span>
       <h1 className="mt-2 text-3xl font-bold text-ink">Author a live prompt</h1>
       <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-slate2">
-        Write a question the room answers live from their phones — the answers aggregate on screen, then AI synthesizes them. It becomes a <b>Live</b> module in your library: assign it to a cohort, and launch it from the cohort&apos;s Run-live cockpit, alongside every other exercise.
+        Write a question the room answers live from their phones. The answers aggregate on screen, then AI synthesizes them. It becomes a <b>Live</b> module in your library: assign it to a cohort, and launch it from the cohort&apos;s Run-live cockpit, alongside every other exercise.
       </p>
       <div className="mt-6">
         <LivePromptManager initial={(prompts as any) || []} />

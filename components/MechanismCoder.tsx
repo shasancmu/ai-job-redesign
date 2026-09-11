@@ -32,7 +32,7 @@ export default function MechanismCoder({ flow }: { flow: string }) {
     <div className="rounded-2xl border border-line bg-white p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-sm font-bold text-ink">Mechanism — read the transcripts</h2>
+          <h2 className="text-sm font-bold text-ink">Mechanism: read the transcripts</h2>
           <p className="mt-1 text-xs text-slate-400">Samples matched policy vs holdout conversations and names what concretely differs. Grounds the numeric mediation in the actual dialogue.</p>
         </div>
         <button onClick={run} disabled={busy} className="btn-primary text-sm shrink-0">{busy ? "Reading…" : "Code the transcripts"}</button>
@@ -67,7 +67,7 @@ export default function MechanismCoder({ flow }: { flow: string }) {
               </tbody>
             </table>
           </div>
-          <p className="mt-2 text-[11px] text-slate-400">Qualitative, model-coded from a transcript sample — a hypothesis about the pathway, to be read alongside the mediation numbers, not as proof.</p>
+          <p className="mt-2 text-[11px] text-slate-400">Qualitative, model-coded from a transcript sample: a hypothesis about the pathway, to be read alongside the mediation numbers, not as proof.</p>
         </div>
       )}
     </div>

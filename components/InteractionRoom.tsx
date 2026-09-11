@@ -109,9 +109,9 @@ function Frame({ idea, setIdea }: { idea: IdeaInputs; setIdea: (p: Partial<IdeaI
         the pieces, and watch the idea take shape.
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="X — the main cause" hint="the treatment or driver"><input className="field" value={idea.x} onChange={(e) => setIdea({ x: e.target.value })} placeholder="e.g. adopting A/B testing" /></Field>
-        <Field label="Y — the outcome" hint="what you're explaining"><input className="field" value={idea.y} onChange={(e) => setIdea({ y: e.target.value })} placeholder="e.g. startup performance" /></Field>
-        <Field label="Z — the scope condition" hint="what changes X's effect"><input className="field" value={idea.z} onChange={(e) => setIdea({ z: e.target.value })} placeholder="e.g. managerial experience" /></Field>
+        <Field label="X: the main cause" hint="the treatment or driver"><input className="field" value={idea.x} onChange={(e) => setIdea({ x: e.target.value })} placeholder="e.g. adopting A/B testing" /></Field>
+        <Field label="Y: the outcome" hint="what you're explaining"><input className="field" value={idea.y} onChange={(e) => setIdea({ y: e.target.value })} placeholder="e.g. startup performance" /></Field>
+        <Field label="Z: the scope condition" hint="what changes X's effect"><input className="field" value={idea.z} onChange={(e) => setIdea({ z: e.target.value })} placeholder="e.g. managerial experience" /></Field>
       </div>
       <Field label="How does Z change the effect of X?">
         <DirToggle direction={idea.direction} onChange={(d) => setIdea({ direction: d })} z={idea.z} />
@@ -155,7 +155,7 @@ function Reveal({ idea, setIdea, state, setState, code, canFrame }: { idea: Idea
         The <span className="font-medium text-ink">because</span> is the idea. A mechanism comes from a model, and a good one predicts which{" "}
         <span className="font-medium text-ink">other</span> outcomes should move if it&apos;s true.
       </div>
-      <Field label="R — the mechanism" hint="why does Z change the effect of X?"><textarea className="field min-h-[80px]" value={idea.mechanism || ""} onChange={(e) => setIdea({ mechanism: e.target.value })} placeholder="Because experienced managers can interpret and act on experimental results…" /></Field>
+      <Field label="R: the mechanism" hint="why does Z change the effect of X?"><textarea className="field min-h-[80px]" value={idea.mechanism || ""} onChange={(e) => setIdea({ mechanism: e.target.value })} placeholder="Because experienced managers can interpret and act on experimental results…" /></Field>
       <Field label="The model it comes from" hint="the logic or theory behind the mechanism (optional)"><textarea className="field min-h-[60px]" value={idea.model || ""} onChange={(e) => setIdea({ model: e.target.value })} placeholder="A learning model: experiments only help if you can update on them." /></Field>
 
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">

@@ -44,7 +44,7 @@ export default async function PromoPage({ params, searchParams }: { params: { sl
         </header>
 
         {!isLive(ad) && isOwner && (
-          <div className="mb-5 rounded-xl border border-amber-soft bg-amber-soft/40 px-4 py-2.5 text-sm text-amber-700">Preview — this spotlight is a {ad.status}. Only you can see it until it&apos;s published.</div>
+          <div className="mb-5 rounded-xl border border-amber-soft bg-amber-soft/40 px-4 py-2.5 text-sm text-amber-700">Preview: this spotlight is a {ad.status}. Only you can see it until it&apos;s published.</div>
         )}
 
         {ad.image_url && (

@@ -90,7 +90,7 @@ export default function NegEditor({ me, initial, initialStatus }: { me: string; 
               <div><label className="lbl">Your BATNA (walk-away score)</label><input type="number" className="field w-40 text-sm" value={scn.yourBatna ?? ""} onChange={(e) => set({ yourBatna: Number(e.target.value) || 0 })} /></div>
               <div>
                 <label className="lbl">Issues &amp; payoffs</label>
-                <p className="mb-1 text-xs text-slate-400">Each issue is a thing being negotiated; each option is a concrete term on offer (give it a plain label like &ldquo;$60/seat&rdquo;). The <span className="font-semibold">You</span> / <span className="font-semibold">Them</span> numbers are the hidden scoresheet — learners never see them; they drive the AI counterpart and the score. Vary the structure: some issues both sides want the same (compatible), some win-lose (distributive), some weighted oppositely so trading creates value (integrative).</p>
+                <p className="mb-1 text-xs text-slate-400">Each issue is a thing being negotiated; each option is a concrete term on offer (give it a plain label like &ldquo;$60/seat&rdquo;). The <span className="font-semibold">You</span> / <span className="font-semibold">Them</span> numbers are the hidden scoresheet: learners never see them; they drive the AI counterpart and the score. Vary the structure: some issues both sides want the same (compatible), some win-lose (distributive), some weighted oppositely so trading creates value (integrative).</p>
                 <div className="space-y-2">
                   {issues.map((iss, ii) => (
                     <div key={ii} className="rounded-xl border border-line p-2">

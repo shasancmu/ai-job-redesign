@@ -46,7 +46,7 @@ export default function ProgramDirectorsPanel({ unitId, unitName }: { unitId: st
   return (
     <div className="mt-2 rounded-xl border border-line bg-mist/40 p-4">
       <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Program directors</div>
-      <p className="mt-1 text-xs text-slate-500">Runs {unitName || "this program"} as a P&amp;L — its cohorts, instructors, and alumni — without directing the whole school. Independent of who owns the modules.</p>
+      <p className="mt-1 text-xs text-slate-500">Runs {unitName || "this program"} as a P&amp;L (its cohorts, instructors, and alumni) without directing the whole school. Independent of who owns the modules.</p>
 
       {directors === null ? (
         <div className="mt-3 text-sm text-slate-400">Loading…</div>

@@ -216,7 +216,7 @@ function Response({
               {d.questions.map((q) => (
                 <div key={q.key}>
                   <div className="text-xs font-semibold text-slate-500">{q.label}</div>
-                  <p className="mt-0.5 whitespace-pre-wrap text-sm text-slate2">{(responses[q.key] || "").trim() || <span className="text-slate-300">— no answer —</span>}</p>
+                  <p className="mt-0.5 whitespace-pre-wrap text-sm text-slate2">{(responses[q.key] || "").trim() || <span className="text-slate-300">(no answer)</span>}</p>
                 </div>
               ))}
             </div>

@@ -48,8 +48,8 @@ export default function PipelineReport({
       <div data-guide="lever" className="rounded-2xl border border-line bg-white p-5">
         <div className="text-xs font-semibold uppercase tracking-wide text-sage">The lever</div>
         <p className="mt-1 text-sm text-slate-600">
-          Watch what actually moves the number of papers you'd have to write. It isn't your pace — it's how likely each paper is to convince
-          reviewers.
+          Watch what actually moves the number of papers you'd have to write. It's how likely each paper is to convince reviewers, not your
+          pace.
         </p>
         <div className="mt-4 space-y-2.5">
           {lever.map((l) => {
@@ -70,7 +70,7 @@ export default function PipelineReport({
         </div>
         {better && better.key !== inputs.quality && dropFactor > 1.1 && (
           <p className="mt-3 text-sm text-slate-700">
-            Moving one tier up — from a paper reviewers respect to one they <span className="font-semibold text-ink">argue to accept</span> — cuts
+            Moving one tier up (from a paper reviewers respect to one they <span className="font-semibold text-ink">argue to accept</span>) cuts
             the papers you'd need by roughly <span className="font-semibold text-ink">{dropFactor.toFixed(1)}×</span>. Writing faster does none of that.
           </p>
         )}
@@ -80,7 +80,7 @@ export default function PipelineReport({
       <div data-guide="pivot" className="rounded-2xl border p-5" style={{ borderColor: "#3F7A52", background: "#EAF2EC" }}>
         <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#3F7A52" }}>The takeaway</div>
         <p className="mt-1 text-base font-bold leading-snug text-ink">
-          Writing more papers won't build a portfolio. Raising the probability each one gets in will — and that means convincing reviewers.
+          Writing more papers won't build a portfolio. Raising the probability each one gets in will, which means convincing reviewers.
         </p>
         <p className="mt-2 text-sm text-slate-600">
           So the real question isn't &ldquo;how many can I write?&rdquo; It's &ldquo;what makes a paper one reviewers champion?&rdquo; That's the next thing to learn.

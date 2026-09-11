@@ -18,9 +18,9 @@ export default async function VisionReportPage({ params }: { params: { code: str
     <ReportShell
       code={code}
       eyebrow="Company vision"
-      title={org ? `${org} — vision` : "Your vision"}
+      title={org ? `${org}: vision` : "Your vision"}
       backLabel="← Back to the room"
-      shareTitle={org ? `${org} — vision` : "Our vision"}
+      shareTitle={org ? `${org}: vision` : "Our vision"}
       shareText="Read our vision"
       hasReport={!!report}
       emptyText="This vision hasn't been built yet."

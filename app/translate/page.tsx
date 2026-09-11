@@ -24,7 +24,7 @@ export default async function TranslatePage() {
 
       <h1 className="font-serif text-4xl leading-tight text-ink">Translate across frames</h1>
       <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-slate2">
-        Two people from different worlds. Type an idea as one of them, and see it re-expressed in the other&apos;s frame&nbsp;— their primitives, what they care about, and an analogy from their own field&nbsp;— not dumbed down, just made legible.
+        Two people from different worlds. Type an idea as one of them, and see it re-expressed in the other&apos;s frame (their primitives, what they care about, and an analogy from their own field), not dumbed down, just made legible.
       </p>
 
       <div className="mt-8"><Translator /></div>

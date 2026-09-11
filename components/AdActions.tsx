@@ -42,7 +42,7 @@ export default function AdActions({ adId, ctaLabel, ctaUrl, cohort, signedIn }: 
       )}
       {signedIn && (
         interested ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-sage-soft px-3 py-1.5 text-sm font-medium text-sage">✓ Noted — the team will follow up</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-sage-soft px-3 py-1.5 text-sm font-medium text-sage">✓ Noted, the team will follow up</span>
         ) : (
           <button onClick={markInterest} disabled={busy} className="btn-ghost text-sm">I&apos;m interested</button>
         )

@@ -95,14 +95,14 @@ export default async function RelationshipsPage() {
       <h1 className="mt-2 font-serif text-4xl leading-tight text-ink">{org.name}</h1>
       <p className="mt-2 text-sm font-medium text-slate-500">{roleLabel} · {os.spanLabel}</p>
       <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-slate2">
-        Not a mailing list. This asks one question — <b>is every person here known by a human?</b> — and then helps you be that human. It surfaces and routes; it never reaches out for you. A note in your voice is worth more than anything a system could send.
+        Not a mailing list. This asks one question: <b>is every person here known by a human?</b> Then it helps you be that human. It surfaces and routes; it never reaches out for you. A note in your voice is worth more than anything a system could send.
       </p>
 
       <div className="mt-5"><PersonLookup /></div>
 
       {os.people === 0 ? (
         <div className="mt-8 rounded-2xl border border-dashed border-line bg-white p-6 text-center text-sm text-slate2">
-          No one in your {os.role === "instructor" ? "cohorts" : "programs"} yet. As people join and work, they&apos;ll appear here — each one someone to know.
+          No one in your {os.role === "instructor" ? "cohorts" : "programs"} yet. As people join and work, they&apos;ll appear here, each one someone to know.
         </div>
       ) : (
         <>
@@ -125,7 +125,7 @@ export default async function RelationshipsPage() {
               </div>
               {os.orphaned.length > 0 && (
                 <div className="mt-4">
-                  <p className="text-xs text-slate2">These people are here but in no one&apos;s cohort — assign each to a human before they drift.</p>
+                  <p className="text-xs text-slate2">These people are here but in no one&apos;s cohort. Assign each to a human before they drift.</p>
                   <div className="mt-2 overflow-hidden rounded-xl border border-line">
                     {os.orphaned.slice(0, 8).map((p, i) => (
                       <div key={p.userId} className={"flex items-center " + (i > 0 ? "border-t border-line" : "")}>
@@ -142,7 +142,7 @@ export default async function RelationshipsPage() {
           {/* Understand the whole span — care from understanding, at scale. */}
           <section className="mt-8">
             <h2 className="eyebrow mb-1">Understand {os.role === "director" ? "your school" : os.role === "program_director" ? "your programs" : "your cohort"}</h2>
-            <p className="mb-3 text-sm text-slate2">A reading of who these people are and what they need — the way you&apos;d read one student, across the whole group.</p>
+            <p className="mb-3 text-sm text-slate2">A reading of who these people are and what they need, the way you&apos;d read one student, across the whole group.</p>
             <RollupReport label={os.role === "director" ? "your school" : os.role === "program_director" ? "your programs" : "your cohort"} />
           </section>
 
@@ -150,7 +150,7 @@ export default async function RelationshipsPage() {
           {os.role !== "instructor" && os.programs.length > 0 && (
             <section className="mt-8">
               <h2 className="eyebrow mb-1">Your programs</h2>
-              <p className="mb-3 text-sm text-slate2">You don&apos;t carry everyone — you carry the people who carry them. Each program is run by its director and its instructors.</p>
+              <p className="mb-3 text-sm text-slate2">You don&apos;t carry everyone. You carry the people who carry them. Each program is run by its director and its instructors.</p>
               <div className="space-y-2">
                 {os.programs.map((pr) => (
                   <div key={pr.unitId} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line bg-white p-4">
@@ -175,13 +175,13 @@ export default async function RelationshipsPage() {
           {os.carers.length > 0 && (
             <section className="mt-8">
               <h2 className="eyebrow mb-1">Who carries whom</h2>
-              <p className="mb-3 text-sm text-slate2">A person can only truly know so many — roughly {SPAN_HEALTHY} well, {SPAN_MAX} at the limit. Past that, the relationship thins to a transaction. The fix is never more automation; it&apos;s another human.</p>
+              <p className="mb-3 text-sm text-slate2">A person can only truly know so many: roughly {SPAN_HEALTHY} well, {SPAN_MAX} at the limit. Past that, the relationship thins to a transaction. The fix is never more automation; it&apos;s another human.</p>
               <div className="overflow-hidden rounded-2xl border border-line bg-white">
                 {os.carers.slice(0, 12).map((c, i) => <div key={c.userId} className={i > 0 ? "border-t border-line" : ""}><CarerRow c={c} /></div>)}
               </div>
               {os.overloaded.length > 0 && (
                 <div className="mt-3 rounded-xl border-2 border-orange-200 bg-orange-50/60 p-3 text-sm text-orange-900">
-                  <b>{os.overloaded.length} {os.overloaded.length === 1 ? "carer is" : "carers are"} beyond human scale.</b> {os.overloaded.slice(0, 3).map((c) => c.name).join(", ")}{os.overloaded.length > 3 ? "…" : ""} — split a cohort or bring in another instructor so their people stay genuinely known, not processed.
+                  <b>{os.overloaded.length} {os.overloaded.length === 1 ? "carer is" : "carers are"} beyond human scale.</b> {os.overloaded.slice(0, 3).map((c) => c.name).join(", ")}{os.overloaded.length > 3 ? "…" : ""}. Split a cohort or bring in another instructor so their people stay genuinely known, not processed.
                 </div>
               )}
             </section>
@@ -223,7 +223,7 @@ export default async function RelationshipsPage() {
           {(os.helpfulPeers.length > 0 || os.unwelcomed.length > 0) && (
             <section className="mt-10">
               <h2 className="eyebrow mb-1">Peers helping peers</h2>
-              <p className="mb-3 text-sm text-slate2">The most durable relationships aren&apos;t to you — they&apos;re to each other. A cohort that helps itself needs no one at the center.</p>
+              <p className="mb-3 text-sm text-slate2">The most durable relationships are to each other, not to you. A cohort that helps itself needs no one at the center.</p>
               <div className="grid gap-3 sm:grid-cols-2">
                 {os.helpfulPeers.length > 0 && (
                   <div className="rounded-2xl border border-line bg-white p-4">
@@ -237,7 +237,7 @@ export default async function RelationshipsPage() {
                 {os.unwelcomed.length > 0 && (
                   <div className="rounded-2xl border border-line bg-white p-4">
                     <div className="text-sm font-bold text-ink">No peer yet</div>
-                    <p className="mt-0.5 text-xs text-slate2">They&apos;ve shown up but no one&apos;s worked with them. Introduce them to one person — that&apos;s the tie that keeps them.</p>
+                    <p className="mt-0.5 text-xs text-slate2">They&apos;ve shown up but no one&apos;s worked with them. Introduce them to one person. That&apos;s the tie that keeps them.</p>
                     <div className="mt-3 overflow-hidden rounded-xl border border-line">
                       {os.unwelcomed.slice(0, 6).map((p, i) => <div key={p.userId} className={i > 0 ? "border-t border-line" : ""}><PersonLine p={p} note="" /></div>)}
                     </div>
@@ -249,9 +249,9 @@ export default async function RelationshipsPage() {
 
           {/* Broadcast — deliberately last and deliberately small (principle 8). */}
           <section className="mt-10 rounded-2xl border border-line bg-mist/40 p-5">
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Broadcast — sparingly</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Broadcast (sparingly)</div>
             <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate2">
-              A broadcast reaches everyone at once — the opposite of a personal note. It&apos;s right for a genuine announcement, wrong as a stand-in for care. If you can name the person and why, send a note instead.
+              A broadcast reaches everyone at once, the opposite of a personal note. It&apos;s right for a genuine announcement, wrong as a stand-in for care. If you can name the person and why, send a note instead.
             </p>
             <div className="mt-3"><PushComposer segments={segments} /></div>
           </section>

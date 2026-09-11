@@ -88,8 +88,8 @@ export async function POST(request: Request) {
   const fallback = [
     `Hi ${firstL},`,
     "",
-    lastModule ? `I was just thinking about our work together — I remember you were digging into ${lastModule}.` : "I was just thinking of you and wanted to check in.",
-    "No agenda at all — I'd love to hear how things are going, and whether there's anything I can help with.",
+    lastModule ? `I was just thinking about our work together. I remember you were digging into ${lastModule}.` : "I was just thinking of you and wanted to check in.",
+    "No agenda at all. I'd love to hear how things are going, and whether there's anything I can help with.",
     firstS ? `\n${firstS}` : "",
   ].filter((l) => l !== undefined).join("\n").trim();
 

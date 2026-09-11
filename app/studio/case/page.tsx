@@ -69,7 +69,7 @@ export default function StudioCasePage() {
         </div>
         <div>
           <label className="lbl">Protagonist <span className="font-normal text-slate-400">(optional)</span></label>
-          <input className="field mt-1" value={protagonist} onChange={(e) => setProtagonist(e.target.value)} placeholder="e.g. Reed Hastings, CEO — or leave blank" />
+          <input className="field mt-1" value={protagonist} onChange={(e) => setProtagonist(e.target.value)} placeholder="e.g. Reed Hastings, CEO (or leave blank)" />
         </div>
 
         <div className="flex flex-wrap gap-1.5">

@@ -26,7 +26,7 @@ export default async function BatchPage() {
       <h1 className="mt-2 font-serif text-4xl leading-tight text-ink">Score a whole portfolio</h1>
       <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-slate2">
         Upload up to 50 abstracts (a lab, a department, a funder&rsquo;s awards) and get every paper&rsquo;s
-        six-dimensional impact fingerprint at once — then sort to surface the hidden gems, the defense-relevant
+        six-dimensional impact fingerprint at once, then sort to surface the hidden gems, the defense-relevant
         work, or the cross-disciplinary bridges. Download the whole table as CSV.
       </p>
       <div className="mt-6"><BatchScore /></div>

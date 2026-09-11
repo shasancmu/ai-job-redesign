@@ -47,7 +47,7 @@ export default function PortraitChat({ existingReflection = null }: { existingRe
       }
       setMsgs((prev) => [...prev, { role: "assistant", content: full }]);
       setStreaming("");
-    } catch { setErr("Lost the thread there — try again."); }
+    } catch { setErr("Lost the thread there. Try again."); }
     setBusy(false);
   }
 
@@ -81,7 +81,7 @@ export default function PortraitChat({ existingReflection = null }: { existingRe
       <div className="rounded-2xl border border-line bg-white p-6">
         <h1 className="font-serif text-3xl leading-tight text-ink">A few minutes, so we actually understand you</h1>
         <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-slate2">
-          Not a form. A short conversation about what you actually do, what you&apos;re trying to build, and where you&apos;re headed. At the end you&apos;ll see what came through. It helps the people who teach you understand you — and it&apos;s yours: you can read or delete it anytime.
+          Not a form. A short conversation about what you actually do, what you&apos;re trying to build, and where you&apos;re headed. At the end you&apos;ll see what came through. It gives the people who teach you a real understanding of you, and it&apos;s yours: you can read or delete it anytime.
         </p>
         <button onClick={begin} disabled={busy} className="btn-primary mt-5 text-sm">{busy ? "…" : "Begin"}</button>
         {err && <p className="mt-3 text-sm text-red-700">{err}</p>}

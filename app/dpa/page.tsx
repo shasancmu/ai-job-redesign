@@ -42,13 +42,13 @@ export default async function DPA() {
           like &ldquo;controller&rdquo;, &ldquo;processor&rdquo;, and &ldquo;personal data&rdquo; have the meaning given in the GDPR.
         </S>
         <S title="2. Subject matter, nature & purpose, duration">
-          We process personal data only to provide the service — running AI exercises, storing the resulting reports, and
+          We process personal data only to provide the service: running AI exercises, storing the resulting reports, and
           giving your directors and instructors the tools to manage their cohorts. Processing lasts for the term of your use
           of the service.
         </S>
         <S title="3. Types of data & data subjects">
           <ul>
-            <li><b>Data subjects:</b> your participants — members, instructors, and directors you invite.</li>
+            <li><b>Data subjects:</b> your participants: members, instructors, and directors you invite.</li>
             <li><b>Personal data:</b> names and emails; the content people enter or speak during exercises and the reports
               produced; role and cohort membership; and usage records. Please don&apos;t use the service to process special
               categories of data unless you&apos;ve confirmed a lawful basis and told your people.</li>
@@ -84,7 +84,7 @@ export default async function DPA() {
           This DPA forms part of, and is subject to, the terms of the main agreement. If there&apos;s a conflict on the
           processing of personal data, this DPA controls.
         </S>
-        <S title="Annex A — Security measures (summary)">
+        <S title="Annex A: Security measures (summary)">
           <ul>
             <li>Encryption of data in transit; data at rest protected by the hosting provider.</li>
             <li>Row-level access controls so each user and organization sees only their own data.</li>

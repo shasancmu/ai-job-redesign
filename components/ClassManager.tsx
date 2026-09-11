@@ -345,7 +345,7 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
 
           <div className="mt-3">
             <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate2">{selectedClassUnit?.modules?.length ? `Add from ${selectedClassUnit.name}'s modules` : "Add a module"}</div>
-            <ModulePicker available={pickable} selected={new Set(order)} onToggle={toggleOrder} onSetMany={setManyOrder} height="max-h-64" emptyNote="No modules available — the org (or this class) hasn't granted any. Set them in Organization settings." />
+            <ModulePicker available={pickable} selected={new Set(order)} onToggle={toggleOrder} onSetMany={setManyOrder} height="max-h-64" emptyNote="No modules available: the org (or this class) hasn't granted any. Set them in Organization settings." />
           </div>
         </div>
 

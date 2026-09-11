@@ -8,17 +8,17 @@ const STEPS = [
   {
     eyebrow: "Step 1",
     title: "We make it unmistakably yours",
-    body: "Your logo, your colors, your own address — superadditive.app/your-org. Participants land in a private, branded space that feels like an extension of your program, not a third-party tool.",
+    body: "Your logo, your colors, your own address: superadditive.app/your-org. Participants land in a private, branded space that feels like an extension of your program, not a third-party tool.",
   },
   {
     eyebrow: "Step 2",
     title: "You bring your people in",
-    body: "Invite a cohort by email in seconds. Appoint instructors to run their own sections, keep everyone in your master group, and manage the whole community from one place — you only ever see your organization's people.",
+    body: "Invite a cohort by email in seconds. Appoint instructors to run their own sections, keep everyone in your master group, and manage the whole community from one place. You only ever see your organization's people.",
   },
   {
     eyebrow: "Step 3",
-    title: "They engage — and your program stays alive",
-    body: "Participants work through the exercises and each leaves with something that's theirs to keep. You see the cohort's energy and the themes rising across the room — enough to know it's landing and keep the community connected, without looking over anyone's shoulder.",
+    title: "They engage, and your program stays alive",
+    body: "Participants work through the exercises and each leaves with something that's theirs to keep. You see the cohort's energy and the themes rising across the room, enough to know it's landing and keep the community connected, without looking over anyone's shoulder.",
   },
 ];
 

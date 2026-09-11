@@ -31,7 +31,7 @@ export default function OrgAiSettings({ orgId }: { orgId: string }) {
     setBusy(true); setMsg(""); setErr("");
     try {
       const d = await fetch("/api/org/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orgId, action: action === "save" ? undefined : "test", base_url: baseUrl.trim(), model: model.trim(), low_model: lowModel.trim(), api_key: apiKey, enabled }) }).then((r) => r.json());
-      if (action === "test") { d?.ok ? setMsg(`Reached it — the endpoint replied “${d.reply || "OK"}”.`) : setErr(d?.error || "Couldn't reach the endpoint."); }
+      if (action === "test") { d?.ok ? setMsg(`Reached it. The endpoint replied “${d.reply || "OK"}”.`) : setErr(d?.error || "Couldn't reach the endpoint."); }
       else { if (d?.status) { setSt(d.status); setApiKey(""); setMsg("Saved."); } else setErr(d?.error || "Couldn't save."); }
     } catch { setErr("Something went wrong."); }
     setBusy(false);
@@ -41,7 +41,7 @@ export default function OrgAiSettings({ orgId }: { orgId: string }) {
     <section className="card p-5">
       <h2 className="text-sm font-semibold text-ink">Your AI provider (private models)</h2>
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate2">
-        Route this organization&apos;s AI to your <b>own models and key</b> — e.g. a self-hosted, private endpoint — so student data reaches your models, not the shared one. When it&apos;s on, this org&apos;s AI runs on your endpoint (no fallback to the platform model). Works with any OpenAI-compatible or Anthropic endpoint.
+        Route this organization&apos;s AI to your <b>own models and key</b> (e.g. a self-hosted, private endpoint) so student data reaches your models, not the shared one. When it&apos;s on, this org&apos;s AI runs on your endpoint (no fallback to the platform model). Works with any OpenAI-compatible or Anthropic endpoint.
       </p>
 
       {st && (

@@ -153,7 +153,7 @@ export default function IncentiveRoom({ session, initialWorkspace }: { me?: stri
         </div>
         <details className="text-xs text-slate-400">
           <summary className="cursor-pointer">What can the workers actually do?</summary>
-          <ul className="mt-2 list-disc space-y-1 pl-5">{scenario.actions.map((a) => <li key={a.key}><span className="font-medium text-slate2">{a.label}</span> — {a.description}</li>)}</ul>
+          <ul className="mt-2 list-disc space-y-1 pl-5">{scenario.actions.map((a) => <li key={a.key}><span className="font-medium text-slate2">{a.label}</span>: {a.description}</li>)}</ul>
         </details>
         {err && <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
         <button onClick={run} disabled={busy || wsum <= 0} className="btn-primary w-full">{busy ? "Workers are gaming your plan… (~15s)" : result ? "Run the tournament again" : "Run the self-play tournament"}</button>

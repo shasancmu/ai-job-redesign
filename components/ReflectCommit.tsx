@@ -39,7 +39,7 @@ export default function ReflectCommit({ code, hasPrediction }: { code: string; h
         <div className="text-sm font-semibold text-ink">Committed.</div>
         <p className="mt-0.5 text-sm text-slate-600">
           {thenPart
-            ? <>We&apos;ll remind you{whenLabel ? ` on ${whenLabel}` : " in a few days"} — it&apos;ll show up on your dashboard so you actually follow through.</>
+            ? <>We&apos;ll remind you{whenLabel ? ` on ${whenLabel}` : " in a few days"}. It&apos;ll show up on your dashboard so you actually follow through.</>
             : <>Saved. You&apos;ll find this reflection with your report whenever you come back to it.</>}
         </p>
       </div>
@@ -50,8 +50,8 @@ export default function ReflectCommit({ code, hasPrediction }: { code: string; h
 
   return (
     <div className="mt-5 rounded-2xl border border-line bg-white p-5 no-print">
-      <div className="text-xs font-semibold uppercase tracking-wide text-sage">Before you go — lock it in</div>
-      <p className="mt-1 text-sm text-slate-600">What you just worked out fades within a day. Name one concrete move you&apos;ll make, tie it to a moment, and we&apos;ll remind you — so the exercise turns into something you actually do.</p>
+      <div className="text-xs font-semibold uppercase tracking-wide text-sage">Before you go: lock it in</div>
+      <p className="mt-1 text-sm text-slate-600">What you just worked out fades within a day. Name one concrete move you&apos;ll make, tie it to a moment, and we&apos;ll remind you, so the exercise turns into something you actually do.</p>
 
       {hasPrediction && (
         <div className="mt-3">

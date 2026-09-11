@@ -561,7 +561,7 @@ export default async function Dashboard({
         <div className="mb-6 rounded-2xl border-2 border-sage/40 bg-gradient-to-br from-sage/8 to-white p-4 text-center">
           <div className="joy-pop text-2xl" aria-hidden>🎉</div>
           <div className="mt-0.5 text-sm font-bold text-ink">
-            {(() => { const m = searchParams.done && searchParams.done !== "1" ? moduleBySlug(searchParams.done) : null; return m ? `Nice — you finished ${m.name}.` : "Nice work — that's done and saved."; })()}
+            {(() => { const m = searchParams.done && searchParams.done !== "1" ? moduleBySlug(searchParams.done) : null; return m ? `Nice, you finished ${m.name}.` : "Nice work, that's done and saved."; })()}
           </div>
           <div className="mt-0.5 text-xs text-slate2">It&apos;s yours to keep. Keep the momentum going below.</div>
         </div>
@@ -588,7 +588,7 @@ export default async function Dashboard({
             {showRuns && (
               <a
                 href="/paywall"
-                title="Your runs — one run is one exercise. Tap to top up."
+                title="Your runs: one run is one exercise. Tap to top up."
                 className={"inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium transition hover:border-slate-300 " + (runsBalance === 0 ? "border-clay/40 bg-clay/5 text-clay" : "border-line bg-white text-slate2")}
               >
                 🎟️ {runsBalance} run{runsBalance === 1 ? "" : "s"} left
@@ -630,7 +630,7 @@ export default async function Dashboard({
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-mist text-[10px] font-bold text-slate2">{activeOrg.name.slice(0, 2).toUpperCase()}</div>
           )}
           <span className="min-w-0 truncate text-slate2"><span className="font-semibold text-ink">{activeOrg.name}</span> · {cohortName || "All members"}</span>
-          {isOrgLearner && <span className="shrink-0 rounded-full bg-sage/10 px-2 py-0.5 text-[11px] font-semibold text-sage">Included — free</span>}
+          {isOrgLearner && <span className="shrink-0 rounded-full bg-sage/10 px-2 py-0.5 text-[11px] font-semibold text-sage">Included, free</span>}
         </div>
       )}
 
@@ -654,8 +654,8 @@ export default async function Dashboard({
               <div className="mt-0.5 truncate text-base font-bold text-ink group-hover:text-sage">{continueItem ? continueItem.name : `Next: ${nextStep!.nextName}`}</div>
               <div className="truncate text-xs text-slate-400">
                 {continueItem
-                  ? (continueCert ? `Toward your ${continueCert} certificate — just ${nextStep ? nextStep.remaining : ""} more` : "You were partway through — finish it in a few minutes.")
-                  : `Just ${nextStep!.remaining} more to earn it — keep the momentum.`}
+                  ? (continueCert ? `Toward your ${continueCert} certificate, just ${nextStep ? nextStep.remaining : ""} more` : "You were partway through. Finish it in a few minutes.")
+                  : `Just ${nextStep!.remaining} more to earn it, keep the momentum.`}
               </div>
             </div>
             <span className="shrink-0 text-sm font-semibold text-sage">{continueItem ? "Resume" : "Continue"} &rarr;</span>
@@ -679,7 +679,7 @@ export default async function Dashboard({
         <a href="/paywall" className="mb-8 flex items-center justify-between gap-3 rounded-2xl border-2 border-ink bg-white p-4 transition hover:shadow-sm">
           <div className="min-w-0">
             <div className="text-[11px] font-semibold uppercase tracking-wide text-clay">Cohort alumni · ends in {offer.daysLeft} day{offer.daysLeft === 1 ? "" : "s"}</div>
-            <div className="mt-0.5 text-sm font-bold text-ink">{runsBalance} runs left — top up at your alumni price</div>
+            <div className="mt-0.5 text-sm font-bold text-ink">{runsBalance} runs left, top up at your alumni price</div>
             <div className="text-xs text-slate-400">Your lowest per-run price. Runs never expire.</div>
           </div>
           <span className="shrink-0 text-sm font-semibold text-ink">Get runs →</span>
@@ -689,7 +689,7 @@ export default async function Dashboard({
           <div className="min-w-0">
             <div className="text-[11px] font-semibold uppercase tracking-wide text-sage">Your runs</div>
             <div className="mt-0.5 text-sm font-bold text-ink">You&apos;re out of runs</div>
-            <div className="text-xs text-slate-400">Add a pack to keep going — spend runs on any exercise.</div>
+            <div className="text-xs text-slate-400">Add a pack to keep going, spend runs on any exercise.</div>
           </div>
           <span className="shrink-0 text-sm font-semibold text-sage">Get runs →</span>
         </a>

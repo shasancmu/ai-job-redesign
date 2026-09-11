@@ -80,7 +80,7 @@ export default function AutomationsPanel({ rules }: { rules: Rule[] }) {
               {KINDS.map((k) => <option key={k.key} value={k.key}>{k.label}</option>)}
             </select>
           </div>
-          <input className="field mb-2" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title — e.g. Been a while? Try the new negotiation sim" maxLength={160} />
+          <input className="field mb-2" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title, e.g. Been a while? Try the new negotiation sim" maxLength={160} />
           <textarea className="field mb-2 min-h-[54px]" value={bodyText} onChange={(e) => setBodyText(e.target.value)} placeholder="A line of value (optional)." maxLength={1000} />
           <input className="field mb-3" value={href} onChange={(e) => setHref(e.target.value)} placeholder="/start/close-the-offer or a link" />
           <div className="flex items-center gap-3">

@@ -96,7 +96,7 @@ function Intake({ intake, setIntake }: { intake: any; setIntake: (p: any) => voi
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-line bg-mist p-4 text-sm text-slate-600">
-        A quick grounding, then a real conversation to draw out what your organization stands for, why it exists, and where it&apos;s headed — the vision framework of Collins and Porras.
+        A quick grounding, then a real conversation to draw out what your organization stands for, why it exists, and where it&apos;s headed: the vision framework of Collins and Porras.
       </div>
       <div>
         <label className="lbl">Organization name</label>
@@ -104,7 +104,7 @@ function Intake({ intake, setIntake }: { intake: any; setIntake: (p: any) => voi
       </div>
       <div>
         <label className="lbl">What does it do?</label>
-        <div className="mb-1 text-xs text-slate-400">A line or two — enough to ground the conversation.</div>
+        <div className="mb-1 text-xs text-slate-400">A line or two, enough to ground the conversation.</div>
         <textarea className="field min-h-[70px]" value={intake.does || ""} onChange={(e) => setIntake({ does: e.target.value })} placeholder="Who you serve and what you make or provide." />
       </div>
     </div>
@@ -151,7 +151,7 @@ function Interview({ state, setState, ctx }: { state: any; setState: (p: any) =>
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-slate-500">Answer in your own words. There are no wrong answers — the point is to think out loud.</p>
+      <p className="text-sm text-slate-500">Answer in your own words. There are no wrong answers. The point is to think out loud.</p>
       <div className="card flex flex-col p-5" style={{ height: "56vh", minHeight: 380 }}>
         <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto pr-1">
           {messages.length === 0 && busy && <div className="text-slate-400">The facilitator is thinking of an opening question…</div>}

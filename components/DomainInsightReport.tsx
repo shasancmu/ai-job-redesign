@@ -74,13 +74,13 @@ export default function DomainInsightReport({ read, data }: { read: Read; data?:
         {papers.length > 0 && (
           <div className="rounded-2xl border border-line bg-white p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Standout work</div>
-            <ul className="mt-2 space-y-1.5 text-xs text-slate-600">{papers.map((p: any, i: number) => <li key={i}>{p.title}{p.year ? ` (${p.year})` : ""}{p.authors ? ` — ${p.authors}` : ""}</li>)}</ul>
+            <ul className="mt-2 space-y-1.5 text-xs text-slate-600">{papers.map((p: any, i: number) => <li key={i}>{p.title}{p.year ? ` (${p.year})` : ""}{p.authors ? `, ${p.authors}` : ""}</li>)}</ul>
           </div>
         )}
         {patents.length > 0 && (
           <div className="rounded-2xl border border-line bg-white p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Companies active (patent assignees)</div>
-            <ul className="mt-2 space-y-1.5 text-xs text-slate-600">{patents.map((p: any, i: number) => <li key={i}>{p.title}{p.assignees ? ` — ${p.assignees}` : ""}</li>)}</ul>
+            <ul className="mt-2 space-y-1.5 text-xs text-slate-600">{patents.map((p: any, i: number) => <li key={i}>{p.title}{p.assignees ? `, ${p.assignees}` : ""}</li>)}</ul>
           </div>
         )}
       </div>

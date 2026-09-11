@@ -12,7 +12,7 @@ function finishDelight(code: string): string | null {
   if (h % 7 !== 0) return null;
   const lines = [
     "Most people don't get to the end of this one. You did.",
-    "This one has a low finish rate — you're in the minority.",
+    "This one has a low finish rate. You're in the minority.",
     "You could have skimmed. You didn't.",
     "Quietly: this was a hard one to see through.",
   ];

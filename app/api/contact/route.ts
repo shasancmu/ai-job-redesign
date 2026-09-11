@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   if (!message || !email.includes("@")) return Response.json({ error: "Please add your email and a message." }, { status: 400 });
 
   let admin;
-  try { admin = createAdminClient(); } catch { return Response.json({ error: "Contact isn't available right now — please try again later." }, { status: 500 }); }
+  try { admin = createAdminClient(); } catch { return Response.json({ error: "Contact isn't available right now. Please try again later." }, { status: 500 }); }
 
   const { error } = await admin.from("contact_messages").insert({
     name: s(body.name, 120) || null,

@@ -14,7 +14,7 @@ export default function Cookies() {
 
       <h1 className="text-3xl font-bold text-ink">Cookie Notice</h1>
       <p className="mt-4 max-w-xl leading-relaxed text-slate-700">
-        We use only <b>essential cookies</b> — the ones needed to sign you in and keep you signed in, and to remember which
+        We use only <b>essential cookies</b>: the ones needed to sign you in and keep you signed in, and to remember which
         organization you&apos;re viewing. These are required for the service to work, so they don&apos;t need consent.
       </p>
       <p className="mt-4 max-w-xl leading-relaxed text-slate-700">

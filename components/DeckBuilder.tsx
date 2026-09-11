@@ -96,7 +96,7 @@ function SlideEditor({ slide, set }: { slide: Slide; set: (p: Partial<Slide>) =>
     case "text":
       return (<div className="space-y-3"><L t="Heading (optional)"><input className="field" value={slide.title || ""} onChange={(e) => set({ title: e.target.value } as any)} /></L><L t="Text"><textarea className="field min-h-[140px]" value={slide.body} onChange={(e) => set({ body: e.target.value } as any)} /></L></div>);
     case "quote":
-      return (<div className="space-y-3"><L t="Quote"><textarea className="field min-h-[100px] text-lg" value={slide.quote} onChange={(e) => set({ quote: e.target.value } as any)} placeholder="“…”" /></L><L t="Attribution"><input className="field" value={slide.attribution || ""} onChange={(e) => set({ attribution: e.target.value } as any)} placeholder="— Name" /></L></div>);
+      return (<div className="space-y-3"><L t="Quote"><textarea className="field min-h-[100px] text-lg" value={slide.quote} onChange={(e) => set({ quote: e.target.value } as any)} placeholder="“…”" /></L><L t="Attribution"><input className="field" value={slide.attribution || ""} onChange={(e) => set({ attribution: e.target.value } as any)} placeholder="Name" /></L></div>);
     case "image":
       return (<div className="space-y-3"><L t="Image"><ImageUpload url={slide.url} onUrl={(u) => set({ url: u } as any)} /></L><L t="Caption"><input className="field" value={slide.caption || ""} onChange={(e) => set({ caption: e.target.value } as any)} /></L></div>);
     case "quiz":

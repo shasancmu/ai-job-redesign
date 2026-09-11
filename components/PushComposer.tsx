@@ -67,7 +67,7 @@ export default function PushComposer({ segments }: { segments: Seg[] }) {
         ))}
       </div>
 
-      <input className="field mb-2" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title — e.g. New: negotiate a scored deal against an AI" maxLength={160} />
+      <input className="field mb-2" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title, e.g. New: negotiate a scored deal against an AI" maxLength={160} />
       <textarea className="field mb-2 min-h-[64px]" value={bodyText} onChange={(e) => setBodyText(e.target.value)} placeholder="A sentence of value or context (optional)." maxLength={1000} />
       <div className="mb-3 flex flex-col gap-2 sm:flex-row">
         <input className="field flex-1" value={href} onChange={(e) => setHref(e.target.value)} placeholder={kindMeta.place} />
@@ -78,7 +78,7 @@ export default function PushComposer({ segments }: { segments: Seg[] }) {
       <div className="mb-3">
         <label className="lbl">Send to</label>
         <select className="field" value={segment} onChange={(e) => setSegment(e.target.value)}>
-          {segments.map((s) => <option key={s.key} value={s.key}>{s.label} ({s.count}) — {s.hint}</option>)}
+          {segments.map((s) => <option key={s.key} value={s.key}>{s.label} ({s.count}): {s.hint}</option>)}
         </select>
       </div>
 
@@ -89,7 +89,7 @@ export default function PushComposer({ segments }: { segments: Seg[] }) {
         {msg && <span className="text-sm font-medium text-sage">{msg}</span>}
         {err && <span className="text-sm text-clay">{err}</span>}
       </div>
-      <p className="mt-2 text-xs text-slate-400">Give value first. A well-timed drop earns the occasional ask — it doesn&apos;t replace it.</p>
+      <p className="mt-2 text-xs text-slate-400">Give value first. A well-timed drop earns the occasional ask. It doesn&apos;t replace it.</p>
     </div>
   );
 }

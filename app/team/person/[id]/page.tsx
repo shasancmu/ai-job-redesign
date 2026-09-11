@@ -98,7 +98,7 @@ export default async function PersonPage({ params }: { params: { id: string } })
                 u.portrait[k] ? <p key={k} className="text-sm leading-relaxed text-slate2"><span className="font-semibold text-ink">{label}:</span> {u.portrait[k]}</p> : null
               )}
             </div>
-            <p className="mt-3 text-[11px] text-slate-400">From the portrait they chose to share. Reference it the way you&apos;d remember what someone told you — not as a file.</p>
+            <p className="mt-3 text-[11px] text-slate-400">From the portrait they chose to share. Reference it the way you&apos;d remember what someone told you, not as a file.</p>
           </div>
         </section>
       )}
@@ -107,7 +107,7 @@ export default async function PersonPage({ params }: { params: { id: string } })
       <section className="mt-8">
         <h2 className="eyebrow mb-3">What they&apos;ve worked on</h2>
         {p.timeline.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-line bg-white p-5 text-sm text-slate-400">Nothing yet — they&apos;ve joined but haven&apos;t started. A first note from you might be what gets them going.</div>
+          <div className="rounded-2xl border border-dashed border-line bg-white p-5 text-sm text-slate-400">Nothing yet. They&apos;ve joined but haven&apos;t started. A first note from you might be what gets them going.</div>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-line">
             {p.timeline.map((t, i) => (

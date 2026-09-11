@@ -17,7 +17,7 @@ const LABEL: Record<string, string> = {
   complex_invention: "Complex", interdisciplinary: "Interdisc", defense: "Defense",
 };
 const STOP_NOTE: Record<string, string> = {
-  reached: "Goal reached — at least one path closed the return-to-go.",
+  reached: "Goal reached: at least one path closed the return-to-go.",
   plateau: "Stopped short of the goal: the frontier stalled (next step < +2).",
   ceiling: "Stopped: the target hit the model's practical ceiling.",
   maxRounds: "Stopped: reached the round cap before the goal.",
@@ -117,7 +117,7 @@ function StepRow({ step: s, target }: { step: Step; target: string }) {
           : <span className="rounded-full bg-sage/10 px-2 py-0.5 text-[11px] font-semibold text-sage">✓ Plausible science</span>}
         {s.precedent && s.precedent.length > 0
           ? <span className="text-[11px] text-slate-400"><span className="font-semibold text-slate2">Precedent:</span> {s.precedent.slice(0, 2).map((p) => p.title).join(" · ")}</span>
-          : <span className="text-[11px] text-slate-400">No direct precedent — novel, or worth checking</span>}
+          : <span className="text-[11px] text-slate-400">No direct precedent: novel, or worth checking</span>}
       </div>
       <button onClick={() => setShow(!show)} className="mt-1.5 pl-7 text-[11px] font-medium text-sky hover:underline">{show ? "Hide abstract" : "Abstract at this step →"}</button>
       {show && <p className="mt-1.5 ml-7 rounded-lg bg-mist p-3 text-sm leading-relaxed text-slate-700">{s.abstract}</p>}
@@ -137,7 +137,7 @@ function GroundingPanel({ g, target }: { g: Grounding; target: string }) {
         <span className="text-[11px] text-slate2">{g.n} real papers from this work's neighborhood</span>
       </div>
       <p className="mt-1.5 text-sm leading-relaxed text-ink">
-        Among the paper's closest real twins, the higher-{label.toLowerCase()} group averages <span className="font-bold text-sage tabular-nums">{g.highMean}</span> vs <span className="font-bold text-slate-400 tabular-nums">{g.lowMean}</span> for the lower group. What separates them — from the real papers, not the model:
+        Among the paper's closest real twins, the higher-{label.toLowerCase()} group averages <span className="font-bold text-sage tabular-nums">{g.highMean}</span> vs <span className="font-bold text-slate-400 tabular-nums">{g.lowMean}</span> for the lower group. What separates them, from the real papers, not the model:
       </p>
 
       {/* empirically-observed levers (what high-outcome twins share) */}
@@ -147,7 +147,7 @@ function GroundingPanel({ g, target }: { g: Grounding; target: string }) {
             ? synthesis.map((s, i) => (
                 <div key={i} className="flex items-start gap-2">
                   <span className="mt-0.5 text-sage">✓</span>
-                  <div className="text-sm text-ink"><span className="font-semibold">{s.name}</span>{s.why ? <span className="text-slate2"> — {s.why}</span> : null}</div>
+                  <div className="text-sm text-ink"><span className="font-semibold">{s.name}</span>{s.why ? <span className="text-slate2">: {s.why}</span> : null}</div>
                 </div>
               ))
             : (
@@ -214,8 +214,8 @@ export default function ImpactOptimizerReport({ result }: { result: Result }) {
         </div>
         <p className="mt-1 text-lg font-bold leading-snug text-ink">
           {bets.length > 0
-            ? <>{bets.length} distinct research bet{bets.length === 1 ? "" : "s"} <span className="text-sm font-medium text-slate-400">— from {LABEL[target] || target} {baseT} to as high as {best}</span></>
-            : <>Already near the ceiling <span className="text-sm font-medium text-slate-400">— {LABEL[target] || target} {baseT}/100</span></>}
+            ? <>{bets.length} distinct research bet{bets.length === 1 ? "" : "s"} <span className="text-sm font-medium text-slate-400">(from {LABEL[target] || target} {baseT} to as high as {best})</span></>
+            : <>Already near the ceiling <span className="text-sm font-medium text-slate-400">({LABEL[target] || target} {baseT}/100)</span></>}
         </p>
         <div className="mt-1 text-sm text-slate-500">{STOP_NOTE[r.stop] || ""}</div>
         {bets.length > 0 && <p className="mt-2 text-xs text-slate2">A portfolio, not one path: each bet reaches the target through <span className="font-medium text-ink">genuinely different science</span>, with its own trade-offs. Diversify the wager.</p>}
@@ -225,7 +225,7 @@ export default function ImpactOptimizerReport({ result }: { result: Result }) {
           <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-mist px-3 py-2">
             <span className="rounded-full bg-ink px-2 py-0.5 text-[11px] font-semibold text-white">Value-to-go</span>
             <span className="text-sm text-slate-600">Reachable ceiling <span className="font-bold text-ink tabular-nums">~{r.headroom.ceiling}</span> · untapped headroom <span className="font-bold text-sage tabular-nums">+{r.headroom.ceiling - r.headroom.current}</span></span>
-            <span className="text-[11px] text-slate-400">— the model's estimate of how high this work can climb</span>
+            <span className="text-[11px] text-slate-400">(the model's estimate of how high this work can climb)</span>
           </div>
         )}
       </div>
@@ -239,10 +239,10 @@ export default function ImpactOptimizerReport({ result }: { result: Result }) {
       ) : (
         <div className="rounded-2xl border border-line bg-white p-5">
           <div className="text-sm font-semibold text-ink">No added science moved {LABEL[target] || target} by more than +2.</div>
-          <p className="mt-1 text-sm text-slate2">That's a finding, not a failure: on this measure the work is close to maxed, so there's little headroom to optimize. A very short abstract can also read as near-ceiling — a fuller one gives the search more to work with.</p>
+          <p className="mt-1 text-sm text-slate2">That's a finding, not a failure: on this measure the work is close to maxed, so there's little headroom to optimize. A very short abstract can also read as near-ceiling: a fuller one gives the search more to work with.</p>
           {others.length > 0 && (
             <>
-              <div className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Where it stands — pick a measure with more room</div>
+              <div className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Where it stands: pick a measure with more room</div>
               <div className="mt-2 space-y-1.5">
                 {allDims.slice().sort((a, b) => (base[a] as number) - (base[b] as number)).map((d) => (
                   <div key={d} className="flex items-center gap-3">
@@ -254,11 +254,11 @@ export default function ImpactOptimizerReport({ result }: { result: Result }) {
               </div>
             </>
           )}
-          {roomiest && <p className="mt-3 text-sm text-slate2">Try optimizing <b className="text-ink">{LABEL[roomiest] || roomiest}</b> ({base[roomiest]}/100 — more room to climb), give a fuller abstract, or aim for a lower target.</p>}
+          {roomiest && <p className="mt-3 text-sm text-slate2">Try optimizing <b className="text-ink">{LABEL[roomiest] || roomiest}</b> ({base[roomiest]}/100, more room to climb), give a fuller abstract, or aim for a lower target.</p>}
         </div>
       )}
 
-      {bets.length > 0 && <p className="text-xs text-slate-400">Predicted scores assume each step succeeds. The added science is hypothetical — a prioritization aid for where to take the work, not a promise. Watch each bet's "also moves" chips for the dimensions a path would cost you.</p>}
+      {bets.length > 0 && <p className="text-xs text-slate-400">Predicted scores assume each step succeeds. The added science is hypothetical: a prioritization aid for where to take the work, not a promise. Watch each bet's "also moves" chips for the dimensions a path would cost you.</p>}
     </div>
   );
 }

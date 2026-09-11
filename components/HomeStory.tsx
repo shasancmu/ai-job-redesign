@@ -13,12 +13,12 @@ const STEPS = [
   {
     eyebrow: "Step 2",
     title: "An AI runs it with you",
-    body: "It interviews you, plays a partner or a tough counterpart, or coaches you — adapting to what you actually say, one focused step at a time. You do the thinking; it does the structure.",
+    body: "It interviews you, plays a partner or a tough counterpart, or coaches you, adapting to what you actually say, one focused step at a time. You do the thinking; it does the structure.",
   },
   {
     eyebrow: "Step 3",
     title: "You leave with something you keep",
-    body: "Not a grade — a real artifact. A plan, a redesigned role, a map, a sharpened story, a debrief you can act on tomorrow. It's yours.",
+    body: "Not a grade, but a real artifact. A plan, a redesigned role, a map, a sharpened story, a debrief you can act on tomorrow. It's yours.",
   },
 ];
 
@@ -68,7 +68,7 @@ function ChatVisual() {
       <div className="space-y-2.5 p-5">
         <div className="flex justify-start"><div className="max-w-[80%] rounded-2xl bg-slate-100 px-3.5 py-2 text-xs text-slate-700">Walk me through the last time this really worked. What did you do?</div></div>
         <div className="flex justify-end"><div className="max-w-[80%] rounded-2xl px-3.5 py-2 text-xs text-white" style={{ background: "#14283A" }}>Honestly, when I stopped doing the reporting myself and…</div></div>
-        <div className="flex justify-start"><div className="max-w-[80%] rounded-2xl bg-slate-100 px-3.5 py-2 text-xs text-slate-700">Good — so what only you could judge there was…?</div></div>
+        <div className="flex justify-start"><div className="max-w-[80%] rounded-2xl bg-slate-100 px-3.5 py-2 text-xs text-slate-700">Good, so what only you could judge there was…?</div></div>
         <div className="flex justify-end"><div className="rounded-2xl bg-slate-200 px-3.5 py-2 text-xs text-slate-400">…</div></div>
       </div>
     </Frame>

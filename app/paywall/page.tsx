@@ -92,15 +92,15 @@ export default async function Paywall({
       <p className="mt-2 text-slate-500">
         {outOfRuns
           ? mod
-            ? `You've used all your runs. Add a pack to run ${mod.name} — or any of the ${MODULES.length} exercises.`
+            ? `You've used all your runs. Add a pack to run ${mod.name}, or any of the ${MODULES.length} exercises.`
             : `Add a pack of runs. One run = one exercise, and you spend them on anything you like.`
           : `You have ${left} run${left === 1 ? "" : "s"} left. Grab more now so you never hit a wall mid-flow.`}
       </p>
 
       <ul className="mt-4 space-y-1.5 text-sm text-slate2">
         <li className="flex gap-2"><span className="text-sage">✓</span> Spend on any of the {MODULES.length} exercises</li>
-        <li className="flex gap-2"><span className="text-sage">✓</span> Runs never expire — use them whenever</li>
-        <li className="flex gap-2"><span className="text-sage">✓</span> Pay once — no subscription, no auto-renew</li>
+        <li className="flex gap-2"><span className="text-sage">✓</span> Runs never expire: use them whenever</li>
+        <li className="flex gap-2"><span className="text-sage">✓</span> Pay once: no subscription, no auto-renew</li>
       </ul>
 
       {searchParams.canceled && (
@@ -120,7 +120,7 @@ export default async function Paywall({
               {pctOff > 0 && <span className="rounded-full bg-sage/10 px-2 py-0.5 text-xs font-semibold text-sage">{pctOff}% off</span>}
             </div>
             <p className="mb-3 text-sm text-slate-500">
-              You&apos;ve been through a cohort — {saveCents > 0 ? <>save {saveLabel} off the regular {allLabel}. </> : "this is your price. "}
+              You&apos;ve been through a cohort: {saveCents > 0 ? <>save {saveLabel} off the regular {allLabel}. </> : "this is your price. "}
               <span className="font-semibold text-clay">Ends in {offer.daysLeft} day{offer.daysLeft === 1 ? "" : "s"}.</span>
             </p>
             <PayButton plan="cohort" label={`Get ${PACK_RUNS} runs`} />

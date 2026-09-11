@@ -67,7 +67,7 @@ export default function ShowcaseReport({ report, itemTitle, presenter }: { repor
             {report.standouts.map((q, i) => (
               <div key={i} className="rounded-xl bg-mist/60 px-3 py-2">
                 <p className="text-sm italic text-slate-700">"{q.quote}"</p>
-                {q.name && <div className="mt-0.5 text-[11px] text-slate-400">— {q.name}</div>}
+                {q.name && <div className="mt-0.5 text-[11px] text-slate-400">{q.name}</div>}
               </div>
             ))}
           </div>

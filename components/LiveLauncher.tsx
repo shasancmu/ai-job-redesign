@@ -6,9 +6,9 @@ import Link from "next/link";
 type Act = { name: string; emoji: string; blurb: string; href: string; cohortAware?: boolean };
 
 const FULL_COHORT: Act[] = [
-  { name: "The Number", emoji: "📉", blurb: "Team capstone — every team races to one number, on a live board.", href: "/facilitator/capstone" },
+  { name: "The Number", emoji: "📉", blurb: "Team capstone: every team races to one number, on a live board.", href: "/facilitator/capstone" },
   { name: "The Network", emoji: "🕸️", blurb: "Map the room's real network, live and anonymous.", href: "/facilitator/network", cohortAware: true },
-  { name: "The Benchmark", emoji: "⏱️", blurb: "A timed test — the room vs. the machine, scored live.", href: "/facilitator/benchmark", cohortAware: true },
+  { name: "The Benchmark", emoji: "⏱️", blurb: "A timed test: the room vs. the machine, scored live.", href: "/facilitator/benchmark", cohortAware: true },
 ];
 const ROOM: Act[] = [
   { name: "Live word cloud", emoji: "🌥️", blurb: "Ask a question; answers build into a cloud. No sign-in.", href: "/facilitator/cloud" },
@@ -43,7 +43,7 @@ function Grid({ items, cohort }: { items: Act[]; cohort?: string }) {
 }
 
 export default function LiveLauncher({ cohort, authored = [] }: { cohort?: string; authored?: { slug: string; name: string; emoji?: string }[] }) {
-  const mine: Act[] = authored.map((a) => ({ name: a.name, emoji: a.emoji || "🌥️", blurb: "Your live prompt — the room answers, live.", href: `/lp/${a.slug}`, cohortAware: true }));
+  const mine: Act[] = authored.map((a) => ({ name: a.name, emoji: a.emoji || "🌥️", blurb: "Your live prompt: the room answers, live.", href: `/lp/${a.slug}`, cohortAware: true }));
   return (
     <div className="space-y-5">
       {mine.length > 0 && (

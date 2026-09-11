@@ -63,7 +63,7 @@ export default function DefenseImpactReport({ read, scores, evidence, engine }: 
           <div className="text-xs font-semibold uppercase tracking-wide text-clay">Real-world signal</div>
           {hasEvidence ? (
             <>
-              <p className="mt-1 text-sm text-slate-700">Cited by patents assigned to defense entities — observed translation, not speculation. Of {evidence.citingPatentCount} citing patent{evidence.citingPatentCount === 1 ? "" : "s"}:</p>
+              <p className="mt-1 text-sm text-slate-700">Cited by patents assigned to defense entities: observed translation, not speculation. Of {evidence.citingPatentCount} citing patent{evidence.citingPatentCount === 1 ? "" : "s"}:</p>
               <ul className="mt-2 space-y-1.5">
                 {evidence.defenseFirms.slice(0, 8).map((f, i) => (
                   <li key={i} className="flex items-baseline gap-2 text-sm">
@@ -77,8 +77,8 @@ export default function DefenseImpactReport({ read, scores, evidence, engine }: 
           ) : (
             <p className="mt-1 text-sm text-slate-600">
               {evidence.citingPatentCount > 0
-                ? `Cited by ${evidence.citingPatentCount} patent${evidence.citingPatentCount === 1 ? "" : "s"}, but none of the resolved assignees are defense entities — commercial translation without a visible defense pathway yet.`
-                : "No patents cite this paper yet in the Reliance-on-Science data — the estimate is from the science itself."}
+                ? `Cited by ${evidence.citingPatentCount} patent${evidence.citingPatentCount === 1 ? "" : "s"}, but none of the resolved assignees are defense entities: commercial translation without a visible defense pathway yet.`
+                : "No patents cite this paper yet in the Reliance-on-Science data, so the estimate is from the science itself."}
             </p>
           )}
         </div>
@@ -120,7 +120,7 @@ export default function DefenseImpactReport({ read, scores, evidence, engine }: 
       {/* Context: the three potential scores */}
       {scores && (
         <div>
-          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">For context — Scientifiq potential</div>
+          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">For context: Scientifiq potential</div>
           <div className="grid grid-cols-3 gap-2">
             <MiniScore label="Commercial" s={scores.commercial} />
             <MiniScore label="Scientific" s={scores.scientific} />
@@ -145,7 +145,7 @@ export default function DefenseImpactReport({ read, scores, evidence, engine }: 
         </div>
       )}
 
-      <p className="text-xs text-slate-400">A research-<em>mapping</em> estimate — a lens on where science flows toward public and defense applications, built from public bibliometric signals (abstract + patent citations). It maps relevance, not intent, and is a forward-looking signal, not a guarantee.</p>
+      <p className="text-xs text-slate-400">A research-<em>mapping</em> estimate, a lens on where science flows toward public and defense applications, built from public bibliometric signals (abstract + patent citations). It maps relevance, not intent, and is a forward-looking signal, not a guarantee.</p>
     </div>
   );
 }

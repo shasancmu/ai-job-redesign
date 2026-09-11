@@ -59,8 +59,8 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
   // response lands. Honest about the work, not a fake crawl.
   function phaseLabel(pct: number): string {
     if (pct < 10) return "Scoring the abstract…";
-    if (pct < 55) { const r = Math.min(rounds, Math.floor((pct - 10) / (45 / rounds)) + 1); return `Exploring the missing science — depth ${r} of ${rounds}…`; }
-    if (pct < 93) { const b = Math.min(bets, Math.floor((pct - 55) / (38 / bets)) + 1); return `Vetting bet ${b} of ${bets} — literature & trade-offs…`; }
+    if (pct < 55) { const r = Math.min(rounds, Math.floor((pct - 10) / (45 / rounds)) + 1); return `Exploring the missing science: depth ${r} of ${rounds}…`; }
+    if (pct < 93) { const b = Math.min(bets, Math.floor((pct - 55) / (38 / bets)) + 1); return `Vetting bet ${b} of ${bets}: literature & trade-offs…`; }
     return "Assembling the portfolio…";
   }
 
@@ -84,7 +84,7 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
       });
       const j = await res.json().catch(() => ({}));
       stopTimer();
-      if (!res.ok) { setProgress(0); setErr(j?.error || "Couldn't optimize it — try again, or lower the depth."); setBusy(false); return; }
+      if (!res.ok) { setProgress(0); setErr(j?.error || "Couldn't optimize it. Try again, or lower the depth."); setBusy(false); return; }
       setProgress(100); setPhase("Done");
       await persist({ ...state, input: { abstract: a, target, targetLevel, rounds, bets, diversity }, result: j });
     } catch { stopTimer(); setProgress(0); setErr("Couldn't reach the service. Check your connection and try again."); }
@@ -102,7 +102,7 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
 
       <div className="space-y-4">
         <div className="rounded-2xl border border-line bg-mist p-4 text-sm text-slate-600">
-          Paste an abstract, pick a target, and set the score to aim for. The AI proposes the <span className="font-medium text-ink">missing science</span> — concrete experiments, applications, and extensions — that would reach it, and returns a <span className="font-medium text-ink">portfolio of distinct research bets</span> (different paths to the goal), each scored on every potential — and <span className="font-medium text-ink">grounded in real matched papers</span> whose higher-outcome twins made the same moves.
+          Paste an abstract, pick a target, and set the score to aim for. The AI proposes the <span className="font-medium text-ink">missing science</span> (concrete experiments, applications, and extensions) that would reach it, and returns a <span className="font-medium text-ink">portfolio of distinct research bets</span> (different paths to the goal), each scored on every potential, and <span className="font-medium text-ink">grounded in real matched papers</span> whose higher-outcome twins made the same moves.
         </div>
 
         <div>
@@ -121,7 +121,7 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
 
           {/* Aim for — return-to-go target */}
           <div>
-            <div className="mb-1.5 text-sm font-medium text-ink">Aim for <span className="font-normal text-slate-400">— the target score</span></div>
+            <div className="mb-1.5 text-sm font-medium text-ink">Aim for <span className="font-normal text-slate-400">(the target score)</span></div>
             <div className="flex flex-wrap gap-2">
               {([[null, "Auto stretch"], [75, "75"], [85, "85"], [92, "92"]] as [number | null, string][]).map(([lvl, lbl]) => (
                 <button key={lbl} onClick={() => setTargetLevel(lvl)} className={chipCls(targetLevel === lvl)}>{lbl}{lvl == null ? "" : "/100"}</button>
@@ -132,7 +132,7 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
 
           {/* Depth — how many compounding steps */}
           <div>
-            <div className="mb-1.5 text-sm font-medium text-ink">Depth <span className="font-normal text-slate-400">— how many steps to stack</span></div>
+            <div className="mb-1.5 text-sm font-medium text-ink">Depth <span className="font-normal text-slate-400">(how many steps to stack)</span></div>
             <div className="flex flex-wrap gap-2">
               {[1, 2, 3, 4].map((n) => (
                 <button key={n} onClick={() => setRounds(n)} className={chipCls(rounds === n)}>{n} step{n === 1 ? "" : "s"}</button>
@@ -143,24 +143,24 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
 
           {/* Bets — how many distinct paths to return */}
           <div>
-            <div className="mb-1.5 text-sm font-medium text-ink">Bets <span className="font-normal text-slate-400">— how many routes to bring back</span></div>
+            <div className="mb-1.5 text-sm font-medium text-ink">Bets <span className="font-normal text-slate-400">(how many routes to bring back)</span></div>
             <div className="flex flex-wrap gap-2">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button key={n} onClick={() => setBets(n)} className={chipCls(bets === n)}>{n}</button>
               ))}
             </div>
-            <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400">The report comes back as a portfolio of this many <em>different</em> research paths to the goal — more bets, a wider set to choose from.</p>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400">The report comes back as a portfolio of this many <em>different</em> research paths to the goal: more bets, a wider set to choose from.</p>
           </div>
 
           {/* Diversity — MMR lambda */}
           <div>
-            <div className="mb-1.5 text-sm font-medium text-ink">Diversity <span className="font-normal text-slate-400">— one best route, or spread out</span></div>
+            <div className="mb-1.5 text-sm font-medium text-ink">Diversity <span className="font-normal text-slate-400">(one best route, or spread out)</span></div>
             <div className="flex flex-wrap gap-2">
               {([[0.2, "Focused"], [0.55, "Balanced"], [0.85, "Diverse"]] as [number, string][]).map(([v, lbl]) => (
                 <button key={lbl} onClick={() => setDiversity(v)} className={chipCls(Math.abs(diversity - v) < 0.01)}>{lbl}</button>
               ))}
             </div>
-            <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400"><span className="text-slate2">Focused</span> hunts the single strongest route. <span className="text-slate2">Diverse</span> spreads across very different scientific directions — a guard against betting everything on one over-fit path.</p>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400"><span className="text-slate2">Focused</span> hunts the single strongest route. <span className="text-slate2">Diverse</span> spreads across very different scientific directions, a guard against betting everything on one over-fit path.</p>
           </div>
 
           <p className="border-t border-line-soft pt-3 text-[11px] text-slate-400">The badge above estimates the load: deeper search and more bets explore harder but take longer and cost more tokens.</p>
@@ -186,7 +186,7 @@ export default function ImpactOptimizerRoom({ session, initialWorkspace, canDefe
             <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-mist">
               <div className="h-full rounded-full bg-ai transition-all duration-500 ease-out" style={{ width: `${Math.max(3, progress)}%` }} />
             </div>
-            <p className="mt-2 text-[11px] text-slate-400">A {effortLabel.toLowerCase()} — this can take up to a couple of minutes. You can leave this open.</p>
+            <p className="mt-2 text-[11px] text-slate-400">A {effortLabel.toLowerCase()}: this can take up to a couple of minutes. You can leave this open.</p>
           </div>
         )}
 

@@ -42,7 +42,7 @@ export default function NearestExpertResult({ plan, ladder }: { plan: any; ladde
         </div>
       )}
       <Tier title="Nearest to you" note={ladder.anchor && ladder.local[0]?.km != null ? `closest is ${ladder.local[0].km} km from ${ladder.anchor.label}` : ladder.countryName} experts={ladder.local} showKm />
-      <Tier title={`National${ladder.countryName ? ` — ${ladder.countryName}` : ""}`} note="highest commercial potential in your country" experts={ladder.national} />
+      <Tier title={`National${ladder.countryName ? `: ${ladder.countryName}` : ""}`} note="highest commercial potential in your country" experts={ladder.national} />
       <Tier title="Global frontier" note="the world leaders on this problem" experts={ladder.global} />
     </div>
   );

@@ -7,7 +7,7 @@ import { AUTHOR_FORMAT_COUNT } from "@/lib/authorFormats";
 
 export const metadata = {
   title: "Superadditive for L&D, exec ed & in-house academies",
-  description: "Start from a library of interactive, AI-run learning — role-plays, simulations, benchmarks and more — then turn your own experts' materials into new modules, and run, govern, and measure them at scale.",
+  description: "Start from a library of interactive, AI-run learning (role-plays, simulations, benchmarks and more), then turn your own experts' materials into new modules, and run, govern, and measure them at scale.",
 };
 
 const CONTACT = "/contact?source=for-teams";
@@ -28,18 +28,18 @@ const FEATURES = [
   { icon: "✅", title: "Quality you control", body: "An AI critic flags an unfair module and a simulated learner playtests whether it teaches, before a real one runs it. A promotion ladder means only vetted modules reach the wider library." },
   { icon: "🎨", title: "Your brand, your space", body: "Your logo, colors, and a private address. It feels like your program, not a vendor's tool." },
   { icon: "👥", title: "Cohorts, directors & instructors", body: "Organize people into cohorts and sections. Directors run the space; instructors run their groups; each sees only their own people." },
-  { icon: "📈", title: "Prove it worked", body: "An outcomes report rolls up participation, completion, and how calibrated your people's judgment became — measurement most training never has. A snapshot you can bring to a review." },
-  { icon: "📡", title: "Live, in the room", body: "Run a word cloud, poll, benchmark, or open prompt your whole room joins from their phones — no sign-in for them." },
+  { icon: "📈", title: "Prove it worked", body: "An outcomes report rolls up participation, completion, and how calibrated your people's judgment became: measurement most training never has. A snapshot you can bring to a review." },
+  { icon: "📡", title: "Live, in the room", body: "Run a word cloud, poll, benchmark, or open prompt your whole room joins from their phones, no sign-in for them." },
   { icon: "🔒", title: "Your content stays yours", body: "Per-organization isolation. Uploaded materials are read to draft the module and never stored. Your library is yours." },
 ];
 
 const AUDIENCES = [
-  ["Executive education", "Scale a professor's teaching into interactive modules learners run before, during, and after the room — under the school's brand."],
+  ["Executive education", "Scale a professor's teaching into interactive modules learners run before, during, and after the room, under the school's brand."],
   ["Corporate universities & academies", "Turn your experts' knowledge into a living, branded library without a courseware project for every topic."],
-  ["In-house team enablement", "A function builds exactly the practice its people need, from its own playbooks and cases — no vendor, no dev cycle."],
+  ["In-house team enablement", "A function builds exactly the practice its people need, from its own playbooks and cases: no vendor, no dev cycle."],
   ["Fellowships & accelerators", "Keep a cohort practicing the real thinking between sessions, as a connected group."],
   ["Alumni & membership", "Turn a one-time program into an ongoing, branded relationship your community returns to."],
-  ["Networks & communities", "Give the people you convene a shared space — and a reason — to keep thinking together."],
+  ["Networks & communities", "Give the people you convene a shared space (and a reason) to keep thinking together."],
 ];
 
 export default function ForTeams() {
@@ -154,7 +154,7 @@ export default function ForTeams() {
             <span className="eyebrow text-sage">Beyond the program</span>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">The program ends. The relationship shouldn&apos;t.</h2>
             <p className="mt-4 text-lg leading-relaxed text-slate2">
-              A cohort is the start of a relationship, not the end of a transaction. The built-in <b className="text-ink">Relationship OS</b> keeps every learner engaged with micro-doses of value — new modules, well-timed insight — reads your cohort as a living network (who&apos;s cooling, who&apos;s isolated, who the connectors are), and lets you push the right thing to the right people: a module, an event, the next program. A lifelong, high-value relationship with every learner, at fixed cost.
+              A cohort is the start of a relationship, not the end of a transaction. The built-in <b className="text-ink">Relationship OS</b> keeps every learner engaged with micro-doses of value (new modules, well-timed insight), reads your cohort as a living network (who&apos;s cooling, who&apos;s isolated, who the connectors are), and lets you push the right thing to the right people: a module, an event, the next program. A lifelong, high-value relationship with every learner, at fixed cost.
             </p>
           </div>
         </Reveal>
@@ -171,7 +171,7 @@ export default function ForTeams() {
                 <p className="mt-4 text-lg leading-relaxed text-slate2">
                   When everyone can author, quality is the risk. Superadditive builds the control in: a new module lives with
                   its author until it&apos;s earned wider reach. A director approves what goes org-wide; a curator approves
-                  what reaches everyone — and only after it clears automated gates on real usage and quality.
+                  what reaches everyone, and only after it clears automated gates on real usage and quality.
                 </p>
               </div>
             </Reveal>
@@ -179,7 +179,7 @@ export default function ForTeams() {
               <div className="grid gap-3">
                 {[
                   ["Author freely", "A new module runs in the author's own cohorts by default. No committee to start."],
-                  ["Promoted by a director", "Good ones go org-wide with a director's approval — your quality bar, your call."],
+                  ["Promoted by a director", "Good ones go org-wide with a director's approval: your quality bar, your call."],
                   ["Curated for everyone", "Reaching the shared library takes passing automated quality gates plus a curator's review."],
                   ["Checked and playtested", "An AI critic and a simulated learner vet each module before it ships."],
                 ].map(([t, b]) => (

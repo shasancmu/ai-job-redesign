@@ -18,7 +18,7 @@ export default function ScienceIntelResult({ mode, data, narrate }: { mode: stri
         <Narr n={narrate} />
         {data.topEmployers?.length > 0 && (
           <div className="card p-5">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Where the IP goes — top corporate employers</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Where the IP goes: top corporate employers</div>
             <div className="mt-2 flex flex-wrap gap-1.5">{data.topEmployers.map((x: any) => <span key={x.name} className="rounded-full bg-mist px-2.5 py-1 text-sm font-medium text-ink">{x.name} <span className="text-xs text-slate-400">· {x.n}</span></span>)}</div>
           </div>
         )}
@@ -48,7 +48,7 @@ export default function ScienceIntelResult({ mode, data, narrate }: { mode: stri
       <div className="space-y-5">
         <Narr n={narrate} />
         <div className="card p-5">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Research strengths — by commercial potential</div>
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Research strengths, by commercial potential</div>
           <div className="mt-2 space-y-2">
             {data.strengths.map((s: any, i: number) => (
               <div key={i}>

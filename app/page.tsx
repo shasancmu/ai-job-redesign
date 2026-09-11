@@ -37,17 +37,17 @@ const ICON: Record<string, React.ReactNode> = {
 };
 
 const GETS = [
-  { icon: "runs", tint: "#3F7A52", soft: "bg-sage-soft", title: "An AI that runs it", body: "It interviews you, plays a partner or a tough counterpart, and coaches the debrief — adapting to what you actually say." },
-  { icon: "frameworks", tint: "#2F6DA8", soft: "bg-sky-soft", title: "Real frameworks", body: "Every exercise is built on established research, not generic advice — the kind of thinking that holds up on a real decision." },
-  { icon: "keep", tint: "#B07A1E", soft: "bg-amber-soft", title: "Something you keep", body: "A plan, a redesigned role, a map, a sharpened story — a concrete artifact you can act on, not a grade." },
+  { icon: "runs", tint: "#3F7A52", soft: "bg-sage-soft", title: "An AI that runs it", body: "It interviews you, plays a partner or a tough counterpart, and coaches the debrief, adapting to what you actually say." },
+  { icon: "frameworks", tint: "#2F6DA8", soft: "bg-sky-soft", title: "Real frameworks", body: "Every exercise is built on established research, not generic advice: the kind of thinking that holds up on a real decision." },
+  { icon: "keep", tint: "#B07A1E", soft: "bg-amber-soft", title: "Something you keep", body: "A plan, a redesigned role, a map, a sharpened story: a concrete artifact you can act on, not a grade." },
   { icon: "voice", tint: "#B0533E", soft: "bg-clay-soft", title: "Type or talk", body: "Do it in text, or go hands-free and just talk it through by voice." },
   { icon: "paired", tint: "#3F7A52", soft: "bg-sage-soft", title: "Solo or paired", body: "Work through it on your own, or pair up and interview each other." },
   { icon: "changes", tint: "#B07A1E", soft: "bg-amber-soft", title: "It changes how you work", body: "You practice the thinking and leave having actually done it — not just read about it." },
 ];
 
 const RESEARCH = [
-  { title: "The economics of AI & work", body: "How AI is actually reshaping specific tasks, roles, and careers — not the hype." },
-  { title: "Elicitation & interviewing", body: "What makes an interview — spoken or typed — draw out real signal instead of platitudes." },
+  { title: "The economics of AI & work", body: "How AI is actually reshaping specific tasks, roles, and careers, not the hype." },
+  { title: "Elicitation & interviewing", body: "What makes an interview (spoken or typed) draw out real signal instead of platitudes." },
   { title: "Network science", body: "How advice, trust, and influence really move through a team or a room." },
   { title: "Behavioral strategy", body: "The frameworks that hold up when a real decision, bet, or negotiation is on the line." },
 ];
@@ -128,7 +128,7 @@ export default async function Home() {
           <div className="grid gap-6 rounded-2xl border border-line bg-white p-8 text-center shadow-soft sm:grid-cols-3">
             {[
               [EXERCISE_STAT, "hands-on exercises to practice on"],
-              ["Free", "to start — no card needed"],
+              ["Free", "to start, no card needed"],
               ["Yours", "every result is yours to keep"],
             ].map(([n, l]) => (
               <div key={l}>
@@ -144,7 +144,7 @@ export default async function Home() {
       <section className="mx-auto mt-20 max-w-4xl px-6 text-center sm:mt-28">
         <Reveal>
           <p className="text-2xl font-semibold leading-snug tracking-tight text-ink sm:text-[2.2rem]">
-            The people who gain from AI <span className="text-sage">reimagine their own work</span> — they don&apos;t just bolt a tool onto it. Every exercise helps you do exactly that.
+            The people who gain from AI <span className="text-sage">reimagine their own work</span>. They don&apos;t just bolt a tool onto it. Every exercise puts you through exactly that.
           </p>
         </Reveal>
       </section>
@@ -189,7 +189,7 @@ export default async function Home() {
           <Reveal>
             <div className="max-w-2xl">
               <span className="eyebrow">Grounded in science</span>
-              <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Frameworks from the frontier — not invented for a webinar.</h2>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Frameworks from the frontier, not invented for a webinar.</h2>
               <p className="mt-4 text-lg leading-relaxed text-slate2">
                 Every exercise is built on peer-reviewed research and put to work by an AI that runs it with you. Rigor a
                 researcher would recognize, in a form you&apos;ll actually finish.

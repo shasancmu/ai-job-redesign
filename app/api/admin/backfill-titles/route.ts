@@ -102,7 +102,7 @@ export async function GET(req: Request) {
   }
 
   return NextResponse.json({
-    mode: commit ? "committed" : "dry run — add &commit=1 to write",
+    mode: commit ? "committed" : "dry run: add &commit=1 to write",
     scanned: (rows || []).length,
     needingWork: found.length,
     rewritten: found.filter((f) => f.now).length,

@@ -63,7 +63,7 @@ export default function QAConsole({ modules }: { modules: Mod[] }) {
           <button onClick={() => setSel(new Set())} className="text-xs text-slate-400 hover:text-ink">Clear</button>
           {progress && <span className="text-xs text-slate2">{progress}</span>}
         </div>
-        <p className="mt-2 text-xs text-slate-400">A five-persona panel (learner, skeptic, struggling, expert, hurried) runs each — ~1 min per module.</p>
+        <p className="mt-2 text-xs text-slate-400">A five-persona panel (learner, skeptic, struggling, expert, hurried) runs each, about 1 min per module.</p>
       </div>
 
       {/* Results */}

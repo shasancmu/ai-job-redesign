@@ -12,9 +12,9 @@ import { listAuthoredModules } from "@/lib/moduleCatalog";
 export const dynamic = "force-dynamic";
 
 const COHORT_TOUR = [
-  { sel: '[data-tour="cohort-basics"]', title: "Name it and get its link", body: "Give the cohort a name and a short join code. That code becomes its shareable link — anyone who opens it joins this group." },
+  { sel: '[data-tour="cohort-basics"]', title: "Name it and get its link", body: "Give the cohort a name and a short join code. That code becomes its shareable link: anyone who opens it joins this group." },
   { sel: '[data-tour="cohort-type"]', title: "Open class or invite-only", body: "A teaching class is open-join; an enterprise cohort only lets the email addresses you list join. Pick what fits your program." },
-  { sel: '[data-tour="cohort-modules"]', title: "Choose the exercises, in order", body: "Add the modules participants will work through, and set the order with the arrows. Everyone in the cohort gets these unlocked." },
+  { sel: '[data-tour="cohort-modules"]', title: "Choose the exercises, in order", body: "Add the modules participants will work through, and set the order with the arrows. Everyone in the cohort gets these." },
   { sel: '[data-tour="cohort-list"]', title: "Share and track", body: "Once saved, copy the link to share, then open View results to watch the room's work roll up as they go." },
 ];
 

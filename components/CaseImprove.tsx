@@ -28,7 +28,7 @@ export default function CaseImprove({ slug, hasEngagement }: { slug: string; has
         </div>
         <button onClick={run} disabled={busy || !hasEngagement} className="btn-primary text-sm disabled:opacity-50">{busy ? "Reading the data…" : suggestions ? "Refresh" : "Suggest improvements"}</button>
       </div>
-      {!hasEngagement && <p className="mt-3 text-xs text-slate-400">Share the case with a class first — suggestions are grounded in real engagement.</p>}
+      {!hasEngagement && <p className="mt-3 text-xs text-slate-400">Share the case with a class first: suggestions are grounded in real engagement.</p>}
       {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
       {suggestions && suggestions.length > 0 && (
         <div className="mt-3 space-y-2">
@@ -41,7 +41,7 @@ export default function CaseImprove({ slug, hasEngagement }: { slug: string; has
           ))}
         </div>
       )}
-      {suggestions && suggestions.length === 0 && <p className="mt-3 text-sm text-slate2">No changes suggested — the case is engaging well.</p>}
+      {suggestions && suggestions.length === 0 && <p className="mt-3 text-sm text-slate2">No changes suggested: the case is engaging well.</p>}
     </section>
   );
 }

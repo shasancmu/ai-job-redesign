@@ -75,7 +75,7 @@ export default function IncentiveResult({ result, scenario, par }: { result: any
           {result.proposals.map((p: any, i: number) => (
             <div key={i} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 border-b border-line/60 pb-2 text-sm">
               <span className="w-32 shrink-0 font-semibold text-ink">{DISP[p.disposition] || p.disposition}</span>
-              <span className="flex-1 text-slate2">&ldquo;{p.tactic}&rdquo; <span className="text-slate-400">— {p.actions}</span></span>
+              <span className="flex-1 text-slate2">&ldquo;{p.tactic}&rdquo; <span className="text-slate-400">({p.actions})</span></span>
               <span className="tabular-nums text-slate-500">pay {p.reward} · value {p.trueValue}</span>
             </div>
           ))}

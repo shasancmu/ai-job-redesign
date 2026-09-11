@@ -52,7 +52,7 @@ export default async function Done({ params }: { params: { code: string } }) {
           </h1>
           <p className="mt-4 text-lg leading-relaxed text-slate2">
             {made
-              ? "That's yours to keep — open it any time from your reports."
+              ? "That's yours to keep, open it any time from your reports."
               : "Your work is saved. You can open it any time from your reports."}
           </p>
 

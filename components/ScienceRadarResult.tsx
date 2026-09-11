@@ -29,7 +29,7 @@ export default function ScienceRadarResult({ report, narrate }: { report: any; n
       )}
 
       <div className="card p-5">
-        <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">The frontier — highest-potential researchers</div>
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">The frontier: highest-potential researchers</div>
         {n.frontier_read && <p className="mt-1 text-sm text-slate2">{n.frontier_read}</p>}
         <div className="mt-2 space-y-2">
           {experts.map((e: any) => (

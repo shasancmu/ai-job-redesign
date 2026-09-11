@@ -44,16 +44,16 @@ export default function PhdBetDemo() {
   return (
     <div className="my-6 rounded-2xl border border-line bg-white p-5">
       <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Try it: the committee&apos;s bet</div>
-      <p className="mt-1 text-sm text-slate-500">Earning tenure takes about <b className="text-ink">{NEED} accepted papers</b>. Each paper is a long shot — so you need enough good shots. Set the two dials, then play out a career.</p>
+      <p className="mt-1 text-sm text-slate-500">Earning tenure takes about <b className="text-ink">{NEED} accepted papers</b>. Each paper is a long shot, so you need enough good shots. Set the two dials, then play out a career.</p>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div>
-          <div className="flex items-center justify-between text-sm"><span className="text-slate-600">Quality — chance one paper gets in</span><span className="font-semibold tabular-nums text-ink">{p}%</span></div>
+          <div className="flex items-center justify-between text-sm"><span className="text-slate-600">Quality: chance one paper gets in</span><span className="font-semibold tabular-nums text-ink">{p}%</span></div>
           <input type="range" min={5} max={60} value={p} onChange={(e) => setPd(parseInt(e.target.value, 10))} className="mt-1 w-full" aria-label="Quality: per-paper acceptance chance" />
           <div className="mt-0.5 text-[11px] text-slate-400">how good each paper is · E[p]</div>
         </div>
         <div>
-          <div className="flex items-center justify-between text-sm"><span className="text-slate-600">Output — papers you write</span><span className="font-semibold tabular-nums text-ink">{n}</span></div>
+          <div className="flex items-center justify-between text-sm"><span className="text-slate-600">Output: papers you write</span><span className="font-semibold tabular-nums text-ink">{n}</span></div>
           <input type="range" min={3} max={15} value={n} onChange={(e) => setNd(parseInt(e.target.value, 10))} className="mt-1 w-full" aria-label="Output: papers written" />
           <div className="mt-0.5 text-[11px] text-slate-400">how many shots you take · E[n]</div>
         </div>
@@ -77,7 +77,7 @@ export default function PhdBetDemo() {
           <button onClick={play} className="btn-dark text-sm">{draw ? "Play again" : "Play out a career →"}</button>
           {draw && (
             <span className="text-sm text-slate-600">
-              <b className="tabular-nums text-ink">{accepted}</b> of {n} landed —{" "}
+              <b className="tabular-nums text-ink">{accepted}</b> of {n} landed:{" "}
               {accepted >= NEED ? <span className="font-semibold text-sage">🎉 tenure</span> : <span className="font-semibold text-clay">short by {NEED - accepted}</span>}
             </span>
           )}
@@ -119,7 +119,7 @@ export default function PhdBetDemo() {
       </div>
 
       <p className="mt-3 text-xs text-slate-400">
-        Now try maxing <b className="text-ink">only</b> quality, or <b className="text-ink">only</b> output. Neither alone gets you there — the bet only pays off when both are high. That is exactly what the committee reads your application for: E[p] (you can do good work) and E[n] (you&apos;ll keep writing).
+        Now try maxing <b className="text-ink">only</b> quality, or <b className="text-ink">only</b> output. Neither alone gets you there: the bet only pays off when both are high. That is exactly what the committee reads your application for: E[p] (you can do good work) and E[n] (you&apos;ll keep writing).
       </p>
     </div>
   );

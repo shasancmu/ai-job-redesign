@@ -32,7 +32,7 @@ export default function AgentRunner() {
       <button onClick={() => run(3)} disabled={busy} className="btn-dark text-sm">{busy ? "Running the agent…" : "▶ Run the agent (3 modules)"}</button>
       {msg && <span className="text-sm font-medium text-sage">{msg}</span>}
       {err && <span className="text-sm text-clay">{err}</span>}
-      {busy && <span className="text-xs text-slate-400">A synthetic learner is working through each — ~30–60s.</span>}
+      {busy && <span className="text-xs text-slate-400">A synthetic learner is working through each, ~30–60s.</span>}
     </div>
   );
 }

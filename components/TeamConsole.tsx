@@ -140,8 +140,8 @@ export default function TeamConsole({ orgId, people, invites, links = [], isSupe
             Let members browse the full library
             <span className="mt-0.5 block text-xs font-normal text-slate-400">
               {browse
-                ? "On — members see every module you grant, plus their assigned work."
-                : "Off — members get a focused home showing only the work assigned to their cohort. The class/library structure stays with you and your instructors."}
+                ? "On: members see every module you grant, plus their assigned work."
+                : "Off: members get a focused home showing only the work assigned to their cohort. The class/library structure stays with you and your instructors."}
             </span>
           </span>
         </label>
@@ -157,8 +157,8 @@ export default function TeamConsole({ orgId, people, invites, links = [], isSupe
             Hide learners&apos; written responses from staff
             <span className="mt-0.5 block text-xs font-normal text-slate-400">
               {hideResp
-                ? "On — staff see AI summaries, scores, and completion, but not the verbatim text learners wrote."
-                : "Off — staff can see learners' own words in the understanding views. Turn on for more privacy."}
+                ? "On: staff see AI summaries, scores, and completion, but not the verbatim text learners wrote."
+                : "Off: staff can see learners' own words in the understanding views. Turn on for more privacy."}
             </span>
           </span>
         </label>
@@ -181,7 +181,7 @@ export default function TeamConsole({ orgId, people, invites, links = [], isSupe
         </Section>
       )}
 
-      <Section title="Instructors" anchor="team-instructors" hint={instructors.length ? undefined : "none yet — promote a member or add one above"}>
+      <Section title="Instructors" anchor="team-instructors" hint={instructors.length ? undefined : "none yet: promote a member or add one above"}>
         {instructors.map((p) => (
           <Row key={p.userId} p={p}>
             <button onClick={() => makeDirector(p)} disabled={busy === p.userId} className={btn}>Make director</button>

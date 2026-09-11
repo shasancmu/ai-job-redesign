@@ -166,7 +166,7 @@ export default function RegressionRoom({ session, initialWorkspace }: { me?: str
                 <button key={d} onClick={() => setDifficulty(d)} className={"rounded-full px-4 py-1.5 text-sm font-medium capitalize transition " + (difficulty === d ? "bg-ink text-white" : "bg-mist text-slate2 hover:bg-slate-200")}>{d}</button>
               ))}
             </div>
-            <p className="mt-1.5 text-xs text-slate-400">{difficulty === "easy" ? "Strong signals, few variables, no hidden nonlinearity — discoverable with correlations and one regression." : "Weaker signals, correlated distractors, at least one nonlinear term and one interaction. Rewards careful work."}</p>
+            <p className="mt-1.5 text-xs text-slate-400">{difficulty === "easy" ? "Strong signals, few variables, no hidden nonlinearity: discoverable with correlations and one regression." : "Weaker signals, correlated distractors, at least one nonlinear term and one interaction. Rewards careful work."}</p>
           </div>
           {err && <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
           <button onClick={generate} disabled={busy || !context.trim()} className="btn-primary w-full">{busy ? "Designing your dataset… (~15s)" : "Generate challenge"}</button>

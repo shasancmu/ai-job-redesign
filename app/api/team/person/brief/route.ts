@@ -46,7 +46,7 @@ export async function POST(request: Request) {
   // Fallback (also when AI is off) — plain, grounded, never guessing.
   const fallback = {
     who: u.who.segmentLabel
-      ? `${u.person.name} — ${u.who.segmentLabel.replace(/^I'm /, "").toLowerCase()}${u.who.goalLabel ? `, here to ${u.who.goalLabel.toLowerCase()}` : ""}.`
+      ? `${u.person.name}: ${u.who.segmentLabel.replace(/^I'm /, "").toLowerCase()}${u.who.goalLabel ? `, here to ${u.who.goalLabel.toLowerCase()}` : ""}.`
       : `Little is known about ${u.person.name} yet.`,
     blocker: "",
     unlock: "",

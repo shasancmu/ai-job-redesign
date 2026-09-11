@@ -60,14 +60,14 @@ export async function GET() {
     version: "1",
     method: "POST",
     auth: "Authorization: Bearer <DEFENSE_API_KEY>",
-    body: { abstract: "string (required, ≥80 chars)", title: "string (optional)", doi: "string (optional — unlocks patent evidence)" },
+    body: { abstract: "string (required, ≥80 chars)", title: "string (optional)", doi: "string (optional: adds patent evidence)" },
     returns: {
       engine: "'scibert' when the trained model scored it, else 'estimate' (LLM fallback)",
       read: { scorePct: "0-100", stars: "1-5", confidence: "High|Moderate|Low", domains: "[]", pathways: "[]", dualUse: "string", whoCares: "[]", verdict: "string" },
       scores: "Scientifiq commercial/scientific/social potential (context)",
       evidence: "citing patents + defense-linked assignees when a DOI is supplied",
     },
-    model: "Score from a SciBERT defense-impact classifier (frozen-embedding head; single best-period model) when the sciscore service is configured; LLM estimate otherwise. A research-mapping score — it maps relevance, not intent.",
+    model: "Score from a SciBERT defense-impact classifier (frozen-embedding head; single best-period model) when the sciscore service is configured; LLM estimate otherwise. A research-mapping score: it maps relevance, not intent.",
     scibertConfigured: SCISCORE_ENABLED,
     configured: SCIENTIFIQ_ENABLED && AI_ENABLED && validKeys().length > 0,
   });

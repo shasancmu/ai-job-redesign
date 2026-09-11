@@ -316,7 +316,7 @@ function Interview({ ws, update, sessionId }: { ws: any; update: (p: any) => voi
       <InterviewProgress
         msgs={messages}
         turns={INTERVIEW_TURNS}
-        doneNote="That's everything it needs — build your redesign whenever you're ready."
+        doneNote="That's everything it needs. Build your redesign whenever you're ready."
       />
 
       <InterviewHelper module="job" answered={messages.filter((m) => m.role === "user").length} hasDraft={!!input.trim()} onInsert={setInput} />

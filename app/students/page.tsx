@@ -34,13 +34,13 @@ export default async function StudentsPage() {
         <h1 className="font-serif text-2xl font-bold text-ink">My students</h1>
         <Link href="/cases/mine" className="text-sm font-medium text-ai hover:underline">My cases →</Link>
       </div>
-      <p className="mt-1 text-sm text-slate-500">Everyone who's joined a class you run — across every term. Students who return to a second class are your growing relationship capital.</p>
+      <p className="mt-1 text-sm text-slate-500">Everyone who's joined a class you run, across every term. Students who return to a second class are your growing relationship capital.</p>
 
       {roster.totalStudents === 0 ? (
         <div className="mt-8 rounded-2xl border border-dashed border-line bg-mist/30 p-10 text-center">
           <div className="text-3xl">👥</div>
           <p className="mt-2 font-serif text-lg text-ink">No students yet</p>
-          <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">When students join a class you own (via its join code), they'll show up here — and you'll see who comes back term after term.</p>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">When students join a class you own (via its join code), they'll show up here, and you'll see who comes back term after term.</p>
         </div>
       ) : (
         <>

@@ -91,7 +91,7 @@ export default async function CaseInsightsPage({ params, searchParams }: { param
 
       {ins.readers === 0 && (
         <div className="mt-6 rounded-2xl border border-dashed border-line bg-mist/30 p-8 text-center text-sm text-slate-500">
-          No engagement yet. Copy the assignment link below and share it with your class — reads, decisions, clicks, and questions will show up here.
+          No engagement yet. Copy the assignment link below and share it with your class: reads, decisions, clicks, and questions will show up here.
         </div>
       )}
 

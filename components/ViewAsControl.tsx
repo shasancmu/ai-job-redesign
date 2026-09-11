@@ -34,7 +34,7 @@ export default function ViewAsControl() {
     <div className="rounded-2xl border border-line bg-white p-5">
       <div className="text-sm font-bold text-ink">View as a user</div>
       <p className="mt-1 text-xs text-slate-400">
-        Render the dashboard &amp; paywall as this person — their runs balance and consumer view. Read-only; you can&apos;t act as them.
+        Render the dashboard &amp; paywall as this person: their runs balance and consumer view. Read-only; you can&apos;t act as them.
       </p>
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
         <input

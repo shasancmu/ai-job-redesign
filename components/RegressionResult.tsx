@@ -48,7 +48,7 @@ export default function RegressionResult({ grade, feedback, context }: { grade: 
         </div>
         <div className="card p-4">
           <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-600">Shouldn&apos;t be there</div>
-          <ul className="mt-2 space-y-1.5 text-[13px] text-ink">{grade.extra.length ? grade.extra.map((e) => <li key={e.label}><span className="font-mono">{e.label}</span> <span className="text-xs text-slate-400">— {e.why}</span></li>) : <li className="text-slate-400">none</li>}</ul>
+          <ul className="mt-2 space-y-1.5 text-[13px] text-ink">{grade.extra.length ? grade.extra.map((e) => <li key={e.label}><span className="font-mono">{e.label}</span> <span className="text-xs text-slate-400">({e.why})</span></li>) : <li className="text-slate-400">none</li>}</ul>
         </div>
       </div>
 

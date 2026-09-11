@@ -34,7 +34,7 @@ export default function VoiceVisionRoom({ session, initialWorkspace }: { me?: st
       speaker="facilitator"
       headerPill="Shape your vision"
       introTitle="A spoken conversation to shape your vision"
-      introBody="A facilitator talks with you out loud, like a real conversation. Just answer naturally and pause when you're done — it moves on by itself. No tapping needed. Find a quiet spot; works best in Chrome, or on Android and desktop."
+      introBody="A facilitator talks with you out loud, like a real conversation. Just answer naturally and pause when you're done, and it moves on by itself. No tapping needed. Find a quiet spot; works best in Chrome, or on Android and desktop."
       typedLabel="Do the typed version"
       typedHref="/start/define-vision"
       buildButtonLabel="End & build my vision →"

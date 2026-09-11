@@ -16,14 +16,14 @@ export const dynamic = "force-dynamic";
 // live activity is authored directly (not from docs+interview), so it keeps its
 // own page.
 const FORMATS: { emoji: string; name: string; blurb: string; href: string; tag?: string }[] = [
-  { emoji: "🎬", name: "Living case", blurb: "An interactive, decision-first case study from your materials: the learner reads the evidence, commits a call under uncertainty, then gets the reveal — with drill-downs and a tutor.", href: "/studio/upload?format=case" },
+  { emoji: "🎬", name: "Living case", blurb: "An interactive, decision-first case study from your materials: the learner reads the evidence, commits a call under uncertainty, then gets the reveal, with drill-downs and a tutor.", href: "/studio/upload?format=case" },
   { emoji: "🎭", name: "Role-play with a hidden truth", blurb: "The learner interrogates an AI character who won't lie but will spin, then makes a call. Like The Earnings Call.", href: "/studio/upload?format=roleplay" },
   { emoji: "🗂️", name: "Guided interview → output", blurb: "An AI interviews the learner, then writes a report, scorecard, or verdict grounded in a framework you name.", href: "/studio/upload?format=interview" },
   { emoji: "🤝", name: "Negotiation", blurb: "The learner negotiates a scored deal against an AI counterpart with a hidden payoff table. Value-creating trades beat splitting the difference.", href: "/studio/upload?format=negotiation" },
-  { emoji: "📊", name: "Analytical instrument", blurb: "Break a subject into units and score each against a scale you define, X-ray style — AI-exposure, risk, evidence strength.", href: "/studio/upload?format=analytical" },
+  { emoji: "📊", name: "Analytical instrument", blurb: "Break a subject into units and score each against a scale you define, X-ray style: AI-exposure, risk, evidence strength.", href: "/studio/upload?format=analytical" },
   { emoji: "⏱️", name: "Timed quiz", blurb: "A timed, multiple-choice quiz. Server-scored, so the answer key stays private.", href: "/studio/upload?format=benchmark" },
-  { emoji: "📖", name: "Explainer", blurb: "A taught, section-by-section walkthrough of a topic — the clearest way to hand learners a concept before the interactive work.", href: "/studio/upload?format=explainer" },
-  { emoji: "💡", name: "Paper Explainer", blurb: "Upload an academic paper and the AI turns it into an interactive, visual explainer — the puzzle, the evidence, the core idea — ending with a teach-back the learner has to pass.", href: "/studio/paper" },
+  { emoji: "📖", name: "Explainer", blurb: "A taught, section-by-section walkthrough of a topic: the clearest way to hand learners a concept before the interactive work.", href: "/studio/upload?format=explainer" },
+  { emoji: "💡", name: "Paper Explainer", blurb: "Upload an academic paper and the AI turns it into an interactive, visual explainer (the puzzle, the evidence, the core idea) ending with a teach-back the learner has to pass.", href: "/studio/paper" },
   { emoji: "🗞️", name: "In the News", blurb: "Apply a framework to real, current headlines that refresh every run, so the module never goes stale.", href: "/studio/upload?format=newsframe" },
   { emoji: "🔧", name: "Paired redesign", blurb: "Two learners interview each other, then redesign each other's subject on an instrument you define. A live two-person experience.", href: "/studio/upload?format=redesign", tag: "beta · live" },
   { emoji: "🌥️", name: "Live group activity", blurb: "A whole-room word cloud, poll, or open responses with an AI synthesis. Participants join on their phones, no account.", href: "/studio/live/new" },
@@ -47,7 +47,7 @@ export default async function CreateGallery() {
       </header>
       <h1 className="text-3xl text-ink">Create a module</h1>
       <p className="mt-1 max-w-2xl text-slate2">Start from your own materials, talk it through with the AI, or pick a format. The editor and AI copilot take it from there.</p>
-      <p className="mt-2 text-sm text-slate-500">New to this? <Link href="/studio/guide" className="font-medium text-ai hover:underline">Read the guide</Link> — what modules are, and how to build one. Already made some? <Link href="/studio/mine" className="font-medium text-ai hover:underline">Your modules →</Link></p>
+      <p className="mt-2 text-sm text-slate-500">New to this? <Link href="/studio/guide" className="font-medium text-ai hover:underline">Read the guide</Link>: what modules are, and how to build one. Already made some? <Link href="/studio/mine" className="font-medium text-ai hover:underline">Your modules →</Link></p>
 
       {/* One step, not two doors: "share context" = upload materials AND/OR talk
           it through, in one flow. Two separate cards always read as either/or, so
@@ -60,7 +60,7 @@ export default async function CreateGallery() {
           <div className="text-3xl">📎</div>
           <div className="min-w-0 flex-1">
             <div className="text-lg font-bold text-ink group-hover:text-ai">Share your materials &amp; context → get a module</div>
-            <div className="mt-0.5 text-sm text-slate2">Drop your PDFs, docs, and links, <span className="font-semibold text-ink">and</span> talk it through with the AI by text or voice — in one flow. Do either or both. It reads everything you give it, recommends the format, and drafts the module.</div>
+            <div className="mt-0.5 text-sm text-slate2">Drop your PDFs, docs, and links, <span className="font-semibold text-ink">and</span> talk it through with the AI by text or voice, in one flow. Do either or both. It reads everything you give it, recommends the format, and drafts the module.</div>
           </div>
           <span className="shrink-0 text-lg font-semibold text-ai">→</span>
         </div>

@@ -16,7 +16,7 @@ const LOOP = [
 ];
 
 const TYPES = [
-  { emoji: "🎬", name: "Living case", best: "An interactive, decision-first case study built from your materials: the learner reads the evidence, commits a call under uncertainty, then gets the reveal — with drill-downs, sources, and a tutor. For teaching a real decision the way a case does, but interactive." },
+  { emoji: "🎬", name: "Living case", best: "An interactive, decision-first case study built from your materials: the learner reads the evidence, commits a call under uncertainty, then gets the reveal, with drill-downs, sources, and a tutor. For teaching a real decision the way a case does, but interactive." },
   { emoji: "🎭", name: "Role-play", best: "Interrogate an AI character under a hidden truth and judge under uncertainty. For detecting deception, diligence, eliciting from a guarded source, reading a person. (The Earnings Call is this.)" },
   { emoji: "🗂️", name: "Guided interview → output", best: "An AI interviews the learner, then writes a report, scorecard, or verdict. For applying a framework to the learner's own situation (Five Forces, jobs-to-be-done, a readiness check, a reflection)." },
   { emoji: "🤝", name: "Negotiation", best: "Negotiate a scored deal against an AI counterpart with a hidden payoff table. For bargaining, deal-making, and trade-offs." },
@@ -28,8 +28,8 @@ const TYPES = [
 ];
 
 const FINISH = [
-  { title: "Walk through the setup", body: "The moment it drafts, the studio walks you through the handful of choices that actually shape the module — one at a time, each with why it matters and what was chosen. Keep each as it is, tweak the wording, or have the AI try a different one. This is the fast path; most modules need nothing more." },
-  { title: "Fine-tune in the full editor", body: "\"Edit everything at once\" opens the structured editor — every field, with an AI copilot beside it. Type an instruction (\"make the counterpart tougher\", \"add a scenario\") and it revises the draft. For role-plays, a Critic gives an adversarial read of your design and Playtest runs a simulated learner before a real one does." },
+  { title: "Walk through the setup", body: "The moment it drafts, the studio walks you through the handful of choices that actually shape the module, one at a time, each with why it matters and what was chosen. Keep each as it is, tweak the wording, or have the AI try a different one. This is the fast path; most modules need nothing more." },
+  { title: "Fine-tune in the full editor", body: "\"Edit everything at once\" opens the structured editor: every field, with an AI copilot beside it. Type an instruction (\"make the counterpart tougher\", \"add a scenario\") and it revises the draft. For role-plays, a Critic gives an adversarial read of your design and Playtest runs a simulated learner before a real one does." },
   { title: "Publish", body: "Publishing makes the module runnable at its own link. Until then it's a private draft only you see." },
   { title: "Assign or share", body: "Attach it to a cohort so a class runs it together, or just send the link. Learners never see the answer key or the hidden layer." },
   { title: "Observe and improve", body: "Watch results and insights come in, then revise. History keeps a snapshot of every save, so you can always restore a prior version." },
@@ -91,7 +91,7 @@ export default async function GuidePage() {
       <section className="mt-12">
         <h2 className="text-2xl font-bold tracking-tight text-ink">Pick the right shape</h2>
         <p className="mt-2 text-[15px] leading-relaxed text-slate2">
-          Every module is one of these shapes. You don&apos;t have to know which before you start — share your material and the studio suggests one — but knowing what each is for helps you choose well, and lets you pick one directly.
+          Every module is one of these shapes. You don&apos;t have to know which before you start (share your material and the studio suggests one), but knowing what each is for helps you choose well, and lets you pick one directly.
         </p>
         <div className="mt-5 space-y-2.5">
           {TYPES.map((t) => (
@@ -119,7 +119,7 @@ export default async function GuidePage() {
       <section className="mt-16 border-t border-line pt-12">
         <span className="eyebrow text-ai">Step by step</span>
         <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink">How to build one</h2>
-        <p className="mt-2 text-[15px] leading-relaxed text-slate2">One step sits at the center of it: you <b className="text-ink">share your context</b> — upload docs, paste links, and/or talk it through — and the AI drafts the module from it. You reach that step two ways, depending on whether you already know the format.</p>
+        <p className="mt-2 text-[15px] leading-relaxed text-slate2">One step sits at the center of it: you <b className="text-ink">share your context</b> (upload docs, paste links, and/or talk it through), and the AI drafts the module from it. You reach that step two ways, depending on whether you already know the format.</p>
       </section>
 
       <section className="mt-6">
@@ -129,7 +129,7 @@ export default async function GuidePage() {
             <div className="text-sm font-bold text-ink">The step at the center: share your context</div>
           </div>
           <p className="mt-1.5 text-[14px] leading-relaxed text-slate2">
-            Drop PDFs, Word docs, or notes; paste article or video links; and/or talk it through with the AI by <b className="text-ink">text or voice</b> (the blue dot asks the questions aloud). Do any one of them, or all — it&apos;s an <b className="text-ink">and</b>, not an either/or. It reads everything you give it and drafts the module, grounded in your material. Files are read for the draft only and never stored.
+            Drop PDFs, Word docs, or notes; paste article or video links; and/or talk it through with the AI by <b className="text-ink">text or voice</b> (the blue dot asks the questions aloud). Do any one of them, or all. It&apos;s an <b className="text-ink">and</b>, not an either/or. It reads everything you give it and drafts the module, grounded in your material. Files are read for the draft only and never stored.
           </p>
         </div>
       </section>
@@ -138,7 +138,7 @@ export default async function GuidePage() {
         <div className="rounded-2xl border border-line bg-white p-5">
           <div className="flex items-center gap-2">
             <span className="text-xl">🧭</span>
-            <div className="text-sm font-bold text-ink">Flow A — Not sure which format? Start from your context.</div>
+            <div className="text-sm font-bold text-ink">Flow A: Not sure which format? Start from your context.</div>
           </div>
           <p className="mt-1 text-xs text-slate-500">Best when you have material or an idea but don&apos;t know the shape yet.</p>
           <ol className="mt-3 space-y-2.5 text-[14px] leading-relaxed text-slate2">
@@ -155,11 +155,11 @@ export default async function GuidePage() {
         <div className="rounded-2xl border border-line bg-white p-5">
           <div className="flex items-center gap-2">
             <span className="text-xl">🎯</span>
-            <div className="text-sm font-bold text-ink">Flow B — Know the format? Pick it, then share your context.</div>
+            <div className="text-sm font-bold text-ink">Flow B: Know the format? Pick it, then share your context.</div>
           </div>
           <p className="mt-1 text-xs text-slate-500">Best when you already know the shape you want.</p>
           <ol className="mt-3 space-y-2.5 text-[14px] leading-relaxed text-slate2">
-            <li><b className="text-ink">1. Pick a format.</b> On Create, choose the shape that fits — a living case, a role-play, a negotiation, a quiz, and so on.</li>
+            <li><b className="text-ink">1. Pick a format.</b> On Create, choose the shape that fits: a living case, a role-play, a negotiation, a quiz, and so on.</li>
             <li><b className="text-ink">2. Share your context.</b> The same step opens, now aimed at that format: upload docs, paste links, and/or talk it through.</li>
             <li><b className="text-ink">3. It drafts that format, live.</b></li>
             <li><b className="text-ink">4. Set it up and publish.</b> The same guided walkthrough, then publish.</li>

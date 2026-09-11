@@ -374,9 +374,9 @@ export const MODULES: ModuleDef[] = [
     slug: "close-the-vendor-deal",
     exercise: "vendor-deal",
     name: "Close a Vendor Deal",
-    tagline: "Negotiate a software contract with an AI account exec — price, term, payment, support, and more. Learn to trade the terms they value for the ones you do.",
+    tagline: "Negotiate a software contract with an AI account exec: price, term, payment, support, and more. Learn to trade the terms they value for the ones you do.",
     description:
-      "A live, multi-issue B2B negotiation: you're the buyer, AI plays the vendor's account exec. Bargain across price, contract length, payment terms, support tier, onboarding, and being a reference — hidden priorities on both sides. Then see your score, the joint value created, and a coach's debrief.",
+      "A live, multi-issue B2B negotiation: you're the buyer, AI plays the vendor's account exec. Bargain across price, contract length, payment terms, support tier, onboarding, and being a reference, with hidden priorities on both sides. Then see your score, the joint value created, and a coach's debrief.",
     partner: "ai",
     mode: "With AI",
     minutes: 25,
@@ -391,7 +391,7 @@ export const MODULES: ModuleDef[] = [
     name: "Negotiate the Rent",
     tagline: "Haggle over a monthly office rent against an AI landlord with a hidden floor. Practice anchoring, holding your walk-away, and claiming the bargaining zone.",
     description:
-      "A single-issue distributive negotiation: you're the tenant, AI plays the landlord with a hidden floor. One number, no trades — just anchoring, patience, and your walk-away. Then see how much of the bargaining zone you claimed, on a ZOPA bar, with a coach's debrief.",
+      "A single-issue distributive negotiation: you're the tenant, AI plays the landlord with a hidden floor. One number, no trades: just anchoring, patience, and your walk-away. Then see how much of the bargaining zone you claimed, on a ZOPA bar, with a coach's debrief.",
     partner: "ai",
     mode: "With AI",
     minutes: 20,
@@ -404,9 +404,9 @@ export const MODULES: ModuleDef[] = [
     slug: "rehearse-hard-conversation",
     exercise: "hard-convo",
     name: "Rehearse a Hard Conversation",
-    tagline: "Practice a hard conversation — letting someone go, tough feedback, denying a promotion, a PIP, or pushing back on your boss — with an AI who reacts like a real person. Then get coached on the tape.",
+    tagline: "Practice a hard conversation (letting someone go, tough feedback, denying a promotion, a PIP, or pushing back on your boss) with an AI who reacts like a real person. Then get coached on the tape.",
     description:
-      "Pick a hard conversation and rehearse it live: an AI plays the person on the other side, reacting in character to how you handle it, while you lead. Then a coach walks the transcript — clarity, respect, structure (situation–behavior–impact), holding the line, and a clear next step. Grounded in feedback science and deliberate practice.",
+      "Pick a hard conversation and rehearse it live: an AI plays the person on the other side, reacting in character to how you handle it, while you lead. Then a coach walks the transcript: clarity, respect, structure (situation–behavior–impact), holding the line, and a clear next step. Grounded in feedback science and deliberate practice.",
     partner: "ai",
     mode: "With AI",
     minutes: 20,
@@ -419,7 +419,7 @@ export const MODULES: ModuleDef[] = [
     slug: "define-vision",
     exercise: "vision",
     name: "Shape Your Company Vision",
-    tagline: "Think through a lasting vision for your organization with an AI facilitator — what it stands for, why it exists, and the bold future it's working toward. Leave with your vision written back to you.",
+    tagline: "Think through a lasting vision for your organization with an AI facilitator: what it stands for, why it exists, and the bold future it's working toward. Leave with your vision written back to you.",
     description:
       "A guided conversation, grounded in the vision framework of Collins and Porras, that separates your organization's enduring core (its values and purpose) from its envisioned future (a bold long-term goal and a vivid picture of reaching it). An AI facilitator draws out your thinking one question at a time, then synthesizes it into a clear, usable vision you can pressure-test and share.",
     partner: "ai",
@@ -436,7 +436,7 @@ export const MODULES: ModuleDef[] = [
     name: "Talk Through Your Vision",
     tagline: "The vision conversation as a hands-free voice session. Just talk while an AI facilitator draws out what your organization stands for and where it's headed, then get your vision written up.",
     description:
-      "Shape Your Company Vision as a spoken conversation. A facilitator interviews you out loud, drawing out your core values and purpose and the bold future you're building toward, then synthesizes it — grounded in the Collins and Porras vision framework — into a clear vision. Uses your browser's speech; nothing is recorded, only the transcript is kept.",
+      "Shape Your Company Vision as a spoken conversation. A facilitator interviews you out loud, drawing out your core values and purpose and the bold future you're building toward, then synthesizes it (grounded in the Collins and Porras vision framework) into a clear vision. Uses your browser's speech; nothing is recorded, only the transcript is kept.",
     partner: "ai",
     mode: "With AI",
     minutes: 25,
@@ -449,9 +449,9 @@ export const MODULES: ModuleDef[] = [
     slug: "find-problem",
     exercise: "problem-seller",
     name: "Find a Problem Worth Solving",
-    tagline: "For a founder, consultant, or researcher commercializing: an AI coach helps you hunt the one recurring, expensive, newly-solvable problem — close to your edge — that many buyers will pay to fix. It then checks the problem against the real world and grades it.",
+    tagline: "For a founder, consultant, or researcher commercializing: with an AI coach, hunt the one recurring, expensive, newly-solvable problem (close to your edge) that many buyers will pay to fix. It then checks the problem against the real world and grades it.",
     description:
-      "A coached search for your beachhead problem. An AI strategist interviews you along one line — a valuable problem is recurring, expensive, newly solvable, close to what you uniquely know, and purchasable — then searches the web to corroborate that the problem is real and costly (not just asserted), and returns a graded thesis: who has it, why now, your edge, the value at stake, whether it is repeatable, whether a buyer will pay, and the single cheapest experiment to try to disprove it.",
+      "A coached search for your beachhead problem. An AI strategist interviews you along one line (a valuable problem is recurring, expensive, newly solvable, close to what you uniquely know, and purchasable), then searches the web to corroborate that the problem is real and costly (not just asserted), and returns a graded thesis: who has it, why now, your edge, the value at stake, whether it is repeatable, whether a buyer will pay, and the single cheapest experiment to try to disprove it.",
     partner: "ai",
     mode: "With AI",
     minutes: 20,
@@ -464,9 +464,9 @@ export const MODULES: ModuleDef[] = [
     slug: "find-org-problems",
     exercise: "problem-leader",
     name: "Find Your Organization's Highest-Value Problems",
-    tagline: "For a leader with resources to allocate: an AI coach surfaces where your next hour, dollar, or hire creates the most value — a ranked map of internal opportunities, corroborated against real evidence, with what to stop to fund the winner.",
+    tagline: "For a leader with resources to allocate: an AI coach surfaces where your next hour, dollar, or hire creates the most value. You get a ranked map of internal opportunities, corroborated against real evidence, with what to stop to fund the winner.",
     description:
-      "A coached audit of where value is leaking inside your organization. An AI strategist interviews you — misallocated attention, initiatives you cannot size, latent revenue, dispersed information that never becomes action — and pushes you toward the blind spots you are not looking at. It corroborates the pattern against real industry evidence, then returns a ranked opportunity map: for each, the value at stake, the odds, what it takes, and what to stop to fund it, plus which to pursue first and how to turn it into a running, measured experiment.",
+      "A coached audit of where value is leaking inside your organization. An AI strategist interviews you (misallocated attention, initiatives you cannot size, latent revenue, dispersed information that never becomes action) and pushes you toward the blind spots you are not looking at. It corroborates the pattern against real industry evidence, then returns a ranked opportunity map: for each, the value at stake, the odds, what it takes, and what to stop to fund it, plus which to pursue first and how to turn it into a running, measured experiment.",
     partner: "ai",
     mode: "With AI",
     minutes: 25,
@@ -481,7 +481,7 @@ export const MODULES: ModuleDef[] = [
     name: "Talk Through a Problem Worth Solving",
     tagline: "The problem hunt as a hands-free voice conversation. Just talk while an AI strategist draws out the recurring, expensive, newly-solvable problem closest to your edge, checks it against the real world, and grades it.",
     description:
-      "Find a Problem Worth Solving as a spoken conversation. A strategist interviews you out loud — you just answer naturally — then searches the web to corroborate the problem and returns a graded thesis: who has it, why now, your edge, the value at stake, whether it repeats, whether a buyer will pay, and the cheapest experiment to disprove it. Uses your browser's speech; nothing is recorded, only the transcript is kept.",
+      "Find a Problem Worth Solving as a spoken conversation. A strategist interviews you out loud (you just answer naturally), then searches the web to corroborate the problem and returns a graded thesis: who has it, why now, your edge, the value at stake, whether it repeats, whether a buyer will pay, and the cheapest experiment to disprove it. Uses your browser's speech; nothing is recorded, only the transcript is kept.",
     partner: "ai",
     mode: "With AI",
     minutes: 20,
@@ -556,7 +556,7 @@ export const MODULES: ModuleDef[] = [
     name: "Find Where AI Fits a Workflow",
     tagline: "Map one workflow to find where AI actually belongs, and leave with an implementation-grade plan.",
     description:
-      "An AI partner interviews you about one workflow, then drafts the GAS canvas: the outcome, the accuracy and generality it needs, the human/AI split, where complexity lives, the risks, and how to deploy. You leave with an implementation-grade plan.",
+      "An AI partner interviews you about one workflow, then drafts the GAS canvas: where AI fits, what it must get right, and how to ship it. You leave with an implementation-grade plan.",
     partner: "ai",
     mode: "With AI",
     minutes: 20,
@@ -586,7 +586,7 @@ export const MODULES: ModuleDef[] = [
     name: "Design a Test for Your Strategy",
     tagline: "Turn a strategic belief into a runnable experiment you could start this week, before you commit.",
     description:
-      "Turn a strategic belief into a runnable business experiment. An AI partner helps you sharpen the hypothesis, the control vs. change, the one metric that matters, and the decision rule, a test you could start this week.",
+      "Turn a strategic belief into a runnable business experiment. With an AI partner you sharpen the hypothesis, the control vs. change, the one metric that matters, and the decision rule, a test you could start this week.",
     partner: "ai",
     mode: "With AI",
     minutes: 18,
@@ -779,9 +779,9 @@ export const MODULES: ModuleDef[] = [
     slug: "score-my-invention",
     exercise: "score-invention",
     name: "Score My Invention",
-    tagline: "Paste an invention, disclosure, or research idea and get its full impact fingerprint — commercial, scientific, social, and deeper potential — scored against the field, plus concrete ways to raise it.",
+    tagline: "Paste an invention, disclosure, or research idea and get its full impact fingerprint (commercial, scientific, social, and deeper potential) scored against the field, plus concrete ways to raise it.",
     description:
-      "The fastest way to gut-check a deep-tech idea, built on Scientifiq.AI. Paste an abstract and it scores the idea for commercial, scientific, and social potential (0-100 and stars), benchmarked against its field, plus deeper dimensions from our own models — complex-invention and interdisciplinary potential (and defense relevance, for directors). Then AI reads the scores: which dimension is strongest, what a high or low score means for this specific idea, three to four concrete ways to reframe or strengthen it, who would care if it delivers, and a plain verdict. A quick, honest signal before you invest time in a full licensing brief or a venture canvas.",
+      "The fastest way to gut-check a deep-tech idea, built on Scientifiq.AI. Paste an abstract and it scores the idea for commercial, scientific, and social potential (0-100 and stars), benchmarked against its field, plus deeper dimensions from our own models: complex-invention and interdisciplinary potential (and defense relevance, for directors). Then AI reads the scores: which dimension is strongest, what a high or low score means for this specific idea, three to four concrete ways to reframe or strengthen it, who would care if it delivers, and a plain verdict. A quick, honest signal before you invest time in a full licensing brief or a venture canvas.",
     partner: "ai",
     mode: "With AI",
     minutes: 3,
@@ -812,9 +812,9 @@ export const MODULES: ModuleDef[] = [
     slug: "impact-optimizer",
     exercise: "optimize",
     name: "Impact Optimizer",
-    tagline: "Paste an abstract and pick a target — commercial, scientific, defense, and more — and find the missing science: the concrete experiments and extensions that would raise that potential most, each scored by the models.",
+    tagline: "Paste an abstract and pick a target (commercial, scientific, defense, and more) and find the missing science: the concrete experiments and extensions that would raise that potential most, each scored by the models.",
     description:
-      "A research-direction prioritizer built on Scientifiq.AI. Paste an abstract and choose which potential to raise. Instead of rewording it, the AI proposes concrete scientific extensions — a real-data demonstration, a new application, a missing experiment or causal result, an integration that enables a product — and writes each as the abstract the paper would become if that work were done. The models then score every version, so you see exactly which next steps move the target and by how much, ranked, with an honest research roadmap. Turns the potential score from a verdict into a map of where to take the science.",
+      "A research-direction prioritizer built on Scientifiq.AI. Paste an abstract and choose which potential to raise. Instead of rewording it, the AI proposes concrete scientific extensions (a real-data demonstration, a new application, a missing experiment or causal result, an integration that enables a product) and writes each as the abstract the paper would become if that work were done. The models then score every version, so you see exactly which next steps move the target and by how much, ranked, with an honest research roadmap. Turns the potential score from a verdict into a map of where to take the science.",
     partner: "ai",
     mode: "With AI",
     minutes: 3,
@@ -828,9 +828,9 @@ export const MODULES: ModuleDef[] = [
     slug: "explain-ai",
     exercise: "explain",
     name: "ExplainAI",
-    tagline: "Paste a paper's abstract and get it translated into plain language, framed for a policymaker, an investor, a researcher in another field, and the public — plus the jargon, translated.",
+    tagline: "Paste a paper's abstract and get it translated into plain language, framed for a policymaker, an investor, a researcher in another field, and the public, with the jargon translated too.",
     description:
-      "Bridges the gap between a discovery and the people who can use it, built on Scientifiq.AI. Paste an abstract and ExplainAI writes a jargon-free gist, then reframes the work for four audiences — a policymaker (the problem it speaks to and the public stake), an investor or industry R&D team (what could be built, and what's still unproven), a researcher in another field (the transferable idea or method they could borrow), and the public (what it means for everyday life) — and translates the key technical terms. Turns complex research into something anyone can act on.",
+      "Bridges the gap between a discovery and the people who can use it, built on Scientifiq.AI. Paste an abstract and ExplainAI writes a jargon-free gist, then reframes the work for four audiences: a policymaker (the problem it speaks to and the public stake), an investor or industry R&D team (what could be built, and what's still unproven), a researcher in another field (the transferable idea or method they could borrow), and the public (what it means for everyday life). It also translates the key technical terms. Turns complex research into something anyone can act on.",
     partner: "ai",
     mode: "With AI",
     minutes: 2,
@@ -1126,7 +1126,7 @@ export const MODULES: ModuleDef[] = [
     name: "1 · What Makes Research Good",
     tagline: "Research as a craft: the null model, making the invisible visible, GAS, and the four tests.",
     description:
-      "Part one of a reading series drawn from Sharique Hasan's \"Research, Strategy.\" Why research is a craft where the little things decide whether a paper gets published; what a research idea actually is (a unique insight into why the facts are what they are); the null model you push against; the GAS tradeoff (Generalizable, Accurate, Simple — pick two); and the four execution tests: Important, Interesting, Ambitious, Craft. With predict-then-reveal checkpoints and a tutor you can ask anything.",
+      "Part one of a reading series drawn from Sharique Hasan's \"Research, Strategy.\" Why research is a craft where the little things decide whether a paper gets published; what a research idea actually is (a unique insight into why the facts are what they are); the null model you push against; the GAS tradeoff (Generalizable, Accurate, Simple: pick two); and the four execution tests: Important, Interesting, Ambitious, Craft. With predict-then-reveal checkpoints and a tutor you can ask anything.",
     partner: "ai",
     mode: "With AI",
     minutes: 10,
@@ -1140,9 +1140,9 @@ export const MODULES: ModuleDef[] = [
     slug: "research-idea",
     exercise: "res-idea",
     name: "2 · Every Idea Is an Interaction",
-    tagline: "IF X → Y, ESPECIALLY/EXCEPT WHEN Z, BECAUSE a mechanism — and why β₃ is the idea.",
+    tagline: "IF X → Y, ESPECIALLY/EXCEPT WHEN Z, BECAUSE a mechanism, and why β₃ is the idea.",
     description:
-      "Part two of the Research Foundations series (Hasan, \"Research, Strategy\"). The four-part shape of a strategy claim — IF X happens, THEN Y happens, EXCEPT/ESPECIALLY WHEN Z, BECAUSE a mechanism — and how it maps onto the regression Y = β₀ + β₁X + β₂Z + β₃(X·Z), where the interaction coefficient β₃ carries the real contribution. Ends on the Strategy Experiment Canvas that turns the idea into a testable design. Interactive, with a tutor.",
+      "Part two of the Research Foundations series (Hasan, \"Research, Strategy\"). The four-part shape of a strategy claim (IF X happens, THEN Y happens, EXCEPT/ESPECIALLY WHEN Z, BECAUSE a mechanism) and how it maps onto the regression Y = β₀ + β₁X + β₂Z + β₃(X·Z), where the interaction coefficient β₃ carries the real contribution. Ends on the Strategy Experiment Canvas that turns the idea into a testable design. Interactive, with a tutor.",
     partner: "ai",
     mode: "With AI",
     minutes: 10,
@@ -1174,7 +1174,7 @@ export const MODULES: ModuleDef[] = [
     name: "4 · Building the Argument",
     tagline: "Theory, counter-arguments, the three tables, and one clear point per paragraph.",
     description:
-      "Part four of the Research Foundations series (Hasan, \"Research, Strategy\"). How to build a paper's argument: the theory section (set up a null, make a non-obvious claim, support it, then argue against yourself to raise the stakes, plus scope and extension claims); methods and data; the results section as three tables (the claim vs a strong null, the implications, and scope conditions via interactions); the discussion; and 'making points' — one point per paragraph, tested by whether a reader gets it without rereading. Interactive, with a tutor.",
+      "Part four of the Research Foundations series (Hasan, \"Research, Strategy\"). How to build a paper's argument: the theory section (set up a null, make a non-obvious claim, support it, then argue against yourself to raise the stakes, plus scope and extension claims); methods and data; the results section as three tables (the claim vs a strong null, the implications, and scope conditions via interactions); the discussion; and 'making points': one point per paragraph, tested by whether a reader gets it without rereading. Interactive, with a tutor.",
     partner: "ai",
     mode: "With AI",
     minutes: 10,
@@ -1223,7 +1223,7 @@ export const MODULES: ModuleDef[] = [
     name: "Make the Invisible Visible",
     tagline: "Turn your study into one sharp insight: the invisible force it makes visible, and why the facts are what they are.",
     description:
-      "The opening idea from Research, Strategy: research uncovers the visible and invisible forces that govern our world, and a research idea is a unique insight into why the facts are what they are, either establishing a new fact or explaining a known one. An AI partner interviews you about your study, then helps you name the phenomenon, the hidden force behind it, what prior work overlooked, and the single insight that makes the invisible visible. You leave with a one-sentence idea sharp enough to put in front of a coauthor.",
+      "The opening idea from Research, Strategy: research uncovers the visible and invisible forces that govern our world, and a research idea is a unique insight into why the facts are what they are, either establishing a new fact or explaining a known one. An AI partner interviews you about your study, then draws out the phenomenon, the hidden force behind it, what prior work overlooked, and the single insight that makes the invisible visible. You leave with a one-sentence idea sharp enough to put in front of a coauthor.",
     partner: "ai",
     mode: "With AI",
     minutes: 12,
@@ -1256,7 +1256,7 @@ export const MODULES: ModuleDef[] = [
     name: "Make Your Points",
     tagline: "Reduce your paper to a sequence of points, one per paragraph, that lead to a single conclusion.",
     description:
-      "The craft of persuasion from Research, Strategy: an academic article is a sequence of points that lead to a larger conclusion, and each paragraph makes exactly one. A ruthless-editor AI helps you write the five topic sentences of your introduction, it matters, the alternative view, your evidence, the finding, and why it matters, then names the single conclusion they build to. You leave with the spine of your argument as crisp topic sentences.",
+      "The craft of persuasion from Research, Strategy: an academic article is a sequence of points that lead to a larger conclusion, and each paragraph makes exactly one. A ruthless-editor AI works through the five topic sentences of your introduction with you, it matters, the alternative view, your evidence, the finding, and why it matters, then names the single conclusion they build to. You leave with the spine of your argument as crisp topic sentences.",
     partner: "ai",
     mode: "With AI",
     minutes: 13,
@@ -1432,7 +1432,7 @@ export const MODULES: ModuleDef[] = [
     name: "Is Your Identification Credible?",
     tagline: "Stress-test a causal claim: the biggest threat, the design that answers it, the identifying assumption, and a test that could falsify it.",
     description:
-      "A causal claim is only as good as its identification. An AI partner stress-tests your X-causes-Y against the obvious threats, selection, reverse causality, omitted variables, and measurement, then helps you name the design that answers it (experiment, difference-in-differences, instrument, regression discontinuity, or matching), the identifying assumption and how to defend it, and a falsification test. You leave knowing whether you can claim cause, or only correlation.",
+      "A causal claim is only as good as its identification. An AI partner stress-tests your X-causes-Y against the obvious threats, selection, reverse causality, omitted variables, and measurement, then works with you to name the design that answers it (experiment, difference-in-differences, instrument, regression discontinuity, or matching), the identifying assumption and how to defend it, and a falsification test. You leave knowing whether you can claim cause, or only correlation.",
     partner: "ai",
     mode: "With AI",
     minutes: 16,
@@ -1464,7 +1464,7 @@ export const MODULES: ModuleDef[] = [
     name: "The R&R War Room",
     tagline: "Turn reviewer comments into a systematic response: every comment answered as a dialogue, with the respectful pushback and the letter.",
     description:
-      "A Revise & Resubmit is an exam whose questions are the reviewers' comments, from Research, Strategy. Paste the comments, and an AI partner helps you build the revision document: the make-or-break comment, every substantive comment paired with a concrete response, what you won't change and the respectful reasoning, and the opening of the response letter. Systematic and professional, because most accepted papers survive several rounds. You leave with a revision plan ready to execute.",
+      "A Revise & Resubmit is an exam whose questions are the reviewers' comments, from Research, Strategy. Paste the comments, and an AI partner builds the revision document with you: the make-or-break comment, every substantive comment paired with a concrete response, what you won't change and the respectful reasoning, and the opening of the response letter. Systematic and professional, because most accepted papers survive several rounds. You leave with a revision plan ready to execute.",
     partner: "ai",
     mode: "With AI",
     minutes: 16,
@@ -1480,7 +1480,7 @@ export const MODULES: ModuleDef[] = [
     name: "Journal Fit & Cover Letter",
     tagline: "Pick the right venue and pitch it: fit is half the battle, and the wrong journal is a fast rejection.",
     description:
-      "Choosing a journal is strategic, from Research, Strategy: fit is half the battle, and the wrong venue is a fast desk-reject. An AI partner helps you match the paper to the right audience, scope, and level, list candidate journals with a fit reason each, pick a target and a plan B, and draft a tight cover letter, what the paper shows, why it fits this journal, and why now. You leave knowing where to send it and how to pitch it.",
+      "Choosing a journal is strategic, from Research, Strategy: fit is half the battle, and the wrong venue is a fast desk-reject. An AI partner matches the paper to the right audience, scope, and level with you, lists candidate journals with a fit reason each, picks a target and a plan B, and drafts a tight cover letter, what the paper shows, why it fits this journal, and why now. You leave knowing where to send it and how to pitch it.",
     partner: "ai",
     mode: "With AI",
     minutes: 13,
@@ -1528,7 +1528,7 @@ export const MODULES: ModuleDef[] = [
     name: "Design Your Research System",
     tagline: "Redesign how you actually work: automate the drudgery, delegate the rest, and standardize your stack, so you reach the creative work faster.",
     description:
-      "Build a research system so you get to the fun, creative work faster, from Research, Strategy. An AI partner audits where your time actually goes, then helps you decide what to automate (scripts, linked tables and figures, a clean project directory), what to delegate (to an RA, a coauthor, or AI), the stack to standardize (analytics, writing, cloud), and the single change with the biggest payoff. You leave with a redesigned way of working.",
+      "Build a research system so you get to the fun, creative work faster, from Research, Strategy. An AI partner audits where your time actually goes, then works with you to decide what to automate (scripts, linked tables and figures, a clean project directory), what to delegate (to an RA, a coauthor, or AI), the stack to standardize (analytics, writing, cloud), and the single change with the biggest payoff. You leave with a redesigned way of working.",
     partner: "ai",
     mode: "With AI",
     minutes: 14,
@@ -1544,7 +1544,7 @@ export const MODULES: ModuleDef[] = [
     name: "Build Your Research Team",
     tagline: "Find the complementary coauthors a strong paper needs: the architect, the builder, and the electrician.",
     description:
-      "Top-journal papers are coauthored, and the strongest teams combine complementary roles, from Sharique Hasan's strategy lecture: the architect (big-picture framing), the builder (the writer), and the electrician (data and analysis). An AI partner helps you see which role you play best, the gap your project most needs filled, the kind of collaborator to look for, and a concrete ask. You leave knowing exactly the complement to add.",
+      "Top-journal papers are coauthored, and the strongest teams combine complementary roles, from Sharique Hasan's strategy lecture: the architect (big-picture framing), the builder (the writer), and the electrician (data and analysis). An AI partner shows you which role you play best, the gap your project most needs filled, the kind of collaborator to look for, and a concrete ask. You leave knowing exactly the complement to add.",
     partner: "ai",
     mode: "With AI",
     minutes: 12,
@@ -1736,7 +1736,7 @@ export const CATEGORIES: { key: CategoryKey; title: string; blurb: string; chip:
   { key: "foundations", title: "How AI works", blurb: "A plain-language, interactive series on how AI actually works, from expert systems to modern LLMs, so you understand what it can and can't do. With live demos and a tutor.", chip: "bg-amber-soft text-amber", dot: "#C98A2B" },
   { key: "governance", title: "AI & governance", blurb: "Decide where AI belongs and vet the AI you bring in: find where AI fits a workflow, and pressure-test a vendor's disclosure for risk and real capability before you buy or deploy.", chip: "bg-sky-soft text-sky", dot: "#4E79C9" },
   { key: "strategy", title: "Strategy & bets", blurb: "Pressure-test a strategy or a bet with a real framework and real numbers, design the test that would settle it, and convene an AI board to argue it out.", chip: "bg-amber-soft text-amber", dot: "#C98A2B" },
-  { key: "opportunity", title: "Find the opportunity", blurb: "Hunt the highest-value problem worth solving — for you as a founder or consultant, or across your organization — and pressure-test it against real evidence.", chip: "bg-amber-soft text-amber", dot: "#C98A2B" },
+  { key: "opportunity", title: "Find the opportunity", blurb: "Hunt the highest-value problem worth solving (for you as a founder or consultant, or across your organization) and pressure-test it against real evidence.", chip: "bg-amber-soft text-amber", dot: "#C98A2B" },
   { key: "business", title: "Know your business", blurb: "Diagnose how your business really works: where the margin lives, your blind spots, what your customers actually want, and the vision that holds it together.", chip: "bg-clay-soft text-clay", dot: "#B4632A" },
   { key: "commercialize", title: "Science & deep-tech", blurb: "For TTOs, scientists, and deep-tech investors: score an invention, scan the research frontier, find the nearest expert or a technical co-founder, diligence the science, and rank disclosures. Powered by Scientifiq.AI.", chip: "bg-clay-soft text-clay", dot: "#B4632A" },
   { key: "negotiate", title: "Negotiate", blurb: "Bargain live against an AI counterpart, then get scored on the value you claimed, and the value you created.", chip: "bg-sky-soft text-sky", dot: "#4E79C9" },
@@ -1884,7 +1884,7 @@ export function moduleCategory(slug: string): CategoryKey {
 // per module (never guessed): the thing that is true after you finish.
 // ---------------------------------------------------------------------------
 const OUTCOME_OF: Record<string, string> = {
-  "reimagine-job": "A redesign of your job — what to keep, what to hand AI",
+  "reimagine-job": "A redesign of your job: what to keep, what to hand AI",
   "reimagine-workflow": "A redesigned workflow with the AI/human split drawn",
   "workflow-solo": "A redesigned workflow you can implement",
   "solo-ai": "A redesign of your job, done with AI",
@@ -1904,7 +1904,7 @@ const OUTCOME_OF: Record<string, string> = {
   "good-business": "A pressure-tested business idea",
   "balanced-scorecard": "A balanced scorecard for your strategy",
   "deeptech-canvas": "A deep-tech venture plan",
-  "ai-canvas": "A GAS canvas — where AI fits your workflow",
+  "ai-canvas": "A GAS canvas: where AI fits your workflow",
   "opportunity-capability": "A go/no-go read on your bet",
   "test-the-bet": "A test designed for your strategy",
   "business-consult": "A 30-minute diagnosis of your business",
@@ -2005,7 +2005,7 @@ export const INTENTS: { key: IntentKey; emoji: string; label: string; blurb: str
   { key: "decide", emoji: "🎯", label: "Sharpen a decision", blurb: "Pressure-test a strategy or bet, find the problem worth solving, and diagnose your business.", cats: ["strategy", "opportunity", "business"] },
   { key: "negotiate", emoji: "🤝", label: "Negotiate & persuade", blurb: "Bargain live against an AI counterpart, then get scored.", cats: ["negotiate"] },
   { key: "commercialize", emoji: "🔬", label: "Science & deep-tech", blurb: "For TTOs & hard-tech: score inventions, scan the research frontier, turn science into ventures.", cats: ["commercialize"] },
-  { key: "research", emoji: "🎓", label: "Do research & get a PhD", blurb: "Frame, structure, and argue a paper, master the craft, get published — and navigate the PhD path.", cats: ["research", "craft", "publish", "phd"] },
+  { key: "research", emoji: "🎓", label: "Do research & get a PhD", blurb: "Frame, structure, and argue a paper, master the craft, get published, and navigate the PhD path.", cats: ["research", "craft", "publish", "phd"] },
 ];
 const CAT_TO_INTENT: Partial<Record<CategoryKey, IntentKey>> = (() => {
   const m: Partial<Record<CategoryKey, IntentKey>> = {};

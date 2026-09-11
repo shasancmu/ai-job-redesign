@@ -104,7 +104,7 @@ export default function ExercisePage({ params }: { params: { slug: string } }) {
         <div className="mt-7 flex flex-wrap items-center gap-4">
           {cohortOnly ? (
             <span className="rounded-lg bg-mist px-3 py-2.5 text-sm leading-relaxed text-slate2">
-              This one runs live with a whole cohort — open your facilitator&apos;s link to take part.
+              This one runs live with a whole cohort, so open your facilitator&apos;s link to take part.
             </span>
           ) : (
             <>

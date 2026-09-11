@@ -273,7 +273,7 @@ export default function RoleplayChat({
         <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-line bg-mist px-4 py-3">
           <div className="flex items-center gap-2 text-sm font-medium text-ink">
             <span className={"flex h-2.5 w-2.5 rounded-full " + (speaking ? "bg-amber" : listening ? "animate-pulse bg-sage" : "bg-slate-300")} />
-            {speaking ? `${counterpartName} is speaking…` : listening ? "Listening — just talk" : busy ? "Thinking…" : "…"}
+            {speaking ? `${counterpartName} is speaking…` : listening ? "Listening, just talk" : busy ? "Thinking…" : "…"}
           </div>
           {speaking && <button onClick={() => { try { window.speechSynthesis.cancel(); } catch {} }} className="btn-ghost text-sm">Jump in →</button>}
           {listening && <button onClick={() => finishRef.current()} className="btn-ghost text-sm">Done speaking</button>}

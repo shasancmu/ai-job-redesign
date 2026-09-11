@@ -9,7 +9,7 @@ export default function VisionReport({ report, org }: { report: V; org?: string 
       <div data-guide="headline">
         {report.oneLiner && (
           <div className="rounded-2xl p-6 text-white" style={{ background: "var(--brand, #14283A)" }}>
-            <div className="text-xs font-semibold uppercase tracking-wide text-white/60">{org ? `${org} — the vision` : "The vision"}</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-white/60">{org ? `${org}: the vision` : "The vision"}</div>
             <p className="mt-2 text-xl font-semibold leading-snug">{report.oneLiner}</p>
           </div>
         )}

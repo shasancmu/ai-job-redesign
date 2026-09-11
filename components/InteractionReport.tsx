@@ -32,9 +32,9 @@ export default function InteractionReport({ inputs, idea }: { inputs: IdeaInputs
           </div>
         </div>
         <ul className="mt-3 space-y-1.5 text-sm text-slate-600">
-          <li><span className="font-mono text-slate-400">β1</span> — the main effect of {X} on {Y} (often already known)</li>
+          <li><span className="font-mono text-slate-400">β1</span>, the main effect of {X} on {Y} (often already known)</li>
           <li>
-            <span className="font-mono font-semibold" style={{ color: "#3F7A52" }}>β3</span> — the interaction: {Y}&apos;s response to {X} is{" "}
+            <span className="font-mono font-semibold" style={{ color: "#3F7A52" }}>β3</span>, the interaction: {Y}&apos;s response to {X} is{" "}
             <span className="font-semibold text-ink">{word === "especially" ? "stronger" : "weaker"}</span> when {Z}. <span className="font-medium text-ink">This is your contribution.</span>
           </li>
         </ul>
@@ -45,7 +45,7 @@ export default function InteractionReport({ inputs, idea }: { inputs: IdeaInputs
         <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">The shape of the idea</div>
         <InteractionPlot xLabel={inputs.x || "X"} yLabel={inputs.y || "Y"} zLabel={inputs.z || "Z"} direction={inputs.direction} />
         <p className="mt-1 text-sm text-slate-500">
-          Two slopes: the effect of {X} on {Y} when {Z} is low vs. high. The gap between them is β3 — {word === "especially" ? "the effect amplifies" : "the effect fades"} when {Z} is present.
+          Two slopes: the effect of {X} on {Y} when {Z} is low vs. high. The gap between them is β3: {word === "especially" ? "the effect amplifies" : "the effect fades"} when {Z} is present.
         </p>
       </div>
 
@@ -68,7 +68,7 @@ export default function InteractionReport({ inputs, idea }: { inputs: IdeaInputs
         <div data-guide="test" className="rounded-2xl border border-line bg-white p-5">
           <div className="text-xs font-semibold uppercase tracking-wide text-sage">The test: what else should move?</div>
           <p className="mt-1 text-sm text-slate-500">
-            A real mechanism predicts other outcomes. These separate your explanation from the rival — measure them and you can tell which is true.
+            A real mechanism predicts other outcomes. These separate your explanation from the rival: measure them and you can tell which is true.
           </p>
           <div className="mt-3 space-y-3">
             {idea.additionalOutcomes.map((o: any, i: number) => (

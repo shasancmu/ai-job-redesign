@@ -157,7 +157,7 @@ export default function StarHireRoom({ session, initialWorkspace }: { me?: strin
         <div className="card space-y-4 p-5">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">The role</div>
-            <p className="mt-1 text-sm text-ink"><span className="font-semibold">{scenario.role.title}</span> — {scenario.role.brief}</p>
+            <p className="mt-1 text-sm text-ink"><span className="font-semibold">{scenario.role.title}</span>: {scenario.role.brief}</p>
           </div>
           <div>
             <div className="lbl mb-1">Who do you hire?</div>

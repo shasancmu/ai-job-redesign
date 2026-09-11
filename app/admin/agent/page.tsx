@@ -42,7 +42,7 @@ export default async function QAPage() {
       <span className="eyebrow text-sage">Quality Assurance</span>
       <h1 className="mt-2 font-serif text-4xl leading-tight text-ink">The synthetic-user QA panel</h1>
       <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-slate2">
-        Pick a module or a set. A panel of five AI personas — <b>learner, skeptic, struggling, expert, hurried</b> — each runs it and reports how it went and the single highest-value fix. Then copy a <b>Claude-Code-ready brief</b> — paste it in and Claude Code drives the live UI to reproduce and fix. That&apos;s the loop.
+        Pick a module or a set. A panel of five AI personas (<b>learner, skeptic, struggling, expert, hurried</b>) each runs it and reports how it went and the single highest-value fix. Then copy a <b>Claude-Code-ready brief</b>: paste it in and Claude Code drives the live UI to reproduce and fix. That&apos;s the loop.
       </p>
 
       <div className="mt-6">
@@ -52,7 +52,7 @@ export default async function QAPage() {
       {history.length > 0 && (
         <section className="mt-10">
           <h2 className="eyebrow mb-1">Coverage</h2>
-          <p className="mb-3 text-sm text-slate2">{reviewed} of {modules.length} modules reviewed — worst experience first.</p>
+          <p className="mb-3 text-sm text-slate2">{reviewed} of {modules.length} modules reviewed, worst experience first.</p>
           <div className="overflow-hidden rounded-2xl border border-line">
             {history.map((h, i) => (
               <div key={h.slug} className={"flex items-center justify-between gap-3 px-4 py-2.5 text-sm " + (i > 0 ? "border-t border-line" : "")}>

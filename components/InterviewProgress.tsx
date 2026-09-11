@@ -31,7 +31,7 @@ export default function InterviewProgress({
       </span>
       <span>
         {done
-          ? doneNote || "That's everything it needs — you can move on whenever you're ready."
+          ? doneNote || "That's everything it needs. You can move on whenever you're ready."
           : `Question ${Math.min(asked + 1, turns)} of about ${turns}`}
       </span>
     </div>

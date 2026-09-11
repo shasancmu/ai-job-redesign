@@ -55,7 +55,7 @@ export default function DefenseImpactRoom({ session, initialWorkspace }: { me?: 
 
       <div className="space-y-4">
         <div className="rounded-2xl border border-line bg-mist p-4 text-sm text-slate-600">
-          Paste a paper or research idea as an abstract. It estimates the work&rsquo;s <span className="font-medium text-ink">defense / national-security relevance</span> and the domains it touches. Add the paper&rsquo;s <span className="font-medium text-ink">DOI</span> to ground the estimate in real evidence — the patents that cite it, and whether any are assigned to defense entities. A research-mapping score, not a targeting tool.
+          Paste a paper or research idea as an abstract. It estimates the work&rsquo;s <span className="font-medium text-ink">defense / national-security relevance</span> and the domains it touches. Add the paper&rsquo;s <span className="font-medium text-ink">DOI</span> to ground the estimate in real evidence: the patents that cite it, and whether any are assigned to defense entities. A research-mapping score, not a targeting tool.
         </div>
 
         <div>
@@ -67,7 +67,7 @@ export default function DefenseImpactRoom({ session, initialWorkspace }: { me?: 
           <textarea className="field min-h-[160px]" value={abstract} onChange={(e) => setAbstract(e.target.value)} placeholder="A few sentences: what the research is, the method, and what's new about it." />
         </div>
         <div>
-          <label className="lbl">DOI (optional — unlocks real patent evidence)</label>
+          <label className="lbl">DOI (optional: adds real patent evidence)</label>
           <input className="field" value={doi} onChange={(e) => setDoi(e.target.value)} placeholder="e.g. 10.1038/s41586-020-2649-2" />
         </div>
 

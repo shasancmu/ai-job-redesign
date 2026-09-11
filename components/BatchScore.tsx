@@ -122,7 +122,7 @@ export default function BatchScore() {
       {!busy && sorted && (
         <div className="mt-5">
           <div className="mb-2 flex items-center justify-between gap-3">
-            <h2 className="eyebrow">Impact fingerprints — {sorted.length} papers</h2>
+            <h2 className="eyebrow">Impact fingerprints: {sorted.length} papers</h2>
             <button onClick={downloadCSV} className="btn-dark text-sm">⭳ Download CSV</button>
           </div>
           <div className="overflow-x-auto rounded-2xl border border-line">

@@ -86,7 +86,7 @@ export default function HardConvoRoom({ me, session, initialWorkspace }: { me: s
             counterpartName={convo.counterpartName}
             aiOpens={false}
             placeholder={(state.chat || []).length === 0 ? convo.opener : `Reply to ${convo.counterpartName}…`}
-            emptyHint={<>You&apos;re about to speak with <b>{convo.counterpartName}</b>. Say your opening line to begin — how you start matters.</>}
+            emptyHint={<>You&apos;re about to speak with <b>{convo.counterpartName}</b>. Say your opening line to begin. How you start matters.</>}
           />
         )}
         {step.key === "debrief" && convo && <Debrief convo={convo} state={state} setState={setState} />}
@@ -133,7 +133,7 @@ function Brief({ convo }: { convo: HardConvo }) {
         <p className="mt-1.5 text-sm text-slate-700">{convo.yourGoal}</p>
         <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-clay">Watch out for</div>
         <p className="mt-1.5 text-sm text-slate-700">{convo.watchOut}</p>
-        <p className="mt-4 text-sm text-slate-500">You&apos;re speaking with <b>{convo.counterpartName}</b> ({convo.counterpartRole}). You open the conversation — say the first line yourself.</p>
+        <p className="mt-4 text-sm text-slate-500">You&apos;re speaking with <b>{convo.counterpartName}</b> ({convo.counterpartRole}). You open the conversation. Say the first line yourself.</p>
       </div>
     </div>
   );

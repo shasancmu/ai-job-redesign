@@ -22,7 +22,7 @@ export default async function AgentPage() {
       <span className="eyebrow text-sky">Research Agent</span>
       <h1 className="mt-2 font-serif text-4xl leading-tight text-ink">Ask the ecosystem</h1>
       <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-slate2">
-        One question, the whole platform. Find the people to collaborate with, score an idea&rsquo;s potential across every dimension, or map where a field stands and is heading — grounded in Scientifiq&rsquo;s data and models, never made up.
+        One question, the whole platform. Find the people to collaborate with, score an idea&rsquo;s potential across every dimension, or map where a field stands and is heading, grounded in Scientifiq&rsquo;s data and models, never made up.
       </p>
       <div className="mt-6"><ResearchAgent /></div>
     </main>

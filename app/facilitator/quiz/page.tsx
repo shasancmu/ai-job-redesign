@@ -55,7 +55,7 @@ export default async function FacilitatorQuiz() {
         <div className="mb-6 rounded-xl border border-amber/30 bg-amber-soft/50 p-4 text-sm text-ink">
           Your questions aren&apos;t set up yet.{" "}
           <Link href="/facilitator/benchmark/edit" className="font-semibold underline underline-offset-2">Edit questions</Link>{" "}
-          first — takers will see a "not ready" screen until every question and option has text.
+          first. Takers will see a "not ready" screen until every question and option has text.
         </div>
       )}
 

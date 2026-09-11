@@ -203,7 +203,7 @@ export default function EcosystemExplorer({ nodes, edges, suggestions = [], heig
                 <ul className="space-y-1.5">
                   {selBridges.slice(0, 5).map((b, i) => {
                     const other = b.aId === selNode.id ? b.bName : b.aName;
-                    return <li key={i} className="text-xs"><span className="font-semibold text-ink">{other}</span>{b.sharedTopics?.length ? <span className="text-slate2"> — {b.sharedTopics.slice(0, 3).join(", ")}</span> : null}</li>;
+                    return <li key={i} className="text-xs"><span className="font-semibold text-ink">{other}</span>{b.sharedTopics?.length ? <span className="text-slate2">: {b.sharedTopics.slice(0, 3).join(", ")}</span> : null}</li>;
                   })}
                 </ul>
               </div>

@@ -21,17 +21,17 @@ export default function Privacy() {
         <Section title="Who we are">
           Superadditive provides AI-run exercises for work, strategy, and learning. Depending on how you use it, we act as
           the <b>data controller</b> (when you sign up and use Superadditive directly) or as a <b>data processor</b> (when
-          your organization deploys a branded space and invites you — in that case your organization is the controller and
+          your organization deploys a branded space and invites you: in that case your organization is the controller and
           we process data on their instructions). <Link href="/contact">Contact us</Link> with any questions.
         </Section>
 
         <Section title="What we collect">
           <ul>
             <li><b>Account data:</b> your name and email, and account settings.</li>
-            <li><b>Exercise data:</b> what you type or say during exercises — for example a résumé, business details, or your
-              answers — and the reports and artifacts produced from them.</li>
-            <li><b>Conversations:</b> the interactive exchanges during exercises — both your messages and the AI&apos;s responses,
-              turn by turn (voice as transcript, never audio) — which we record to run the exercise, produce your results, and
+            <li><b>Exercise data:</b> what you type or say during exercises (for example a résumé, business details, or your
+              answers) and the reports and artifacts produced from them.</li>
+            <li><b>Conversations:</b> the interactive exchanges during exercises: both your messages and the AI&apos;s responses,
+              turn by turn (voice as transcript, never audio), which we record to run the exercise, produce your results, and
               improve and research the service.</li>
             <li><b>Organization data:</b> which organizations and cohorts you belong to, and your role.</li>
             <li><b>Usage data:</b> which exercises you run and when.</li>
@@ -42,12 +42,12 @@ export default function Privacy() {
 
         <Section title="How we use it, and our legal basis">
           <ul>
-            <li>To provide the exercises and produce your results — <i>performance of a contract</i>.</li>
-            <li>To keep the service secure and working — <i>legitimate interests</i>.</li>
-            <li>To let a facilitator or organization see participation and aggregate insight for a cohort they run — on the
+            <li>To provide the exercises and produce your results: <i>performance of a contract</i>.</li>
+            <li>To keep the service secure and working: <i>legitimate interests</i>.</li>
+            <li>To let a facilitator or organization see participation and aggregate insight for a cohort they run: on the
               organization&apos;s <i>legitimate interests</i> or your <i>consent</i>, as applicable.</li>
             <li>To improve the exercises and conduct research on learning and decision-making, and to develop our own models
-              that make the service better — using de-identified data, with your <i>consent</i>.</li>
+              that make the service better: using de-identified data, with your <i>consent</i>.</li>
           </ul>
           We do not sell your data, and we do not use it to train third-party AI models. Any model we develop from this data
           is our own and is used to operate and improve the service.
@@ -56,7 +56,7 @@ export default function Privacy() {
         <Section title="AI processing">
           Exercises are run by AI. To generate your interview, feedback, or report, the text of your exercise is sent to our
           AI providers (see Sub-processors) purely to produce your result. Our providers process it under contract and do
-          not use it to train their models. Our exercises are advisory — a human keeps the judgment — so they are not
+          not use it to train their models. Our exercises are advisory (a human keeps the judgment), so they are not
           automated decisions with legal or similarly significant effects.
         </Section>
 

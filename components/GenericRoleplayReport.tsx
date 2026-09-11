@@ -55,7 +55,7 @@ export default function GenericRoleplayReport({ report, blocks }: { report: any;
         if (b.type === "quote") {
           return (
             <Section key={i} title={b.title}>
-              <div className="rounded-xl border border-line bg-white p-4"><p className="text-sm italic leading-relaxed text-slate-600">"{v}"</p><div className="mt-2 text-sm font-semibold" style={{ color: report.verdict_correct ? "#3F7A52" : "#B4532E" }}>{report.verdict_correct ? "It was wrong. You weren't." : "It was wrong too — the edge is in the questions."}</div></div>
+              <div className="rounded-xl border border-line bg-white p-4"><p className="text-sm italic leading-relaxed text-slate-600">"{v}"</p><div className="mt-2 text-sm font-semibold" style={{ color: report.verdict_correct ? "#3F7A52" : "#B4532E" }}>{report.verdict_correct ? "It was wrong. You weren't." : "It was wrong too: the edge is in the questions."}</div></div>
             </Section>
           );
         }

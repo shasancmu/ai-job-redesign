@@ -381,7 +381,7 @@ function WorkflowInterview({
       )}
       {onDone && chat.filter((m) => m.role === "user").length >= INTERVIEW_TURNS && (
         <button type="button" onClick={onDone} className="mt-3 w-full rounded-lg bg-sage-soft px-3 py-2 text-sm font-semibold text-ink transition hover:bg-sage/20">
-          ✓ You&apos;ve covered the workflow — build my map →
+          ✓ You&apos;ve covered the workflow. Build my map →
         </button>
       )}
       <InterviewProgress msgs={chat} turns={INTERVIEW_TURNS} />

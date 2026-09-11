@@ -95,7 +95,7 @@ export default function DisclosureReport({
                 <div key={q.key} className="break-inside-avoid">
                   <div className="text-sm font-semibold text-ink">{q.label}</div>
                   <p className="mt-0.5 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
-                    {(responses[q.key] || "").trim() || <span className="text-slate-300">— no answer —</span>}
+                    {(responses[q.key] || "").trim() || <span className="text-slate-300">(no answer)</span>}
                   </p>
                 </div>
               ))}

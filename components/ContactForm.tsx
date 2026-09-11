@@ -32,7 +32,7 @@ export default function ContactForm({ source = "contact" }: { source?: string })
     return (
       <div className="card p-8 text-center">
         <div className="text-3xl" aria-hidden>✅</div>
-        <h2 className="mt-3 text-xl font-bold text-ink">Thanks — we&apos;ve got it.</h2>
+        <h2 className="mt-3 text-xl font-bold text-ink">Thanks, we&apos;ve got it.</h2>
         <p className="mt-1 text-slate2">We&apos;ll get back to you at {email || "your email"} soon.</p>
       </div>
     );

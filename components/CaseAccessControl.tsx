@@ -40,7 +40,7 @@ export default function CaseAccessControl({ slug, initialAccess, initialCohorts,
 
       {access === "enrolled" && (
         <div className="mt-3">
-          <div className="text-xs text-slate-500">Assign to your classes — only students who joined one of these can open it.</div>
+          <div className="text-xs text-slate-500">Assign to your classes: only students who joined one of these can open it.</div>
           {classes.length === 0 ? (
             <div className="mt-2 rounded-lg border border-dashed border-line bg-mist/30 p-3 text-xs text-slate-500">
               You don't own a class yet. <Link href="/team" className="text-ai underline">Create one</Link>, share its join code with students, then assign this case to it.

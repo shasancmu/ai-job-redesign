@@ -160,7 +160,7 @@ export default function ProblemHuntRoom({ me, session, initialWorkspace }: { me:
                     ))}
                   </ul>
                 </div>
-              ) : evidence.enabled && <p className="mt-2 text-sm text-slate-500">No strong external corroboration found — the report will flag that.</p>}
+              ) : evidence.enabled && <p className="mt-2 text-sm text-slate-500">No strong external corroboration found. The report will flag that.</p>}
               <div className="mt-4 flex gap-2">
                 <button onClick={build} disabled={busy} className="btn-primary text-sm">{busy ? "Building…" : "Build my report →"}</button>
                 <button onClick={() => setStage("interview")} disabled={busy} className="btn-ghost text-sm">← Back to the interview</button>

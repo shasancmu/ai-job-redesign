@@ -55,7 +55,7 @@ export default async function ReviewPage() {
     <main className="mx-auto max-w-3xl px-6 py-8">
       <header className="mb-6 flex items-center justify-between"><Logo href="/dashboard" /><div className="flex items-center gap-2"><Link href="/studio" className="text-sm text-slate2 hover:text-ink">← Studio</Link><HeaderNav /></div></header>
       <h1 className="text-3xl text-ink">Promotion review</h1>
-      <p className="mt-1 max-w-2xl text-slate2">Modules default to Personal (the author's own classes). {isCurator ? "As a curator you approve Global (everywhere) promotions — only ones that already cleared the automated gates reach you — and can demote ones whose quality has slipped." : "As a director you approve Org-wide promotions for your organization."} {pending > 0 ? `${pending} awaiting a decision.` : ""}</p>
+      <p className="mt-1 max-w-2xl text-slate2">Modules default to Personal (the author's own classes). {isCurator ? "As a curator you approve Global (everywhere) promotions. Only ones that already cleared the automated gates reach you, and you can demote ones whose quality has slipped." : "As a director you approve Org-wide promotions for your organization."} {pending > 0 ? `${pending} awaiting a decision.` : ""}</p>
       <ReviewQueue initial={rows} />
     </main>
   );

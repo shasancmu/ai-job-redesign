@@ -14,7 +14,7 @@ type Result = {
 
 const EXAMPLES = [
   "Who at Duke should I collaborate with on solid-state batteries?",
-  "Map the field of CRISPR gene editing — who leads it and where is it heading?",
+  "Map the field of CRISPR gene editing: who leads it and where is it heading?",
   "Score this idea: a low-cost microfluidic device for rapid sepsis diagnosis from a single drop of blood.",
 ];
 
@@ -44,7 +44,7 @@ export default function ResearchAgent() {
     <div>
       <div className="rounded-2xl border border-line bg-white p-4">
         <textarea className="field min-h-[90px]" value={q} onChange={(e) => setQ(e.target.value)}
-          placeholder="Ask about the research ecosystem — find collaborators, score an idea, or map a field. For scoring, paste the abstract." />
+          placeholder="Ask about the research ecosystem: find collaborators, score an idea, or map a field. For scoring, paste the abstract." />
         <div className="mt-3 flex items-center gap-3">
           <button onClick={() => ask()} disabled={busy || q.trim().length < 4} className="btn-primary disabled:opacity-40">{busy ? "Thinking…" : "Ask →"}</button>
           {res && <span className="text-xs text-slate-400">routed to <b className="text-slate2">{res.intent}</b></span>}
@@ -103,7 +103,7 @@ export default function ResearchAgent() {
               <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Standout work</div>
               <ul className="space-y-1.5">
                 {res.evidence.items.map((p, i) => (
-                  <li key={i} className="text-sm"><span className="font-medium text-ink">{p.title}</span>{p.year ? <span className="text-slate-400"> ({p.year})</span> : null}{p.authors ? <span className="text-slate2"> — {p.authors}</span> : null}</li>
+                  <li key={i} className="text-sm"><span className="font-medium text-ink">{p.title}</span>{p.year ? <span className="text-slate-400"> ({p.year})</span> : null}{p.authors ? <span className="text-slate2">, {p.authors}</span> : null}</li>
                 ))}
               </ul>
             </div>

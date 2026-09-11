@@ -29,7 +29,7 @@ export default function PersonLookup() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") go(); }}
-          placeholder="Understand a student — enter their email"
+          placeholder="Understand a student: enter their email"
           type="email"
         />
         <button onClick={go} disabled={busy} className="btn-dark text-sm">{busy ? "…" : "Open"}</button>

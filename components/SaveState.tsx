@@ -10,7 +10,7 @@ export default function SaveState({ state, savedAt }: { state: State; savedAt: D
   const label =
     state === "saving" ? "Saving…"
     : state === "dirty" ? "Unsaved changes"
-    : state === "error" ? "Couldn't autosave — use Save"
+    : state === "error" ? "Couldn't autosave. Use Save"
     : savedAt ? `Saved ${timeAgo(savedAt)}`
     : "Saved";
 

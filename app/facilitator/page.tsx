@@ -24,7 +24,7 @@ import HideSessionButton from "@/components/HideSessionButton";
 export const dynamic = "force-dynamic";
 
 const HUB_TOUR = [
-  { sel: '[data-tour="fac-live"]', title: "Run something live", body: "Start a live activity your whole room joins from their phones — a word cloud, a photo wall, the benchmark, or a network map. No sign-in needed for them." },
+  { sel: '[data-tour="fac-live"]', title: "Run something live", body: "Start a live activity your whole room joins from their phones: a word cloud, a photo wall, the benchmark, or a network map. No sign-in needed for them." },
   { sel: '[data-tour="fac-cohorts"]', title: "Your cohorts", body: "Each cohort is a group going through a program. Open one to review the room's work, or make a new one. Your org's master cohort is the default 'everyone' group." },
   { sel: '[data-tour="fac-admin"]', title: "Admin tools", body: "Usage, experiments, and cost dashboards live here. (Directors: manage your people and instructors from the Organization page in your account menu.)" },
 ];
@@ -547,7 +547,7 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
           {!untagged && (
             <div className="mb-6 rounded-2xl border border-line bg-mist/30 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-ink"><span aria-hidden className="text-sage">●</span> Run live</div>
-              <p className="mb-4 mt-0.5 text-xs text-slate-500">During class: launch any exercise for the room — including The Number — right from here.</p>
+              <p className="mb-4 mt-0.5 text-xs text-slate-500">During class: launch any exercise for the room (including The Number) right from here.</p>
               <LiveLauncher cohort={cohort} authored={livePrompts} />
             </div>
           )}
@@ -661,7 +661,7 @@ async function CohortDetail({ admin, cohort, showHidden, exFilter }: { admin: an
 
               {hideResponses ? (
                 <div className="rounded-xl border border-dashed border-line bg-mist/40 p-4 text-sm text-slate-500">
-                  Responses are hidden for this organization. {nameOf(s.host_id)} {s.status === "done" ? "completed" : "started"} this — scores and completion still count. <span className="text-slate-400">(A director can change this in Team settings.)</span>
+                  Responses are hidden for this organization. {nameOf(s.host_id)} {s.status === "done" ? "completed" : "started"} this. Scores and completion still count. <span className="text-slate-400">(A director can change this in Team settings.)</span>
                 </div>
               ) : s.exercise === "career-xray" || s.exercise === "jd-xray" ? (
                 <CareerFacilitatorView ws={wsFor(s.id, s.host_id)} code={s.code} authorName={nameOf(s.host_id)} />

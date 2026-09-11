@@ -15,7 +15,7 @@ export async function POST() {
   if (!user) return Response.json({ error: "Sign in required." }, { status: 401 });
 
   let admin;
-  try { admin = createAdminClient(); } catch { return Response.json({ error: "Account deletion isn't available right now — contact support." }, { status: 500 }); }
+  try { admin = createAdminClient(); } catch { return Response.json({ error: "Account deletion isn't available right now. Contact support." }, { status: 500 }); }
 
   const email = (user.email || "").toLowerCase();
   try {

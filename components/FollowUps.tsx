@@ -52,7 +52,7 @@ function FollowUpCard({ f, onDone }: { f: FollowUp; onDone: () => void }) {
       {f.commitment?.text && <div className="mt-1 text-sm text-slate-600">You committed: <span className="font-medium text-ink">{f.commitment.text}</span></div>}
 
       <div className="mt-3">
-        <div className="text-sm text-slate-600">Before we show it back — what was your main takeaway?</div>
+        <div className="text-sm text-slate-600">Before we show it back, what was your main takeaway?</div>
         <input className="field mt-1.5 w-full text-sm" value={recall} onChange={(e) => setRecall(e.target.value)} placeholder="From memory, in a few words." disabled={busy || !!outcome} />
       </div>
 

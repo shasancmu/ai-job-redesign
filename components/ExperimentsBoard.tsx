@@ -153,9 +153,9 @@ export default function ExperimentsBoard({ flows }: { flows?: { key: string; lab
       <div className="card border-ai/30 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-sm font-bold text-ink">⚙️ Autopilot — the closed loop</div>
+            <div className="text-sm font-bold text-ink">⚙️ Autopilot: the closed loop</div>
             <p className="mt-1 max-w-xl text-xs text-slate-400">
-              One pass: adopt conclusive winners and <b>ratchet</b> them into each flow&apos;s baseline (live for everyone), retire flat tests, and open the next subtle change — each proposal informed by whether the conversation is getting deeper. Runs on its own daily; run it now here. Winners are decided by the stats, never a hunch.
+              One pass: adopt conclusive winners and <b>ratchet</b> them into each flow&apos;s baseline (live for everyone), retire flat tests, and open the next subtle change, each proposal informed by whether the conversation is getting deeper. Runs on its own daily; run it now here. Winners are decided by the stats, never a hunch.
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">

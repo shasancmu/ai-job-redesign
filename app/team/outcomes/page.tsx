@@ -49,7 +49,7 @@ export default async function OutcomesPage() {
       <span className="eyebrow text-sage">Outcomes</span>
       <h1 className="mt-2 font-serif text-4xl leading-tight text-ink">{org.name}</h1>
       <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-slate2">
-        What your people have done on Superadditive — participation, completion, and how their judgment held up. Private to you; a snapshot you can bring to a review.
+        What your people have done on Superadditive: participation, completion, and how their judgment held up. Private to you; a snapshot you can bring to a review.
       </p>
 
       {/* Headline stats */}
@@ -68,7 +68,7 @@ export default async function OutcomesPage() {
             Across {o.calibration.answered.toLocaleString()} scored attempts, your learners&apos; confidence <b>{o.calibration.verdict}</b>
             {o.calibration.gap !== 0 && <> (avg gap {o.calibration.gap > 0 ? "+" : ""}{o.calibration.gap} pts)</>}.
           </p>
-          <p className="mt-1 text-xs text-slate-400">Calibration = how well stated confidence matched actual accuracy — the thing most training never measures.</p>
+          <p className="mt-1 text-xs text-slate-400">Calibration = how well stated confidence matched actual accuracy, the thing most training never measures.</p>
         </section>
       )}
 

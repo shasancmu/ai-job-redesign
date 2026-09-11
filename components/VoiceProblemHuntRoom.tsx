@@ -45,7 +45,7 @@ export default function VoiceProblemHuntRoom({ session, initialWorkspace }: { me
       speaker="coach"
       headerPill={cfg.label}
       introTitle={mode === "leader" ? "Talk through where your organization is leaving value on the table" : "Talk through the problem you should solve"}
-      introBody="A strategy coach talks with you out loud, like a real conversation. Just answer naturally and pause when you're done — it moves on by itself. Then it checks the problem against real evidence and grades it. Find a quiet spot; works best in Chrome, or on Android and desktop."
+      introBody="A strategy coach talks with you out loud, like a real conversation. Just answer naturally and pause when you're done, and it moves on by itself. Then it checks the problem against real evidence and grades it. Find a quiet spot; works best in Chrome, or on Android and desktop."
       typedLabel="Do the typed version"
       typedHref={`/start/${typedSlug}`}
       buildButtonLabel={mode === "leader" ? "End & build my map →" : "End & build my thesis →"}

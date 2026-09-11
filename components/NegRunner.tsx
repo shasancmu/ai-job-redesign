@@ -39,7 +39,7 @@ export default function NegRunner({ scn }: { scn: any }) {
       <div className="mx-auto max-w-2xl">
         <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Your result</div>
-          {a.noDeal ? <div className="mt-2 text-lg font-bold text-clay">No deal — you walked away.</div> : (
+          {a.noDeal ? <div className="mt-2 text-lg font-bold text-clay">No deal: you walked away.</div> : (
             <>
               <div className="mt-2 flex flex-wrap gap-4">
                 <Metric label={multi ? "Your score" : "You saved"} v={a.you} />

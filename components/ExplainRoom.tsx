@@ -53,7 +53,7 @@ export default function ExplainRoom({ session, initialWorkspace }: { me?: string
 
       <div className="space-y-4">
         <div className="rounded-2xl border border-line bg-mist p-4 text-sm text-slate-600">
-          Paste a paper&rsquo;s abstract and get it translated into <span className="font-medium text-ink">plain language</span>, framed for four audiences — a policymaker, an investor, a researcher in another field, and the public — plus a translation of the key jargon.
+          Paste a paper&rsquo;s abstract and get it translated into <span className="font-medium text-ink">plain language</span>, framed for four audiences (a policymaker, an investor, a researcher in another field, and the public), plus a translation of the key jargon.
         </div>
 
         <div>

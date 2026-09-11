@@ -44,7 +44,7 @@ export default function LivePromptManager({ initial }: { initial: LP[] }) {
         <div className="rounded-2xl border border-line bg-white p-5">
           <div className="mb-2 flex items-center gap-2">
             <input className="field w-16 text-center" value={emoji} onChange={(e) => setEmoji(e.target.value)} maxLength={2} />
-            <input className="field flex-1" value={name} onChange={(e) => setName(e.target.value)} placeholder="Name — e.g. One word for how AI changes your job" maxLength={160} />
+            <input className="field flex-1" value={name} onChange={(e) => setName(e.target.value)} placeholder="Name, e.g. One word for how AI changes your job" maxLength={160} />
           </div>
           <label className="lbl">The question the room answers</label>
           <textarea className="field mb-2 min-h-[70px]" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="What's the one skill you'd most want to build this year?" maxLength={1000} />
@@ -54,7 +54,7 @@ export default function LivePromptManager({ initial }: { initial: LP[] }) {
             <button onClick={() => setEditing(null)} className="text-sm text-slate-400 hover:text-ink">Cancel</button>
             {err && <span className="text-sm text-clay">{err}</span>}
           </div>
-          <p className="mt-2 text-xs text-slate-400">It becomes a Live module in your library — assign it to a cohort, and launch it from the cohort&apos;s Run-live cockpit.</p>
+          <p className="mt-2 text-xs text-slate-400">It becomes a Live module in your library: assign it to a cohort, and launch it from the cohort&apos;s Run-live cockpit.</p>
         </div>
       ) : (
         <button onClick={startNew} className="btn-primary text-sm">+ New live prompt</button>

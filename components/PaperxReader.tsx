@@ -305,7 +305,7 @@ export default function PaperxReader({ g, preview, cohort }: { g: PxGenome; prev
         <div className="text-4xl" aria-hidden>{g.emoji}</div>
         <h1 className="mt-3 text-3xl font-bold leading-tight text-ink sm:text-4xl">{g.title}</h1>
         <p className="mt-3 text-lg leading-relaxed text-slate-600">{g.dek}</p>
-        <div className="mt-4 rounded-xl border border-line bg-white/60 p-3 text-xs text-slate-500"><span className="font-semibold text-slate-600">The paper:</span> {g.paperTitle}{g.authors ? ` — ${g.authors}` : ""}{g.venue ? ` · ${g.venue}` : ""}</div>
+        <div className="mt-4 rounded-xl border border-line bg-white/60 p-3 text-xs text-slate-500"><span className="font-semibold text-slate-600">The paper:</span> {g.paperTitle}{g.authors ? `, ${g.authors}` : ""}{g.venue ? ` · ${g.venue}` : ""}</div>
       </div>
     ) },
     { eyebrow: "The question", body: <p className="text-2xl font-bold leading-snug text-ink">{g.bigQuestion}</p> },
@@ -372,7 +372,7 @@ export default function PaperxReader({ g, preview, cohort }: { g: PxGenome; prev
   const card = cards[i];
   return (
     <main className="flex min-h-[100dvh] flex-col bg-paper text-ink">
-      {preview && <div className="bg-amber-soft px-4 py-1.5 text-center text-xs font-medium text-amber">Preview — verify the facts against the paper before publishing.</div>}
+      {preview && <div className="bg-amber-soft px-4 py-1.5 text-center text-xs font-medium text-amber">Preview: verify the facts against the paper before publishing.</div>}
 
       {/* Progress bar */}
       <div className="mx-auto mt-3 flex w-full max-w-2xl items-center gap-1 px-5">

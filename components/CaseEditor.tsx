@@ -77,21 +77,21 @@ export default function CaseEditor({ spec }: { spec: CaseGenome; me?: string; or
     <div>
       <div className="mx-auto max-w-3xl px-5">
         <div className="mb-3 rounded-xl border border-amber/40 bg-amber/5 px-4 py-2.5 text-sm text-slate2">
-          <b className="text-ink">Draft — verify before you publish.</b> Check the facts, then add a real opening video and publish. The AI won't invent videos.
+          <b className="text-ink">Draft: verify before you publish.</b> Check the facts, then add a real opening video and publish. The AI won't invent videos.
         </div>
         <div className="card space-y-3 p-4">
           <div><label className="lbl">Title</label><input className="field mt-1" value={g.title} onChange={(e) => setG({ ...g, title: e.target.value })} /></div>
           <div><label className="lbl">Opening line (dek)</label><textarea className="field mt-1 min-h-[70px]" value={g.dek} onChange={(e) => setG({ ...g, dek: e.target.value })} /></div>
           <div>
-            <label className="lbl">Opening video <span className="font-normal text-slate-400">— paste a verified YouTube link</span></label>
+            <label className="lbl">Opening video <span className="font-normal text-slate-400">: paste a verified YouTube link</span></label>
             <div className="mt-1 flex gap-2">
               <input className="field flex-1" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=…" />
               <button onClick={() => attachVideo()} className="btn-ghost">Attach</button>
             </div>
-            {g.openingVideo && <p className="mt-1 text-xs text-sage">✓ video attached ({g.openingVideo.youtubeId}) — <button onClick={() => setG({ ...g, openingVideo: undefined })} className="underline">remove</button></p>}
+            {g.openingVideo && <p className="mt-1 text-xs text-sage">✓ video attached ({g.openingVideo.youtubeId}), <button onClick={() => setG({ ...g, openingVideo: undefined })} className="underline">remove</button></p>}
             {!!suggest?.videos?.length && (
               <div className="mt-2">
-                <div className="text-[11px] font-mono uppercase tracking-wide text-slate-400">Found on the web — click to verify &amp; use</div>
+                <div className="text-[11px] font-mono uppercase tracking-wide text-slate-400">Found on the web: click to verify &amp; use</div>
                 <div className="mt-1 space-y-1">
                   {suggest.videos.map((v, i) => (
                     <div key={i} className="flex items-center gap-2 text-xs">
@@ -104,15 +104,15 @@ export default function CaseEditor({ spec }: { spec: CaseGenome; me?: string; or
             )}
           </div>
           <div>
-            <label className="lbl">Hero image <span className="font-normal text-slate-400">— paste a verified image URL</span></label>
+            <label className="lbl">Hero image <span className="font-normal text-slate-400">: paste a verified image URL</span></label>
             <div className="mt-1 flex gap-2">
               <input className="field flex-1" value={imgUrl} onChange={(e) => setImgUrl(e.target.value)} placeholder="https://…/photo.jpg" />
               <button onClick={() => attachImage()} className="btn-ghost">Attach</button>
             </div>
-            {g.heroImage && <p className="mt-1 text-xs text-sage">✓ image attached — <button onClick={() => setG({ ...g, heroImage: undefined })} className="underline">remove</button></p>}
+            {g.heroImage && <p className="mt-1 text-xs text-sage">✓ image attached, <button onClick={() => setG({ ...g, heroImage: undefined })} className="underline">remove</button></p>}
             {!!suggest?.images?.length && (
               <div className="mt-2">
-                <div className="text-[11px] font-mono uppercase tracking-wide text-slate-400">Found on the web — click to verify &amp; use</div>
+                <div className="text-[11px] font-mono uppercase tracking-wide text-slate-400">Found on the web: click to verify &amp; use</div>
                 <div className="mt-1 flex flex-wrap gap-2">
                   {suggest.images.map((im, i) => (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -126,7 +126,7 @@ export default function CaseEditor({ spec }: { spec: CaseGenome; me?: string; or
           </div>
           <div className="rounded-xl border border-line bg-mist/30 p-3">
             <button onClick={() => setShowBeats((s) => !s)} className="flex w-full items-center justify-between text-left">
-              <span className="lbl">Images per section <span className="font-normal text-slate-400">— optional</span></span>
+              <span className="lbl">Images per section <span className="font-normal text-slate-400">(optional)</span></span>
               <span className="font-mono text-[11px] uppercase text-slate-400">{showBeats ? "hide" : "add"}</span>
             </button>
             {showBeats && (

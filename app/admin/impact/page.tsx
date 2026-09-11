@@ -37,7 +37,7 @@ export default async function ImpactPage({ searchParams }: { searchParams: Recor
       <p className="mb-5 mt-1 max-w-2xl text-sm text-slate2">
         Conversation quality under the adaptive policy minus the <b>frozen holdout</b> ({Math.round(HOLDOUT_FRAC * 100)}% of runs kept on
         the original prompt), by week. Because the holdout is randomized per run, this difference is an unbiased estimate of the loop&apos;s
-        effect — robust to the adaptivity that would bias a plain time trend. Bands are 95% CIs.
+        effect, robust to the adaptivity that would bias a plain time trend. Bands are 95% CIs.
       </p>
 
       <form className="mb-6 flex flex-wrap items-end gap-2" method="get">
@@ -80,7 +80,7 @@ export default async function ImpactPage({ searchParams }: { searchParams: Recor
         <p className="mt-2">
           α_m module fixed effects, f(t) time fixed effects, u_i a person effect (cluster SEs by person). The single-coefficient form
           <span className="font-mono"> Q = β₀ + β₁·adaptive + module FE + time FE + ε</span> gives the pooled effect (the headline δ above);
-          the δₜ series is that β₁ interacted with time — the graph. Replace <span className="font-mono">adaptive</span> with
+          the δₜ series is that β₁ interacted with time (the graph). Replace <span className="font-mono">adaptive</span> with
           <span className="font-mono"> baseline_version</span> for a dose-response over the ratchet steps. Because assignment propensities are
           known, adaptively-weighted AIPW gives valid inference on the policy arm without the holdout; the holdout makes it design-based.
         </p>

@@ -57,7 +57,7 @@ export default async function CodeOrOrgPage({ params }: { params: { code: string
           <div className="eyebrow">You&apos;re joining</div>
           <h1 className="mt-2 text-3xl font-bold text-ink">{klass.name}</h1>
           <p className="mt-2 text-slate2">
-            Jump in with just your name — no account needed.
+            Jump in with just your name, no account needed.
           </p>
           <div className="mt-6 flex flex-col gap-3">
             <Link href={`/join?cohort=${encodeURIComponent(code)}&next=/${code}`} className="btn-primary text-center">
@@ -291,7 +291,7 @@ async function OrgLandingView({ org }: { org: Org }) {
               </form>
             ) : (
               <div className="rounded-xl bg-white/90 px-4 py-3 text-sm text-ink shadow-soft">
-                {org.name} is invite-only. Your account ({user.email}) isn&apos;t on the list yet — ask your organizer to add it.
+                {org.name} is invite-only. Your account ({user.email}) isn&apos;t on the list yet. Ask your organizer to add it.
               </div>
             )}
           </div>
@@ -340,7 +340,7 @@ async function OrgLandingView({ org }: { org: Org }) {
           <span className="eyebrow">Research intelligence</span>
           <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink sm:text-3xl">Powered by Scientifiq.AI</h2>
           <p className="mt-2 max-w-2xl text-slate2">
-            Ask the ecosystem in plain language, score a whole portfolio across every dimension of potential, and map cross-disciplinary collaboration — built on millions of papers, patents, and researchers.
+            Ask the ecosystem in plain language, score a whole portfolio across every dimension of potential, and map cross-disciplinary collaboration, built on millions of papers, patents, and researchers.
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {RESEARCH_TOOLS.map((t) => (

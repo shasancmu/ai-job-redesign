@@ -54,7 +54,7 @@ export default async function MyModulesPage() {
            choices — it's one completed loop. Name the shortest path, and put
            the guide beside it rather than three cards away. */
         <div className="mt-8 rounded-2xl border border-dashed border-line bg-white p-8">
-          <h2 className="font-serif text-xl text-ink">Nothing here yet — let&apos;s make one.</h2>
+          <h2 className="font-serif text-xl text-ink">Nothing here yet. Let&apos;s make one.</h2>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate2">
             The quickest way in is to hand it something you already teach. Drop in a deck or a reading
             and it proposes a few modules it could become; you pick one, look over the handful of
@@ -65,7 +65,7 @@ export default async function MyModulesPage() {
             <Link href="/studio/upload?start=interview" className="btn-ghost text-sm">No materials? Talk it through</Link>
           </div>
           <p className="mt-4 text-xs text-slate-400">
-            Rather understand it first? <Link href="/studio/guide" className="font-medium text-ai hover:underline">What a module is, and how to build one</Link> — a five-minute read.
+            Rather understand it first? <Link href="/studio/guide" className="font-medium text-ai hover:underline">What a module is, and how to build one</Link>: a five-minute read.
           </p>
         </div>
       ) : (

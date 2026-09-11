@@ -44,7 +44,7 @@ function Deeper({ label, body }: { label: string; body: string }) {
       <button onClick={() => setOpen((o) => !o)} aria-expanded={open}
         className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-mist">
         <span className={"grid h-6 w-6 flex-none place-items-center rounded-full bg-ink text-white transition-transform " + (open ? "rotate-45" : "")}>+</span>
-        <span className="text-sm font-semibold text-ink">Go deeper — {label}</span>
+        <span className="text-sm font-semibold text-ink">Go deeper: {label}</span>
         <span className="ml-auto font-mono text-[11px] uppercase tracking-wide text-slate-400">{open ? "close" : "expand"}</span>
       </button>
       {open && <div className="border-t border-line px-5 py-4 text-[15px] leading-relaxed text-slate2">{rich(body)}</div>}
@@ -73,7 +73,7 @@ function Exhibit({ ex }: { ex: CaseExhibit }) {
             className={"rounded-full px-2.5 py-1 font-mono text-[11px] transition " + (hover === i ? "bg-ink text-white" : "bg-mist text-slate2 hover:bg-slate-200")}>{p.label}</button>
         ))}
       </div>
-      <p className="mt-2 text-sm text-slate2"><b className="text-ink">{ex.points[hover].label}</b> — {ex.points[hover].note}</p>
+      <p className="mt-2 text-sm text-slate2"><b className="text-ink">{ex.points[hover].label}</b>: {ex.points[hover].note}</p>
     </div>
   );
 }
@@ -122,7 +122,7 @@ function Commit({ genome, committed, onCommit }: { genome: CaseGenome; committed
       <div className="my-6 rounded-2xl border border-sage/40 bg-sage-soft/50 p-5">
         <div className="font-mono text-[11px] uppercase tracking-wide text-sage">Your call is on record</div>
         <p className="mt-2 text-lg font-semibold text-ink">{chosen?.label} <span className="text-sm font-normal text-slate2">· {committed.c}% confident</span></p>
-        <p className="mt-1 text-sm text-slate2">Now scroll on — the reveal is unlocked. In the full living case, the protagonist would spend the next ten minutes pressuring exactly this decision.</p>
+        <p className="mt-1 text-sm text-slate2">Now scroll on: the reveal is unlocked. In the full living case, the protagonist would spend the next ten minutes pressuring exactly this decision.</p>
       </div>
     );
   }
@@ -130,7 +130,7 @@ function Commit({ genome, committed, onCommit }: { genome: CaseGenome; committed
     <div className="my-6 rounded-2xl border-2 border-ink/10 bg-white p-5 shadow-sm">
       <div className="font-mono text-[11px] uppercase tracking-wide text-clay">◆ Make the call before you read on</div>
       <h3 className="mt-2 text-xl font-bold text-ink">{genome.commitPrompt}</h3>
-      <p className="mt-1 text-sm text-slate2">No fence-sitting — go on record under real uncertainty, the way the job demands. This unlocks what actually happened.</p>
+      <p className="mt-1 text-sm text-slate2">No fence-sitting: go on record under real uncertainty, the way the job demands. This unlocks what actually happened.</p>
       <div className="mt-4 space-y-2">
         {genome.commitOptions.map((o) => (
           <button key={o.k} onClick={() => setK(o.k)} className={"block w-full rounded-xl border p-3 text-left transition " + (k === o.k ? "border-ink bg-mist" : "border-line hover:border-slate-300")}>
@@ -203,7 +203,7 @@ function AskCompanion({ genome, preview }: { genome: CaseGenome; preview?: boole
         <button onClick={() => ask(input)} disabled={busy || !input.trim()} className="btn-ghost disabled:opacity-40">Ask</button>
       </div>
       {err && <p className="mt-2 text-xs text-red-600">{err}</p>}
-      <p className="mt-2 text-xs text-slate-400">A tutor that knows the whole case — ask it to explain, go deeper, or point you to a source.</p>
+      <p className="mt-2 text-xs text-slate-400">A tutor that knows the whole case: ask it to explain, go deeper, or point you to a source.</p>
     </div>
   );
 }
@@ -273,7 +273,7 @@ export default function LivingCaseReader({ genome, preview, canTeach }: { genome
       <article className="mx-auto max-w-3xl px-5 pb-24">
         {!preview && genome.generated && (
           <div className="mt-6 rounded-xl border border-amber/40 bg-amber/5 p-3 text-sm text-slate2">
-            <b className="text-ink">Draft — a work in progress.</b> This case is still being refined and may contain rough edges.
+            <b className="text-ink">Draft: a work in progress.</b> This case is still being refined and may contain rough edges.
           </div>
         )}
         <header className="pt-12">
@@ -304,7 +304,7 @@ export default function LivingCaseReader({ genome, preview, canTeach }: { genome
           {!committed ? (
             <div className="my-10 rounded-2xl border border-dashed border-line bg-mist/40 p-8 text-center">
               <p className="font-serif text-xl font-bold text-ink">What actually happened is locked. 🔒</p>
-              <p className="mx-auto mt-2 max-w-md text-sm text-slate2">Make your call above to unlock the reveal. (No peeking — the whole point is to commit under uncertainty, like the job does.)</p>
+              <p className="mx-auto mt-2 max-w-md text-sm text-slate2">Make your call above to unlock the reveal. (No peeking: the whole point is to commit under uncertainty, like the job does.)</p>
             </div>
           ) : (
             <>
@@ -316,7 +316,7 @@ export default function LivingCaseReader({ genome, preview, canTeach }: { genome
                 </div>
                 <h2 className="mt-3 text-[26px] font-bold leading-tight tracking-tight text-ink">Curious about something? Ask.</h2>
               </div>
-              <p className="text-[17px] leading-relaxed text-ink/90">A document can only tell you what happened. Here you can ask a tutor that knows the whole case anything — to explain the concept, unpack a decision, or point you to a source to read next.</p>
+              <p className="text-[17px] leading-relaxed text-ink/90">A document can only tell you what happened. Here you can ask a tutor that knows the whole case anything: explain the concept, unpack a decision, or point you to a source to read next.</p>
               <AskCompanion genome={genome} preview={preview} />
               <div className="my-8 rounded-2xl bg-ink p-6 text-paper">
                 <div className="font-mono text-[11px] uppercase tracking-wide" style={{ color: "var(--sage)" }}>What you just experienced</div>
