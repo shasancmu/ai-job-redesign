@@ -7,6 +7,9 @@ import { isDirectorOrAdmin } from "@/lib/orgs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// The sciscore models can take ~30s on a cold start; give the call room so the
+// deeper dimensions aren't dropped on the first request after the service idles.
+export const maxDuration = 120;
 
 // Score My Invention — score an abstract for commercial/scientific/social
 // potential, then the LLM reads the scores and says how to raise them.
