@@ -13,6 +13,25 @@ export const SCISCORE_ENABLED = !!BASE;
 
 export type ModelScore = { score: number; stars: number };
 
+// ---------------------------------------------------------------------------
+// Serialize every network call to the model service — one in flight at a time.
+//
+// The service scales to zero and runs on a single small instance: the first
+// request cold-loads the shared SciBERT base (~30s). If several task requests
+// (complex_invention, interdisciplinary, defense_impact) hit it AT ONCE — via a
+// caller's Promise.all — they contend during that load and some come back empty
+// and get silently dropped (the classic "only one deeper score renders" bug).
+// Queuing them means the first request warms the base and the rest return in
+// well under a second, so every caller is safe regardless of how it invokes us.
+// On a warm service each call is sub-second, so the queue adds negligible latency.
+// ---------------------------------------------------------------------------
+let gate: Promise<unknown> = Promise.resolve();
+function serialize<T>(fn: () => Promise<T>): Promise<T> {
+  const run = gate.then(fn, fn);
+  gate = run.then(() => {}, () => {}); // keep the chain alive; never let a rejection break it
+  return run;
+}
+
 // Score many texts for one task in a single request (the service accepts a
 // `texts` array and returns aligned results). Returns one entry per input,
 // null where the service failed or gave no score.
@@ -46,12 +65,12 @@ export async function scoreTextBatch(task: string, texts: string[], timeoutMs = 
   };
 
   const t0 = Date.now();
-  const first = await attempt();
+  const first = await serialize(attempt);
   // Retry only a FAST whole-batch failure (a transient empty response while the base
   // was warming); a genuine timeout must not double and blow the caller's budget.
   if (!first && Date.now() - t0 <= 12000) {
     await new Promise((r) => setTimeout(r, 500));
-    const second = await attempt();
+    const second = await serialize(attempt);
     if (second) return second;
   }
   return first || texts.map(() => null);
@@ -94,12 +113,12 @@ export async function scoreText(task: string, text: string, timeoutMs = 45000): 
   };
 
   const t0 = Date.now();
-  const first = await attempt();
+  const first = await serialize(attempt);
   if (first) return first;
   // Only retry a FAST failure (a transient empty response while the base was warming).
   // If the first attempt burned the full timeout, retrying would double the wait and
   // blow the caller's function budget — so give up and let the caller fall back.
   if (Date.now() - t0 > 12000) return null;
   await new Promise((r) => setTimeout(r, 500));
-  return attempt();
+  return serialize(attempt);
 }

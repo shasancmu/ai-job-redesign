@@ -7,9 +7,10 @@ import { isDirectorOrAdmin } from "@/lib/orgs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-// The sciscore models can take ~30s on a cold start; give the call room so the
-// deeper dimensions aren't dropped on the first request after the service idles.
-export const maxDuration = 120;
+// A fully cold path can stack cold BigQuery scoring + cold sciscore models + the AI
+// read; give it ample room (matches the other Scientifiq routes) so it never gets
+// killed mid-request and returns nothing.
+export const maxDuration = 300;
 
 // Score My Invention — score an abstract for commercial/scientific/social
 // potential, then the LLM reads the scores and says how to raise them.
@@ -31,13 +32,14 @@ export async function POST(request: Request) {
   try {
     const isDir = await isDirectorOrAdmin(user);
     const scores = await scoreAbstract(abstract);
-    // The three new potentials from the sciscore models (defense only for
-    // directors). Null-safe: if the model service is down they're just omitted.
-    const [cplx, intd, def] = await Promise.all([
-      scoreText("complex_invention", abstract),
-      scoreText("interdisciplinary", abstract),
-      isDir ? scoreText("defense_impact", abstract) : Promise.resolve(null),
-    ]);
+    // The three new potentials from the sciscore models (defense only for directors).
+    // SEQUENTIAL, not parallel: the first call cold-loads the shared model service, and
+    // firing all three at once makes them contend during that load — some come back
+    // empty and get dropped (only the first would render). One at a time, the base warms
+    // on the first call and the rest return instantly. Null-safe throughout.
+    const cplx = await scoreText("complex_invention", abstract);
+    const intd = await scoreText("interdisciplinary", abstract);
+    const def = isDir ? await scoreText("defense_impact", abstract) : null;
     const extra: Record<string, number> = {};
     if (cplx) extra.complex_invention = Math.round(cplx.score * 100);
     if (intd) extra.interdisciplinary = Math.round(intd.score * 100);
