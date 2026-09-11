@@ -103,6 +103,15 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   }
 
+  const [confirmDel, setConfirmDel] = useState("");
+  const [delBusy, setDelBusy] = useState(false);
+  async function deleteOrg() {
+    if (!org || confirmDel !== org.slug) return;
+    setDelBusy(true); setErr(null);
+    try { await post({ action: "delete_org", id: org.id, confirm: confirmDel }); onDone(); }
+    catch (e: any) { setErr(e.message); setDelBusy(false); }
+  }
+
   return (
     <div className="card space-y-3 p-5">
       <div className="grid gap-3 sm:grid-cols-2">
@@ -198,6 +207,22 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
         <button onClick={save} disabled={busy || !slug || !name} className="btn-primary text-sm">{busy ? "Saving…" : org ? "Save" : "Create"}</button>
         <button onClick={onCancel} className="btn-ghost text-sm">Cancel</button>
       </div>
+
+      {org && (
+        <div className="mt-4 rounded-xl border border-clay/40 bg-clay-soft/20 p-4">
+          <div className="text-sm font-semibold text-clay">Delete this organization</div>
+          <p className="mt-1 text-xs text-slate-600">
+            Permanently removes <b>{org.name}</b> and all of its cohorts, classes, members, and invites. This cannot be undone.
+            Members&apos; own accounts and personal work are not deleted. Type the slug <b className="font-mono">{org.slug}</b> to confirm.
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <input value={confirmDel} onChange={(e) => setConfirmDel(e.target.value)} placeholder={org.slug} className="field w-48 text-sm" />
+            <button onClick={deleteOrg} disabled={delBusy || confirmDel !== org.slug} className="rounded-lg bg-clay px-3 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-40">
+              {delBusy ? "Deleting…" : "Delete organization"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

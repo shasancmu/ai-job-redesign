@@ -108,6 +108,29 @@ export async function POST(request: Request) {
     // Everything below is superadmin-only.
     if (!superadmin) return Response.json({ error: "Superadmin only." }, { status: 403 });
 
+    if (action === "delete_org") {
+      const id = String(body.id || "");
+      if (!id) return Response.json({ error: "Missing org id." }, { status: 400 });
+      const org = await getOrgById(id);
+      if (!org) return Response.json({ error: "Organization not found." }, { status: 404 });
+      // Type-to-confirm: the caller must echo the org's slug.
+      if (String(body.confirm || "") !== org.slug) return Response.json({ error: "Type the org slug to confirm deletion." }, { status: 400 });
+      try {
+        // Remove enrollment rows for this org's cohorts, then everything keyed to the org.
+        const { data: cls } = await admin.from("classes").select("id").eq("org_id", id);
+        const classIds = ((cls as any[]) || []).map((c) => c.id).filter(Boolean);
+        if (classIds.length) { try { await admin.from("class_members").delete().in("class_id", classIds); } catch { /* table absent */ } }
+        for (const tbl of ["classes", "class_units", "org_members", "org_invites", "staff_invite_links", "program_directors", "org_ads", "ad_events", "learner_memory", "learner_portrait"]) {
+          try { await admin.from(tbl).delete().eq("org_id", id); } catch { /* table/column absent — best effort */ }
+        }
+        const { error } = await admin.from("organizations").delete().eq("id", id);
+        if (error) return Response.json({ error: error.message }, { status: 400 });
+        return Response.json({ ok: true });
+      } catch (e: any) {
+        return Response.json({ error: e?.message || "Delete failed." }, { status: 500 });
+      }
+    }
+
     if (action === "set_facilitator" || action === "set_director" || action === "set_instructor" || action === "add_invites") {
       const orgId = String(body.orgId || "");
       const role = action === "add_invites" ? "member" : action === "set_instructor" ? "instructor" : "director";
