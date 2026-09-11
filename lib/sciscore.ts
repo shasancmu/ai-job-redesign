@@ -43,32 +43,45 @@ export async function scoreTextBatch(task: string, texts: string[], timeoutMs = 
   }
 }
 
-export async function scoreText(task: string, text: string, timeoutMs = 20000): Promise<ModelScore | null> {
+// Default timeout is generous: a scale-to-zero service loads the shared SciBERT
+// base on its first request (~30s), and a 20s window would abort mid-cold-start
+// and silently drop that dimension. One retry recovers a transient cold miss —
+// the base is warm by the second try, so it returns in well under a second.
+export async function scoreText(task: string, text: string, timeoutMs = 45000): Promise<ModelScore | null> {
   if (!BASE) return null;
   const t = (text || "").trim();
   if (t.length < 40) return null;
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), timeoutMs);
-  try {
-    const res = await fetch(`${BASE}/score`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(process.env.SCISCORE_API_KEY ? { Authorization: `Bearer ${process.env.SCISCORE_API_KEY}` } : {}),
-      },
-      body: JSON.stringify({ task, text: t }),
-      signal: ctl.signal,
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const j = await res.json();
-    const s = typeof j?.score === "number" ? j.score : j?.results?.[0]?.score;
-    if (typeof s !== "number" || Number.isNaN(s)) return null;
-    const stars = typeof j?.stars === "number" ? j.stars : Math.max(1, Math.min(5, Math.round(s * 5)));
-    return { score: s, stars };
-  } catch {
-    return null; // unset / down / timeout → caller falls back
-  } finally {
-    clearTimeout(timer);
-  }
+
+  const attempt = async (): Promise<ModelScore | null> => {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), timeoutMs);
+    try {
+      const res = await fetch(`${BASE}/score`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(process.env.SCISCORE_API_KEY ? { Authorization: `Bearer ${process.env.SCISCORE_API_KEY}` } : {}),
+        },
+        body: JSON.stringify({ task, text: t }),
+        signal: ctl.signal,
+        cache: "no-store",
+      });
+      if (!res.ok) return null;
+      const j = await res.json();
+      const s = typeof j?.score === "number" ? j.score : j?.results?.[0]?.score;
+      if (typeof s !== "number" || Number.isNaN(s)) return null;
+      const stars = typeof j?.stars === "number" ? j.stars : Math.max(1, Math.min(5, Math.round(s * 5)));
+      return { score: s, stars };
+    } catch {
+      return null; // unset / down / timeout → caller falls back
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  const first = await attempt();
+  if (first) return first;
+  // One retry: the cold base is loaded now, so a transient miss recovers fast.
+  await new Promise((r) => setTimeout(r, 500));
+  return attempt();
 }
