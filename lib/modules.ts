@@ -144,7 +144,7 @@ export const MODULES: ModuleDef[] = [
     slug: "reimagine-job",
     exercise: "job",
     name: "Redesign Your Job with a Partner",
-    tagline: "Interview a partner and redesign each other's jobs with the 2×4 model — the human work vs. what AI can take.",
+    tagline: "Interview a partner and redesign each other's jobs with the 2×4 model: the human work, and what AI can take.",
     description:
       "You and a partner interview each other, then redesign each other's jobs with the 2×4 model: what AI can Search, Structure, Think, and Translate, and what only you can Lead, Own, Judge, and Integrate.",
     partner: "human",
@@ -299,7 +299,7 @@ export const MODULES: ModuleDef[] = [
     slug: "solo-ai",
     exercise: "solo",
     name: "Redesign Your Job with AI",
-    tagline: "Find your real job, hand AI the busywork, keep the judgment with you — no partner needed.",
+    tagline: "Find your real job, hand AI the busywork, keep the judgment with you. No partner needed.",
     description:
       "No partner needed. An AI plays your partner. It interviews you to find your real job, then drafts a redesign that hands AI the busywork and keeps the judgment with you.",
     partner: "ai",
@@ -554,7 +554,7 @@ export const MODULES: ModuleDef[] = [
     slug: "ai-canvas",
     exercise: "gas",
     name: "Find Where AI Fits a Workflow",
-    tagline: "Map one workflow to find where AI actually belongs — and leave with an implementation-grade plan.",
+    tagline: "Map one workflow to find where AI actually belongs, and leave with an implementation-grade plan.",
     description:
       "An AI partner interviews you about one workflow, then drafts the GAS canvas: the outcome, the accuracy and generality it needs, the human/AI split, where complexity lives, the risks, and how to deploy. You leave with an implementation-grade plan.",
     partner: "ai",
@@ -569,7 +569,7 @@ export const MODULES: ModuleDef[] = [
     slug: "opportunity-capability",
     exercise: "ocfit",
     name: "Should You Make This Bet?",
-    tagline: "Test an opportunity against what you can actually do — and find the gap most likely to break the bet.",
+    tagline: "Test an opportunity against what you can actually do, and find the gap most likely to break the bet.",
     description:
       "Name an opportunity; an AI partner interviews you, then scores how well it fits your Tasks, People, Systems, and Culture, and names the one capability gap most likely to break the bet, plus what to build first.",
     partner: "ai",
@@ -584,7 +584,7 @@ export const MODULES: ModuleDef[] = [
     slug: "test-the-bet",
     exercise: "experiment",
     name: "Design a Test for Your Strategy",
-    tagline: "Turn a strategic belief into a runnable experiment you could start this week — before you commit.",
+    tagline: "Turn a strategic belief into a runnable experiment you could start this week, before you commit.",
     description:
       "Turn a strategic belief into a runnable business experiment. An AI partner helps you sharpen the hypothesis, the control vs. change, the one metric that matters, and the decision rule, a test you could start this week.",
     partner: "ai",
@@ -689,7 +689,7 @@ export const MODULES: ModuleDef[] = [
     slug: "refresh-resume-voice",
     exercise: "resume-voice",
     name: "Talk Through Your Résumé",
-    tagline: "The résumé refresh, hands-free — talk through your year while an AI coach draws out the wins.",
+    tagline: "The résumé refresh, hands-free: talk through your year while an AI coach draws out the wins.",
     description:
       "Refresh Your Résumé as a spoken conversation. Paste your current résumé or LinkedIn profile, then an AI coach interviews you out loud about what you've accomplished this year, laddering toward the real results and numbers. At the end it produces the same concrete set of changes: new accomplishment bullets in X-Y-Z form, rewritten duty-lines, a stronger summary, skills to feature, and structure fixes. Uses your browser's built-in speech (Chrome or desktop); nothing is recorded, only the transcript is kept. You rewrite the drafts in your own voice.",
     partner: "ai",
