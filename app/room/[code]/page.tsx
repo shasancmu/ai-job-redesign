@@ -53,6 +53,7 @@ import PaperStudyRoom from "@/components/PaperStudyRoom";
 import InteractionRoom from "@/components/InteractionRoom";
 import ExperimentRoom from "@/components/ExperimentRoom";
 import ProblemHuntRoom from "@/components/ProblemHuntRoom";
+import VoiceProblemHuntRoom from "@/components/VoiceProblemHuntRoom";
 import Lesson1Rules from "@/components/lessons/Lesson1Rules";
 import Lesson2Learning from "@/components/lessons/Lesson2Learning";
 import Lesson3Language from "@/components/lessons/Lesson3Language";
@@ -511,11 +512,14 @@ export default async function RoomPage({
 
   // Problem Hunt (find a problem to solve / find the org's highest-value problems):
   // single-user, host only; persists to the workspace like the other AI interviews.
-  if (session.exercise === "problem-seller" || session.exercise === "problem-leader") {
+  if (session.exercise === "problem-seller" || session.exercise === "problem-leader" || session.exercise === "problem-seller-voice" || session.exercise === "problem-leader-voice") {
     if (!amHost) redirect("/dashboard");
     await supabase.from("workspaces").upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
     const { data: workspace } = await supabase.from("workspaces").select("*").eq("session_id", session.id).eq("author_id", user.id).maybeSingle();
-    return <ProblemHuntRoom me={user.id} session={session} initialWorkspace={workspace || { session_id: session.id, author_id: user.id }} />;
+    const ws = workspace || { session_id: session.id, author_id: user.id };
+    return session.exercise.endsWith("-voice")
+      ? <VoiceProblemHuntRoom me={user.id} session={session} initialWorkspace={ws} />
+      : <ProblemHuntRoom me={user.id} session={session} initialWorkspace={ws} />;
   }
 
   // Vision (typed) and Talk Through Your Vision (voice): single-user, host only.

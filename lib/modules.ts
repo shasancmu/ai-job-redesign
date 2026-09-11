@@ -121,7 +121,9 @@ export type ModuleDef = {
     | "res-data"
     | "res-publish"
     | "problem-seller"
-    | "problem-leader"; // which room engine renders it
+    | "problem-leader"
+    | "problem-seller-voice"
+    | "problem-leader-voice"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -470,6 +472,36 @@ export const MODULES: ModuleDef[] = [
     minutes: 25,
     ai: true,
     emoji: "🧭",
+    priceCents: 0,
+    priceEnv: "",
+  },
+  {
+    slug: "find-problem-voice",
+    exercise: "problem-seller-voice",
+    name: "Talk Through a Problem Worth Solving",
+    tagline: "The problem hunt as a hands-free voice conversation. Just talk while an AI strategist draws out the recurring, expensive, newly-solvable problem closest to your edge, checks it against the real world, and grades it.",
+    description:
+      "Find a Problem Worth Solving as a spoken conversation. A strategist interviews you out loud — you just answer naturally — then searches the web to corroborate the problem and returns a graded thesis: who has it, why now, your edge, the value at stake, whether it repeats, whether a buyer will pay, and the cheapest experiment to disprove it. Uses your browser's speech; nothing is recorded, only the transcript is kept.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "🎙️",
+    priceCents: 0,
+    priceEnv: "",
+  },
+  {
+    slug: "find-org-problems-voice",
+    exercise: "problem-leader-voice",
+    name: "Talk Through Your Organization's Highest-Value Problems",
+    tagline: "The leader's opportunity audit as a hands-free voice conversation. Just talk while an AI strategist surfaces where value is leaking, corroborates it against real evidence, and returns a ranked map with what to stop to fund the winner.",
+    description:
+      "Find Your Organization's Highest-Value Problems as a spoken conversation. A strategist interviews you out loud about where value leaks inside your organization, pushes you toward the blind spots, corroborates the pattern against real industry evidence, and returns a ranked opportunity map with expected value, odds, resources, what to stop to fund it, and how to turn the top pick into a running experiment. Uses your browser's speech; nothing is recorded, only the transcript is kept.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 25,
+    ai: true,
+    emoji: "🎙️",
     priceCents: 0,
     priceEnv: "",
   },
@@ -1730,6 +1762,8 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "good-business": "strategy",
   "find-problem": "strategy",
   "find-org-problems": "strategy",
+  "find-problem-voice": "strategy",
+  "find-org-problems-voice": "strategy",
   "business-consult": "strategy",
   "voice-consult": "strategy",
   "ai-board": "strategy",
@@ -1902,6 +1936,8 @@ const OUTCOME_OF: Record<string, string> = {
   "name-your-price": "A scored price negotiation",
   "find-problem": "A problem worth solving, pressure-tested",
   "find-org-problems": "A ranked map of your highest-value problems",
+  "find-problem-voice": "A problem worth solving, pressure-tested",
+  "find-org-problems-voice": "A ranked map of your highest-value problems",
   "ask-for-a-raise": "A rehearsed raise ask, scored",
   "close-the-vendor-deal": "A closed vendor deal, scored",
   "lease-the-space": "A negotiated lease, scored",
@@ -2071,6 +2107,8 @@ const PILLS_OF: Record<string, PillKey[]> = {
   "find-a-cofounder": ["deeptech", "entrepreneurship", "innovation"],
   "find-problem": ["strategy", "entrepreneurship", "innovation"],
   "find-org-problems": ["strategy", "leadership", "implementation"],
+  "find-problem-voice": ["strategy", "entrepreneurship", "innovation"],
+  "find-org-problems-voice": ["strategy", "leadership", "implementation"],
   "diligence-the-science": ["deeptech", "strategy", "innovation"],
   "technology-landscape": ["deeptech", "strategy", "innovation"],
   "deep-tech-deal-sourcing": ["deeptech", "entrepreneurship", "innovation"],
