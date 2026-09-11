@@ -883,7 +883,10 @@ export async function problemHuntReportAI(input: { mode: "seller" | "leader"; tr
     ? `"scores":{"evidence":0-5,"sized":0-5,"opportunityCost":0-5,"feasibility":0-5,"blindspot":0-5,"falsifiable":0-5}`
     : `"scores":{"recurring":0-5,"sized":0-5,"whyNow":0-5,"edge":0-5,"purchasable":0-5,"repeatable":0-5,"falsifiable":0-5}`;
   const shape = input.mode === "leader" ? leaderShape : sellerShape;
-  const system = `You are a rigorous strategy coach producing the final report of a problem hunt. Be honest and specific; do not flatter. Ground the reality check ONLY in the web evidence provided (it is authoritative); if the evidence is thin or absent, say the problem is asserted but not yet externally corroborated, and lower the relevant score. Never invent a statistic or a source.
+  const leaderRule = input.mode === "leader" ? `
+
+CRITICAL for the opportunity map: return 4 to 7 DISTINCT opportunities in DIFFERENT parts of the organization — spanning several value-leak types (misallocated attention, capital/initiatives, latent revenue or pricing, dispersed information/decisions, operational waste, talent misallocation). They MUST be genuinely different problems. NEVER list phases, sub-steps, or facets of a single initiative as separate opportunities (e.g. "build the model", "benchmark the model", "segment with the model" are ONE opportunity, not three) — collapse those into one and spend the other slots on OTHER parts of the organization. If the interview only surfaced one or two areas, propose additional plausible value-leak areas for an organization of this type as candidates to investigate, set their "blindSpot" to true, keep their "expectedValue" qualitative or a wide range (never a fabricated precise number), and make clear in the name/whereValueLeaks that they are hypotheses to test. Order the array from highest expected value to lowest.` : "";
+  const system = `You are a rigorous strategy coach producing the final report of a problem hunt. Be honest and specific; do not flatter. Ground the reality check ONLY in the web evidence provided (it is authoritative); if the evidence is thin or absent, say the problem is asserted but not yet externally corroborated, and lower the relevant score. Never invent a statistic or a source.${leaderRule}
 
 Output STRICT JSON only, EXACTLY these keys plus scores and an evidence block:
 ${shape.slice(0, shape.length - 1)},
@@ -893,7 +896,7 @@ ${shape.slice(0, shape.length - 1)},
 Scores are 0-5 integers, honest. Put the REAL sources given below into evidence.sources (title + url), never fabricated ones. No em dashes.`;
   const srcList = input.sources.length ? input.sources.map((s) => `- ${s.title} — ${s.url}`).join("\n") : "(no sources found)";
   const user = `MODE: ${input.mode}\nCANDIDATE PROBLEM: ${input.problem || "(infer from transcript)"}\n\nINTERVIEW TRANSCRIPT:\n${input.transcript.slice(0, 7000)}\n\nWEB EVIDENCE (authoritative for the reality check):\n${input.evidence ? input.evidence.slice(0, 6000) : "(no web evidence available)"}\n\nREAL SOURCES (use these exact links in evidence.sources):\n${srcList}`;
-  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens: 1800, timeoutMs: 60000 });
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens: input.mode === "leader" ? 2800 : 1800, timeoutMs: 75000 });
 }
 
 // Helps an interviewer dig past tasks to the VALUE the other person creates.
