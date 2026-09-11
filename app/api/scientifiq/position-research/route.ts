@@ -2,9 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, positionResearchAI } from "@/lib/ai";
 import { SCIENTIFIQ_ENABLED, ScientifiqError, scoreAbstract } from "@/lib/scientifiq";
+import { scoreText, SCISCORE_ENABLED } from "@/lib/sciscore";
+import { isDirectorOrAdmin } from "@/lib/orgs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// The sciscore models can take ~30s on a cold start; give the call room.
+export const maxDuration = 120;
 
 // Position My Research — score an abstract and advise on positioning for impact.
 export async function POST(request: Request) {
@@ -23,10 +27,21 @@ export async function POST(request: Request) {
   if (abstract.length < 80) return Response.json({ error: "Paste your paper or idea as an abstract (a few sentences)." }, { status: 400 });
 
   try {
+    const isDir = await isDirectorOrAdmin(user);
     const scores = await scoreAbstract(abstract);
-    const read = await positionResearchAI({ abstract, title, scores });
+    // Deeper dimensions from our own trained models (defense only for directors).
+    const [cplx, intd, def] = await Promise.all([
+      scoreText("complex_invention", abstract),
+      scoreText("interdisciplinary", abstract),
+      isDir ? scoreText("defense_impact", abstract) : Promise.resolve(null),
+    ]);
+    const extra: Record<string, number> = {};
+    if (cplx) extra.complex_invention = Math.round(cplx.score * 100);
+    if (intd) extra.interdisciplinary = Math.round(intd.score * 100);
+    if (isDir && def) extra.defense = Math.round(def.score * 100);
+    const read = await positionResearchAI({ abstract, title, scores, extra });
     if (!read) return Response.json({ error: "Scored it but couldn't write the read. Try again." }, { status: 502 });
-    return Response.json({ scores, read, title });
+    return Response.json({ scores, extra, read, title, deeperOffline: !SCISCORE_ENABLED });
   } catch (e: any) {
     if (e instanceof ScientifiqError) return Response.json({ error: e.message }, { status: e.status < 600 ? e.status : 502 });
     return Response.json({ error: e?.message || "Failed to score the work." }, { status: 500 });

@@ -3446,12 +3446,19 @@ Return STRICT JSON only, plain text values (no markdown):
 // Same scoring engine as Score My Invention, but for a researcher deciding how
 // to frame a paper/idea for impact: emphasize scientific + social potential and
 // reframings that raise citation odds and fundability, not commercialization.
-export async function positionResearchAI(input: { abstract: string; title?: string; scores: any }): Promise<any> {
+export async function positionResearchAI(input: { abstract: string; title?: string; scores: any; extra?: Record<string, number> }): Promise<any> {
   const s = input.scores || {};
   const pct = (x: any) => Math.round((x?.raw ?? 0) * 100);
   const scoreLine = `Scientific ${pct(s.scientific)}/100 (${s.scientific?.stars ?? "?"}★), Social ${pct(s.social)}/100 (${s.social?.stars ?? "?"}★), Commercial ${pct(s.commercial)}/100 (${s.commercial?.stars ?? "?"}★). Scientifiq's predictive potential for THIS abstract, benchmarked against the field.`;
+  // The deeper dimensions from our own trained models, when the estimator returned them.
+  const e = input.extra || {};
+  const deepBits: string[] = [];
+  if (typeof e.complex_invention === "number" && e.complex_invention >= 0) deepBits.push(`Complex-invention ${e.complex_invention}/100 (how much it spans multiple technical disciplines)`);
+  if (typeof e.interdisciplinary === "number" && e.interdisciplinary >= 0) deepBits.push(`Interdisciplinary ${e.interdisciplinary}/100 (how likely it is to influence research outside its home field)`);
+  if (typeof e.defense === "number" && e.defense >= 0) deepBits.push(`Defense relevance ${e.defense}/100 (potential relevance to government / national-security technology)`);
+  const deepLine = deepBits.length ? `\n\nDEEPER MODEL SCORES: ${deepBits.join("; ")}.` : "";
 
-  const system = `You advise a researcher on how to POSITION a paper or research idea for maximum impact, using Scientifiq's predictive potential scores. You are given the abstract and its scientific / social / commercial potential. Focus on scholarly and societal impact: what would make this more likely to be read, cited, funded, and to matter, not on commercialization.
+  const system = `You advise a researcher on how to POSITION a paper or research idea for maximum impact, using Scientifiq's predictive potential scores. You are given the abstract and its scientific / social / commercial potential${deepBits.length ? ", plus deeper dimensions from our own trained models (complex-invention, interdisciplinary, and where present defense relevance)" : ""}. Focus on scholarly and societal impact: what would make this more likely to be read, cited, funded, and to matter, not on commercialization.
 
 The "how to raise it" advice must be concrete and specific to THIS work: a sharper contribution claim, a more general or more surprising framing, a clearer beneficiary, connecting to a hotter conversation, a stronger null it overturns. Never suggest overclaiming or fabricating.
 
@@ -3461,7 +3468,7 @@ Return STRICT JSON only, plain text values (no markdown):
   "strongest": "which potential is strongest, and what that implies for how to position it",
   "readCommercial": "1-2 sentences interpreting the commercial score",
   "readScientific": "1-2 sentences interpreting the scientific score",
-  "readSocial": "1-2 sentences interpreting the social score",
+  "readSocial": "1-2 sentences interpreting the social score",${typeof e.complex_invention === "number" && e.complex_invention >= 0 ? `\n  "readComplex": "1-2 sentences interpreting the complex-invention score for this work (does it genuinely span multiple technical disciplines, and what that means for positioning)",` : ""}${typeof e.interdisciplinary === "number" && e.interdisciplinary >= 0 ? `\n  "readInterdisciplinary": "1-2 sentences interpreting the interdisciplinary score (how likely to influence fields beyond its own, and which audiences that reaches)",` : ""}${typeof e.defense === "number" && e.defense >= 0 ? `\n  "readDefense": "1-2 sentences interpreting the defense-relevance score (potential relevance to government / national-security research, honestly, not inflated)",` : ""}
   "raise": ["3-4 concrete ways to reframe or strengthen THIS work to raise its scholarly and societal potential"],
   "whoCares": ["2-3 specific audiences (fields, funders, communities) who would care if this lands"],
   "verdict": "one of: Position for a top venue | Strengthen the contribution | Reframe first, followed by one line on why"
@@ -3469,8 +3476,8 @@ Return STRICT JSON only, plain text values (no markdown):
 
   return completeJson([
     { role: "system", content: system },
-    { role: "user", content: `WORK${input.title ? ` — ${input.title}` : ""}:\n${input.abstract.slice(0, 5000)}\n\nSCORES: ${scoreLine}` },
-  ], { temperature: 0.5, maxTokens: 1400 });
+    { role: "user", content: `WORK${input.title ? ` — ${input.title}` : ""}:\n${input.abstract.slice(0, 5000)}\n\nSCORES: ${scoreLine}${deepLine}` },
+  ], { temperature: 0.5, maxTokens: 1500 });
 }
 
 // ---- Rank Our Disclosures (Scientifiq, batch scoring) ---------------------

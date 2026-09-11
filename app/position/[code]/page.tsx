@@ -23,7 +23,7 @@ export default async function PositionView({ params }: { params: { code: string 
       hasReport={!!read}
       emptyText="This hasn't been scored yet."
     >
-      <ScoreInventionReport read={read || {}} scores={canvas.scores} />
+      <ScoreInventionReport read={read || {}} scores={canvas.scores} extra={canvas.extra} deeperOffline={canvas.deeperOffline} />
     </ReportShell>
   );
 }
