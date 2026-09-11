@@ -23,7 +23,6 @@ import BoardRoom from "@/components/BoardRoom";
 import VoiceConsultRoom from "@/components/VoiceConsultRoom";
 import VisionRoom from "@/components/VisionRoom";
 import VoiceVisionRoom from "@/components/VoiceVisionRoom";
-import VoiceVisionRoomOpenAI from "@/components/VoiceVisionRoomOpenAI";
 import DisclosureRoom from "@/components/DisclosureRoom";
 import EmpathyRoom from "@/components/EmpathyRoom";
 import ResumeRoom from "@/components/ResumeRoom";
@@ -523,13 +522,12 @@ export default async function RoomPage({
       : <ProblemHuntRoom me={user.id} session={session} initialWorkspace={ws} />;
   }
 
-  // Vision (typed) and Talk Through Your Vision (voice, browser or OpenAI): single-user, host only.
-  if (session.exercise === "vision" || session.exercise === "vision-voice" || session.exercise === "vision-voice-ai") {
+  // Vision (typed) and Talk Through Your Vision (voice): single-user, host only.
+  if (session.exercise === "vision" || session.exercise === "vision-voice") {
     if (!amHost) redirect("/dashboard");
     await supabase.from("workspaces").upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
     const { data: workspace } = await supabase.from("workspaces").select("*").eq("session_id", session.id).eq("author_id", user.id).maybeSingle();
     const ws = workspace || { session_id: session.id, author_id: user.id };
-    if (session.exercise === "vision-voice-ai") return <VoiceVisionRoomOpenAI me={user.id} session={session} initialWorkspace={ws} />;
     return session.exercise === "vision-voice"
       ? <VoiceVisionRoom me={user.id} session={session} initialWorkspace={ws} />
       : <VisionRoom me={user.id} session={session} initialWorkspace={ws} />;
