@@ -4,7 +4,7 @@ type Score = { raw: number; stars: number };
 type Scores = { commercial: Score; scientific: Score; social: Score };
 type Read = {
   headline?: string; strongest?: string;
-  readCommercial?: string; readScientific?: string; readSocial?: string;
+  readCommercial?: string; readScientific?: string; readSocial?: string; readDeeper?: string;
   raise?: string[]; whoCares?: string[]; verdict?: string;
 };
 
@@ -42,7 +42,7 @@ function MiniPot({ label, v }: { label: string; v: number }) {
   );
 }
 
-export default function ScoreInventionReport({ read, scores, extra }: { read: Read; scores?: Scores; extra?: Record<string, number> }) {
+export default function ScoreInventionReport({ read, scores, extra, deeperOffline }: { read: Read; scores?: Scores; extra?: Record<string, number>; deeperOffline?: boolean }) {
   const r = read || {};
   const extraEntries = Object.entries(extra || {}).filter(([, v]) => typeof v === "number" && v >= 0);
   return (
@@ -61,14 +61,19 @@ export default function ScoreInventionReport({ read, scores, extra }: { read: Re
         <ScoreCard label="Social" s={scores?.social} note={r.readSocial} />
       </div>
 
-      {extraEntries.length > 0 && (
+      {extraEntries.length > 0 ? (
         <div>
-          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Deeper potential</div>
+          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Deeper potential <span className="normal-case text-slate-300">· from our own trained models</span></div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {extraEntries.map(([k, v]) => <MiniPot key={k} label={EXTRA_LABEL[k] || k} v={v} />)}
           </div>
+          {r.readDeeper && <p className="mt-2 text-sm text-slate-600">{r.readDeeper}</p>}
         </div>
-      )}
+      ) : deeperOffline ? (
+        <div className="rounded-xl border border-dashed border-line bg-mist/40 px-4 py-3 text-xs text-slate-500">
+          <b className="text-slate-600">Deeper dimensions unavailable.</b> The complex-invention, interdisciplinary, and defense-relevance scores come from our own trained models; that estimator service is currently offline (set <span className="font-mono">SCISCORE_URL</span>). Commercial, scientific, and social scores above are unaffected.
+        </div>
+      ) : null}
 
       {Array.isArray(r.raise) && r.raise.length > 0 && (
         <div className="rounded-2xl border border-line bg-white p-5">

@@ -3408,22 +3408,29 @@ Rank matches best-first, at most 7.${expNudge(input.nudge)}`;
 // The free wedge for the deep-tech line: score any abstract/idea for its
 // commercial, scientific, and social potential, then read the scores and say
 // how to raise them. Just scoreAbstract + an interpretive write-up.
-export async function scoreInventionAI(input: { abstract: string; title?: string; scores: any }): Promise<any> {
+export async function scoreInventionAI(input: { abstract: string; title?: string; scores: any; extra?: Record<string, number> }): Promise<any> {
   const s = input.scores || {};
   const pct = (x: any) => Math.round((x?.raw ?? 0) * 100);
   const scoreLine = `Commercial ${pct(s.commercial)}/100 (${s.commercial?.stars ?? "?"}★), Scientific ${pct(s.scientific)}/100 (${s.scientific?.stars ?? "?"}★), Social ${pct(s.social)}/100 (${s.social?.stars ?? "?"}★). These are Scientifiq's predictive potential scores for THIS abstract, benchmarked against the field.`;
+  // The deeper dimensions from our own trained models, when the estimator returned them.
+  const e = input.extra || {};
+  const deepBits: string[] = [];
+  if (typeof e.complex_invention === "number" && e.complex_invention >= 0) deepBits.push(`Complex-invention ${e.complex_invention}/100 (how much it spans multiple technical disciplines)`);
+  if (typeof e.interdisciplinary === "number" && e.interdisciplinary >= 0) deepBits.push(`Interdisciplinary ${e.interdisciplinary}/100 (how likely it is to influence research outside its home field)`);
+  if (typeof e.defense === "number" && e.defense >= 0) deepBits.push(`Defense relevance ${e.defense}/100 (potential relevance to government / national-security technology)`);
+  const deepLine = deepBits.length ? `\n\nDEEPER MODEL SCORES: ${deepBits.join("; ")}.` : "";
 
-  const system = `You interpret Scientifiq's predictive potential scores for one invention or research idea, for the person who wrote it. You are given the abstract and its commercial / scientific / social potential (0-100 and stars). Be specific and honest: the scores are a forward-looking signal, not proof. If a score is low, say so plainly and explain what a low score means here, do not force optimism.
+  const system = `You interpret Scientifiq's predictive potential scores for one invention or research idea, for the person who wrote it. You are given the abstract and its commercial / scientific / social potential (0-100 and stars)${deepBits.length ? ", plus deeper dimensions from our own trained models (complex-invention, interdisciplinary, and where present defense relevance)" : ""}. Be specific and honest: the scores are a forward-looking signal, not proof. If a score is low, say so plainly and explain what a low score means here, do not force optimism.
 
 The "how to raise it" advice must be concrete and specific to THIS idea: sharper framing, a more valuable application, a clearer beneficiary, a bigger or better-defined market, a more rigorous claim. Never suggest fabricating results.
 
 Return STRICT JSON only, plain text values (no markdown):
 {
   "headline": "one-sentence read on this idea's potential",
-  "strongest": "which of the three potentials is strongest, and what that implies for what to do with it",
+  "strongest": "which potential is strongest, and what that implies for what to do with it",
   "readCommercial": "1-2 sentences interpreting the commercial score for this idea",
   "readScientific": "1-2 sentences interpreting the scientific score",
-  "readSocial": "1-2 sentences interpreting the social score",
+  "readSocial": "1-2 sentences interpreting the social score",${deepBits.length ? `\n  "readDeeper": "1-2 sentences on the deeper dimensions above — what the complex-invention / interdisciplinary${typeof e.defense === "number" && e.defense >= 0 ? " / defense" : ""} scores say about this idea and who that opens doors with",` : ""}
   "raise": ["3-4 concrete, specific ways to strengthen or reframe THIS idea to raise its potential, especially commercial"],
   "whoCares": ["2-3 specific types of people or organizations who would care if this delivers"],
   "verdict": "one of: Pursue | Develop further | Weak case, followed by one line on why"
@@ -3431,8 +3438,8 @@ Return STRICT JSON only, plain text values (no markdown):
 
   return completeJson([
     { role: "system", content: system },
-    { role: "user", content: `INVENTION${input.title ? ` — ${input.title}` : ""}:\n${input.abstract.slice(0, 5000)}\n\nSCORES: ${scoreLine}` },
-  ], { temperature: 0.5, maxTokens: 1400 });
+    { role: "user", content: `INVENTION${input.title ? ` — ${input.title}` : ""}:\n${input.abstract.slice(0, 5000)}\n\nSCORES: ${scoreLine}${deepLine}` },
+  ], { temperature: 0.5, maxTokens: 1500 });
 }
 
 // ---- Position My Research (Scientifiq, researcher framing) ----------------

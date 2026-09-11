@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { setFlow } from "@/lib/aiflow";
 import { AI_ENABLED, scoreInventionAI } from "@/lib/ai";
 import { SCIENTIFIQ_ENABLED, ScientifiqError, scoreAbstract } from "@/lib/scientifiq";
-import { scoreText } from "@/lib/sciscore";
+import { scoreText, SCISCORE_ENABLED } from "@/lib/sciscore";
 import { isDirectorOrAdmin } from "@/lib/orgs";
 
 export const runtime = "nodejs";
@@ -39,9 +39,11 @@ export async function POST(request: Request) {
     if (cplx) extra.complex_invention = Math.round(cplx.score * 100);
     if (intd) extra.interdisciplinary = Math.round(intd.score * 100);
     if (isDir && def) extra.defense = Math.round(def.score * 100);
-    const read = await scoreInventionAI({ abstract, title, scores });
+    const read = await scoreInventionAI({ abstract, title, scores, extra });
     if (!read) return Response.json({ error: "Scored it but couldn't write the read. Try again." }, { status: 502 });
-    return Response.json({ scores, extra, read, title });
+    // Tell the UI when the deeper dimensions are missing because the model service
+    // is offline (vs. legitimately absent), so it can say so instead of hiding them.
+    return Response.json({ scores, extra, read, title, deeperOffline: !SCISCORE_ENABLED });
   } catch (e: any) {
     if (e instanceof ScientifiqError) return Response.json({ error: e.message }, { status: e.status < 600 ? e.status : 502 });
     return Response.json({ error: e?.message || "Failed to score the invention." }, { status: 500 });
