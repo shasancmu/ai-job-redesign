@@ -6,6 +6,7 @@ import { normalizeCode } from "@/lib/classes";
 import { titleCaseName } from "@/lib/name";
 import { isAdmin } from "@/lib/admin";
 import { moduleBySlug, MODULES } from "@/lib/modules";
+import { clip } from "@/lib/clip";
 import { SCITOOLS, RESEARCH_TOOLS } from "@/lib/researchTools";
 import { getOrgBySlug, canEditOrgBranding, type Org, type OrgHighlight, type OrgFaculty } from "@/lib/orgs";
 import { enterOrg } from "./actions";
@@ -325,7 +326,7 @@ async function OrgLandingView({ org }: { org: Org }) {
               <div className="text-2xl" aria-hidden>{m.emoji}</div>
               <h3 className="mt-2 font-semibold text-ink">{m.name}</h3>
               <p className="mt-1 flex-1 text-sm leading-relaxed text-slate2">
-                {m.tagline.length > 128 ? m.tagline.slice(0, 125).trimEnd() + "…" : m.tagline}
+                {clip(m.tagline, 128)}
               </p>
               <div className="mt-3 text-xs text-slate-400">{m.minutes} min · {m.mode}</div>
             </div>

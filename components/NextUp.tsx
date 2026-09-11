@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { recommendedNext } from "@/lib/momentum";
+import { clip } from "@/lib/clip";
 
 // Shown at the completion moment of a module: a single suggested next module to
 // keep momentum. Falls back to a gentle "browse more" for custom/unmapped ones.
@@ -17,7 +18,7 @@ export default function NextUp({ exercise }: { exercise: string }) {
     );
   }
 
-  const tag = next.tagline && next.tagline.length > 96 ? next.tagline.slice(0, 95) + "…" : next.tagline;
+  const tag = next.tagline ? clip(next.tagline, 96) : next.tagline;
   return (
     <div className="rounded-2xl border border-line bg-white p-4 no-print">
       <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Recommended next</div>
