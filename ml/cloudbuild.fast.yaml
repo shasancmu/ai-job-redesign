@@ -1,0 +1,19 @@
+# Cloud Build config for deploy_fast.sh — build the sciscore image with Kaniko
+# LAYER CACHING so code-only changes don't reinstall torch/transformers or
+# re-download SciBERT. Kaniko caches each layer in Artifact Registry (under
+# <repo>/cache); a build reuses every cached layer above the first changed one.
+# The Dockerfile is ordered so app-code COPYs sit below those heavy layers, so a
+# sciscore/*.py edit only rebuilds from that COPY down (~1-2 min total).
+#
+# _IMAGE and _TAG are supplied by deploy_fast.sh via --substitutions.
+steps:
+  - name: gcr.io/kaniko-project/executor:latest
+    args:
+      - --dockerfile=Dockerfile
+      - --context=dir:///workspace
+      - --destination=${_IMAGE}:${_TAG}
+      - --destination=${_IMAGE}:latest
+      - --cache=true
+      - --cache-ttl=336h
+options:
+  logging: CLOUD_LOGGING_ONLY
