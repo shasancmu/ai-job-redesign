@@ -35,7 +35,7 @@ function serialize<T>(fn: () => Promise<T>): Promise<T> {
 // Score many texts for one task in a single request (the service accepts a
 // `texts` array and returns aligned results). Returns one entry per input,
 // null where the service failed or gave no score.
-export async function scoreTextBatch(task: string, texts: string[], timeoutMs = 60000): Promise<(ModelScore | null)[]> {
+export async function scoreTextBatch(task: string, texts: string[], timeoutMs = 90000): Promise<(ModelScore | null)[]> {
   if (!BASE || texts.length === 0) return texts.map(() => null);
 
   const attempt = async (): Promise<(ModelScore | null)[] | null> => {
@@ -76,11 +76,15 @@ export async function scoreTextBatch(task: string, texts: string[], timeoutMs = 
   return first || texts.map(() => null);
 }
 
-// Default timeout is generous: a scale-to-zero service loads the shared SciBERT
-// base on its first request (~30s), and a 20s window would abort mid-cold-start
-// and silently drop that dimension. One retry recovers a transient cold miss —
-// the base is warm by the second try, so it returns in well under a second.
-export async function scoreText(task: string, text: string, timeoutMs = 45000): Promise<ModelScore | null> {
+// Default timeout must comfortably outlast a full cold boot. A scale-to-zero
+// Cloud Run instance holds the request while it starts the container AND loads
+// the shared SciBERT base — that can take 45-70s on the very first call. A 45s
+// window aborted mid-boot and silently dropped that dimension (the classic "only
+// one deeper score renders" bug: the first, cold call times out; the next one,
+// now warm, returns instantly). 90s covers the cold boot; because calls are
+// serialized only the first is ever slow, so three sequential calls stay well
+// inside the route's 300s budget. One retry still recovers a transient cold miss.
+export async function scoreText(task: string, text: string, timeoutMs = 90000): Promise<ModelScore | null> {
   if (!BASE) return null;
   const t = (text || "").trim();
   if (t.length < 40) return null;

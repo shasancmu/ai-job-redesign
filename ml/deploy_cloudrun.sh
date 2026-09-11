@@ -26,7 +26,8 @@ gcloud run deploy "$SERVICE" \
   --region "$REGION" \
   --memory 4Gi --cpu 2 \
   --concurrency 4 \
-  --min-instances 0 --max-instances 3 \
+  --min-instances 1 --max-instances 3 \
+  --cpu-boost \
   --timeout 120 \
   --allow-unauthenticated \
   --set-env-vars "SCISCORE_API_KEY=$SCISCORE_API_KEY"
