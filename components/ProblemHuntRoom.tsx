@@ -3,29 +3,48 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import { createClient } from "@/lib/supabase/client";
 import { streamPost } from "@/lib/streamClient";
+import { moduleBeacon } from "@/lib/clientBeacon";
 import InterviewProgress from "@/components/InterviewProgress";
 import { HUNT, HUNT_SCORE_KEYS, type HuntMode } from "@/lib/problemhunt";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Src = { title: string; url: string };
 type Stage = "interview" | "evidence" | "report";
+type Evi = { problem: string; block: string; sources: Src[]; enabled: boolean };
 
-export default function ProblemHuntRoom({ mode }: { mode: HuntMode }) {
+export default function ProblemHuntRoom({ me, session, initialWorkspace }: { me: string; session: any; initialWorkspace?: any }) {
+  const mode: HuntMode = session?.exercise === "problem-leader" ? "leader" : "seller";
   const cfg = HUNT[mode];
-  const [chat, setChat] = useState<Msg[]>([]);
+  const supabase = createClient();
+  const canvas0 = initialWorkspace?.canvas || {};
+
+  const [chat, setChat] = useState<Msg[]>(Array.isArray(canvas0.chat) ? canvas0.chat : []);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState("");
   const [busy, setBusy] = useState(false);
-  const [stage, setStage] = useState<Stage>("interview");
+  const [stage, setStage] = useState<Stage>(canvas0.stage || "interview");
   const [err, setErr] = useState<string | null>(null);
-  const [evidence, setEvidence] = useState<{ problem: string; block: string; sources: Src[]; enabled: boolean } | null>(null);
-  const [report, setReport] = useState<any>(null);
+  const [evidence, setEvidence] = useState<Evi | null>(canvas0.evidence || null);
+  const [report, setReport] = useState<any>(canvas0.report || null);
   const scroller = useRef<HTMLDivElement>(null);
   const started = useRef(false);
 
   const answered = chat.filter((m) => m.role === "user").length;
   const canFinish = answered >= 3;
+
+  // Autosave the whole run to the workspace so it resumes and instructors can see it.
+  async function persist(patch: Record<string, any>) {
+    try {
+      const canvas = { chat, evidence, report, stage, ...patch };
+      await supabase.from("workspaces").upsert({ session_id: session.id, author_id: me, canvas }, { onConflict: "session_id,author_id" });
+    } catch { /* best effort */ }
+  }
+
+  useEffect(() => { if (session?.exercise) moduleBeacon(session.exercise, "solo", "start"); }, [session?.exercise]);
+  const doneBeacon = useRef(false);
+  useEffect(() => { if (report && session?.exercise && !doneBeacon.current) { doneBeacon.current = true; moduleBeacon(session.exercise, "solo", "complete"); } }, [report, session?.exercise]);
 
   useEffect(() => { scroller.current?.scrollTo({ top: scroller.current.scrollHeight }); }, [chat.length, streaming]);
 
@@ -40,10 +59,12 @@ export default function ProblemHuntRoom({ mode }: { mode: HuntMode }) {
     finally { setBusy(false); }
   }
 
-  // Kick off the opening question.
+  // Kick off the opening question — only for a fresh run (a resumed run already
+  // has its chat hydrated from the workspace).
   useEffect(() => {
     if (started.current) return; started.current = true;
-    (async () => { const first = await call([]); if (first) setChat([{ role: "assistant", content: first }]); })();
+    if (chat.length > 0) return;
+    (async () => { const first = await call([]); if (first) { setChat([{ role: "assistant", content: first }]); persist({ chat: [{ role: "assistant", content: first }] }); } })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -53,18 +74,21 @@ export default function ProblemHuntRoom({ mode }: { mode: HuntMode }) {
     const next: Msg[] = [...chat, { role: "user", content: text }];
     setChat(next); setInput("");
     const reply = await call(next);
-    if (reply) setChat([...next, { role: "assistant", content: reply }]);
+    const full = reply ? [...next, { role: "assistant" as const, content: reply }] : next;
+    if (reply) setChat(full);
+    persist({ chat: full });
   }
 
   const transcript = () => chat.map((m) => `${m.role === "user" ? "Them" : "Coach"}: ${m.content}`).join("\n");
 
   async function gather() {
     setStage("evidence"); setBusy(true); setErr(null);
+    persist({ stage: "evidence" });
     try {
       const res = await fetch("/api/problem/evidence", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode, transcript: transcript() }) });
       const d = await res.json();
       if (d.error) { setErr(d.error); setStage("interview"); }
-      else setEvidence({ problem: d.problem || "", block: d.block || "", sources: d.sources || [], enabled: !!d.enabled });
+      else { const ev: Evi = { problem: d.problem || "", block: d.block || "", sources: d.sources || [], enabled: !!d.enabled }; setEvidence(ev); persist({ stage: "evidence", evidence: ev }); }
     } catch { setErr("Couldn't gather evidence."); setStage("interview"); }
     setBusy(false);
   }
@@ -74,7 +98,7 @@ export default function ProblemHuntRoom({ mode }: { mode: HuntMode }) {
     try {
       const res = await fetch("/api/problem/report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode, transcript: transcript(), problem: evidence?.problem || "", block: evidence?.block || "", sources: evidence?.sources || [] }) });
       const d = await res.json();
-      if (d.report) { setReport(d.report); setStage("report"); }
+      if (d.report) { setReport(d.report); setStage("report"); persist({ stage: "report", report: d.report }); }
       else setErr(d.error || "Couldn't build the report.");
     } catch { setErr("Couldn't build the report."); }
     setBusy(false);

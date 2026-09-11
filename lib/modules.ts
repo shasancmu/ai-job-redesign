@@ -119,7 +119,9 @@ export type ModuleDef = {
     | "res-paper"
     | "res-argument"
     | "res-data"
-    | "res-publish"; // which room engine renders it
+    | "res-publish"
+    | "problem-seller"
+    | "problem-leader"; // which room engine renders it
   name: string;
   tagline: string;
   description: string;
@@ -440,6 +442,36 @@ export const MODULES: ModuleDef[] = [
     emoji: "🎙️",
     priceCents: 500,
     priceEnv: "STRIPE_PRICE_SOLO",
+  },
+  {
+    slug: "find-problem",
+    exercise: "problem-seller",
+    name: "Find a Problem Worth Solving",
+    tagline: "For a founder, consultant, or researcher commercializing: an AI coach helps you hunt the one recurring, expensive, newly-solvable problem — close to your edge — that many buyers will pay to fix. It then checks the problem against the real world and grades it.",
+    description:
+      "A coached search for your beachhead problem. An AI strategist interviews you along one line — a valuable problem is recurring, expensive, newly solvable, close to what you uniquely know, and purchasable — then searches the web to corroborate that the problem is real and costly (not just asserted), and returns a graded thesis: who has it, why now, your edge, the value at stake, whether it is repeatable, whether a buyer will pay, and the single cheapest experiment to try to disprove it.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 20,
+    ai: true,
+    emoji: "🎯",
+    priceCents: 0,
+    priceEnv: "",
+  },
+  {
+    slug: "find-org-problems",
+    exercise: "problem-leader",
+    name: "Find Your Organization's Highest-Value Problems",
+    tagline: "For a leader with resources to allocate: an AI coach surfaces where your next hour, dollar, or hire creates the most value — a ranked map of internal opportunities, corroborated against real evidence, with what to stop to fund the winner.",
+    description:
+      "A coached audit of where value is leaking inside your organization. An AI strategist interviews you — misallocated attention, initiatives you cannot size, latent revenue, dispersed information that never becomes action — and pushes you toward the blind spots you are not looking at. It corroborates the pattern against real industry evidence, then returns a ranked opportunity map: for each, the value at stake, the odds, what it takes, and what to stop to fund it, plus which to pursue first and how to turn it into a running, measured experiment.",
+    partner: "ai",
+    mode: "With AI",
+    minutes: 25,
+    ai: true,
+    emoji: "🧭",
+    priceCents: 0,
+    priceEnv: "",
   },
   {
     slug: "good-business",
