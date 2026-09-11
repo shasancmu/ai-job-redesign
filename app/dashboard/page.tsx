@@ -496,6 +496,7 @@ export default async function Dashboard({
           <div className="rounded-2xl border border-dashed border-line bg-white p-6 text-center">
             <div className="text-sm font-semibold text-ink">Nothing assigned yet</div>
             <div className="mt-1 text-sm text-slate2">Assigned exercises{cohortName ? ` for ${cohortName}` : ""} will appear right here.</div>
+            {isStaffHere && <a href="/facilitator/cohorts" className="mt-3 inline-block text-sm font-semibold text-ai hover:underline">Assign exercises to a cohort →</a>}
           </div>
         )}
         {orgAds.length > 0 && (
@@ -668,10 +669,9 @@ export default async function Dashboard({
         </Dismissible>
       )}
 
-      {/* The zones, each visually demarcated: Your program → Find → Your progress. */}
+      {/* The zones, each visually demarcated: Your program → Find. */}
       {programZone}
       {findZone}
-      {progressZone}
 
       {/* Runs banner only when it's actually urgent — out of runs, or the alumni
           window is open. The header chip carries the balance the rest of the time. */}
@@ -742,26 +742,12 @@ export default async function Dashboard({
         </Dismissible>
       )}
 
-      {isDeepTech && researchTools.length > 0 && (
-        <section className="mb-8">
-          <h2 className="eyebrow">Research intelligence</h2>
-          <p className="mb-4 mt-1 max-w-2xl text-sm text-slate2">Scientifiq.AI tools — ask the ecosystem, score a portfolio across every dimension of potential, and map cross-disciplinary collaboration.</p>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 stagger-in">
-            {researchTools.map((t) => (
-              <a key={t.href} href={t.href} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
-                <div className="text-2xl">{t.emoji}</div>
-                <div className="mt-2 text-sm font-bold text-ink group-hover:text-ai">{t.name}</div>
-                <div className="mt-0.5 line-clamp-3 flex-1 text-xs text-slate-400">{t.desc}</div>
-                {t.note && <div className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-slate-300">{t.note}</div>}
-              </a>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Research-intelligence (Scientifiq) tools are reached through their modules,
+          not as a separate dashboard section. */}
 
       <section className="mt-10">
         <h2 className="eyebrow mb-3">{t("dash.yourSessions")}</h2>
-        <SessionsPanel sessions={sessions || []} me={user.id} />
+        <SessionsPanel sessions={ctxSessions} me={user.id} />
       </section>
 
       {presence && (presence.reach || presence.needsRefresh) && (

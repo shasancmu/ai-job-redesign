@@ -135,7 +135,11 @@ async function Overview({ admin, allowedCohorts, classes, superadmin, orgName }:
           <p className="mt-1 max-w-lg text-sm text-slate2">
             Open a cohort to teach or review the work, set up a new one, or run something live.
           </p>
-          <Link href="/facilitator/guide" className="mt-2 inline-block text-sm font-semibold text-sky hover:underline">How this works for your role →</Link>
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+            <Link href="/facilitator/guide" className="font-semibold text-sky hover:underline">How this works for your role →</Link>
+            <Link href="/facilitator/cohorts" className="font-medium text-ai hover:underline">Cohorts &amp; modules →</Link>
+            <Link href="/facilitator/classes" className="font-medium text-ai hover:underline">Classes →</Link>
+          </div>
         </div>
         <div className="shrink-0"><HeaderNav tour /></div>
       </div>
@@ -205,6 +209,14 @@ async function Overview({ admin, allowedCohorts, classes, superadmin, orgName }:
                       )}
                     </div>
                   </Link>
+                  {!untagged && (
+                    <Link
+                      href={`/facilitator/cohorts?edit=${encodeURIComponent(key)}`}
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-1.5 text-sm font-medium text-ink transition hover:border-ai hover:text-ai"
+                    >
+                      Choose modules
+                    </Link>
+                  )}
                   <Link
                     href={`/facilitator/live?cohort=${encodeURIComponent(key)}`}
                     className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-1.5 text-sm font-medium text-ink transition hover:border-sage hover:bg-sage-soft"

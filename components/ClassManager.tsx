@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { MODULES } from "@/lib/modules";
 import { normalizeCode } from "@/lib/classes";
@@ -44,6 +44,20 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
     const d = await fetch("/api/classes", { cache: "no-store" }).then((r) => r.json());
     setClasses(d.classes || []);
   }
+
+  // Deep link: /facilitator/cohorts?edit=<code> opens that cohort's editor directly
+  // (so "Choose modules" on a cohort card lands right on its module picker).
+  const openedRef = useRef(false);
+  useEffect(() => {
+    if (openedRef.current || !classes.length) return;
+    try {
+      const target = new URLSearchParams(window.location.search).get("edit");
+      if (!target) return;
+      const k = classes.find((c) => c.code === target);
+      if (k) { openedRef.current = true; edit(k); }
+    } catch { /* no window */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classes]);
   const selectedClassUnit = classUnits.find((c) => c.id === classUnitId) || null;
 
   const add = (slug: string) => setOrder((o) => (o.includes(slug) ? o : [...o, slug]));
