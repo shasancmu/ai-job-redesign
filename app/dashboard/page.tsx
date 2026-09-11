@@ -197,6 +197,21 @@ export default async function Dashboard({
     .order("created_at", { ascending: false })
     .limit(300);
 
+  // Scope "your work" to the CURRENT context so a run you did under Personal doesn't
+  // surface inside an org's dashboard (and vice-versa). An org context keeps only runs
+  // tagged to that org's cohorts; the personal context keeps only untagged runs.
+  let contextCohorts: Set<string> | null = null;
+  if (activeOrg) {
+    try {
+      const a = createAdminClient();
+      const { data: orgClasses } = await a.from("classes").select("code").eq("org_id", activeOrg.id);
+      contextCohorts = new Set([...((orgClasses as any[]) || []).map((c) => String(c.code)), masterCohortCode(activeOrg.id)]);
+    } catch { contextCohorts = new Set([masterCohortCode(activeOrg.id)]); }
+  }
+  const ctxSessions = (sessions || []).filter((s: any) =>
+    activeOrg ? (!!s.cohort && contextCohorts!.has(s.cohort)) : !s.cohort
+  );
+
   // Which modules has this person completed, and where's their last run?
   const [{ data: bench }, { data: net }] = await Promise.all([
     supabase.from("benchmark_results").select("session_id").eq("user_id", user.id).limit(1),
@@ -207,7 +222,7 @@ export default async function Dashboard({
   const completed: Record<string, boolean> = {};
   const lastCode: Record<string, string> = {};
   for (const m of MODULES) {
-    const runs = (sessions || []).filter((s: any) => s.exercise === m.exercise);
+    const runs = ctxSessions.filter((s: any) => s.exercise === m.exercise);
     if (runs[0]) lastCode[m.slug] = runs[0].code;
     completed[m.slug] =
       m.exercise === "benchmark"
@@ -220,7 +235,7 @@ export default async function Dashboard({
   // Custom modules (living cases, paper explainers) record completion as a
   // `custom:<slug>` done session — collect those so assigned ones show as done.
   const doneCustomSlugs = new Set(
-    (sessions || [])
+    ctxSessions
       .filter((s: any) => s.status === "done" && typeof s.exercise === "string" && s.exercise.startsWith("custom:"))
       .map((s: any) => (s.exercise as string).slice("custom:".length)),
   );
@@ -239,14 +254,14 @@ export default async function Dashboard({
   );
 
   // ---- "Your work" hub + momentum -----------------------------------------
-  const streak = computeStreak((sessions || []).map((s: any) => s.created_at));
+  const streak = computeStreak(ctxSessions.map((s: any) => s.created_at));
   // Iterate MODULES (registry order) rather than the session list, so each
   // card holds a FIXED position and never reshuffles when you open or re-run a
   // module. One card per module; "Done" if any of its runs finished.
   const workItems: WorkItem[] = [];
   for (const m of MODULES) {
     if (m.partner === "group") continue; // group runs (benchmark/network) have no revisitable artifact
-    const mine = (sessions || []).filter((x: any) => x.exercise === m.exercise); // newest-first
+    const mine = ctxSessions.filter((x: any) => x.exercise === m.exercise); // newest-first
     if (mine.length === 0) continue;
     const doneRun = mine.find((x: any) => x.status === "done"); // most recent finished run
     const done = !!doneRun;
@@ -347,7 +362,11 @@ export default async function Dashboard({
   // Deep-tech org? Then surface the Scientifiq research-intelligence tools.
   const isDeepTech = (activeOrg?.modules || []).some((s) => SCITOOLS.has(s));
   const researchTools = RESEARCH_TOOLS.filter((t) => !t.staffOnly || isStaffHere);
-  const showLibrary = !isOrgLearner || !!activeOrg?.member_can_browse;
+  // Scope the catalog to the org's curated set whenever a curated org is active — for
+  // STAFF too, so the dashboard reflects what THIS org actually offers. The full
+  // library shows only with no active org, no curation, or when the org opts members
+  // into free browsing. (Staff still manage the full set from /organization.)
+  const showLibrary = !activeOrg || !orgModules || !!activeOrg?.member_can_browse;
 
   // The consumer (no org, not staff). A brand-new one gets a guided front door
   // — a "Start here" pick and the full library collapsed — instead of the whole
@@ -473,15 +492,10 @@ export default async function Dashboard({
               </a>
             );})}
           </div>
-        ) : isStaffHere ? (
-          <a href="/team" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
-            <span className="min-w-0"><span className="block text-sm font-semibold text-ink">Run your program</span><span className="block text-xs text-slate-500">Assign modules to your cohorts, add people, and see how they engage.</span></span>
-            <span className="shrink-0 text-sm font-semibold text-ai">Open →</span>
-          </a>
         ) : (
           <div className="rounded-2xl border border-dashed border-line bg-white p-6 text-center">
             <div className="text-sm font-semibold text-ink">Nothing assigned yet</div>
-            <div className="mt-1 text-sm text-slate2">When your instructor assigns an exercise{cohortName ? ` to ${cohortName}` : ""}, it appears right here.</div>
+            <div className="mt-1 text-sm text-slate2">Assigned exercises{cohortName ? ` for ${cohortName}` : ""} will appear right here.</div>
           </div>
         )}
         {orgAds.length > 0 && (
