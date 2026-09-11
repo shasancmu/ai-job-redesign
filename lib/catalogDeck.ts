@@ -17,6 +17,7 @@ const CATEGORY_BUNDLES: Record<CategoryKey, string[]> = {
   research: ["research"],
   phd: ["phd-path"],
   foundations: ["ai-literacy"],
+  governance: [],
 };
 
 const FEATURE_LABEL: Record<string, string> = Object.fromEntries(FEATURES.map((f) => [f.key, f.label]));

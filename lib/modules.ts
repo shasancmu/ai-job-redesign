@@ -1729,10 +1729,11 @@ export const SALEABLE_MODULES = MODULES.filter((m) => m.forSale !== false);
 
 // Thematic categories — how the exercises are grouped on the marketing page
 // (the dashboard groups by partner instead: how you run each one).
-export type CategoryKey = "redesign" | "strategy" | "commercialize" | "negotiate" | "live" | "research" | "phd" | "foundations";
+export type CategoryKey = "redesign" | "strategy" | "commercialize" | "negotiate" | "live" | "research" | "phd" | "foundations" | "governance";
 export const CATEGORIES: { key: CategoryKey; title: string; blurb: string; chip: string; dot: string }[] = [
   { key: "redesign", title: "Work & AI", blurb: "Redesign your job or a workflow, and X-ray a résumé or role to see what AI can do, and what only a human can.", chip: "bg-sage-soft text-sage", dot: "#3F7A52" },
   { key: "foundations", title: "How AI works", blurb: "A plain-language, interactive series on how AI actually works, from expert systems to modern LLMs, so you understand what it can and can't do. With live demos and a tutor.", chip: "bg-amber-soft text-amber", dot: "#C98A2B" },
+  { key: "governance", title: "AI & governance", blurb: "Decide where AI belongs and vet the AI you bring in: find where AI fits a workflow, and pressure-test a vendor's disclosure for risk and real capability before you buy or deploy.", chip: "bg-sky-soft text-sky", dot: "#4E79C9" },
   { key: "strategy", title: "Sharpen a decision", blurb: "Pressure-test a strategy, a bet, or a whole business with a real framework and real numbers. AI interviews you, then builds the analysis.", chip: "bg-amber-soft text-amber", dot: "#C98A2B" },
   { key: "commercialize", title: "Science & deep-tech", blurb: "For TTOs, scientists, and deep-tech investors: score an invention, scan the research frontier, find the nearest expert or a technical co-founder, diligence the science, and rank disclosures. Powered by Scientifiq.AI.", chip: "bg-clay-soft text-clay", dot: "#B4632A" },
   { key: "negotiate", title: "Negotiate", blurb: "Bargain live against an AI counterpart, then get scored on the value you claimed, and the value you created.", chip: "bg-sky-soft text-sky", dot: "#4E79C9" },
@@ -1753,10 +1754,10 @@ const CATEGORY_OF: Record<string, CategoryKey> = {
   "jd-x-ray": "redesign",
   "execution-4a": "strategy",
   "balanced-scorecard": "strategy",
-  "ai-canvas": "strategy",
+  "ai-canvas": "governance",
   "deeptech-canvas": "commercialize",
-  "vendor-disclosure": "strategy",
-  "haip-disclosure": "strategy",
+  "vendor-disclosure": "governance",
+  "haip-disclosure": "governance",
   "opportunity-capability": "strategy",
   "test-the-bet": "strategy",
   "good-business": "strategy",
@@ -1995,7 +1996,7 @@ export function outcomeOf(slug: string): string | null {
 // ---------------------------------------------------------------------------
 export type IntentKey = "ai-work" | "decide" | "negotiate" | "commercialize" | "research";
 export const INTENTS: { key: IntentKey; emoji: string; label: string; blurb: string; cats: CategoryKey[] }[] = [
-  { key: "ai-work", emoji: "🤖", label: "Work smarter with AI", blurb: "Redesign your job or a workflow, and see what only a human can do.", cats: ["redesign", "foundations"] },
+  { key: "ai-work", emoji: "🤖", label: "Work smarter with AI", blurb: "Redesign your job or a workflow, and see what only a human can do.", cats: ["redesign", "foundations", "governance"] },
   { key: "decide", emoji: "🎯", label: "Sharpen a decision", blurb: "Pressure-test a strategy, a bet, or a business with a real framework.", cats: ["strategy"] },
   { key: "negotiate", emoji: "🤝", label: "Negotiate & persuade", blurb: "Bargain live against an AI counterpart, then get scored.", cats: ["negotiate"] },
   { key: "commercialize", emoji: "🔬", label: "Science & deep-tech", blurb: "For TTOs & hard-tech: score inventions, scan the research frontier, turn science into ventures.", cats: ["commercialize"] },
