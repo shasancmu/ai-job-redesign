@@ -31,11 +31,13 @@ export default async function TeamPage() {
   const role = await roleFor(user);
   const directorOrgs = role.memberships.filter((m) => m.role === "director").map((m) => m.org);
   const active = await getActiveOrg(user).catch(() => null);
-  // Show the active org if you run it, else your first director org. A superadmin
-  // can manage the active org even without a director membership (so they can, in
-  // particular, remove or demote directors).
-  let org = directorOrgs.find((o) => active && o.id === active.id) || directorOrgs[0];
-  if (!org && role.superadmin && active) org = active;
+  // The org you SELECTED (active) wins whenever you're allowed to manage it — i.e.
+  // you direct it, or you're a superadmin (who can manage any org, e.g. to remove or
+  // demote directors). Only when the active org isn't yours to manage do we fall back
+  // to the first org you direct. This is what makes the org switcher control /team.
+  let org = (active && (role.superadmin || directorOrgs.some((o) => o.id === active.id)))
+    ? active
+    : directorOrgs[0];
   if (!org) redirect(role.superadmin ? "/admin/orgs" : "/dashboard");
 
   const admin = createAdminClient();
