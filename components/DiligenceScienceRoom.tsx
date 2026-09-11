@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import DiligenceScienceReport from "@/components/DiligenceScienceReport";
+import QueryProgress from "@/components/QueryProgress";
 import { useT } from "@/components/I18nProvider";
 
 export default function DiligenceScienceRoom({ session, initialWorkspace }: { me?: string; session: any; initialWorkspace: any }) {
@@ -75,7 +76,9 @@ export default function DiligenceScienceRoom({ session, initialWorkspace }: { me
           {report && <Link href={`/diligence/${session.code}`} className="text-sm font-semibold text-ai hover:underline">Open full report →</Link>}
         </div>
 
-        {report && <div className="pt-2"><DiligenceScienceReport read={report.read} scores={report.scores} comparables={report.comparables} patents={report.patents} /></div>}
+        {busy && <QueryProgress estimateMs={25000} stages={["Scoring the science…", "Checking comparables & patents…", "Writing the diligence read…"]} note="Scoring the science and checking comparables. The first run can take ~30s while the models warm up." />}
+
+        {!busy && report && <div className="pt-2"><DiligenceScienceReport read={report.read} scores={report.scores} comparables={report.comparables} patents={report.patents} /></div>}
       </div>
     </main>
   );

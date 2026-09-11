@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import ScoreInventionReport from "@/components/ScoreInventionReport";
+import QueryProgress from "@/components/QueryProgress";
 import { useT } from "@/components/I18nProvider";
 
 // Reuses the score-report shape; only the framing and endpoint differ.
@@ -72,7 +73,9 @@ export default function PositionResearchRoom({ session, initialWorkspace }: { me
           {report && <Link href={`/position/${session.code}`} className="text-sm font-semibold text-ai hover:underline">Open full report →</Link>}
         </div>
 
-        {report && <div className="pt-2"><ScoreInventionReport read={report.read} scores={report.scores} extra={report.extra} deeperOffline={report.deeperOffline} /></div>}
+        {busy && <QueryProgress estimateMs={30000} stages={["Scoring against the field…", "Reading the deeper impact models…", "Writing your positioning…"]} note="Scoring against the field, then reading the deeper impact models. The first run can take ~30s while the models warm up." />}
+
+        {!busy && report && <div className="pt-2"><ScoreInventionReport read={report.read} scores={report.scores} extra={report.extra} deeperOffline={report.deeperOffline} /></div>}
       </div>
     </main>
   );

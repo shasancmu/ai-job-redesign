@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import CollaboratorsReport from "@/components/CollaboratorsReport";
+import QueryProgress from "@/components/QueryProgress";
 import { useT } from "@/components/I18nProvider";
 import ScientifiqScopePicker, { type Scope } from "@/components/ScientifiqScopePicker";
 
@@ -96,7 +97,9 @@ export default function FindCofounderRoom({ session, initialWorkspace }: { sessi
         </button>
       </div>
 
-      {report && <div className="mt-8"><CollaboratorsReport report={report.report} scopeLabel={report.scopeLabel} /></div>}
+      {busy && <div className="mt-8"><QueryProgress estimateMs={20000} stages={["Reading your focus…", "Searching for candidates…", "Ranking the fits…"]} /></div>}
+
+      {!busy && report && <div className="mt-8"><CollaboratorsReport report={report.report} scopeLabel={report.scopeLabel} /></div>}
     </main>
   );
 }

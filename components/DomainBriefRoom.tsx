@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import DomainBriefReport from "@/components/DomainBriefReport";
+import QueryProgress from "@/components/QueryProgress";
 import ScientifiqScopePicker, { type Scope } from "@/components/ScientifiqScopePicker";
 import { useT } from "@/components/I18nProvider";
 
@@ -120,7 +121,9 @@ export default function DomainBriefRoom({ session, initialWorkspace }: { session
         </button>
       </div>
 
-      {report && (
+      {busy && <div className="mt-8"><QueryProgress estimateMs={20000} stages={["Scanning the domain…", "Reading the frontier…", "Building the brief…"]} /></div>}
+
+      {!busy && report && (
         <div className="mt-8">
           <DomainBriefReport brief={report.brief} data={report.data} />
         </div>

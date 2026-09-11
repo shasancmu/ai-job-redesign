@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useT } from "@/components/I18nProvider";
+import QueryProgress from "@/components/QueryProgress";
 import NearestExpertResult from "@/components/NearestExpertResult";
 
 export default function NearestExpertRoom({ session, initialWorkspace }: { me?: string; session: any; initialWorkspace: any }) {
@@ -85,7 +86,9 @@ export default function NearestExpertRoom({ session, initialWorkspace }: { me?: 
         <button onClick={run} disabled={busy || problem.trim().length < 8} className="btn-primary w-full">{busy ? "Finding experts… (~15s)" : result ? "Search again" : "Find experts"}</button>
       </div>
 
-      {result && <div className="mt-6"><NearestExpertResult plan={result.plan} ladder={result.ladder} /></div>}
+      {busy && <div className="mt-6"><QueryProgress estimateMs={15000} stages={["Parsing the problem…", "Searching the expert ladder…", "Ranking the nearest experts…"]} /></div>}
+
+      {!busy && result && <div className="mt-6"><NearestExpertResult plan={result.plan} ladder={result.ladder} /></div>}
     </main>
   );
 }

@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import LicensingBriefReport from "@/components/LicensingBriefReport";
+import QueryProgress from "@/components/QueryProgress";
 import { useT } from "@/components/I18nProvider";
 
 const LICENSE_TYPES = ["Either", "Exclusive", "Non-exclusive"];
@@ -102,7 +103,9 @@ export default function LicensingBriefRoom({ session, initialWorkspace }: { sess
         </button>
       </div>
 
-      {report && (
+      {busy && <div className="mt-8"><QueryProgress estimateMs={20000} stages={["Scoring the invention…", "Finding precedents…", "Writing the licensing brief…"]} note="Scoring the invention and finding precedents. The first run can take ~30s while the models warm up." /></div>}
+
+      {!busy && report && (
         <div className="mt-8">
           <LicensingBriefReport brief={report.brief} scores={report.scores} comparables={report.comparables} patents={report.patents} title={report.title} />
         </div>

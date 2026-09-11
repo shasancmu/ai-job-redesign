@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useT } from "@/components/I18nProvider";
+import QueryProgress from "@/components/QueryProgress";
 import ScienceIntelResult from "@/components/ScienceIntelResult";
 
 const MODES = [
@@ -98,7 +99,9 @@ export default function ScienceIntelRoom({ session, initialWorkspace }: { me?: s
         <button onClick={run} disabled={busy} className="btn-primary w-full">{busy ? "Reading the frontier… (~20s)" : result ? "Run again" : "Run the report"}</button>
       </div>
 
-      {result && <div className="mt-6"><ScienceIntelResult mode={result.mode} data={result.data} narrate={result.narrate} /></div>}
+      {busy && <div className="mt-6"><QueryProgress estimateMs={20000} stages={["Reading the frontier…", "Cross-referencing the company…", "Assembling the brief…"]} /></div>}
+
+      {!busy && result && <div className="mt-6"><ScienceIntelResult mode={result.mode} data={result.data} narrate={result.narrate} /></div>}
     </main>
   );
 }

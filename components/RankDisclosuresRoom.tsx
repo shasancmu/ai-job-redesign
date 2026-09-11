@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import RankDisclosuresReport from "@/components/RankDisclosuresReport";
+import QueryProgress from "@/components/QueryProgress";
 import { useT } from "@/components/I18nProvider";
 
 export default function RankDisclosuresRoom({ session, initialWorkspace }: { me?: string; session: any; initialWorkspace: any }) {
@@ -60,7 +61,9 @@ export default function RankDisclosuresRoom({ session, initialWorkspace }: { me?
           {report && <Link href={`/disclosures-rank/${session.code}`} className="text-sm font-semibold text-ai hover:underline">Open full report →</Link>}
         </div>
 
-        {report && <div className="pt-2"><RankDisclosuresReport ranked={report.ranked} read={report.read} /></div>}
+        {busy && <QueryProgress estimateMs={25000} stages={["Scoring each disclosure…", "Running the impact models…", "Ranking them…"]} note="Scoring each disclosure against the field. The first run can take ~30s while the models warm up." />}
+
+        {!busy && report && <div className="pt-2"><RankDisclosuresReport ranked={report.ranked} read={report.read} /></div>}
       </div>
     </main>
   );

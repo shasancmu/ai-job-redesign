@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import QueryProgress from "@/components/QueryProgress";
 
 type Result = {
   intent: string; restate: string; answer: string;
@@ -61,7 +62,9 @@ export default function ResearchAgent() {
 
       {err && <p className="mt-3 text-sm text-clay">{err}</p>}
 
-      {res && (
+      {busy && <div className="mt-4"><QueryProgress estimateMs={20000} stages={["Reading your question…", "Searching the warehouse…", "Writing the answer…"]} /></div>}
+
+      {!busy && res && (
         <div className="mt-4 space-y-4">
           <div className="rounded-2xl border border-line bg-white p-5">
             <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-ink">{res.answer}</div>

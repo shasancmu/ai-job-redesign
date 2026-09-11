@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import CollaboratorsReport from "@/components/CollaboratorsReport";
+import QueryProgress from "@/components/QueryProgress";
 import { useT } from "@/components/I18nProvider";
 import ScientifiqScopePicker, { type Scope } from "@/components/ScientifiqScopePicker";
 
@@ -100,7 +101,9 @@ export default function FindCollaboratorsRoom({ session, initialWorkspace }: { s
         </button>
       </div>
 
-      {report && (
+      {busy && <div className="mt-8"><QueryProgress estimateMs={20000} stages={["Reading your focus…", "Finding complementary people…", "Ranking the fits…"]} /></div>}
+
+      {!busy && report && (
         <div className="mt-8">
           <CollaboratorsReport report={report.report} scopeLabel={report.scopeLabel} />
         </div>

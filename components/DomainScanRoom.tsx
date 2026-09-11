@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import DomainInsightReport from "@/components/DomainInsightReport";
+import QueryProgress from "@/components/QueryProgress";
 import { useT } from "@/components/I18nProvider";
 
 import type { ScanVariant } from "@/lib/scanVariants";
@@ -72,7 +73,9 @@ export default function DomainScanRoom({ session, initialWorkspace, variant }: {
         <button onClick={run} disabled={busy || domain.trim().length < 2} className="btn-primary w-full">{busy ? "Scanning… (~20s)" : report ? "Scan again" : "Run the scan"}</button>
       </div>
 
-      {report && <div className="mt-8"><DomainInsightReport read={report.read} data={report.data} /></div>}
+      {busy && <div className="mt-8"><QueryProgress estimateMs={20000} stages={["Scanning the domain…", "Finding the key work…", "Summarizing…"]} /></div>}
+
+      {!busy && report && <div className="mt-8"><DomainInsightReport read={report.read} data={report.data} /></div>}
     </main>
   );
 }

@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import DefenseImpactReport from "@/components/DefenseImpactReport";
+import QueryProgress from "@/components/QueryProgress";
 import { useT } from "@/components/I18nProvider";
 
 export default function DefenseImpactRoom({ session, initialWorkspace }: { me?: string; session: any; initialWorkspace: any }) {
@@ -76,7 +77,9 @@ export default function DefenseImpactRoom({ session, initialWorkspace }: { me?: 
           {report && <Link href={`/defense/${session.code}`} className="text-sm font-semibold text-ai hover:underline">Open full report →</Link>}
         </div>
 
-        {report && <div className="pt-2"><DefenseImpactReport read={report.read} scores={report.scores} evidence={report.evidence} engine={report.engine} /></div>}
+        {busy && <QueryProgress estimateMs={30000} stages={["Scoring defense relevance…", "Gathering patent evidence…", "Writing the estimate…"]} note="Scoring defense relevance and gathering patent evidence. The first run can take ~30s while the models warm up." />}
+
+        {!busy && report && <div className="pt-2"><DefenseImpactReport read={report.read} scores={report.scores} evidence={report.evidence} engine={report.engine} /></div>}
       </div>
     </main>
   );

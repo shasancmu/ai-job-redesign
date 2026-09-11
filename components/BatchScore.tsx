@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import QueryProgress from "@/components/QueryProgress";
 
 type Row = { id: string; commercial: number; scientific: number; social: number; interdisciplinary: number; complex_invention: number; defense?: number };
 type Item = { id: string; text: string };
@@ -116,7 +117,9 @@ export default function BatchScore() {
         </div>
       </div>
 
-      {sorted && (
+      {busy && <div className="mt-5"><QueryProgress estimateMs={30000} stages={["Scoring against the field…", "Running the impact models…", "Assembling the table…"]} note="Scoring every paper against the field. The first run can take ~30s while the models warm up." /></div>}
+
+      {!busy && sorted && (
         <div className="mt-5">
           <div className="mb-2 flex items-center justify-between gap-3">
             <h2 className="eyebrow">Impact fingerprints — {sorted.length} papers</h2>

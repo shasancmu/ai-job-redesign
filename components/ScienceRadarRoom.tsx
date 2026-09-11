@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useT } from "@/components/I18nProvider";
+import QueryProgress from "@/components/QueryProgress";
 import ScienceRadarResult from "@/components/ScienceRadarResult";
 
 export default function ScienceRadarRoom({ session, initialWorkspace }: { me?: string; session: any; initialWorkspace: any }) {
@@ -69,7 +70,9 @@ export default function ScienceRadarRoom({ session, initialWorkspace }: { me?: s
         <button onClick={run} disabled={busy} className="btn-primary w-full">{busy ? "Scanning the science… (~20s)" : result ? "Scan again" : "Run the radar"}</button>
       </div>
 
-      {result && <div className="mt-6"><ScienceRadarResult report={result.report} narrate={result.narrate} /></div>}
+      {busy && <div className="mt-6"><QueryProgress estimateMs={20000} stages={["Finding the company's patents…", "Mapping the science frontier…", "Spotting competitors & whitespace…"]} /></div>}
+
+      {!busy && result && <div className="mt-6"><ScienceRadarResult report={result.report} narrate={result.narrate} /></div>}
     </main>
   );
 }
