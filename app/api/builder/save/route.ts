@@ -5,6 +5,9 @@ import type { BuilderSpec } from "@/lib/moduleBuilder";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Compiling the spec plus a few DB round-trips can stack on a cold start; give it
+// room so a slow save returns an error instead of a 504.
+export const maxDuration = 60;
 
 // Save (create/update) an author-built module. Only org directors and
 // superadmins may author. Scope is decided HERE, never trusted from the client:

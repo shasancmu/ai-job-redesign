@@ -27,8 +27,14 @@ export type ReviewStep = {
 };
 
 const clone = (s: any) => JSON.parse(JSON.stringify(s));
-const joinList = (xs: any[] | undefined, pick: (x: any) => string, empty = "—") =>
-  !xs?.length ? empty : xs.map((x) => `• ${pick(x)}`).join("\n");
+const joinList = (xs: any[] | undefined, pick: (x: any) => string, empty = "—") => {
+  // Drop items the picker can't name, so a bad shape never renders "• undefined".
+  const items = (xs || [])
+    .map((x) => { try { return pick(x); } catch { return ""; } })
+    .map((v) => (v == null ? "" : String(v).trim()))
+    .filter(Boolean);
+  return items.length ? items.map((v) => `• ${v}`).join("\n") : empty;
+};
 
 // A plain-language walk through the payoff structure — the hard, teachable part.
 // For each issue it names the structure (compatible / win-lose / a trade) from
@@ -149,7 +155,7 @@ const INTERVIEW: ReviewStep[] = [
     key: "output",
     title: "What they leave with",
     why: "The artifact is the point — a grade is not.",
-    read: (s) => joinList(s?.sections, (x) => x.title || x.key),
+    read: (s) => joinList(s?.sections, (x) => (typeof x === "string" ? x : x?.name || x?.title || x?.label || x?.key)),
     reroll: "Rework the report sections so the learner leaves with something they could act on tomorrow. Keep everything else.",
   },
 ];

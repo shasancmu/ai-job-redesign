@@ -131,7 +131,7 @@ export async function listAuthoredBy(userId: string): Promise<CustomModuleRow[]>
 export async function getModuleForEdit(slug: string, userId: string): Promise<CustomModuleRow | null> {
   let admin;
   try { admin = createAdminClient(); } catch { return null; }
-  const { data } = await admin.from("custom_modules").select("slug, exercise, name, super_type, spec, org_id, status, author_id, attributed_to").eq("slug", slug).maybeSingle();
+  const { data } = await admin.from("custom_modules").select("*").eq("slug", slug).maybeSingle();
   if (!data || (data as any).author_id !== userId) return null; // only the author edits
   return data as any;
 }
@@ -172,7 +172,7 @@ export async function saveCustomModule(input: {
   const base = moduleBySlug(slugify(input.spec.name)) ? `c-${slugify(input.spec.name)}` : slugify(input.spec.name);
 
   if (input.editSlug) {
-    const { data: existing } = await admin.from("custom_modules").select("author_id, exercise, attributed_to, attribution_status").eq("slug", input.editSlug).maybeSingle();
+    const { data: existing } = await admin.from("custom_modules").select("*").eq("slug", input.editSlug).maybeSingle();
     if (!existing || (existing as any).author_id !== input.userId) return { error: "Not found or not yours to edit." };
     // Preserve the credited person's own choice (accept/disavow) when the target is
     // unchanged; only recompute status when the operator points it at someone new.
@@ -183,11 +183,12 @@ export async function saveCustomModule(input: {
       const a = await resolveAttribution(input.userId, input.orgId, input.attributedTo);
       attributed_to = a.attributed_to; attribution_status = a.attribution_status;
     }
-    const { error } = await admin.from("custom_modules").update({
+    const baseUpdate = {
       name: (input.spec.name || "").slice(0, 80), super_type: input.spec.superType, spec: input.spec,
-      org_id: input.orgId, status: input.status || "published", attributed_to, attribution_status,
-      updated_at: new Date().toISOString(),
-    }).eq("slug", input.editSlug);
+      org_id: input.orgId, status: input.status || "published", updated_at: new Date().toISOString(),
+    };
+    const error = await writeAttrSafe(() => admin.from("custom_modules").update({ ...baseUpdate, attributed_to, attribution_status }).eq("slug", input.editSlug),
+      () => admin.from("custom_modules").update(baseUpdate).eq("slug", input.editSlug));
     if (error) return { error: error.message };
     return { slug: input.editSlug, exercise: (existing as any).exercise };
   }
@@ -195,11 +196,25 @@ export async function saveCustomModule(input: {
   const slug = await uniqueSlug(admin, base);
   const exercise = CUSTOM_PREFIX + slug;
   const attr = await resolveAttribution(input.userId, input.orgId, input.attributedTo);
-  const { error } = await admin.from("custom_modules").insert({
+  const baseInsert = {
     slug, exercise, name: (input.spec.name || "").slice(0, 80), super_type: input.spec.superType,
     spec: input.spec, org_id: input.orgId, status: input.status || "published", author_id: input.userId,
-    attributed_to: attr.attributed_to, attribution_status: attr.attribution_status,
-  });
+  };
+  const error = await writeAttrSafe(() => admin.from("custom_modules").insert({ ...baseInsert, attributed_to: attr.attributed_to, attribution_status: attr.attribution_status }),
+    () => admin.from("custom_modules").insert(baseInsert));
   if (error) return { error: error.message };
   return { slug, exercise };
+}
+
+// Attribution columns are additive: if the migration (sql/module_attribution.sql)
+// hasn't been run yet, writing them errors, which must NOT break publishing. Try
+// with them, and on a missing-column error fall back to the write without them.
+async function writeAttrSafe(withAttr: () => any, without: () => any): Promise<{ message: string } | null> {
+  const { error } = await withAttr();
+  if (!error) return null;
+  if (/attribut(ed_to|ion_status)|schema cache|column/i.test(error.message || "")) {
+    const { error: e2 } = await without();
+    return e2 ? { message: e2.message } : null;
+  }
+  return { message: error.message };
 }
