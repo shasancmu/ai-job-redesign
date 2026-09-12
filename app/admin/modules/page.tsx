@@ -7,7 +7,6 @@ import { isSuperadmin } from "@/lib/orgs";
 import { listAllCustomModules } from "@/lib/customModules";
 import { MODULES, CATEGORIES, moduleCategory, modulePills, pillLabel } from "@/lib/modules";
 import Logo from "@/components/Logo";
-import LocalizeModule from "@/components/LocalizeModule";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin · modules" };
@@ -151,7 +150,6 @@ export default async function ModulesAdminPage() {
                   <th className="px-3 py-2 font-semibold">Status</th>
                   <th className="px-3 py-2 font-semibold">Author</th>
                   <th className="px-3 py-2 font-semibold">Updated</th>
-                  <th className="px-3 py-2 font-semibold">Language copy</th>
                 </tr>
               </thead>
               <tbody>
@@ -173,11 +171,6 @@ export default async function ModulesAdminPage() {
                     </td>
                     <td className="px-3 py-2 text-xs text-slate2">{(c.author_id && authorName.get(c.author_id)) || "—"}</td>
                     <td className="px-3 py-2 text-xs tabular-nums text-slate-400">{fmtDate(c.updated_at)}</td>
-                    <td className="px-3 py-2">
-                      {c.language
-                        ? <span className="rounded-full bg-mist px-2 py-0.5 text-[11px] text-slate2" title={c.source_slug ? `from ${c.source_slug}` : undefined}>{c.language}</span>
-                        : <LocalizeModule slug={c.slug} />}
-                    </td>
                   </tr>
                 ))}
               </tbody>

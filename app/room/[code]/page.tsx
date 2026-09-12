@@ -73,6 +73,8 @@ import ResLesson6Publish from "@/components/lessons/ResLesson6Publish";
 import { variantForExercise } from "@/lib/disclosure";
 import { canvasByExercise } from "@/lib/canvases";
 import { resolveCanvasDefForUser } from "@/lib/customModules";
+import { getUserLanguage } from "@/lib/lang";
+import { localizeCanvasDef } from "@/lib/translationCache";
 import { scenarioByExercise } from "@/lib/negotiation";
 
 // A room code says nothing about what's in the tab, and people keep several
@@ -745,9 +747,13 @@ export default async function RoomPage({
 
   // Strategy-canvas modules (GAS / opportunity-capability / experiment):
   // single-user, only the host belongs here.
-  const canvasDef = await resolveCanvasDefForUser(session.exercise || "", user.id);
+  let canvasDef = await resolveCanvasDefForUser(session.exercise || "", user.id);
   if (canvasDef) {
     if (!amHost) redirect("/dashboard");
+    // Localize the module's labels/headings to the learner's language (cached, so
+    // each phrase is translated once ever). Covers custom + new modules the static
+    // messages bundle can't; a no-op for English.
+    canvasDef = await localizeCanvasDef(canvasDef, await getUserLanguage(supabase, user.id));
     await supabase
       .from("workspaces")
       .upsert({ session_id: session.id, author_id: user.id }, { onConflict: "session_id,author_id" });
