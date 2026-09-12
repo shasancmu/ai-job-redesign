@@ -42,7 +42,14 @@ export async function POST(request: Request) {
   const status = body.status === "draft" ? "draft" : "published";
   const editSlug = typeof body.editSlug === "string" && body.editSlug ? body.editSlug : undefined;
 
-  const res = await saveCustomModule({ userId: user.id, spec, orgId, status, editSlug });
+  // Credit someone else only if the operator directs THIS module's org. Otherwise
+  // the module is attributed to the operator (self). saveCustomModule then decides
+  // whether that credit is active (org member) or pending (needs acceptance).
+  let attributedTo: string | null = null;
+  const wantAttrib = typeof body.attributedTo === "string" && body.attributedTo && body.attributedTo !== user.id ? body.attributedTo : null;
+  if (wantAttrib && orgId && role.directorOrgIds.includes(orgId)) attributedTo = wantAttrib;
+
+  const res = await saveCustomModule({ userId: user.id, spec, orgId, status, editSlug, attributedTo });
   if ("error" in res) return Response.json({ error: res.error }, { status: 400 });
   return Response.json({ ok: true, slug: res.slug, exercise: res.exercise, scope: orgId ? "org" : "global" });
 }

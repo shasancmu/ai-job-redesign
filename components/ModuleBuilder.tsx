@@ -8,12 +8,14 @@ import { BuilderSpec, DEFAULT_SPEC, SUPER_TYPES, validateSpec } from "@/lib/modu
 // (Setup → Interview → Report) build live, then save and test-run. The server
 // compiles the spec into a hardened, runnable module; nothing here writes prompts.
 export default function ModuleBuilder({
-  initialSpec, editSlug, canGlobal, orgName,
+  initialSpec, editSlug, canGlobal, orgName, meId, orgFaculty = [], initialAttributedTo,
 }: {
   initialSpec?: BuilderSpec; editSlug?: string; canGlobal: boolean; orgName?: string | null;
+  meId?: string; orgFaculty?: { id: string; name: string }[]; initialAttributedTo?: string | null;
 }) {
   const [spec, setSpec] = useState<BuilderSpec>(initialSpec || DEFAULT_SPEC);
   const [scope, setScope] = useState<"org" | "global">(orgName ? "org" : "global");
+  const [attributedTo, setAttributedTo] = useState<string>(initialAttributedTo && initialAttributedTo !== meId ? initialAttributedTo : "");
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState<{ slug: string } | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export default function ModuleBuilder({
     try {
       const res = await fetch("/api/builder/save", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spec, scope, status, editSlug }),
+        body: JSON.stringify({ spec, scope, status, editSlug, attributedTo: attributedTo || undefined }),
       });
       const d = await res.json();
       if (res.ok && d.slug) setSaved({ slug: d.slug });
@@ -145,12 +147,26 @@ export default function ModuleBuilder({
             <span className="text-sm"><span className="font-semibold text-ink">Sign this as mine.</span> <span className="text-slate-500">Show my photo, name, and affiliation on the module card and its report.</span></span>
           </label>
           {spec.signedByAuthor && (
-            <label className="mt-2 flex cursor-pointer items-start gap-2.5 pl-6">
-              <input type="checkbox" className="mt-0.5 h-4 w-4" checked={!!spec.showOrgLogo} onChange={(e) => set({ showOrgLogo: e.target.checked })} />
-              <span className="text-sm"><span className="font-semibold text-ink">Show my institution&apos;s logo</span> <span className="text-slate-500">alongside my name.</span></span>
-            </label>
+            <>
+              <label className="mt-2 flex cursor-pointer items-start gap-2.5 pl-6">
+                <input type="checkbox" className="mt-0.5 h-4 w-4" checked={!!spec.showOrgLogo} onChange={(e) => set({ showOrgLogo: e.target.checked })} />
+                <span className="text-sm"><span className="font-semibold text-ink">Show the institution&apos;s logo</span> <span className="text-slate-500">alongside the name.</span></span>
+              </label>
+              {orgFaculty.length > 0 && (
+                <div className="mt-3 pl-6">
+                  <label className="lbl">Credit to</label>
+                  <select className="field mt-1 max-w-xs" value={attributedTo} onChange={(e) => setAttributedTo(e.target.value)}>
+                    <option value="">Me</option>
+                    {orgFaculty.filter((p) => p.id !== meId).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                  {attributedTo
+                    ? <p className="mt-1 text-xs text-slate-400">You&apos;re building this on their behalf; the byline shows their name. As an organization member they see it right away and can remove it anytime.</p>
+                    : <p className="mt-1 text-xs text-slate-400">Building it for a colleague? Credit the person whose judgment it carries.</p>}
+                </div>
+              )}
+            </>
           )}
-          <p className="mt-2 text-xs text-slate-400">Set your photo, title, and affiliation on your <Link href="/profile" className="font-semibold text-ai hover:underline">creator profile</Link>. Your affiliation is verified by your organization membership.</p>
+          <p className="mt-2 text-xs text-slate-400">Set the photo, title, and affiliation on the <Link href="/profile" className="font-semibold text-ai hover:underline">creator profile</Link>. Affiliation is verified by organization membership.</p>
         </Section>
 
         {/* Publish */}

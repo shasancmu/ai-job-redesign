@@ -75,11 +75,14 @@ export async function getSignedAttribution(exercise: string | null | undefined):
   if (!exercise) return null;
   let admin;
   try { admin = createAdminClient(); } catch { return null; }
-  const { data } = await admin.from("custom_modules").select("author_id, spec").eq("exercise", exercise).maybeSingle();
+  const { data } = await admin.from("custom_modules").select("author_id, attributed_to, attribution_status, spec").eq("exercise", exercise).maybeSingle();
   if (!data) return null;
   const spec = ((data as any).spec || {}) as { signedByAuthor?: boolean; showOrgLogo?: boolean };
   if (!spec.signedByAuthor) return null;
-  const creator = await getCreatorIdentity((data as any).author_id);
+  // A credit that the named person has removed (or not yet accepted) is not shown.
+  if (((data as any).attribution_status || "active") !== "active") return null;
+  const creditedTo = (data as any).attributed_to || (data as any).author_id;
+  const creator = await getCreatorIdentity(creditedTo);
   if (!creator) return null;
   return { creator, showLogo: !!spec.showOrgLogo };
 }
@@ -88,15 +91,47 @@ export async function getSignedAttribution(exercise: string | null | undefined):
 export async function listSignedModulesByAuthor(authorId: string): Promise<{ slug: string; name: string; emoji: string; tagline: string }[]> {
   let admin;
   try { admin = createAdminClient(); } catch { return []; }
+  // Modules CREDITED to this person (attributed_to), plus legacy rows they authored
+  // before attribution existed — active credits only.
   const { data } = await admin
     .from("custom_modules")
-    .select("slug, name, spec, status")
-    .eq("author_id", authorId)
+    .select("slug, name, spec, status, author_id, attributed_to, attribution_status")
     .eq("status", "published")
+    .or(`attributed_to.eq.${authorId},and(attributed_to.is.null,author_id.eq.${authorId})`)
     .order("updated_at", { ascending: false });
   return ((data as any[]) || [])
-    .filter((m) => (m.spec || {}).signedByAuthor)
+    .filter((m) => (m.spec || {}).signedByAuthor && (m.attribution_status || "active") === "active")
     .map((m) => ({ slug: m.slug, name: m.name || (m.spec || {}).name || m.slug, emoji: (m.spec || {}).emoji || "🧭", tagline: (m.spec || {}).tagline || "" }));
+}
+
+// Modules someone ELSE credited to this person (e.g. a director building on their
+// behalf), so the person can accept a pending credit or disavow one. Their name,
+// their control.
+export async function listAttributionsForPerson(userId: string): Promise<{ slug: string; name: string; emoji: string; by: string; status: string }[]> {
+  let admin;
+  try { admin = createAdminClient(); } catch { return []; }
+  const { data } = await admin
+    .from("custom_modules")
+    .select("slug, name, spec, author_id, attributed_to, attribution_status")
+    .eq("attributed_to", userId)
+    .neq("author_id", userId)
+    .order("updated_at", { ascending: false });
+  const rows = (data as any[]) || [];
+  const opIds = [...new Set(rows.map((r) => r.author_id).filter(Boolean))];
+  const { data: profs } = opIds.length ? await admin.from("profiles").select("id, display_name").in("id", opIds) : ({ data: [] } as any);
+  const nameById: Record<string, string> = Object.fromEntries(((profs as any[]) || []).map((p) => [p.id, p.display_name || ""]));
+  return rows.map((r) => ({ slug: r.slug, name: r.name || (r.spec || {}).name || r.slug, emoji: (r.spec || {}).emoji || "🧭", by: nameById[r.author_id] || "someone", status: r.attribution_status || "active" }));
+}
+
+// The credited person accepts ('active') or disavows ('removed') a credit. Only
+// they can change it — attribution is worthless if it can be forced.
+export async function setAttributionStatus(userId: string, slug: string, status: "active" | "removed"): Promise<boolean> {
+  let admin;
+  try { admin = createAdminClient(); } catch { return false; }
+  const { data } = await admin.from("custom_modules").select("attributed_to").eq("slug", slug).maybeSingle();
+  if (!data || (data as any).attributed_to !== userId) return false;
+  const { error } = await admin.from("custom_modules").update({ attribution_status: status }).eq("slug", slug);
+  return !error;
 }
 
 // Derive a URL handle from a name, unique across profiles. Called when a creator

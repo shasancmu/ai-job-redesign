@@ -174,6 +174,27 @@ export async function joinMasterCohort(userId: string, org: Pick<Org, "id" | "na
 }
 
 // Every org this user belongs to, with their role in each.
+// People in an org, for the "attribute to" picker (a director crediting faculty).
+export async function listOrgPeople(orgId: string): Promise<{ id: string; name: string }[]> {
+  const db = admin();
+  if (!db || !orgId) return [];
+  const { data: mems } = await db.from("org_members").select("user_id").eq("org_id", orgId);
+  const ids = [...new Set(((mems as any[]) || []).map((m) => m.user_id).filter(Boolean))];
+  if (!ids.length) return [];
+  const { data: profs } = await db.from("profiles").select("id, display_name").in("id", ids);
+  return ((profs as any[]) || [])
+    .map((p) => ({ id: p.id as string, name: (p.display_name as string) || "" }))
+    .filter((p) => p.name)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export async function isOrgMember(orgId: string, userId: string): Promise<boolean> {
+  const db = admin();
+  if (!db || !orgId || !userId) return false;
+  const { data } = await db.from("org_members").select("user_id").eq("org_id", orgId).eq("user_id", userId).maybeSingle();
+  return !!data;
+}
+
 export async function getMyOrgs(userId: string): Promise<Membership[]> {
   const db = admin();
   if (!db || !userId) return [];

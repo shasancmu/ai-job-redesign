@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProfileForm from "@/components/ProfileForm";
 import CreatorProfileForm from "@/components/CreatorProfileForm";
+import AttributedToMe from "@/components/AttributedToMe";
+import { listAttributionsForPerson } from "@/lib/creator";
 import ChangePassword from "@/components/ChangePassword";
 import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
@@ -23,6 +25,7 @@ export default async function ProfilePage() {
     .maybeSingle();
 
   const p = (profile || {}) as any;
+  const attributions = await listAttributionsForPerson(user.id);
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
@@ -56,6 +59,14 @@ export default async function ProfilePage() {
           initial={{ title: p.title, institution: p.institution, bio: p.bio, avatar_url: p.avatar_url, handle: p.handle }}
         />
       </section>
+
+      {attributions.length > 0 && (
+        <section className="card mt-5 p-6">
+          <h2 className="text-sm font-bold text-ink">Credited to you</h2>
+          <p className="mb-4 mt-1 text-xs text-slate-400">Modules someone built and credited to you. Accept the ones that carry your judgment, remove any that don&apos;t. Your name is always yours to control.</p>
+          <AttributedToMe initial={attributions} />
+        </section>
+      )}
 
       <section className="card mt-5 p-6">
         <h2 className="text-sm font-bold text-ink">Password</h2>

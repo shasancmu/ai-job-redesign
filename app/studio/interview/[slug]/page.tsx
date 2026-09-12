@@ -3,7 +3,7 @@ import Logo from "@/components/Logo";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { roleFor } from "@/lib/orgs";
+import { roleFor, listOrgPeople } from "@/lib/orgs";
 import { getModuleForEdit } from "@/lib/customModules";
 import ModuleBuilder from "@/components/ModuleBuilder";
 import { DEFAULT_SPEC } from "@/lib/moduleBuilder";
@@ -22,6 +22,7 @@ export default async function EditModulePage({ params }: { params: { slug: strin
   const row = await getModuleForEdit(params.slug, user.id);
   if (!row) redirect("/studio/interview");
   const dirOrg = role.memberships.find((m) => m.role === "director")?.org;
+  const orgFaculty = dirOrg ? await listOrgPeople(dirOrg.id) : [];
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
@@ -33,7 +34,7 @@ export default async function EditModulePage({ params }: { params: { slug: strin
         <Link href="/studio/interview" className="text-sm text-slate2 hover:text-ink">← Your modules</Link>
         <h1 className="mt-1 text-2xl font-bold text-ink">Edit module</h1>
       </div>
-      <ModuleBuilder initialSpec={{ ...DEFAULT_SPEC, ...row.spec }} editSlug={row.slug} canGlobal={role.superadmin} orgName={dirOrg?.name || null} />
+      <ModuleBuilder initialSpec={{ ...DEFAULT_SPEC, ...row.spec }} editSlug={row.slug} canGlobal={role.superadmin} orgName={dirOrg?.name || null} meId={user.id} orgFaculty={orgFaculty} initialAttributedTo={(row as any).attributed_to || null} />
     </main>
   );
 }

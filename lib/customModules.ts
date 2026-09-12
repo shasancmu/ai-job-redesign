@@ -7,7 +7,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { canvasByExercise, type CanvasDef } from "@/lib/canvases";
 import { moduleBySlug } from "@/lib/modules";
-import { getMyOrgs } from "@/lib/orgs";
+import { getMyOrgs, isOrgMember } from "@/lib/orgs";
 import { compileToCanvasDef, validateSpec, slugify, type BuilderSpec } from "@/lib/moduleBuilder";
 
 export const CUSTOM_PREFIX = "custom:";
@@ -131,7 +131,7 @@ export async function listAuthoredBy(userId: string): Promise<CustomModuleRow[]>
 export async function getModuleForEdit(slug: string, userId: string): Promise<CustomModuleRow | null> {
   let admin;
   try { admin = createAdminClient(); } catch { return null; }
-  const { data } = await admin.from("custom_modules").select("slug, exercise, name, super_type, spec, org_id, status, author_id").eq("slug", slug).maybeSingle();
+  const { data } = await admin.from("custom_modules").select("slug, exercise, name, super_type, spec, org_id, status, author_id, attributed_to").eq("slug", slug).maybeSingle();
   if (!data || (data as any).author_id !== userId) return null; // only the author edits
   return data as any;
 }
@@ -147,8 +147,21 @@ async function uniqueSlug(admin: any, base: string): Promise<string> {
 
 // Create or update. Authorization (who may author, and which org) is decided by
 // the calling route; this trusts the resolved orgId. Returns the runnable slug.
+// Decide who a module is credited to, and whether that credit is live. The
+// operator is always the owner (author_id). An attributed person who IS a current
+// member of the module's org is trusted immediately ('active', they can disavow);
+// anyone else needs to accept ('pending'). Self-attribution is always active.
+async function resolveAttribution(
+  operatorId: string, orgId: string | null, attributedTo: string | null | undefined,
+): Promise<{ attributed_to: string; attribution_status: "active" | "pending" }> {
+  const who = attributedTo && attributedTo !== operatorId ? attributedTo : operatorId;
+  if (who === operatorId) return { attributed_to: operatorId, attribution_status: "active" };
+  const trusted = !!orgId && (await isOrgMember(orgId, who));
+  return { attributed_to: who, attribution_status: trusted ? "active" : "pending" };
+}
+
 export async function saveCustomModule(input: {
-  userId: string; spec: BuilderSpec; orgId: string | null; status?: "draft" | "published"; editSlug?: string;
+  userId: string; spec: BuilderSpec; orgId: string | null; status?: "draft" | "published"; editSlug?: string; attributedTo?: string | null;
 }): Promise<{ slug: string; exercise: string } | { error: string }> {
   const errs = validateSpec(input.spec);
   if (errs.length) return { error: errs[0] };
@@ -159,11 +172,21 @@ export async function saveCustomModule(input: {
   const base = moduleBySlug(slugify(input.spec.name)) ? `c-${slugify(input.spec.name)}` : slugify(input.spec.name);
 
   if (input.editSlug) {
-    const { data: existing } = await admin.from("custom_modules").select("author_id, exercise").eq("slug", input.editSlug).maybeSingle();
+    const { data: existing } = await admin.from("custom_modules").select("author_id, exercise, attributed_to, attribution_status").eq("slug", input.editSlug).maybeSingle();
     if (!existing || (existing as any).author_id !== input.userId) return { error: "Not found or not yours to edit." };
+    // Preserve the credited person's own choice (accept/disavow) when the target is
+    // unchanged; only recompute status when the operator points it at someone new.
+    const prevWho = (existing as any).attributed_to || input.userId;
+    const nextWho = input.attributedTo && input.attributedTo !== input.userId ? input.attributedTo : input.userId;
+    let attributed_to = prevWho, attribution_status = (existing as any).attribution_status || "active";
+    if (nextWho !== prevWho) {
+      const a = await resolveAttribution(input.userId, input.orgId, input.attributedTo);
+      attributed_to = a.attributed_to; attribution_status = a.attribution_status;
+    }
     const { error } = await admin.from("custom_modules").update({
       name: (input.spec.name || "").slice(0, 80), super_type: input.spec.superType, spec: input.spec,
-      org_id: input.orgId, status: input.status || "published", updated_at: new Date().toISOString(),
+      org_id: input.orgId, status: input.status || "published", attributed_to, attribution_status,
+      updated_at: new Date().toISOString(),
     }).eq("slug", input.editSlug);
     if (error) return { error: error.message };
     return { slug: input.editSlug, exercise: (existing as any).exercise };
@@ -171,9 +194,11 @@ export async function saveCustomModule(input: {
 
   const slug = await uniqueSlug(admin, base);
   const exercise = CUSTOM_PREFIX + slug;
+  const attr = await resolveAttribution(input.userId, input.orgId, input.attributedTo);
   const { error } = await admin.from("custom_modules").insert({
     slug, exercise, name: (input.spec.name || "").slice(0, 80), super_type: input.spec.superType,
     spec: input.spec, org_id: input.orgId, status: input.status || "published", author_id: input.userId,
+    attributed_to: attr.attributed_to, attribution_status: attr.attribution_status,
   });
   if (error) return { error: error.message };
   return { slug, exercise };
