@@ -14,6 +14,7 @@ export const metadata = { title: "Activity log" };
 const ACTION_LABEL: Record<string, string> = {
   "module.publish": "Published a module",
   "module.update": "Updated a module",
+  "module.localize": "Published a language copy",
   "org.delete": "Deleted an organization",
   "org.branding.update": "Changed org branding",
   "data.export": "Exported their data",

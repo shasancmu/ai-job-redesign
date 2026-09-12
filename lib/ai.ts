@@ -461,6 +461,19 @@ export async function roleplayExaminerAI(system: string, user: string, maxTokens
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens });
 }
 
+// Batch-translate UI/spec strings into `language`, preserving order and count.
+// Structure is kept in code (the caller extracts + reinserts); the model only
+// translates the strings, so a module spec can't be structurally corrupted.
+export async function translateStringsAI(strings: string[], language: string): Promise<string[]> {
+  if (!strings.length) return [];
+  const system = `You are a professional localizer for a learning app. Translate each string in the input JSON array into ${language}, natural and idiomatic for a learner. Preserve meaning, tone, and any {placeholders}, %s, or proper names. Do not add, drop, reorder, or merge items. Do not use em dashes. Return STRICT JSON only: {"t": [ ... ]} with EXACTLY ${strings.length} translated strings in the same order.`;
+  const user = JSON.stringify(strings);
+  const out = await completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.2, maxTokens: 3600, low: false });
+  const arr = Array.isArray(out?.t) ? out.t : Array.isArray(out) ? out : [];
+  // Fall back to the original for any item the model dropped or returned non-string.
+  return strings.map((s, i) => (typeof arr[i] === "string" && arr[i].trim() ? arr[i] : s));
+}
+
 // ---- AI Skills Lab (lib/ailab) ---------------------------------------------
 // The three teaching simulators (prompting, agentic, vibe-coding) all reach the
 // model through these. Kept here so the AI boundary and the per-org BYO provider

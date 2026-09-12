@@ -87,15 +87,22 @@ export async function listCustomModulesForUser(userId: string): Promise<CustomMo
 export type CustomModuleAdminRow = {
   slug: string; exercise: string; name: string; super_type: string;
   org_id: string | null; status: string; author_id: string | null; updated_at: string | null;
+  language?: string | null; source_slug?: string | null;
 };
 export async function listAllCustomModules(): Promise<CustomModuleAdminRow[]> {
   let admin;
   try { admin = createAdminClient(); } catch { return []; }
   const { data } = await admin
     .from("custom_modules")
+    .select("slug, exercise, name, super_type, org_id, status, author_id, updated_at, language, source_slug")
+    .order("updated_at", { ascending: false });
+  if (data) return (data as any[]) as CustomModuleAdminRow[];
+  // language/source_slug not migrated yet — fall back to the base columns.
+  const { data: base } = await admin
+    .from("custom_modules")
     .select("slug, exercise, name, super_type, org_id, status, author_id, updated_at")
     .order("updated_at", { ascending: false });
-  return ((data || []) as any[]) as CustomModuleAdminRow[];
+  return ((base || []) as any[]) as CustomModuleAdminRow[];
 }
 
 // Published interview modules an instructor can assign to a class (card meta).
@@ -204,6 +211,57 @@ export async function saveCustomModule(input: {
     () => admin.from("custom_modules").insert(baseInsert));
   if (error) return { error: error.message };
   return { slug, exercise };
+}
+
+// A short ascii language tag for a slug suffix (Chinese (Simplified) -> zh).
+const LANG_CODE: Record<string, string> = {
+  "spanish": "es", "french": "fr", "german": "de", "portuguese": "pt", "portuguese (brazil)": "pt-br",
+  "italian": "it", "dutch": "nl", "chinese (simplified)": "zh", "japanese": "ja", "korean": "ko", "arabic": "ar", "hindi": "hi",
+};
+function langCode(language: string): string {
+  return LANG_CODE[language.trim().toLowerCase()] || language.trim().toLowerCase().replace(/[^a-z]+/g, "").slice(0, 4) || "xx";
+}
+
+// Publish an AI-translated copy of a custom module in another language. Loads the
+// source spec, translates it (structure preserved), and inserts a NEW published
+// row with an ascii slug (the translated name is non-latin, so we can't derive the
+// slug from it). Credit stays with the original author; the copy records its
+// language and source for lineage. Authorization is decided by the calling route.
+export async function localizeCustomModule(input: {
+  sourceSlug: string; language: string; operatorId: string; orgId?: string | null;
+}): Promise<{ slug: string; exercise: string; name: string } | { error: string }> {
+  const { translateSpec } = await import("@/lib/moduleTranslate");
+  let admin;
+  try { admin = createAdminClient(); } catch { return { error: "Storage is not configured." }; }
+
+  const { data: src } = await admin.from("custom_modules").select("*").eq("slug", input.sourceSlug).maybeSingle();
+  if (!src) return { error: "Module not found." };
+  const spec = (src as any).spec as BuilderSpec;
+  if (!spec || typeof spec !== "object") return { error: "This module has no editable spec to translate." };
+
+  let translated: BuilderSpec;
+  try { translated = await translateSpec(spec, input.language); }
+  catch (e: any) { return { error: e?.message || "Translation failed." }; }
+
+  const base = `${input.sourceSlug}-${langCode(input.language)}`.slice(0, 40);
+  const slug = await uniqueSlug(admin, base);
+  const exercise = CUSTOM_PREFIX + slug;
+  const orgId = input.orgId !== undefined ? input.orgId : (src as any).org_id;
+  const attributed_to = (src as any).attributed_to || (src as any).author_id || input.operatorId;
+  const attribution_status = (src as any).attribution_status || "active";
+
+  const baseInsert: any = {
+    slug, exercise, name: (translated.name || "").slice(0, 80), super_type: (src as any).super_type,
+    spec: translated, org_id: orgId, status: "published", author_id: (src as any).author_id || input.operatorId,
+  };
+  // language/source_slug are additive; fall back if not migrated. Attribution too.
+  const withExtras = () => admin.from("custom_modules").insert({ ...baseInsert, attributed_to, attribution_status, language: input.language, source_slug: input.sourceSlug });
+  const withAttrOnly = () => admin.from("custom_modules").insert({ ...baseInsert, attributed_to, attribution_status });
+  let err = (await withExtras()).error;
+  if (err && /language|source_slug|schema cache|column/i.test(err.message || "")) err = (await withAttrOnly()).error;
+  if (err && /attribut(ed_to|ion_status)|schema cache|column/i.test(err.message || "")) err = (await admin.from("custom_modules").insert(baseInsert)).error;
+  if (err) return { error: err.message };
+  return { slug, exercise, name: baseInsert.name };
 }
 
 // Attribution columns are additive: if the migration (sql/module_attribution.sql)
