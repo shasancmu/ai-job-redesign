@@ -459,6 +459,40 @@ async function completeJson(
 export async function roleplayExaminerAI(system: string, user: string, maxTokens = 2400): Promise<any> {
   return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.4, maxTokens });
 }
+
+// ---- AI Skills Lab (lib/ailab) ---------------------------------------------
+// The three teaching simulators (prompting, agentic, vibe-coding) all reach the
+// model through these. Kept here so the AI boundary and the per-org BYO provider
+// routing stay in one place.
+
+// Run the LEARNER'S prompt as a real completion and return the raw output — the
+// authentic thing they're learning to steer. `messages` is their prompt as a
+// system + user pair (or just a user turn).
+export async function labRunPromptAI(system: string | null, user: string, maxTokens = 900): Promise<string> {
+  const msgs: ChatMsg[] = [];
+  if (system && system.trim()) msgs.push({ role: "system", content: system.slice(0, 8000) });
+  msgs.push({ role: "user", content: user.slice(0, 8000) });
+  return complete(msgs, { temperature: 0.7, maxTokens, low: true });
+}
+
+// The judge: score an attempt against a rubric and explain the gap. Deterministic
+// temperature so the same attempt grades consistently. Returns strict JSON.
+export async function labJudgeAI(system: string, user: string, maxTokens = 1400): Promise<any> {
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0, maxTokens });
+}
+
+// One step of an agent loop over MOCK tools: given the goal, the tools, and the
+// trace so far, decide the next action (a tool call, a question, or finish).
+export async function labAgentStepAI(system: string, user: string, maxTokens = 1200): Promise<any> {
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.3, maxTokens });
+}
+
+// Vibe-coding: turn a spec + prompt into a small self-contained HTML preview AND
+// the hidden assumptions the model had to make — so the intent/instruction gap is
+// visible. Returns { html, assumptions[], notes }.
+export async function labVibeGenerateAI(system: string, user: string, maxTokens = 2600): Promise<any> {
+  return completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.5, maxTokens });
+}
 // The SOURCE MATERIAL block for the authoring copilots. `opinion` is the author's
 // toggle: "low" = stay faithful to what they gave (their docs + interview answers),
 // "high" = treat it as a starting point and add the AI's own design judgment.
