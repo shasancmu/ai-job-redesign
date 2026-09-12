@@ -9,7 +9,8 @@
   "dash": {
     "greeting": "Ciao {name}",
     "exercises": "Esercizi",
-    "framing": "Un strumento, molti modi per usarlo: riprogetta il tuo lavoro o un flusso di lavoro, analizza un CV o un ruolo, affina una decisione, o negozia — da solo, con un partner, o dal vivo con un gruppo.",
+    "framing": "Hands-on exercises, run by AI. Pick a goal, then start one — each ends in something you keep.",
+    "framingCurated": "Hands-on exercises, run by AI. These are the ones picked for you — start any one. Each ends in something you keep.",
     "yourSessions": "Le tue sessioni",
     "recommended": "Consigliato per te"
   },
@@ -18,6 +19,9 @@
     "strategy": "Affina una decisione",
     "negotiate": "Negozia",
     "live": "Esegui dal vivo in classe",
+    "research": "Research & scholarship",
+    "phd": "The PhD path",
+    "foundations": "How AI works",
     "commercialize": "Deep-tech & commercialization"
   },
   "catalog": {
@@ -38,74 +42,426 @@
   },
   "modules": {
     "reimagine-job": {
-      "name": "Riprogetta il Tuo Lavoro",
-      "tagline": "Riprogetta il lavoro di un partner attorno a ciò che solo un umano può fare."
+      "name": "Redesign Your Job with a Partner",
+      "tagline": "Interview a partner and redesign each other's jobs with the 2×4 model: the human work, and what AI can take."
     },
     "reimagine-workflow": {
-      "name": "Riprogetta un Flusso di Lavoro",
-      "tagline": "Ripensa un flusso di lavoro con un partner — non limitarti a correggerlo."
+      "name": "Redesign a Workflow with a Partner",
+      "tagline": "Pick a real workflow and redraw it with a partner. Learn to weigh AI's tradeoffs and put people and AI in the right seats, instead of just patching what you have."
     },
     "benchmark": {
-      "name": "Il Benchmark",
-      "tagline": "Mettiti alla prova contro la macchina — poi vedi il gruppo."
+      "name": "You vs. AI: A Reasoning Test",
+      "tagline": "Take a timed reasoning test, then see your score against the whole room, and against AI on the same questions. An honest read on where humans still have the edge."
     },
     "workflow-solo": {
-      "name": "Riprogetta un Flusso di Lavoro con l'IA",
-      "tagline": "L'IA ti intervista, poi ridisegna il tuo flusso di lavoro con IA e umani nei ruoli giusti."
+      "name": "Redesign a Workflow with AI",
+      "tagline": "Describe a workflow and let AI interview you, then watch it redraw the flow. Learn who should do what once AI and humans share the work, and leave with a redesign."
     },
     "network": {
-      "name": "La Rete",
-      "tagline": "Mappa la vera rete del gruppo — dal vivo e anonima."
+      "name": "Map the Room's Network (Live)",
+      "tagline": "Map the room's real advice and friendship networks, live and anonymous, then see who's actually most central. A vivid lesson in how influence really flows."
     },
     "jd-x-ray": {
-      "name": "Analisi Approfondita della Descrizione del Ruolo",
-      "tagline": "Incolla un ruolo — vedi la sua esposizione all'IA e esattamente chi assumere."
+      "name": "Analyze a Role's AI Exposure",
+      "tagline": "Paste a job description and see which tasks AI can do. Then learn to rewrite the role as a human+AI job, and exactly who to hire for it."
     },
     "career-x-ray": {
-      "name": "Analisi Approfondita della Carriera",
-      "tagline": "Incolla il tuo CV — vedi cosa può fare l'IA e su cosa concentrarti."
+      "name": "Analyze Your Career's AI Exposure",
+      "tagline": "Paste your résumé and see which parts of your work AI can do. Then learn the higher-value work to lean into, and where your career can go next."
+    },
+    "vendor-disclosure": {
+      "name": "Vet a Vendor's Disclosure",
+      "tagline": "Send a vendor one open link and get a structured disclosure back. AI then scores it against a proven framework and flags the gaps and red flags before you buy."
+    },
+    "haip-disclosure": {
+      "name": "Vet a Healthcare AI Vendor",
+      "tagline": "Send a healthcare AI vendor one open link and get a full Health AI Partnership disclosure back, covering model performance, bias, and HIPAA, with AI flagging what needs local validation."
+    },
+    "career-roadmap": {
+      "name": "Map Your Next Career Moves",
+      "tagline": "See your skill-adjacent next career moves (lateral, step-up, and stretch), and learn exactly which skills to build to get there, sequenced into a roadmap for the next 24 months."
     },
     "solo-ai": {
-      "name": "Riprogetta il Tuo Lavoro con l'IA",
-      "tagline": "Concentrati sulla parte umana del tuo lavoro."
+      "name": "Redesign Your Job with AI",
+      "tagline": "Find your real job, hand AI the busywork, keep the judgment with you. No partner needed."
     },
     "execution-4a": {
-      "name": "Diagnostica di Esecuzione 4A",
-      "tagline": "Questa iniziativa è davvero impostata per l'esecuzione?"
+      "name": "Score Your Execution Plan",
+      "tagline": "Pressure-test an initiative against the 4 A's and find the one fix most likely to get it executing."
     },
     "close-the-offer": {
-      "name": "Chiudi l'Offerta",
-      "tagline": "Negozia un'offerta di lavoro contro un omologo IA — poi ricevi un punteggio."
+      "name": "Negotiate a Job Offer",
+      "tagline": "Negotiate a multi-issue job offer live against an AI hiring manager, then get scored on the value you claimed and created. Learn where you left money on the table."
     },
     "name-your-price": {
-      "name": "Fissa il Tuo Prezzo",
-      "tagline": "Una pura contrattazione sul prezzo — ancora, trova la ZOPA e rivendica il divario."
+      "name": "Practice a Price Negotiation",
+      "tagline": "Haggle over a single price against an AI seller with a hidden floor. Learn to anchor, hold your walk-away, and claim your share of the bargaining zone."
+    },
+    "ask-for-a-raise": {
+      "name": "Ask for a Raise",
+      "tagline": "Negotiate your own pay and package with an AI manager, across raise, title, remote, and more. Learn to trade for what you value instead of just pushing on the number."
+    },
+    "close-the-vendor-deal": {
+      "name": "Close a Vendor Deal",
+      "tagline": "Negotiate a software contract with an AI account exec: price, term, payment, support, and more. Learn to trade the terms they value for the ones you do."
+    },
+    "lease-the-space": {
+      "name": "Negotiate the Rent",
+      "tagline": "Haggle over a monthly office rent against an AI landlord with a hidden floor. Practice anchoring, holding your walk-away, and claiming the bargaining zone."
+    },
+    "rehearse-hard-conversation": {
+      "name": "Rehearse a Hard Conversation",
+      "tagline": "Practice a hard conversation (letting someone go, tough feedback, denying a promotion, a PIP, or pushing back on your boss) with an AI who reacts like a real person. Then get coached on the tape."
+    },
+    "define-vision": {
+      "name": "Shape Your Company Vision",
+      "tagline": "Think through a lasting vision for your organization with an AI facilitator: what it stands for, why it exists, and the bold future it's working toward. Leave with your vision written back to you."
+    },
+    "define-vision-voice": {
+      "name": "Talk Through Your Vision",
+      "tagline": "The vision conversation as a hands-free voice session. Just talk while an AI facilitator draws out what your organization stands for and where it's headed, then get your vision written up."
+    },
+    "find-problem": {
+      "name": "Find a Problem Worth Solving",
+      "tagline": "For a founder, consultant, or researcher commercializing: with an AI coach, hunt the one recurring, expensive, newly-solvable problem (close to your edge) that many buyers will pay to fix. It then checks the problem against the real world and grades it."
+    },
+    "find-org-problems": {
+      "name": "Find Your Organization's Highest-Value Problems",
+      "tagline": "For a leader with resources to allocate: an AI coach surfaces where your next hour, dollar, or hire creates the most value. You get a ranked map of internal opportunities, corroborated against real evidence, with what to stop to fund the winner."
+    },
+    "find-problem-voice": {
+      "name": "Talk Through a Problem Worth Solving",
+      "tagline": "The problem hunt as a hands-free voice conversation. Just talk while an AI strategist draws out the recurring, expensive, newly-solvable problem closest to your edge, checks it against the real world, and grades it."
+    },
+    "find-org-problems-voice": {
+      "name": "Talk Through Your Organization's Highest-Value Problems",
+      "tagline": "The leader's opportunity audit as a hands-free voice conversation. Just talk while an AI strategist surfaces where value is leaking, corroborates it against real evidence, and returns a ranked map with what to stop to fund the winner."
     },
     "good-business": {
-      "name": "È un Buon Affare?",
-      "tagline": "Metti alla prova un'idea di business con vera strategia e numeri reali."
+      "name": "Pressure-Test a Business Idea",
+      "tagline": "Pressure-test a business idea against real frameworks and real unit economics. Learn whether the market is attractive, where your edge is durable, and what would have to be true to win."
     },
     "balanced-scorecard": {
-      "name": "Balanced Scorecard",
-      "tagline": "Trasforma una strategia in OKR e iniziative su quattro prospettive collegate."
+      "name": "Build a Balanced Scorecard",
+      "tagline": "Turn a strategy into objectives, measurable results, and initiatives across the four Balanced Scorecard perspectives, and learn how they link as one cause-and-effect chain."
+    },
+    "deeptech-canvas": {
+      "name": "Plan a Deep-Tech Venture",
+      "tagline": "Separate a deep-tech venture's technical and market uncertainty, then design the one experiment that resolves the biggest. Learn the path from lab capability to real strategy."
     },
     "ai-canvas": {
-      "name": "Canvas delle Opportunità IA",
-      "tagline": "Dove dovrebbe andare davvero l'IA — e come la distribuisci bene?"
+      "name": "Find Where AI Fits a Workflow",
+      "tagline": "Map one workflow to find where AI actually belongs, and leave with an implementation-grade plan."
     },
     "opportunity-capability": {
-      "name": "Allineamento Opportunità-Capacità",
-      "tagline": "Dovresti fare questa scommessa? Mettila alla prova contro quello che puoi davvero fare."
+      "name": "Should You Make This Bet?",
+      "tagline": "Test an opportunity against what you can actually do, and find the gap most likely to break the bet."
     },
     "test-the-bet": {
-      "name": "Testa la Scommessa",
-      "tagline": "Prima di impegnarti, progetta un esperimento pulito per testarla."
+      "name": "Design a Test for Your Strategy",
+      "tagline": "Turn a strategic belief into a runnable experiment you could start this week, before you commit."
+    },
+    "business-consult": {
+      "name": "Diagnose Your Business in 30 Minutes",
+      "tagline": "Free AI consulting for your business. A guided interview, a management-practices check, a photo read of the operation, and an 80/20 look add up to one clear picture: what kind of business you are, where your margin really lives, and what to fix first."
+    },
+    "find-superpower": {
+      "name": "Find Your Superpower",
+      "tagline": "Your rarest strength is usually invisible to you, because it feels effortless. An AI interview pulls the stories, finds the thread across them, and names the 2 to 3 abilities that make you hard to replace, with the VRIN-O moat and how to build a career around it."
+    },
+    "ai-board": {
+      "name": "Convene Your AI Board",
+      "tagline": "Bring a decision. Four AI advisors debate it live, a growth optimist, a skeptic, your customer, and your operator, reacting to each other and to you. You moderate, then call the vote for a verdict."
+    },
+    "voice-consult": {
+      "name": "Talk Through Your Business",
+      "tagline": "A spoken interview about your business. An AI advisor asks you questions out loud, you just talk back, and it turns the conversation into a real consult: what kind of business you are, where your margin lives, and what to fix first."
+    },
+    "customer-empathy": {
+      "name": "Understand Your Customer",
+      "tagline": "Send a potential customer one link. An AI runs a warm, design-thinking empathy interview for you, then hands back who they are, the job they're hiring you to do, their real pains and gains, and an empathy map you can act on. Do it with many customers and it finds the pattern."
+    },
+    "refresh-resume": {
+      "name": "Refresh Your Résumé",
+      "tagline": "An AI coach interviews you about this year's real wins, then hands back the exact résumé changes to make."
+    },
+    "refresh-resume-voice": {
+      "name": "Talk Through Your Résumé",
+      "tagline": "The résumé refresh, hands-free: talk through your year while an AI coach draws out the wins."
+    },
+    "business-myopia": {
+      "name": "Find Your Business's Blind Spots",
+      "tagline": "The success that got you here quietly narrows what you notice. An AI advisor maps your business as a bundle of choices, then names the blind spots you can't see, distant markets, coming shifts, and the bets you're not taking, and hands you a plan to explore before you're forced to."
+    },
+    "personal-network": {
+      "name": "Map Your Personal Network",
+      "tagline": "Map the people around you, across your org, your industry, and your personal life, and see the real shape of your network: where you broker between separate worlds, where you're boxed in, and the specific moves that would open it up."
+    },
+    "domain-brief": {
+      "name": "Domain Expertise Brief",
+      "tagline": "Name a technology domain and a scope (a university, a region, or the world), and get a decision-ready brief: the real experts, the standout work, and where the strength is, scored for commercial and scientific potential by Scientifiq."
+    },
+    "find-collaborators": {
+      "name": "Find Collaborators",
+      "tagline": "Describe your research and find the people at your university who complement it, the ones who add a method, a domain, a clinical partner, or a co-PI you don't already have, each with a draft intro to send."
+    },
+    "licensing-brief": {
+      "name": "Licensing Brief",
+      "tagline": "Paste a disclosure or abstract and get a decision-ready licensing brief: its predicted commercial potential, the nearby patent landscape, who to approach, the risks, and an outreach plan."
+    },
+    "score-my-invention": {
+      "name": "Score My Invention",
+      "tagline": "Paste an invention, disclosure, or research idea and get its full impact fingerprint (commercial, scientific, social, and deeper potential) scored against the field, plus concrete ways to raise it."
+    },
+    "defense-impact": {
+      "name": "Defense Impact",
+      "tagline": "Paste a paper or research idea and estimate its defense and national-security relevance, the domains it touches, and, from the patents that cite it, whether it is already feeding defense technology."
+    },
+    "impact-optimizer": {
+      "name": "Impact Optimizer",
+      "tagline": "Paste an abstract and pick a target (commercial, scientific, defense, and more) and find the missing science: the concrete experiments and extensions that would raise that potential most, each scored by the models."
+    },
+    "explain-ai": {
+      "name": "ExplainAI",
+      "tagline": "Paste a paper's abstract and get it translated into plain language, framed for a policymaker, an investor, a researcher in another field, and the public, with the jargon translated too."
+    },
+    "position-my-research": {
+      "name": "Position My Research",
+      "tagline": "Paste a paper or research idea and see its scientific, social, and commercial potential against the field, plus concrete ways to reframe it for more impact, citations, and funding."
+    },
+    "rank-disclosures": {
+      "name": "Rank Our Disclosures",
+      "tagline": "Paste a batch of disclosures and get them scored and ranked by commercial potential, with an AI read on which few to prioritize for patenting and licensing."
+    },
+    "find-a-cofounder": {
+      "name": "Find a Technical Co-Founder",
+      "tagline": "Describe your venture's technology and find researchers who can actually build it, ranked for commercial orientation and depth, each with a draft outreach message."
+    },
+    "diligence-the-science": {
+      "name": "Diligence the Science",
+      "tagline": "Paste a startup's claimed technology and get an investor-grade read on whether the underlying science is real, strong, and close to commercialization."
+    },
+    "nearest-expert": {
+      "name": "Nearest Expert",
+      "tagline": "Describe your technical problem and where you are, and get the researchers who can help, nearest first: someone you could visit, then the best in your country, then the world leaders."
+    },
+    "science-radar": {
+      "name": "Science Radar",
+      "tagline": "Name a company and see the science its patents build on, the highest-potential researchers at the frontier of its fields, who else is building on the same science, and the work it isn't using yet."
+    },
+    "science-intel": {
+      "name": "Science Intelligence",
+      "tagline": "Three warehouse-powered reads on the science frontier: a talent map of a field (who's the best, and who they patent for), a country's research strengths, and the firms quietly building on your company's science."
+    },
+    "earnings-call": {
+      "name": "The Earnings Call",
+      "tagline": "You're the analyst on a live earnings call. A short-seller says the CEO faked the quarter with channel stuffing. Interrogate the AI CEO, and get scored on how much your questions reveal."
+    },
+    "star-hire": {
+      "name": "Star Hire",
+      "tagline": "Four candidates, all impressive on paper. Interview them, hire one, and find out how much of each one's success was really theirs, not their old firm's platform."
+    },
+    "incentive-lab": {
+      "name": "The Incentive Lab",
+      "tagline": "Design a reward system, then watch AI workers red-team it by self-play, discovering every way to hit your numbers while the real goal quietly rots. Redesign until they can't."
+    },
+    "regression-detective": {
+      "name": "Regression Detective",
+      "tagline": "A dataset with a hidden truth. Explore it in a bare-bones stats console, then submit the model you think generated the data. You're graded against the real data-generating process."
+    },
+    "hot-seat": {
+      "name": "The Hot Seat",
+      "tagline": "The roles flip: now you're the CEO on a live earnings call, and a relentless AI analyst thinks you cooked the books. Answer truthfully, never say anything false, and hedge where you should."
+    },
+    "the-number": {
+      "name": "The Number",
+      "tagline": "A four-person team capstone. One of you starts a team and shares the code; the other three join. You run a CFO's office and must hit analyst consensus using legal earnings management, survive an analyst call, and face the cost."
+    },
+    "technology-landscape": {
+      "name": "Technology Landscape Scan",
+      "tagline": "Name a technology or field and get a landscape: who leads it, which companies are commercializing it, the strongest work, and where the white space is."
+    },
+    "deep-tech-deal-sourcing": {
+      "name": "Deep-Tech Deal Sourcing",
+      "tagline": "Name your investment thesis and surface labs whose science is both high-quality and commercializing, spin-out candidates to reach before they raise."
+    },
+    "commercialization-scorecard": {
+      "name": "University Commercialization Scorecard",
+      "tagline": "Pick an institution and a field to score how commercially oriented its research is, its real strengths, and where it lags a leading program."
+    },
+    "field-trajectory": {
+      "name": "Where Is My Field Going?",
+      "tagline": "Name a field and see which subfields are rising, where scientific and commercial value is concentrating, and what to bet on next."
+    },
+    "career-myopia": {
+      "name": "Find Your Career's Blind Spots",
+      "tagline": "The skills that made you successful can quietly trap you. An AI advisor maps your career as a bundle of choices, then names what you're not seeing, adjacent moves, coming shifts in your field, and the experiments you're avoiding, and a plan to explore before your peak erodes."
+    },
+    "research-good": {
+      "name": "1 · What Makes Research Good",
+      "tagline": "Research as a craft: the null model, making the invisible visible, GAS, and the four tests."
+    },
+    "research-idea": {
+      "name": "2 · Every Idea Is an Interaction",
+      "tagline": "IF X → Y, ESPECIALLY/EXCEPT WHEN Z, BECAUSE a mechanism, and why β₃ is the idea."
+    },
+    "research-paper": {
+      "name": "3 · The Anatomy of a Paper",
+      "tagline": "The hourglass, nested parallelism, the six-sentence abstract, and a title people can find."
+    },
+    "research-argument": {
+      "name": "4 · Building the Argument",
+      "tagline": "Theory, counter-arguments, the three tables, and one clear point per paragraph."
+    },
+    "research-data": {
+      "name": "5 · Reading the Data",
+      "tagline": "Correlation vs causation, the gradient of control, and why randomization works."
+    },
+    "research-publish": {
+      "name": "6 · Getting Published & Heard",
+      "tagline": "The lit review's two jobs, the R&R as an exam, presenting in five parts, and the weakest link."
+    },
+    "what-is-a-paper": {
+      "name": "Make the Invisible Visible",
+      "tagline": "Turn your study into one sharp insight: the invisible force it makes visible, and why the facts are what they are."
+    },
+    "paper-structure": {
+      "name": "Structure Your Paper",
+      "tagline": "Lay your paper out as an hourglass, from motivation to contribution, with a clear job for every section."
+    },
+    "making-points": {
+      "name": "Make Your Points",
+      "tagline": "Reduce your paper to a sequence of points, one per paragraph, that lead to a single conclusion."
+    },
+    "read-the-interaction": {
+      "name": "The Anatomy of an Idea",
+      "tagline": "Build a research idea and see its shape: IF X then Y, especially or except when Z, because a mechanism, drawn as a graph and a regression."
+    },
+    "strategy-experiment": {
+      "name": "The Strategy Experiment",
+      "tagline": "Design a strategy field experiment on the eight-part canvas, then run it in silico: AI proposes the data-generating process and the app actually simulates the trial."
+    },
+    "publication-pipeline": {
+      "name": "Publication Pipeline",
+      "tagline": "See how publishing actually works, why you can't out-write a 3 to 5 percent acceptance rate, and the one lever that moves it."
+    },
+    "understand-a-paper": {
+      "name": "Understand a Paper",
+      "tagline": "Take any paper apart through four lenses: its idea, its structure, its points, and its key interaction."
+    },
+    "good-research": {
+      "name": "What Makes a Paper Good",
+      "tagline": "Judge an idea honestly: a clear null, a hidden factor others miss, and four tests, important, interesting, ambitious, and craft."
+    },
+    "regression-tables": {
+      "name": "Clear Regression Tables",
+      "tagline": "Make your main table readable at a glance: one idea, the key coefficient spotlighted, columns that build a narrative."
+    },
+    "research-graphs": {
+      "name": "Elegant Research Graphs",
+      "tagline": "Design a graph that is the argument: it shows the finding directly and elegantly, with nothing wasted."
+    },
+    "literature-reviews": {
+      "name": "Position Your Literature Review",
+      "tagline": "Turn the review from a summary dump into a setup for your contribution: the support, the gap, organized by ideas."
+    },
+    "data-moat": {
+      "name": "Is Your Data a Moat?",
+      "tagline": "Judge your dataset as a research advantage with VRIN+O: valuable, rare, inimitable, non-substitutable, and organized to publish from."
+    },
+    "data-strategy": {
+      "name": "Choose Your Data Strategy",
+      "tagline": "Pick the data that can actually answer your question: public, trace, survey, experiment, qualitative, or simulation, and what each buys."
+    },
+    "identification": {
+      "name": "Is Your Identification Credible?",
+      "tagline": "Stress-test a causal claim: the biggest threat, the design that answers it, the identifying assumption, and a test that could falsify it."
+    },
+    "the-referee": {
+      "name": "Meet Your Reviewers",
+      "tagline": "See the referee report you're likely to get: what a reviewer likes, the objections ranked, the fixes, and the likely decision."
+    },
+    "revise-resubmit": {
+      "name": "The R&R War Room",
+      "tagline": "Turn reviewer comments into a systematic response: every comment answered as a dialogue, with the respectful pushback and the letter."
+    },
+    "journal-fit": {
+      "name": "Journal Fit & Cover Letter",
+      "tagline": "Pick the right venue and pitch it: fit is half the battle, and the wrong journal is a fast rejection."
+    },
+    "theory-section": {
+      "name": "Build Your Theory Section",
+      "tagline": "Set up a null model, advance a non-obvious claim, and give the reasons to believe it that lead to your hypotheses."
+    },
+    "abstract-title": {
+      "name": "The Abstract & Title",
+      "tagline": "Write the abstract as a microcosm of the paper, motivation to contribution, then test titles that communicate and can be found."
+    },
+    "research-system": {
+      "name": "Design Your Research System",
+      "tagline": "Redesign how you actually work: automate the drudgery, delegate the rest, and standardize your stack, so you reach the creative work faster."
+    },
+    "research-team": {
+      "name": "Build Your Research Team",
+      "tagline": "Find the complementary coauthors a strong paper needs: the architect, the builder, and the electrician."
+    },
+    "what-is-a-phd": {
+      "name": "Is a Business PhD for You?",
+      "tagline": "An honest read on what a business PhD actually is, research training to become a professor, and whether it fits what you want."
+    },
+    "choose-phd-program": {
+      "name": "Choose a PhD Program",
+      "tagline": "Judge programs on what actually matters: placement above all, then faculty fit in your area, funding, and culture."
+    },
+    "phd-application": {
+      "name": "Get Into a PhD Program",
+      "tagline": "Build your application by seeing it from the committee's side: they're betting ~$300k that you'll become a researcher who publishes."
+    },
+    "phd-structure": {
+      "name": "How a PhD Works",
+      "tagline": "Map the phases, coursework, comps, qualifying paper, research, job-market paper, job market, and nail the one you're in."
+    },
+    "phd-succeed": {
+      "name": "Succeed in Your PhD",
+      "tagline": "The habits that separate thriving students: papers and presentations, visibility, taking advice, and modeling the best above you."
+    },
+    "phd-placement": {
+      "name": "Land an Academic Job",
+      "tagline": "Judge your job-market paper the way a hiring department will: Important, Interesting, Ambitious, backed by a pipeline."
+    },
+    "ai-rules": {
+      "name": "1 · When Humans Wrote the Logic",
+      "tagline": "The first era of AI: expert systems and hand-written rules, and the wall that stopped them."
+    },
+    "ai-learning": {
+      "name": "2 · Letting the Data Learn",
+      "tagline": "Statistical learning and neural networks: stop writing rules, learn the function from examples."
+    },
+    "ai-language": {
+      "name": "3 · Predicting the Next Word",
+      "tagline": "From Markov chains to Transformers: how predicting the next word became large language models."
+    },
+    "ai-scale": {
+      "name": "4 · Scale, Self-Play & the Limits",
+      "tagline": "The bitter lesson, scaling laws, self-play, and an honest account of what AI can and can't do."
+    },
+    "lab-prompting": {
+      "name": "Prompting Lab",
+      "tagline": "Turn a vague ask into a prompt that gets the output you meant."
+    },
+    "lab-agents": {
+      "name": "Agent Simulator",
+      "tagline": "Design an agent's tools and guardrails, then watch the loop run and see where it breaks."
+    },
+    "lab-vibe-coding": {
+      "name": "Vibe Coding Studio",
+      "tagline": "Build with AI the way the good builders do: spec first, small deltas, data-aware."
     }
   },
   "sessions": {
     "show": "▸ Mostra le tue sessioni ({n})",
     "hide": "▾ Nascondi le tue sessioni ({n})",
-    "empty": "Niente ancora — inizia un esercizio sopra per cominciare.",
+    "empty": "Nothing yet. Start an exercise above to begin.",
     "deleteTitle": "Elimina questa stanza"
   },
   "lang": {
@@ -121,7 +477,7 @@
     "step": "Passo {n} di {total}",
     "with": "con {name}",
     "yourPartner": "il tuo partner",
-    "timerUp": "Tempo scaduto — uno di voi può far avanzare la stanza.",
+    "timerUp": "Time's up. Either of you can move the room on.",
     "timerWait": "Il prossimo si sblocca quando il timer termina.",
     "waitingPartner": "In attesa che il tuo partner si unisca alla stanza {code}…",
     "reviewStep": "Revisione: {title}",
@@ -134,15 +490,15 @@
   "solo": {
     "jobTitle": "Titolo del lavoro",
     "jobTitlePh": "es. Senior Marketing Manager",
-    "whatDoYouDo": "In una o due righe, cosa fai davvero?",
-    "whatDoYouDoPh": "Di cosa sei responsabile e dove va il tuo tempo.",
+    "whatDoYouDo": "Describe your job. What are you responsible for, what does a typical week look like, and where does most of your time actually go?",
+    "whatDoYouDoPh": "The tasks, decisions, and people you handle, and the parts that take the most time and energy.",
     "reimaginedJob": "Il tuo lavoro riprogettato",
     "openingQ": "Il tuo partner IA sta pensando a una domanda di apertura…",
-    "splitIntro": "Lascia che l'IA ragioni sulla divisione — cosa può davvero gestire e cosa solo tu puoi fare — poi rendila tua.",
+    "splitIntro": "Let AI reason through the split: what it can genuinely take, and what only you can do. Then make it yours.",
     "whySplit": "Perché questa divisione",
     "newJobLabel": "La tua nuova descrizione del lavoro",
     "newJobPh": "Nel mio ruolo riprogettato, mi concentro su… mentre l'IA gestisce…",
-    "nextPlan": "Il passo successivo trasforma questo nel tuo piano — dove va il tuo tempo e come usare davvero l'IA.",
+    "nextPlan": "Next step turns this into your plan, where your time goes, and how to actually use AI.",
     "cantDraft": "Non è stato possibile elaborare una riprogettazione."
   },
   "steps": {
@@ -153,7 +509,7 @@
       },
       "interview": {
         "title": "Parla con il tuo partner IA",
-        "subtitle": "Rispondi alle sue domande. Sta cercando di capire cosa solo tu puoi fare — e cosa ti drena."
+        "subtitle": "Answer its questions. It's trying to understand what only you can do, and what drains you."
       },
       "redesign": {
         "title": "Il tuo lavoro riprogettato",
@@ -161,7 +517,7 @@
       },
       "final": {
         "title": "Rendilo reale",
-        "subtitle": "Dove dovrebbe andare la tua settimana, il valore che guidi e le ricette IA — con dove cercare — per iniziare questa settimana."
+        "subtitle": "Where your week should go, the value you lead, and the AI recipes, with where to look, to start this week."
       }
     },
     "career": {
@@ -189,7 +545,7 @@
     "sworkflow": {
       "name": {
         "title": "Nomina il flusso di lavoro",
-        "subtitle": "Scegline uno che valga la pena riprogettare. In una riga, cos'è — e cosa succede se non lo sistemi?"
+        "subtitle": "Pick one worth redesigning. In a line, what is it, and what breaks if you don't fix it?"
       },
       "interview": {
         "title": "Raccontalo all'IA",
@@ -197,15 +553,15 @@
       },
       "map": {
         "title": "Disegnalo come è oggi",
-        "subtitle": "Lo stato attuale onesto — ogni passaggio che un umano fa adesso. L'IA lo abbozza; tu lo adatti alla realtà."
+        "subtitle": "The honest current state, every step a human does now. AI sketches it; you make it match reality."
       },
       "analyze": {
         "title": "Come l'IA lo migliora",
-        "subtitle": "L'IA studia il tuo flusso reale e trova dove davvero aiuta — il risultato, come, e come prepararsi velocemente."
+        "subtitle": "AI studies your real workflow and finds where it genuinely helps, the outcome, how, and how to prep fast."
       },
       "tradeoffs": {
         "title": "I tre compromessi",
-        "subtitle": "L'IA tira verso più, verso generalità, verso il caos. Decidi dove ogni aspetto tiene la linea — poi l'IA costruisce il tuo piano per raggiungere risultati migliori, accuratezza dove conta, e struttura che rende l'autonomia sicura."
+        "subtitle": "AI pulls toward more, toward generality, toward chaos. Decide where each holds the line, then AI builds your plan for getting to better outcomes, accuracy where it counts, and structure that makes autonomy safe."
       },
       "redesign": {
         "title": "Il tuo flusso IA + Umano",
@@ -215,19 +571,19 @@
     "workflow": {
       "name": {
         "title": "Nomina il flusso di lavoro",
-        "subtitle": "Scegline uno che valga la pena riprogettare. In una riga, cos'è — e cosa succede se non lo sistemi?"
+        "subtitle": "Pick one workflow worth redesigning. In a line, what is it, and what breaks if you don't fix it?"
       },
       "map": {
         "title": "Disegnalo come è oggi",
-        "subtitle": "Lo stato attuale onesto — ogni passaggio che un umano fa adesso. L'IA lo abbozza dalla tua descrizione; rendilo aderente alla realtà."
+        "subtitle": "The honest current state, every step a human does now. AI sketches it from your description; make it match reality."
       },
       "analyze": {
         "title": "Come l'IA lo migliora",
-        "subtitle": "L'IA trova dove davvero aiuta — il risultato, come, e come prepararsi velocemente — poi propone la divisione. Ricolorate insieme; i disaccordi sono la parte più interessante."
+        "subtitle": "AI finds where it genuinely helps, the outcome, how, and how to prep fast, then proposes the split. Recolor together; disagreements are the most interesting part."
       },
       "tradeoffs": {
         "title": "I tre compromessi",
-        "subtitle": "L'IA tira verso più, verso generalità, verso il caos. Decidi dove ogni aspetto tiene la linea — poi l'IA costruisce il tuo piano per raggiungere risultati migliori, accuratezza dove conta, e struttura che rende l'autonomia sicura."
+        "subtitle": "AI pulls toward more, toward generality, toward chaos. Decide where each holds the line, then AI builds your plan for getting to better outcomes, accuracy where it counts, and structure that makes autonomy safe."
       },
       "redesign": {
         "title": "Il tuo flusso IA + Umano",
@@ -240,20 +596,20 @@
     "viewFull": "Visualizza la tela completa",
     "aiUnavailable": "L'IA non è disponibile.",
     "openingThinking": "Il tuo partner IA sta pensando a una domanda iniziale…",
-    "draftIntro": "Lascia che l'IA abbozzi la tela dalla tua intervista — poi rendila tutta tua.",
+    "draftIntro": "Let AI draft the canvas from your interview, then make every line yours.",
     "drafting": "Abbozzo in corso…",
     "redraft": "↻ Riabbozza",
-    "cantDraft": "Impossibile abbozzare — compilala a mano.",
+    "cantDraft": "Couldn't draft, fill it in by hand.",
     "inShort": "In breve",
     "frontierHeading": "Dove si posiziona sulla frontiera",
-    "frontierGeneralityLabel": "Generalità — quanto varia?",
+    "frontierGeneralityLabel": "Generality: how varied?",
     "frontierGeneralityLo": "un solo contesto",
     "frontierGeneralityHi": "molti contesti",
-    "frontierAccuracyLabel": "Precisione — quanto esatta?",
+    "frontierAccuracyLabel": "Accuracy: how exact?",
     "frontierAccuracyLo": "approssimativa",
     "frontierAccuracyHi": "deve essere esatta",
-    "scorecardHeading": "Scorecard — 0 (non funzionante) a 100 (solido)",
-    "unitEconHeading": "Economia unitaria — in tempo reale",
+    "scorecardHeading": "Scorecard: 0 (broken) to 100 (strong)",
+    "unitEconHeading": "Unit economics: live",
     "unitEconHint": "Regola i numeri; l'economia si aggiorna mentre procedi. Punta a LTV:CAC ≥ 3× e un payback veloce.",
     "onePerLine": "Uno per riga…",
     "pairsLeft": "Misura",
@@ -268,7 +624,7 @@
     "careerTag": "Analisi della carriera",
     "introJd": "Incolla una descrizione del ruolo. L'IA la scompone in compiti, valuta ciascuno per l'esposizione all'IA, lo confronta con la professione e mostra come trovare la persona giusta.",
     "introResume": "Incolla il tuo curriculum (o le parti principali). L'IA lo scompone in compiti, valuta ciascuno per l'esposizione all'IA, ti confronta con la tua professione e mappa dove concentrarti e dove andare dopo.",
-    "privateNote": "Privato per te — nulla viene mostrato agli altri partecipanti.",
+    "privateNote": "Private to you, nothing is shown to other participants.",
     "roleTitle": "Titolo del ruolo",
     "currentRole": "Il tuo ruolo attuale",
     "levelOptional": "Livello (facoltativo)",
@@ -290,7 +646,7 @@
     "netLoading": "Caricamento…",
     "netWhoAreYou": "Chi sei?",
     "netFindName": "Trova il tuo nome, o aggiungilo se non sei nell'elenco.",
-    "netNotMeRestart": "Non sono io — rimuovi e ricomincia",
+    "netNotMeRestart": "That's not me, remove & start over",
     "netAdviceTitle": "Consigli",
     "netAdviceQ": "A chi ti sei rivolto per consigli sulla carriera o sul programma? Seleziona quanti desideri.",
     "netFriendsTitle": "Amici",
@@ -298,11 +654,11 @@
     "netSubmitting": "Invio in corso…",
     "netSubmit": "Invia",
     "netThanks": "Grazie",
-    "netAnswersIn": "Le tue risposte sono state registrate. Guarda lo schermo — la rete si sta disegnando.",
+    "netAnswersIn": "Your answers are in. Watch the screen, the network is drawing itself.",
     "netReading": "Lettura della tua rete…",
     "netNutshell": "La tua rete, in breve",
     "netEditAnswers": "Modifica le mie risposte",
-    "netNotMeRemove": "Non sono io — rimuovimi",
+    "netNotMeRemove": "That's not me, remove me",
     "netTypeName": "Digita il tuo nome…",
     "netAddName": "Aggiungi {name} come mio nome",
     "netSearchNames": "Cerca tra {n} nomi…",
@@ -310,7 +666,7 @@
     "netSelected": "{n} selezionati",
     "benchTag": "Il Benchmark",
     "benchLoading": "Caricamento…",
-    "benchIntro": "{n} domande, a tempo. Per ognuna, scegli la risposta migliore — lavora velocemente e con attenzione.",
+    "benchIntro": "{n} questions, timed. For each, pick the single best answer, work quickly and carefully.",
     "benchQuestions": "{n} domande",
     "benchMinTimed": "{n} min · a tempo",
     "benchNotReadyTitle": "Non ancora configurato.",
@@ -331,25 +687,25 @@
     "privatePriorities": "Le tue priorità private",
     "priorityIntro1": "Punti più alti = meglio per te. Puoi ottenere fino a",
     "priorityIntro2": "; il tuo punto di rottura vale",
-    "priorityIntro3": "— non accettare meno.",
-    "otherSidePriorities": "L'altra parte ha le sue priorità — alcuni argomenti li ritiene molto più importanti di te, altri molto meno. I migliori accordi fanno scambi tra loro.",
+    "priorityIntro3": ", don't accept less.",
+    "otherSidePriorities": "The other side has their own priorities, some issues they care about far more than you, and some far less. The best deals trade across them.",
     "yourPosition": "La tua posizione",
     "posListed1": "{name} ha {item} in vendita a",
     "posWalkA": "Il tuo punto di rottura: non pagherai",
     "posWalkB": "più di",
     "posWalkC": "(un furgone del concessionario è il tuo piano B a quel prezzo).",
     "posEveryDollar": "Ogni euro sotto ${amount} è denaro in tasca tua. Parti basso, ma rimani credibile.",
-    "posFloor": "Non conosci il prezzo minimo del venditore — c'è un margine da sfruttare se lo trovi.",
+    "posFloor": "You don't know the seller's floor, there's a gap to claim if you find it.",
     "counterpartUnavailable": "L'altra parte non è disponibile.",
     "opening": "{name} sta iniziando…",
     "replyTo": "Rispondi a {name}…",
-    "recordDeal": "Registra l'accordo raggiunto — scegli l'opzione concordata per ogni punto.",
+    "recordDeal": "Record the deal you reached, pick the agreed option for each issue.",
     "choose": "Scegli…",
     "whatPrice": "A quale prezzo avete concordato per {item}?",
     "reminderOver": "Promemoria: qualsiasi prezzo superiore a ${amount} è peggio del tuo punto di rottura.",
-    "noDealMulti": "Non siamo riusciti ad accordarci — nessun affare (entrambi andiamo alle nostre alternative).",
-    "noDealPrice": "Non siamo riusciti ad accordarci — nessun affare (prenderò il furgone del concessionario).",
-    "noDealWalked": "Nessun affare — te ne sei andato. A volte è la scelta giusta; spesso c'era un accordo da trovare. Vedi il parere del coach qui sotto.",
+    "noDealMulti": "We couldn't agree, no deal (we both walk to our other options).",
+    "noDealPrice": "We couldn't agree, no deal (I'll take the dealer van).",
+    "noDealWalked": "No deal, you walked. Sometimes that's right; often a deal was there to be found. See the coach's take below.",
     "yourScore": "Il tuo punteggio",
     "scoreSub": "su {max} · punto di rottura {batna}",
     "theirScore": "Punteggio di {name}",
@@ -378,11 +734,11 @@
   },
   "panel": {
     "setupYourJob": "Il tuo lavoro oggi",
-    "setupYourJobHelp": "Il tuo partner lo riproggetterà — quindi dagli qualcosa di concreto con cui lavorare.",
+    "setupYourJobHelp": "Your partner will redesign this, so give them something real to work with.",
     "setupJobTitle": "Titolo della posizione",
     "setupJobTitlePh": "es. Senior Marketing Manager",
-    "setupWhatYouDo": "In una o due righe, cosa fai effettivamente?",
-    "setupWhatYouDoPh": "Di cosa sei responsabile e come impieghi il tuo tempo.",
+    "setupWhatYouDo": "Describe your job. What are you responsible for, what does a typical week look like, and where does most of your time actually go?",
+    "setupWhatYouDoPh": "The tasks, decisions, and people you handle, and the parts that take the most time and energy.",
     "setupPartnerJobNamed": "Il lavoro di {name}",
     "setupPartnerJob": "Il lavoro del tuo partner",
     "setupPartnerJobHelp": "Questo è quello che riproggetterai. Si compila mentre digita.",
@@ -390,18 +746,19 @@
     "setupLoading": "Caricamento…",
     "interviewLoading": "Caricamento…",
     "interviewPartnerFallback": "il tuo partner",
-    "interviewAskValue": "Approfondisci il valore che creano — per il cliente, l'organizzazione, il loro manager. Come faresti a sapere che sta funzionando?",
+    "interviewAskValue": "Dig into the value they create, for the customer, the organization, their manager. How would you know it's working?",
     "interviewAskWork": "Comprendi cosa fanno effettivamente, cosa conta per loro e cosa li drena.",
     "interviewNotesPhValue": "Quale valore creano e per chi? Come lo sapresti? Cosa sanno fare solo loro?",
     "interviewNotesPhWork": "Cosa fanno giorno per giorno? Cosa conta di più? Cosa consuma il loro tempo?",
     "interviewBeingInterviewed": "{name} ti sta intervistando",
-    "interviewBeingValue": "Non c'è nulla da scrivere. Parla del valore che crei — per il cliente, l'organizzazione, il tuo manager. Lascia che approfondisca.",
-    "interviewBeingWork": "Non c'è nulla da scrivere. Parla semplicemente del tuo lavoro — cosa fai e cosa conta per te. Lascia che approfondisca.",
+    "interviewBeingValue": "Nothing to type. Talk about the value you create, for the customer, the organization, your manager. Let them dig.",
+    "interviewBeingWork": "Nothing to type. Just talk about your work, what you do and what matters in it. Let them dig.",
     "interviewSwitchNote": "Quando il timer termina, vi scambierete e intervisterai {name}.",
     "interviewDigDeeper": "Approfondisci con {name}",
     "interviewInterviewing": "Stai intervistando {name}",
     "interviewSwitchShort": "Quando il timer termina, vi scambierete.",
     "interviewNotesLabel": "Le tue note sul valore di {name}",
+    "interviewFromFirst": "From the first interview",
     "interviewStuck": "Bloccato? Approfondisci",
     "interviewMore": "Altro",
     "interviewAskAI": "✨ Chiedi all'IA",
@@ -409,20 +766,20 @@
     "interviewCantGet": "Impossibile ottenere le domande.",
     "realJobLoading": "Caricamento…",
     "realJobPartnerFallback": "il tuo partner",
-    "realJobSoloPre": "Lavora da solo ora — sintetizza le tue note in un punto di vista sul",
+    "realJobSoloPre": "Work solo now, distill your notes into a point of view about the",
     "realJobValueWord": "valore",
     "realJobCreatesSuffix": "che crea.",
     "realJobYourNotes": "Le tue note",
-    "realJobValueLabel": "Il valore che {name} crea — e per chi?",
+    "realJobValueLabel": "The value {name} creates, and for whom?",
     "realJobValueHelp": "Per il cliente finale, l'organizzazione, il loro manager. Nomina il valore, non il prodotto del lavoro.",
     "realJobValuePh": "Chi sta meglio grazie a loro e come?",
     "realJobDeepestLabel": "La fonte più profonda di quel valore",
-    "realJobDeepestHelp": "La parte che solo {name} può fare — giudizio, relazioni, gusto, fiducia.",
+    "realJobDeepestHelp": "The part only {name} can do, judgment, relationships, taste, trust.",
     "realJobDeepestPh": "Cosa andrebbe perso se qualcun altro facesse questo?",
     "realJobInsightLabel": "Una cosa sul loro valore che potrebbero non vedere",
-    "realJobInsightPh": "Un'intuizione dall'intervista — dove il loro valore reale risiede davvero.",
+    "realJobInsightPh": "An insight from the interview, where their real worth actually lives.",
     "breakPartnerFallback": "il tuo partner",
-    "breakTitle": "Pausa — torniamo in sala",
+    "breakTitle": "Pause, back to the room",
     "breakTeachPre": "Il tuo istruttore sta per insegnare il",
     "breakModelName": "modello 2×4 AI × Human",
     "breakWatchMid": ". Guarda lo schermo. Quando dicono via, tocca",
@@ -432,11 +789,11 @@
     "redesignLoading": "Caricamento…",
     "redesignPartnerFallback": "il tuo partner",
     "redesignCantSuggest": "Non è stato possibile suggerire una divisione.",
-    "redesignStuck": "Bloccato sulla divisione? Lascia che l'AI ragioni dalle tue note — cosa può genuinamente gestire e cosa solo {name} può fare. Poi modificalo.",
+    "redesignStuck": "Stuck on the split? Let AI reason from your notes, what it can genuinely take, and what only {name} can do. Then edit it.",
     "redesignSuggestBtn": "✨ AI: suggerisci una divisione",
     "redesignWhySplit": "Perché questa divisione",
     "redesignRoleLabel": "Il ruolo riprogettato di {name}",
-    "redesignRoleHelp": "Mettilo insieme: su cosa si concentra {name} — il valore che solo loro creano — e come l'AI lo rende possibile?",
+    "redesignRoleHelp": "Pull it together: what does {name} focus on, the value only they create, and how does AI make it possible?",
     "redesignRolePh": "Nel ruolo riprogettato, {name} dedica il suo tempo a… mentre l'AI gestisce…",
     "redesignNoNotes": "Nessuna nota acquisita.",
     "redesignLearnedHeader": "Quello che hai imparato su {name}",
@@ -454,29 +811,36 @@
     "shareGaveAI": "Hanno affidato all'AI",
     "shareKeptHuman": "Hanno mantenuto umano",
     "shareTalkThrough": "Discutine su Zoom, poi registra le tue reazioni. {name} le vede come feedback sulla loro progettazione.",
-    "shareNothingAssigned": "— niente assegnato ancora —",
+    "shareNothingAssigned": "Nothing assigned yet",
     "finalLoading": "Caricamento…",
     "finalPartnerFallback": "il tuo partner",
     "finalYourDraft": "La tua bozza",
     "finalFeedbackHeader": "Feedback di {name}",
-    "finalReimaginedLabel": "Il ruolo ripensato per {name} — versione finale",
+    "finalReimaginedLabel": "The reimagined job for {name}, final version",
     "finalFoldHelp": "Incorpora il feedback. Un paragrafo compatto: cosa gestisce loro, cosa fa l'AI, perché è meglio.",
     "finalReimaginedPh": "Nel ruolo ripensato di {name}, loro…",
     "finalJobForYou": "Il ruolo che {name} ha ripensato per te",
     "finalStillFinishing": "{name} sta ancora completando il tuo…",
-    "finalSaved": "Entrambe le versioni sono salvate nei vostri account. Potete riaprire questa sessione in qualsiasi momento dalla vostra dashboard."
+    "finalSaved": "Entrambe le versioni sono salvate nei vostri account. Potete riaprire questa sessione in qualsiasi momento dalla vostra dashboard.",
+    "giftTheirGift": "{name}'s gift to you",
+    "giftOpenBlurb": "{name} reimagined your whole role. Unwrap it.",
+    "giftOpen": "Open your gift →",
+    "giftGiveYours": "Give {name} their gift",
+    "giftPasteHint": "Copy the link and drop it in the chat so they can unwrap the role you designed for them.",
+    "giftCopyLink": "Copy gift link",
+    "giftCopied": "Link copied ✓"
   },
   "sworkflow": {
     "tag": "Workflow · Partner AI",
     "nameLabel": "In una riga, cos'è il workflow?",
     "namePh": "es. Reportistica mensile al board",
-    "describeLabel": "Descrivilo — come funziona oggi e cosa si rompe se non lo ridisegni?",
+    "describeLabel": "Describe it, how does it work today, and what breaks if you don't redesign it?",
     "describePh": "Percorri cosa accade, dall'inizio alla fine.",
-    "tradeoffsIntro": "Decidi dove ciascuno deve mantenere la linea — poi lascia che l'AI costruisca il piano per come arrivarci effettivamente: meglio, accuratezza e autonomia sicura.",
+    "tradeoffsIntro": "Decide where each has to hold the line, then let AI build the plan for how you actually get to better, accuracy, and safe autonomy.",
     "rebuildPlan": "Ricostruisci il piano",
     "thinkItThrough": "✨ Riflettici e pianifica",
     "aiOff": "L'AI non è configurata per questa sessione.",
-    "cantSuggest": "Non ho potuto ottenere suggerimenti — riprova.",
+    "cantSuggest": "Couldn't get suggestions, try again.",
     "row1Occ": "Risultati",
     "row1Title": "Più vs. Meglio",
     "row1Hint": "L'AI tira verso il più. È dove vuoi arrivare?",
@@ -489,7 +853,7 @@
     "row2Right": "Approssimativamente corretto va bene",
     "row3Occ": "Controllo",
     "row3Title": "Struttura vs. Autonomia",
-    "row3Hint": "L'AI tira verso l'autonomia — senza struttura, è caos.",
+    "row3Hint": "AI pulls toward autonomy, without structure, that's chaos.",
     "row3Left": "Che aspetto ha il caos qui",
     "row3Right": "La struttura che rende l'autonomia sicura (Architetto)",
     "aiHumanWorkflow": "Il tuo workflow AI + Umano",
@@ -506,22 +870,22 @@
     "openingQ": "L'IA sta pensando a una domanda iniziale…",
     "mapIntro1": "Il flusso di lavoro esattamente come viene eseguito",
     "mapToday": "oggi",
-    "mapIntro2": "— ogni passaggio che un umano fa adesso. Aggiungerai l'IA nel passaggio successivo.",
+    "mapIntro2": ", every step a human does now. You'll add AI in the next step.",
     "drawing": "Disegno in corso…",
     "redraw": "Ridisegna",
     "drawCurrent": "✨ Disegna il flusso di lavoro attuale",
-    "cantDraftSteps": "Impossibile crearlo — aggiungi i passaggi manualmente.",
-    "analyzeIntro": "L'IA legge il tuo flusso di lavoro reale e identifica dove davvero aiuta — il risultato che desideri, come l'IA lo raggiunge e come prepararsi velocemente.",
+    "cantDraftSteps": "Couldn't draft it, add steps by hand.",
+    "analyzeIntro": "AI reads your real workflow and finds where it genuinely helps, the outcome you want, how AI gets there, and how to prep fast.",
     "analyzing": "Analisi in corso…",
     "reAnalyze": "Rianalizza",
     "analyzeWithAI": "✨ Analizza con l'IA",
-    "cantAnalyze": "Impossibile analizzare — riprova.",
+    "cantAnalyze": "Couldn't analyze, try again.",
     "drawFirst": "Disegna prima il flusso di lavoro attuale (il passaggio precedente), poi analizzalo.",
     "whereAiHelps": "Dove l'IA aiuta",
     "theOutcome": "Il risultato",
     "howAiDoes": "Come l'IA lo fa",
     "prepFast": "Preparati velocemente",
-    "redesignedFlow": "Flusso riprogettato — IA + umano",
+    "redesignedFlow": "Redesigned flow: AI + human",
     "recolorHint": "Il verde rimane umano; l'oro è IA. Ricolora o modifica tutto ciò che non è corretto."
   },
   "workflow": {
@@ -530,15 +894,15 @@
     "waitingJoin": "In attesa che il tuo partner si unisca",
     "nameLabel": "In una riga, qual è il flusso di lavoro?",
     "namePh": "es. Rapporto mensile del consiglio",
-    "describeLabel": "Descrivilo — come funziona oggi e cosa succede se non lo riprogetti?",
+    "describeLabel": "Describe it, how does it work today, and what breaks if you don't redesign it?",
     "describePh": "Percorri cosa accade, dall'inizio alla fine. Più dettagli fornisci, meglio l'IA potrà disegnarlo.",
     "mapIntroPre": "Il flusso di lavoro esattamente come viene eseguito",
     "mapIntroToday": "oggi",
-    "mapIntroPost": "— ogni passaggio che un umano fa adesso. Aggiungerai l'IA dopo.",
+    "mapIntroPost": ", every step a human does now. You'll add AI next.",
     "drawing": "Disegno in corso…",
     "redraw": "Ridisegna",
     "drawCurrent": "✨ Disegna il flusso di lavoro attuale",
-    "analyzeIntro": "L'IA legge il tuo flusso di lavoro reale e identifica dove davvero aiuta — il risultato che desideri, come l'IA lo raggiunge e come prepararsi velocemente.",
+    "analyzeIntro": "AI reads your real workflow and finds where it genuinely helps, the outcome you want, how AI gets there, and how to prep fast.",
     "analyzing": "Analisi in corso…",
     "reanalyze": "Rianalizza",
     "analyzeWithAI": "✨ Analizza con l'IA",
@@ -547,9 +911,9 @@
     "oppOutcome": "Il risultato",
     "oppHow": "Come l'IA lo fa",
     "oppPrep": "Preparazione veloce",
-    "redesignedFlow": "Flusso riprogettato — IA + umano",
-    "recolorHint": "Il verde rimane umano; l'oro è IA. Ricolora insieme — i disaccordi sono la parte più interessante.",
-    "tradeoffsIntro": "Decidi dove ciascuno deve mantenere la linea — poi lascia che l'IA costruisca il piano per come arrivare effettivamente a miglior qualità, accuratezza e autonomia sicura.",
+    "redesignedFlow": "Redesigned flow: AI + human",
+    "recolorHint": "Green stays human; gold is AI. Recolor together, disagreements are the most interesting part.",
+    "tradeoffsIntro": "Decide where each has to hold the line, then let AI build the plan for how you actually get to better, accuracy, and safe autonomy.",
     "rebuildPlan": "Ricostruisci il piano",
     "thinkThroughPlan": "✨ Rifletti e pianifica",
     "occOutcomes": "Risultati",
@@ -564,7 +928,7 @@
     "generalityLabel": "Approssimativamente corretto va bene",
     "occControl": "Controllo",
     "structureVsAutonomy": "Struttura vs. Autonomia",
-    "controlHint": "L'IA tira verso l'autonomia — senza struttura, è caos.",
+    "controlHint": "AI pulls toward autonomy, without structure, that's chaos.",
     "chaosLabel": "Che aspetto ha il caos qui",
     "architectLabel": "La struttura che rende l'autonomia sicura (Architetto)",
     "yourAiHumanWorkflow": "Il tuo flusso di lavoro IA + umano",
@@ -572,20 +936,20 @@
     "stopStartLabel": "Se riprogettassimo davvero questo, smetteremmo di ___ e inizieremmo ___.",
     "stopStartPh": "Smetteremmo di… e inizieremmo…",
     "viewFullPlan": "Visualizza il piano completo",
-    "timeUp": "Il tempo è scaduto — prosegui con il gruppo.",
+    "timeUp": "Time's up. Move the room on.",
     "aiOff": "L'IA non è configurata per questa sessione.",
-    "cantDraft": "Non è stato possibile elaborare — aggiungi i passaggi manualmente.",
-    "cantAnalyze": "Non è stato possibile analizzare — riprova.",
-    "cantSuggest": "Non è stato possibile ottenere suggerimenti — riprova."
+    "cantDraft": "Couldn't draft it, add steps by hand.",
+    "cantAnalyze": "Couldn't analyze, try again.",
+    "cantSuggest": "Couldn't get suggestions, try again."
   },
   "roadmap": {
-    "tag": "Percorso Professionale",
+    "tag": "Map Your Next Career Moves",
     "stepInput": "Il tuo punto di partenza",
     "stepInterview": "Poche domande rapide",
     "stepRoadmap": "Il tuo percorso",
     "intro": "Incolla il tuo CV (o le parti principali). Lo abbiniamo alla tua occupazione O*NET, troviamo i prossimi passi adiacenti alle tue competenze e mappiamo le abilità da sviluppare.",
-    "loadedSaved": "Abbiamo caricato il tuo CV salvato — modificalo se è cambiato.",
-    "interviewIntro": "Facoltativo — poche domande su dove vuoi crescere e i tuoi vincoli. Affina le raccomandazioni.",
+    "loadedSaved": "Loaded your saved résumé, edit if it changed.",
+    "interviewIntro": "Optional, a few questions about where you want to grow and your constraints. It sharpens the recommendations.",
     "skipToRoadmap": "Salta al percorso",
     "coachOpening": "Il coach sta pensando a una domanda iniziale…",
     "coachUnavailable": "Il coach non è disponibile.",
@@ -602,7 +966,11 @@
     "print": "Stampa / Salva PDF",
     "nothingYet": "Niente qui per ora",
     "nothingBody": "Torna indietro e tocca Costruisci il mio percorso per generarlo.",
+    "startingPoint": "Il tuo profilo",
     "whereNext": "Dove puoi andare dopo",
+    "mapCaption": "Posizionato in base a quanto bene le competenze di ogni ruolo corrispondono alle tue (destra = più vicino a te) e lo stipendio mediano del ruolo (su = più alto). Tocca un ruolo.",
+    "tierClose": "Corrispondenza stretta",
+    "tierAdjacent": "Passaggio adiacente",
     "tierStretch": "Mossa ambiziosa",
     "skillMatch": "Corrispondenza competenze {pct}%",
     "jobZone": "Zona Lavoro {n}",
@@ -610,21 +978,17 @@
     "youVsRole": "Tu vs. questo ruolo",
     "you": "Tu",
     "skillsToBuildLabel": "Competenze da sviluppare",
-    "noGaps": "Soddisfi già gli standard di competenza di questo ruolo — il cambio riguarda il posizionamento, non l'acquisizione di nuove abilità.",
+    "noGaps": "You already meet this role's skill bar, the move is about positioning, not upskilling.",
     "yourRoadmap": "Il tuo percorso",
     "near": "Prossimi 0–3 mesi",
     "mid": "3–12 mesi",
-    "move": "12–24 mesi — il cambio",
+    "move": "12 to 24 months: the move",
     "lever": "La leva:",
     "noRadar": "Dati di competenza insufficienti per il grafico.",
     "noTargets": "Nessuna roadmap ancora.",
     "axisPay": "Retribuzione mediana ↑",
     "axisPrep": "Livello di preparazione ↑",
     "axisTransfer": "Trasferibilità delle competenze →",
-    "strengthsHeading": "I tuoi punti di forza durevoli",
-    "startingPoint": "Il tuo profilo",
-    "mapCaption": "Posizionato in base a quanto bene le competenze di ogni ruolo corrispondono alle tue (destra = più vicino a te) e lo stipendio mediano del ruolo (su = più alto). Tocca un ruolo.",
-    "tierClose": "Corrispondenza stretta",
-    "tierAdjacent": "Passaggio adiacente"
+    "strengthsHeading": "I tuoi punti di forza durevoli"
   }
 }
