@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProfileForm from "@/components/ProfileForm";
+import CreatorProfileForm from "@/components/CreatorProfileForm";
 import ChangePassword from "@/components/ChangePassword";
 import Logo from "@/components/Logo";
 import HeaderNav from "@/components/HeaderNav";
@@ -45,6 +46,14 @@ export default async function ProfilePage() {
             study_field: p.study_field,
             grad_year: p.grad_year,
           }}
+        />
+      </section>
+
+      <section className="card mt-5 p-6">
+        <h2 className="text-sm font-bold text-ink">Creator profile</h2>
+        <p className="mb-4 mt-1 text-xs text-slate-400">Shown on the modules you choose to sign. Sign the ones that carry your own judgment.</p>
+        <CreatorProfileForm
+          initial={{ title: p.title, institution: p.institution, bio: p.bio, avatar_url: p.avatar_url, handle: p.handle }}
         />
       </section>
 

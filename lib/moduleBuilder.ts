@@ -54,6 +54,8 @@ export type BuilderSpec = {
   frontier?: CanvasDef["frontier"]; // an embedded 2x2 / complexity map the AI scores
   calculator?: CanvasDef["calculator"]; // a live calculator the AI seeds
   minutes?: number;
+  signedByAuthor?: boolean; // show "Created by <you>" — sign only what carries your own judgment
+  showOrgLogo?: boolean;    // also show your institution's logo on the signed module
 };
 
 export const DEFAULT_SPEC: BuilderSpec = {

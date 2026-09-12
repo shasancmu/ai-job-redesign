@@ -5,6 +5,8 @@ import Logo from "@/components/Logo";
 import ShareReport from "@/components/ShareReport";
 import { accentColor, scoreColor, type CanvasDef } from "@/lib/canvases";
 import { coerceLine, coercePair } from "@/lib/canvasCoerce";
+import AuthorByline from "@/components/AuthorByline";
+import type { ModuleAttribution } from "@/lib/creator";
 import FrontierPlot, { complexityLevel, QuadrantPlot } from "@/components/FrontierPlot";
 import UnitEconomics from "@/components/UnitEconomics";
 import PrintButton from "@/components/PrintButton";
@@ -17,11 +19,13 @@ export default function CanvasView({
   canvas,
   code,
   embedded = false,
+  attribution,
 }: {
   def: CanvasDef;
   canvas: any;
   code?: string;
   embedded?: boolean;
+  attribution?: ModuleAttribution | null;
 }) {
   const fields: Record<string, any> = canvas.fields || {};
   const groups = Array.from(new Set(def.fields.map((f) => f.group)));
@@ -49,6 +53,7 @@ export default function CanvasView({
               <h1 className={"display mt-2 text-ink " + (embedded ? "text-2xl sm:text-3xl" : "text-3xl sm:text-4xl")}>{canvas.subject}</h1>
             )}
             {canvas.synthesis && <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate2">{canvas.synthesis}</p>}
+            {attribution && <div className="mt-5"><AuthorByline creator={attribution.creator} showLogo={attribution.showLogo} /></div>}
             {def.hasVerdict && canvas.verdict && (
               <div className="mt-5 inline-flex items-center gap-3 rounded-full border border-line bg-white px-4 py-2 text-sm">
                 <span className="relative inline-block h-4 w-6">

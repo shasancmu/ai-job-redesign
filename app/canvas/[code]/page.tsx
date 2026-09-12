@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import { resolveCanvasDefForUser } from "@/lib/customModules";
+import { getSignedAttribution } from "@/lib/creator";
 import CanvasView from "@/components/CanvasView";
 import { reportTitle } from "@/lib/reportTitle";
 
@@ -68,5 +69,7 @@ export default async function CanvasPage({ params }: { params: { code: string } 
     );
   }
 
-  return <CanvasView def={def} canvas={canvas} code={code} />;
+  const attribution = await getSignedAttribution(session.exercise || "");
+
+  return <CanvasView def={def} canvas={canvas} code={code} attribution={attribution} />;
 }

@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { runWallet, runsLeftByModule, grantedModuleSlugs, alumniOffer } from "@/lib/access";
 import { roleplayCatalogMap } from "@/lib/mechanics/store";
-import { interviewMetaBySlugs } from "@/lib/customModules";
+import { interviewMetaBySlugs, CUSTOM_PREFIX } from "@/lib/customModules";
+import { getSignedAttribution } from "@/lib/creator";
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { isAdmin } from "@/lib/admin";
 import { claimInvites, getMyOrgs, getActiveOrg, facilitatorAccess, masterCohortCode } from "@/lib/orgs";
@@ -162,7 +163,8 @@ export default async function Dashboard({
   // /start/[slug]). Surfaced as their own section with the class code threaded
   // through, so results tag to the cohort. Registry slugs are skipped here — the
   // catalog below already shows them.
-  type ClassAssignment = { slug: string; name: string; emoji: string; href: string; className: string };
+  type Byline = { name: string; avatarUrl?: string; institution?: string; verified: boolean; institutionLogoUrl?: string; showLogo: boolean };
+  type ClassAssignment = { slug: string; name: string; emoji: string; href: string; className: string; author?: Byline };
   const classAssignments: ClassAssignment[] = [];
   try {
     const a = createAdminClient();
@@ -186,6 +188,12 @@ export default async function Dashboard({
       }
     }
   } catch { /* no service role or table */ }
+
+  // Attach the author byline to any assigned module the creator chose to sign.
+  await Promise.all(classAssignments.map(async (r) => {
+    const attr = await getSignedAttribution(CUSTOM_PREFIX + r.slug);
+    if (attr) r.author = { name: attr.creator.name, avatarUrl: attr.creator.avatarUrl, institution: attr.creator.institution, verified: attr.creator.verified, institutionLogoUrl: attr.creator.institutionLogoUrl, showLogo: attr.showLogo };
+  }));
 
   // Wide enough that a module's finished run never falls outside the window —
   // otherwise "Done" would flicker back to "In progress" as newer sessions
@@ -484,7 +492,21 @@ export default async function Dashboard({
                 <div className="text-2xl">{r.emoji}</div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-bold text-ink group-hover:text-ai">{r.name}</div>
-                  <div className="text-xs text-slate-400">{r.className}</div>
+                  {r.author ? (
+                    <div className="mt-0.5 flex items-center gap-1.5">
+                      {r.author.avatarUrl ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={r.author.avatarUrl} alt="" className="h-4 w-4 shrink-0 rounded-full object-cover" />
+                      ) : null}
+                      <span className="truncate text-xs text-slate-500">{r.author.name}{r.author.institution ? <span className="text-slate-400"> · {r.author.institution}</span> : null}{r.author.verified ? <span className="text-ai"> ✓</span> : null}</span>
+                      {r.author.showLogo && r.author.institutionLogoUrl ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={r.author.institutionLogoUrl} alt="" className="h-4 w-auto shrink-0 rounded object-contain" />
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-slate-400">{r.className}</div>
+                  )}
                 </div>
                 {isDone
                   ? <span className="shrink-0 text-sm font-semibold text-sage">✓ Done</span>

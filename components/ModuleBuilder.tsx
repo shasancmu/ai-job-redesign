@@ -137,6 +137,22 @@ export default function ModuleBuilder({
           )}
         </Section>
 
+        {/* Signature */}
+        <Section title="Signature">
+          <p className="text-sm text-slate-500">Sign the modules that carry your own judgment. Leave the ones that just teach an established framework unsigned, so your signature stays meaningful.</p>
+          <label className="mt-3 flex cursor-pointer items-start gap-2.5">
+            <input type="checkbox" className="mt-0.5 h-4 w-4" checked={!!spec.signedByAuthor} onChange={(e) => set({ signedByAuthor: e.target.checked, showOrgLogo: e.target.checked ? spec.showOrgLogo : false })} />
+            <span className="text-sm"><span className="font-semibold text-ink">Sign this as mine.</span> <span className="text-slate-500">Show my photo, name, and affiliation on the module card and its report.</span></span>
+          </label>
+          {spec.signedByAuthor && (
+            <label className="mt-2 flex cursor-pointer items-start gap-2.5 pl-6">
+              <input type="checkbox" className="mt-0.5 h-4 w-4" checked={!!spec.showOrgLogo} onChange={(e) => set({ showOrgLogo: e.target.checked })} />
+              <span className="text-sm"><span className="font-semibold text-ink">Show my institution&apos;s logo</span> <span className="text-slate-500">alongside my name.</span></span>
+            </label>
+          )}
+          <p className="mt-2 text-xs text-slate-400">Set your photo, title, and affiliation on your <Link href="/profile" className="font-semibold text-ai hover:underline">creator profile</Link>. Your affiliation is verified by your organization membership.</p>
+        </Section>
+
         {/* Publish */}
         <Section title="Publish">
           <div className="flex flex-wrap gap-2">
