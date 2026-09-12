@@ -4,6 +4,7 @@ import Tour, { TourButton } from "@/components/Tour";
 import CredentialMoment from "@/components/CredentialMoment";
 import ResearchBehind from "@/components/ResearchBehind";
 import ReflectCommit from "@/components/ReflectCommit";
+import ReactionCapture from "@/components/ReactionCapture";
 import { reportGuide, walkthroughSteps } from "@/lib/reportGuide";
 import type { Prediction } from "@/components/PredictReveal";
 
@@ -49,6 +50,7 @@ export default function ReportReveal({
       {children}
 
       <ReflectCommit code={code} hasPrediction={!!prediction?.text} />
+      <ReactionCapture code={code} prediction={prediction} />
       <ResearchBehind guideKey={guideKey} />
 
       {steps.length > 0 && (
