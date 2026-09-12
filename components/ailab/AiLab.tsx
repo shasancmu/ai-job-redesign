@@ -15,7 +15,7 @@ type Sim = {
   concepts: string[]; transfer: string; takeaway: { title: string; body: string; template: string }; challenges: Challenge[];
 };
 type Grade = {
-  score: number; criteria: { key: string; label: string; met: boolean; note: string }[];
+  score: number; craft: number; criteria: { key: string; label: string; met: boolean; note: string }[];
   hiddenAssumptions?: string[]; safety?: string | null; strength: string; gap: string; passed: boolean;
 };
 type Artifact = any;
@@ -246,9 +246,10 @@ export default function AiLab({ sim, code, cohort }: { sim: Sim; code: string; c
           {/* Feedback */}
           <div className={`rounded-xl border p-4 ${result.grade.passed ? "border-sage/40 bg-sage/5" : "border-line bg-white"}`}>
             <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold text-ink">Score {result.grade.score}/100 <span className="text-slate-400">(pass {ch.passScore})</span></div>
+              <div className="text-sm font-semibold text-ink">Score {result.grade.score}/100 <span className="text-slate-400">(pass {ch.passScore})</span> <span className="font-normal text-slate-400">· craft {result.grade.craft}/100</span></div>
               {result.grade.passed && <span className="rounded bg-sage/15 px-2 py-0.5 text-xs font-semibold text-sage">passed</span>}
             </div>
+            {result.grade.craft < 80 && <p className="mt-1 text-xs text-slate-400">The rubric is the floor; the top of the score is reserved for craft beyond the checklist. Raise it with the move below.</p>}
             {result.grade.safety && <p className="mt-2 rounded bg-clay/10 px-2 py-1 text-xs text-clay"><b>Safety:</b> {result.grade.safety}</p>}
             <ul className="mt-2 space-y-1 text-xs">
               {result.grade.criteria.map((c) => (

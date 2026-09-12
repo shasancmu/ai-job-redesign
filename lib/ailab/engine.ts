@@ -11,12 +11,16 @@ function clamp(n: number, lo: number, hi: number) { return Math.max(lo, Math.min
 // ---- Grading ---------------------------------------------------------------
 async function judge(challenge: Challenge, kind: string, artifactSummary: string, learnerInput: string, extra: string = ""): Promise<Grade> {
   const rubricText = challenge.rubric.map((c) => `- ${c.key} (${c.label}): ${c.help}`).join("\n");
-  const system = `You are a rigorous but fair teaching assistant grading one attempt in a "${kind}" skills exercise. Judge ONLY against the rubric. Be specific and concrete; reward genuine skill, not verbosity. Do not use em dashes.
+  const system = `You are a DEMANDING expert grader for a "${kind}" skills exercise. Grade ONLY against the rubric, and be hard to impress. Reward genuine skill, never verbosity. Do not use em dashes.
 
-For EACH rubric key, return a credit from 0 to 1 (0 = absent, 0.5 = partial, 1 = fully met) and a one-line note citing the attempt. Also return: the single unstated assumption the AI had to make (hiddenAssumptions, 0-3 items), any unsafe/irreversible action taken without a gate (safety, or null), one strength, and the single most valuable next fix (gap).
+Return two things:
+1. For EACH rubric key, a credit 0-1 with a one-line note citing the attempt. Anchors: 1.0 = expert-level execution of that criterion, exemplary and hard to improve; 0.7 = the obvious correct thing done competently; 0.4 = partial; 0 = absent. Doing the obvious right thing is a 0.7, NOT a 1.0. Actively hunt for what is missing, sloppy, or merely adequate.
+2. A single "craft" score 0-1: how far the whole attempt exceeds the checklist with genuine expertise, the moves a careful beginner would not think of: anticipating failure modes, second-order effects, precision, robustness, edge cases. An attempt that ticks every box but shows nothing beyond that gets a LOW craft (around 0.2-0.4). Reserve craft above 0.8 for work an expert would be proud of and struggle to improve.
+
+Also return: the single unstated assumption the AI had to make (hiddenAssumptions, 0-3), any unsafe/irreversible action taken without a gate (safety, or null), one genuine strength, and the single most valuable next improvement (gap). When craft is the limiter, make the gap the specific expert move that would raise it.
 
 Return STRICT JSON only:
-{"criteria":[{"key":"...","credit":0.0,"note":"..."}],"hiddenAssumptions":["..."],"safety":null,"strength":"...","gap":"..."}`;
+{"criteria":[{"key":"...","credit":0.0,"note":"..."}],"craft":0.0,"hiddenAssumptions":["..."],"safety":null,"strength":"...","gap":"..."}`;
   const user = `RUBRIC:\n${rubricText}\n\nTASK BRIEF:\n${challenge.brief}\n${challenge.target ? `\nTARGET OUTPUT:\n${challenge.target}` : ""}${challenge.build_target ? `\nWHAT GOOD LOOKS LIKE:\n${challenge.build_target}` : ""}${challenge.goal ? `\nAGENT GOAL:\n${challenge.goal}` : ""}\n\nLEARNER'S ATTEMPT:\n${learnerInput.slice(0, 6000)}\n\nWHAT THE RUN PRODUCED:\n${artifactSummary.slice(0, 6000)}${extra ? `\n\n${extra}` : ""}`;
 
   let parsed: any = {};
@@ -25,15 +29,22 @@ Return STRICT JSON only:
   for (const c of (Array.isArray(parsed.criteria) ? parsed.criteria : [])) {
     if (c && typeof c.key === "string") creditByKey.set(c.key, { credit: clamp(Number(c.credit) || 0, 0, 1), note: String(c.note || "").slice(0, 240) });
   }
-  let score = 0;
+  let base = 0;
   const criteria = challenge.rubric.map((r) => {
     const g = creditByKey.get(r.key) || { credit: 0, note: "Not assessed." };
-    score += r.weight * g.credit;
-    return { key: r.key, label: r.label, met: g.credit >= 0.6, note: g.note };
+    base += r.weight * g.credit;
+    return { key: r.key, label: r.label, met: g.credit >= 0.7, note: g.note };
   });
-  const finalScore = Math.round(clamp(score, 0, 1) * 100);
+  base = clamp(base, 0, 1);
+  const craft = clamp(Number(parsed.craft) || 0, 0, 1);
+  // The rubric is the competence floor; craft is the mastery band. Meeting every
+  // criterion caps the score at 75 with no craft, so the top of the scale means
+  // expertise, not completion. This keeps the score DISCRIMINATING (variance) so it
+  // works as an L2 outcome, and makes 100 genuinely hard to reach.
+  const finalScore = Math.round(base * (0.75 + 0.25 * craft) * 100);
   return {
     score: finalScore,
+    craft: Math.round(craft * 100),
     criteria,
     hiddenAssumptions: Array.isArray(parsed.hiddenAssumptions) ? parsed.hiddenAssumptions.slice(0, 3).map((x: any) => String(x).slice(0, 200)) : undefined,
     safety: parsed.safety ? String(parsed.safety).slice(0, 240) : null,

@@ -54,6 +54,7 @@ export type SimDef = {
 export type CriterionResult = { key: string; label: string; met: boolean; note: string };
 export type Grade = {
   score: number;                 // 0-100 competence for this attempt
+  craft: number;                 // 0-100 the mastery-beyond-the-checklist band (why the top of the scale is reserved)
   criteria: CriterionResult[];
   hiddenAssumptions?: string[];  // what the AI assumed that the learner didn't specify (the intent/instruction gap)
   safety?: string | null;        // agent sim: a flagged unsafe/destructive action, or null
