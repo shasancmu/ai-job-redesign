@@ -466,12 +466,24 @@ export async function roleplayExaminerAI(system: string, user: string, maxTokens
 // translates the strings, so a module spec can't be structurally corrupted.
 export async function translateStringsAI(strings: string[], language: string): Promise<string[]> {
   if (!strings.length) return [];
-  const system = `You are a professional localizer for a learning app. Translate each string in the input JSON array into ${language}, natural and idiomatic for a learner. Preserve meaning, tone, and any {placeholders}, %s, or proper names. Do not add, drop, reorder, or merge items. Do not use em dashes. Return STRICT JSON only: {"t": [ ... ]} with EXACTLY ${strings.length} translated strings in the same order.`;
-  const user = JSON.stringify(strings);
-  const out = await completeJson([{ role: "system", content: system }, { role: "user", content: user }], { temperature: 0.2, maxTokens: 3600, low: false });
-  const arr = Array.isArray(out?.t) ? out.t : Array.isArray(out) ? out : [];
-  // Fall back to the original for any item the model dropped or returned non-string.
-  return strings.map((s, i) => (typeof arr[i] === "string" && arr[i].trim() ? arr[i] : s));
+  // Chunk so a big spec (a paper explainer has many long paragraphs, and the
+  // translated text is often token-heavier) never blows the output budget and
+  // fails the whole copy. Each chunk is independent and best-effort: on any error
+  // it falls back to the originals for that chunk, so a copy is always produced.
+  const CHUNK = 12;
+  const out: string[] = [];
+  for (let i = 0; i < strings.length; i += CHUNK) {
+    const slice = strings.slice(i, i + CHUNK);
+    const system = `You are a professional localizer for a learning app. Translate each string in the input JSON array into ${language}, natural and idiomatic for a learner. Preserve meaning, tone, light markdown, and any {placeholders}, %s, numbers, or proper names. Do not add, drop, reorder, or merge items. Do not use em dashes. Return STRICT JSON only: {"t": [ ... ]} with EXACTLY ${slice.length} translated strings in the same order.`;
+    let arr: any[] = [];
+    try {
+      const res = await completeJson([{ role: "system", content: system }, { role: "user", content: JSON.stringify(slice) }], { temperature: 0.2, maxTokens: 3000, low: false });
+      arr = Array.isArray(res?.t) ? res.t : Array.isArray(res) ? res : [];
+    } catch { arr = []; }
+    // Fall back to the original for any item the model dropped or mangled.
+    for (let j = 0; j < slice.length; j++) out.push(typeof arr[j] === "string" && arr[j].trim() ? arr[j] : slice[j]);
+  }
+  return out;
 }
 
 // ---- AI Skills Lab (lib/ailab) ---------------------------------------------
