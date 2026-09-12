@@ -178,12 +178,49 @@ export default function ModuleIcon({
           <circle cx="8" cy="8" r="1.3" />
         </svg>
       );
+    case "lab-prompting": // a chat bubble with prompt text lines
+      return (
+        <svg {...common}>
+          <path d="M4 5h16v10H9l-4 3v-3H4z" />
+          <path d="M8 9h8" />
+          <path d="M8 12h5" />
+        </svg>
+      );
+    case "lab-agents": // an agent hub wired to its tools
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="2.4" />
+          <circle cx="5" cy="6" r="1.4" />
+          <circle cx="19" cy="6" r="1.4" />
+          <circle cx="12" cy="20" r="1.4" />
+          <path d="M10.4 10.4 6.2 7.2" />
+          <path d="M13.6 10.4 17.8 7.2" />
+          <path d="M12 14.4v4.1" />
+        </svg>
+      );
+    case "lab-vibe-coding": // a build window with code brackets
+      return (
+        <svg {...common}>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="M3 9h18" />
+          <path d="M9 12.5 7.3 14.2 9 15.9" />
+          <path d="M14 12.5 15.7 14.2 14 15.9" />
+        </svg>
+      );
     default:
       // Most modules have no bespoke icon, and a single blank circle told you
       // nothing and made whole categories look identical in the grid. Fall back
       // to the module's category so a card at least names its family. Each of
       // these is kept distinct from the bespoke icons above.
       switch (moduleCategory(slug)) {
+        case "skills": // a lightbulb — practicing a skill
+          return (
+            <svg {...common}>
+              <path d="M9 18h6" />
+              <path d="M10 21h4" />
+              <path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.2 1 2.5h6c0-1.3.3-1.8 1-2.5A6 6 0 0 0 12 3z" />
+            </svg>
+          );
         case "redesign": // a briefcase with a spark — work, reshaped by AI
           return (
             <svg {...common}>

@@ -1941,6 +1941,9 @@ export function moduleCategory(slug: string): CategoryKey {
 // per module (never guessed): the thing that is true after you finish.
 // ---------------------------------------------------------------------------
 const OUTCOME_OF: Record<string, string> = {
+  "lab-prompting": "A prompt template you can reuse anywhere",
+  "lab-agents": "An agent tool-permission checklist",
+  "lab-vibe-coding": "A product spec and a starter prompt to build from",
   "reimagine-job": "A redesign of your job: what to keep, what to hand AI",
   "reimagine-workflow": "A redesigned workflow with the AI/human split drawn",
   "workflow-solo": "A redesigned workflow you can implement",
