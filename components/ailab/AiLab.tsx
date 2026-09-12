@@ -27,7 +27,7 @@ async function post(body: any) {
   return d;
 }
 
-export default function AiLab({ sim, code }: { sim: Sim; code: string }) {
+export default function AiLab({ sim, code, cohort }: { sim: Sim; code: string; cohort?: string | null }) {
   const [phase, setPhase] = useState<"intro" | "run" | "done">("intro");
   const [idx, setIdx] = useState(0);
   const [system, setSystem] = useState("");
@@ -73,7 +73,7 @@ export default function AiLab({ sim, code }: { sim: Sim; code: string }) {
     const final = Math.round(bests.reduce((a, b) => a + b, 0) / (bests.length || 1));
     const full = [...transcript];
     if (withByo && byo.trim()) full.push({ speaker: "human", text: `[my real task] ${byo}` });
-    try { await post({ action: "finish", sim: sim.slug, code, transcript: full, score: final }); } catch { /* best-effort */ }
+    try { await post({ action: "finish", sim: sim.slug, code, cohort: cohort || undefined, transcript: full, score: final }); } catch { /* best-effort */ }
   }
   async function finish() { await record(false); setPhase("done"); }
   async function saveByo() { await record(true); setByoSaved(true); }

@@ -1,8 +1,25 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getSim } from "@/lib/ailab/sims";
 import { runChallenge } from "@/lib/ailab/engine";
 import { logConversation, type Turn } from "@/lib/conversationLog";
+import { normalizeCode } from "@/lib/classes";
 import { AI_ENABLED } from "@/lib/ai";
+
+// Confirm the caller is actually enrolled in this cohort before we tag their run
+// with it — never trust a cohort code from the client (it would let anyone
+// contaminate a cohort study). Returns the code only if membership checks out.
+async function verifiedCohort(userId: string, raw: string): Promise<string | null> {
+  const code = normalizeCode(raw);
+  if (!code) return null;
+  try {
+    const admin = createAdminClient();
+    const { data: klass } = await admin.from("classes").select("id").eq("code", code).maybeSingle();
+    if (!klass) return null;
+    const { data: member } = await admin.from("class_members").select("user_id").eq("class_id", (klass as any).id).eq("user_id", userId).maybeSingle();
+    return member ? code : null;
+  } catch { return null; }
+}
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,9 +60,11 @@ export async function POST(request: Request) {
       .slice(0, 60)
       .map((t: any) => ({ speaker: t.speaker === "ai" ? "ai" : "human", text: String(t.text).slice(0, 8000) }));
     if (!code) return Response.json({ error: "missing code" }, { status: 400 });
+    const cohort = body.cohort ? await verifiedCohort(user.id, String(body.cohort)) : null;
     try {
       await logConversation({
         conversationId: code, personId: user.id, module: sim.exercise,
+        cohort,
         turns: transcript.length ? transcript : undefined,
         outcome: Number.isFinite(score) ? Math.max(0, Math.min(100, Math.round(score))) : null,
         ended: true,

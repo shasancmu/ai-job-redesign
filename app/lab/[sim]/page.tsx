@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: { sim: string } }) 
 
 function code() { const c = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let o = ""; for (let i = 0; i < 6; i++) o += c[Math.floor(Math.random() * c.length)]; return o; }
 
-export default async function LabRun({ params }: { params: { sim: string } }) {
+export default async function LabRun({ params, searchParams }: { params: { sim: string }; searchParams: { cohort?: string } }) {
   const sim = getSim(params.sim);
   if (!sim) notFound();
 
@@ -41,7 +41,7 @@ export default async function LabRun({ params }: { params: { sim: string } }) {
         <Logo href="/dashboard" />
         <HeaderNav />
       </header>
-      <AiLab sim={clientSim as any} code={`LAB-${sim.slug.slice(0, 4).toUpperCase()}-${code()}`} />
+      <AiLab sim={clientSim as any} code={`LAB-${sim.slug.slice(0, 4).toUpperCase()}-${code()}`} cohort={searchParams?.cohort || null} />
     </main>
   );
 }
