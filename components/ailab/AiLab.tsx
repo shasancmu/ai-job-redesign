@@ -229,7 +229,10 @@ export default function AiLab({ sim, code, cohort }: { sim: Sim; code: string; c
           {sim.kind === "vibe" && (
             <div className="space-y-2">
               <div className="overflow-hidden rounded-xl border border-line">
-                <iframe title="preview" srcDoc={result.artifact.html} sandbox="" className="h-80 w-full bg-white" />
+                {/* allow-scripts (without allow-same-origin) runs any JS the model
+                    still emits in an isolated opaque origin; the generator is told
+                    to emit static HTML so this is only a safety net. */}
+                <iframe title="preview" srcDoc={result.artifact.html} sandbox="allow-scripts" className="h-80 w-full bg-white" />
               </div>
               {result.artifact.assumptions?.length > 0 && (
                 <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs">
