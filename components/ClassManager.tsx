@@ -6,7 +6,7 @@ import { MODULES } from "@/lib/modules";
 import ModulePicker from "@/components/ModulePicker";
 import { normalizeCode } from "@/lib/classes";
 import { LANGUAGES } from "@/components/LanguagePicker";
-import { I18N_ENABLED } from "@/lib/flags";
+import { AI_LANG_ENABLED } from "@/lib/flags";
 
 type Klass = { id: string; code: string; name: string; modules: string[]; members: number; language?: string; kind?: string; allowed_emails?: string[]; org_id?: string | null; class_unit_id?: string | null };
 type ClassUnitLite = { id: string; name: string; modules: string[] };
@@ -287,7 +287,7 @@ export default function ClassManager({ orgs = [], defaultOrgId = "", roleplayMod
           </div>
         )}
 
-        {I18N_ENABLED && (
+        {AI_LANG_ENABLED && (
           <div className="mt-4 max-w-xs">
             <label className="lbl">Language (AI content runs in this)</label>
             <select className="field" value={language} onChange={(e) => setLanguage(e.target.value)}>

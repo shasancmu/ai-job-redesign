@@ -23,7 +23,7 @@ import { livingCaseMetaBySlugs } from "@/lib/cases/store";
 import Catalog from "@/components/Catalog";
 import SessionsPanel from "@/components/SessionsPanel";
 import LanguagePicker from "@/components/LanguagePicker";
-import { I18N_ENABLED } from "@/lib/flags";
+import { AI_LANG_ENABLED } from "@/lib/flags";
 import EnrichOnce from "@/components/EnrichOnce";
 import YourWork, { type WorkItem } from "@/components/YourWork";
 import PresenceGreeting from "@/components/PresenceGreeting";
@@ -625,7 +625,7 @@ export default async function Dashboard({
               activeSlug={activeOrg?.slug || null}
             />
           )}
-          {I18N_ENABLED && <LanguagePicker me={user.id} initial={(profile as any)?.language} />}
+          {AI_LANG_ENABLED && <LanguagePicker me={user.id} initial={(profile as any)?.language} />}
           <AccountMenu
             name={profile?.display_name || "You"}
             facilitator={facAccess.ok}
