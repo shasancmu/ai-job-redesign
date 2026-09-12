@@ -3,6 +3,7 @@ import { recordModuleEvent } from "@/lib/moduleEvents";
 import { setFlow } from "@/lib/aiflow";
 import { recordMechanicsResult } from "@/lib/cohortData";
 import { AI_ENABLED, roleplayExaminerAI } from "@/lib/ai";
+import { COMPETENCE_CALIBRATION } from "@/lib/grading";
 import { getNewsSpec } from "@/lib/mechanics/newsStore";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { experimentNudge, recordExperimentOutcome } from "@/lib/experiments";
@@ -34,7 +35,7 @@ ${spec.grading}
 Grade the QUALITY of the framework application: did they use the framework's concepts correctly, ground each point in the actual story (not generic boilerplate), and reach a defensible read? Reward specificity to THIS story; penalize generic answers that could apply to anything.
 The analysis fields:
 ${fieldList}
-Output ONLY JSON: {"score":0-100,"framework_use":[{"field":"the field label","quality":"high|med|low","note":"one specific line"}],"analyst_read":"2-3 sentences on how a sharp analyst would apply ${spec.framework} to THIS story","best_miss":"the most important thing they under-used or missed","verdict_note":"a line on their overall call, if they made one","principle":"the transferable lesson about using ${spec.framework} on real situations"}. No em dashes.`;
+Output ONLY JSON: {"score":0-100,"framework_use":[{"field":"the field label","quality":"high|med|low","note":"one specific line"}],"analyst_read":"2-3 sentences on how a sharp analyst would apply ${spec.framework} to THIS story","best_miss":"the most important thing they under-used or missed","verdict_note":"a line on their overall call, if they made one","principle":"the transferable lesson about using ${spec.framework} on real situations"}. No em dashes.${COMPETENCE_CALIBRATION}`;
   const userMsg = `THE STORY:\nHeadline: ${story.title || ""}\nSource: ${story.source || ""}${story.snippet ? `\n${story.snippet}` : ""}\n\nTHE LEARNER'S ANALYSIS:\n${learnerWork}\n\nTHEIR CALL: ${verdict.call || "(none)"}${verdict.confidence != null ? ` at ${verdict.confidence}% confidence` : ""}`;
   const slug = String(body.slug || "");
   const admin = createAdminClient();

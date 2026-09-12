@@ -44,6 +44,7 @@ import { currentLanguage } from "./lang";
 import { ADVICE_PRINCIPLES, BOTTOM_LINE_JSON } from "./advice";
 import { RESUME_CRAFT } from "./resume";
 import { WMS } from "./business";
+import { COMPETENCE_CALIBRATION } from "./grading";
 import { createAdminClient } from "./supabase/admin";
 import { currentFlow } from "./aiflow";
 import { currentAiProvider, providerAttempted } from "./aiProvider";
@@ -1489,7 +1490,7 @@ Return STRICT JSON only, no prose outside it:
   "naive_ai": "the confident wrong read a general AI gave (use the provided one verbatim)",
   "principle": "two sentences lifting the lesson off this case: forensic analysis is a search for the question with the highest expected information gain, and the numbers rarely confess on their own"
 }
-info_map must list every probe from the bank above, ranked high to low, marking asked true or false. questions must have one entry per question the analyst actually asked, in order.`;
+info_map must list every probe from the bank above, ranked high to low, marking asked true or false. questions must have one entry per question the analyst actually asked, in order.${COMPETENCE_CALIBRATION}`;
 
   const user = `THE ANALYST'S FINAL VERDICT: call=${input.verdict.call}, confidence=${input.verdict.confidence}%, "the one fact that would flip me"=${JSON.stringify(input.verdict.flip || "")}
 

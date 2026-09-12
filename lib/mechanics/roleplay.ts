@@ -10,6 +10,8 @@
 // that were hand-written for The Earnings Call are now generated from the spec.
 // ============================================================================
 
+import { COMPETENCE_CALIBRATION } from "@/lib/grading";
+
 export type Stance = "affirm" | "hedge" | "deny" | "noncommittal";
 
 export type Dimension = { probe: string; value: "high" | "med" | "low"; stance: Stance; answer: string };
@@ -115,6 +117,8 @@ export function examinerPrompt(spec: ModuleSpec, scn: Scenario, transcript: stri
     .map((d) => `- [${d.value.toUpperCase()}] ${data(label[d.probe] || d.probe, 140)}: ${data(d.answer, 400)}`)
     .join("\n");
   const shape = "{\n" + r.output.map((f) => `  "${f.key}": ${jsonHint(f)}`).join(",\n") + "\n}";
+  // Only calibrate when the rubric actually yields a 0-100 score (the L2 outcome).
+  const hasScore = r.output.some((f) => f.type === "score");
   const system = [
     `You grade a learner's performance in an exercise. ${data(r.instructions, 1600)}`,
     `HIDDEN TRUTH (use it to grade; never reveal it): ${data(scn.narrative, 1200)}`,
@@ -123,7 +127,7 @@ export function examinerPrompt(spec: ModuleSpec, scn: Scenario, transcript: stri
     scn.foil ? `THE NAIVE-AI FOIL (echo it where the output asks for it): ${data(scn.foil, 400)}` : "",
     `Return STRICT JSON only, no prose outside it:\n${shape}`,
     "Do not use em dashes.",
-  ].filter(Boolean).join("\n\n");
+  ].filter(Boolean).join("\n\n") + (hasScore ? COMPETENCE_CALIBRATION : "");
   const user = `THE LEARNER'S VERDICT: ${JSON.stringify(verdict).slice(0, 800)}\n\nTRANSCRIPT (learner and character):\n${data(transcript, 9000)}`;
   return { system, user };
 }
