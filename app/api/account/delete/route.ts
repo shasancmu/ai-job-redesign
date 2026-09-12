@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,6 +21,8 @@ export async function POST() {
   const email = (user.email || "").toLowerCase();
   try {
     if (email) await admin.from("org_invites").delete().eq("email", email);
+    // Log before the auth row is gone (audit outlives the account, by design).
+    await logAudit({ actorId: user.id, actorEmail: email, action: "account.delete", target: user.id });
     const { error } = await admin.auth.admin.deleteUser(user.id);
     if (error) return Response.json({ error: error.message }, { status: 500 });
   } catch (e: any) {

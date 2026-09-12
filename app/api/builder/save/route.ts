@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { roleFor } from "@/lib/orgs";
 import { saveCustomModule } from "@/lib/customModules";
+import { logAudit, clientIp } from "@/lib/audit";
 import type { BuilderSpec } from "@/lib/moduleBuilder";
 
 export const runtime = "nodejs";
@@ -54,5 +55,6 @@ export async function POST(request: Request) {
 
   const res = await saveCustomModule({ userId: user.id, spec, orgId, status, editSlug, attributedTo });
   if ("error" in res) return Response.json({ error: res.error }, { status: 400 });
+  await logAudit({ actorId: user.id, actorEmail: user.email, orgId, action: editSlug ? "module.update" : "module.publish", target: res.slug, meta: { status, scope: orgId ? "org" : "global" }, ip: clientIp(request) });
   return Response.json({ ok: true, slug: res.slug, exercise: res.exercise, scope: orgId ? "org" : "global" });
 }

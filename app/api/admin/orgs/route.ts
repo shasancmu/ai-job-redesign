@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSuperadmin, canEditOrgBranding, getOrgById, ensureMasterCohort, joinMasterCohort, syncMasterModules } from "@/lib/orgs";
 import { MODULES } from "@/lib/modules";
+import { logAudit, clientIp } from "@/lib/audit";
 
 const VALID_MODULES = new Set(MODULES.map((m) => m.slug));
 
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
         if (error) return Response.json({ error: error.message }, { status: 400 });
         // Keep the default Class + Cohort mirroring the org's module list.
         if (data && Object.prototype.hasOwnProperty.call(row, "modules")) await syncMasterModules(data as any).catch(() => {});
+        await logAudit({ actorId: user.id, actorEmail: user.email, orgId: editId, action: "org.branding.update", target: (data as any)?.slug || editId, ip: clientIp(request) });
         return Response.json({ org: data });
       }
 
@@ -125,6 +127,7 @@ export async function POST(request: Request) {
         }
         const { error } = await admin.from("organizations").delete().eq("id", id);
         if (error) return Response.json({ error: error.message }, { status: 400 });
+        await logAudit({ actorId: user.id, actorEmail: user.email, orgId: id, action: "org.delete", target: org.slug, meta: { name: org.name }, ip: clientIp(request) });
         return Response.json({ ok: true });
       } catch (e: any) {
         return Response.json({ error: e?.message || "Delete failed." }, { status: 500 });
