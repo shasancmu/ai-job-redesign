@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: { handle: string } }) {
   const c = await getCreatorByHandle(params.handle);
-  return { title: c ? `${c.name} · Superadditive` : "Creator" };
+  return { title: c ? c.name : "Creator" };
 }
 
 function initials(name: string) {
