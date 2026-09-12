@@ -246,7 +246,11 @@ export default function Catalog({
                 )}
               </div>
 
-              {!canStart ? (
+              {m.href ? (
+                <Link href={`${m.href}${cohort ? `?cohort=${encodeURIComponent(cohort)}` : ""}`} className="btn-primary mt-5 block w-full text-center" title="Start this lab">
+                  {completed[m.slug] ? t("catalog.doItAgain") : t("catalog.start")}
+                </Link>
+              ) : !canStart ? (
                 <Link
                   href={`/paywall?module=${m.slug}`}
                   title={out && open ? "Buy more runs for this exercise" : "Unlock this exercise to start"}

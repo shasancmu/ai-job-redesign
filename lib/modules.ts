@@ -22,9 +22,11 @@ export const PARTNER_META: Record<
 
 export type ModuleDef = {
   slug: string; // stable id used in entitlements + URLs, e.g. "reimagine-job"
+  href?: string; // custom launch route (e.g. /lab/prompting); when set, the card links here and /start redirects here instead of spinning up a session
   exercise:
     | "job"
     | "workflow"
+    | "lab"
     | "solo"
     | "benchmark"
     | "network"
@@ -140,6 +142,57 @@ export type ModuleDef = {
 };
 
 export const MODULES: ModuleDef[] = [
+  {
+    slug: "lab-prompting",
+    href: "/lab/prompting",
+    exercise: "lab",
+    name: "Prompting Lab",
+    tagline: "Turn a vague ask into a prompt that gets the output you meant.",
+    description:
+      "Fix real prompts against a target, one technique per challenge, and watch the output change against a live model. Ends with a reusable prompt template you can paste into any tool.",
+    partner: "ai",
+    mode: "Solo",
+    minutes: 15,
+    ai: true,
+    emoji: "✍️",
+    priceCents: 0,
+    priceEnv: "",
+    forSale: false,
+  },
+  {
+    slug: "lab-agents",
+    href: "/lab/agents",
+    exercise: "lab",
+    name: "Agent Simulator",
+    tagline: "Design an agent's tools and guardrails, then watch the loop run and see where it breaks.",
+    description:
+      "A real agent loop over safe mock tools, with built-in traps: a tool that lies, an approval gate, a prompt injection. You design the tools and rules. Ends with a tool-permission checklist.",
+    partner: "ai",
+    mode: "Solo",
+    minutes: 20,
+    ai: true,
+    emoji: "🤖",
+    priceCents: 0,
+    priceEnv: "",
+    forSale: false,
+  },
+  {
+    slug: "lab-vibe-coding",
+    href: "/lab/vibe-coding",
+    exercise: "lab",
+    name: "Vibe Coding Studio",
+    tagline: "Build with AI the way the good builders do: spec first, small deltas, data-aware.",
+    description:
+      "Write a spec, generate a real preview, see the assumptions the AI made, and refine in small deltas. Ends with a spec and a starter prompt you can paste into Lovable, v0, Cursor, or Claude.",
+    partner: "ai",
+    mode: "Solo",
+    minutes: 20,
+    ai: true,
+    emoji: "🎨",
+    priceCents: 0,
+    priceEnv: "",
+    forSale: false,
+  },
   {
     slug: "reimagine-job",
     exercise: "job",
@@ -1729,10 +1782,11 @@ export const SALEABLE_MODULES = MODULES.filter((m) => m.forSale !== false);
 
 // Thematic categories — how the exercises are grouped on the marketing page
 // (the dashboard groups by partner instead: how you run each one).
-export type CategoryKey = "redesign" | "career" | "strategy" | "opportunity" | "business" | "commercialize" | "negotiate" | "live" | "research" | "craft" | "publish" | "phd" | "foundations" | "governance";
+export type CategoryKey = "redesign" | "career" | "skills" | "strategy" | "opportunity" | "business" | "commercialize" | "negotiate" | "live" | "research" | "craft" | "publish" | "phd" | "foundations" | "governance";
 export const CATEGORIES: { key: CategoryKey; title: string; blurb: string; chip: string; dot: string }[] = [
   { key: "redesign", title: "Work & AI", blurb: "Redesign your job or a workflow, and X-ray a role to see what AI can do, and what only a human can.", chip: "bg-sage-soft text-sage", dot: "#3F7A52" },
   { key: "career", title: "Career & growth", blurb: "Map your next moves, name your rarest strengths, refresh your résumé, and build the network and self-awareness a career runs on.", chip: "bg-sage-soft text-sage", dot: "#3F7A52" },
+  { key: "skills", title: "Build your AI skills", blurb: "Hands-on labs on the skills that separate good AI work from bad: writing prompts, designing agents and their guardrails, and building with AI. Practice against a real model; walk out with a kit you can use on your own tools.", chip: "bg-sage-soft text-sage", dot: "#3F7A52" },
   { key: "foundations", title: "How AI works", blurb: "A plain-language, interactive series on how AI actually works, from expert systems to modern LLMs, so you understand what it can and can't do. With live demos and a tutor.", chip: "bg-amber-soft text-amber", dot: "#C98A2B" },
   { key: "governance", title: "AI & governance", blurb: "Decide where AI belongs and vet the AI you bring in: find where AI fits a workflow, and pressure-test a vendor's disclosure for risk and real capability before you buy or deploy.", chip: "bg-sky-soft text-sky", dot: "#4E79C9" },
   { key: "strategy", title: "Strategy & bets", blurb: "Pressure-test a strategy or a bet with a real framework and real numbers, design the test that would settle it, and convene an AI board to argue it out.", chip: "bg-amber-soft text-amber", dot: "#C98A2B" },
@@ -1747,6 +1801,9 @@ export const CATEGORIES: { key: CategoryKey; title: string; blurb: string; chip:
   { key: "phd", title: "The PhD path", blurb: "From deciding on a business PhD to landing an academic job: what it is, how to get in (from the committee's side), how it works, how to succeed, and how to place. From Sharique Hasan's “Research, Strategy.”", chip: "bg-sky-soft text-sky", dot: "#4E79C9" },
 ];
 const CATEGORY_OF: Record<string, CategoryKey> = {
+  "lab-prompting": "skills",
+  "lab-agents": "skills",
+  "lab-vibe-coding": "skills",
   "reimagine-job": "redesign",
   "reimagine-workflow": "redesign",
   "solo-ai": "redesign",

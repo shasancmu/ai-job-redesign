@@ -38,6 +38,9 @@ export async function GET(request: Request, { params }: { params: { slug: string
   // Author-built module? Resolve its exercise key, visibility-checked for this user.
   let exercise: string;
   if (mod) {
+    // Modules with a custom launch route (e.g. the AI Skills Lab) don't spin up a
+    // canvas/interview session — send them straight to their own route.
+    if (mod.href) return NextResponse.redirect(`${origin}${mod.href}`);
     if (PAIRED.has(mod.exercise)) return NextResponse.redirect(`${origin}/pair/${mod.slug}`);
     if (mod.partner === "group") return NextResponse.redirect(`${origin}/dashboard`); // needs a cohort link
     exercise = mod.exercise;

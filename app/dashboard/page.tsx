@@ -8,7 +8,6 @@ import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { isAdmin } from "@/lib/admin";
 import { claimInvites, getMyOrgs, getActiveOrg, facilitatorAccess, masterCohortCode } from "@/lib/orgs";
 import { SCITOOLS, RESEARCH_TOOLS } from "@/lib/researchTools";
-import { SIMS } from "@/lib/ailab/sims";
 import OrgSwitcher from "@/components/OrgSwitcher";
 import AccountMenu from "@/components/AccountMenu";
 import FacilitatorWelcome from "@/components/FacilitatorWelcome";
@@ -84,20 +83,18 @@ export default async function Dashboard({
   // always know where they are. A specific class they joined wins over the org's
   // default "All members" cohort.
   let cohortName = "";
-  let cohortCode = "";
   if (activeOrg) {
     try {
       const a = createAdminClient();
       const { data: cms } = await a.from("class_members").select("class_id").eq("user_id", user.id);
       const ids = ((cms as any[]) || []).map((c) => c.class_id).filter(Boolean);
       if (ids.length) {
-        const { data: cls } = await a.from("classes").select("code, name, is_default").in("id", ids).eq("org_id", activeOrg.id);
+        const { data: cls } = await a.from("classes").select("name, is_default").in("id", ids).eq("org_id", activeOrg.id);
         const rows = (cls as any[]) || [];
         const chosen = rows.find((c) => !c.is_default) || rows[0];
         // The org's default cohort shows as "All members" (its stored name repeats
         // the org and carries an em dash); a specific class shows its own name.
         cohortName = chosen ? (chosen.is_default ? "All members" : chosen.name) : "";
-        cohortCode = chosen ? (chosen.code || "") : "";
       }
     } catch { /* no service role; fall back to a derived label */ }
   }
@@ -480,27 +477,6 @@ export default async function Dashboard({
     </section>
   );
 
-  const LAB_ICON: Record<string, string> = { prompt: "✍️", agent: "🤖", vibe: "🎨" };
-  // ZONE — AI Skills Lab: practice sims that teach AI-work skills against a real
-  // model and hand back a kit you can use on your own tools.
-  const labZone = (
-    <section className="mb-5">
-      <h2 className="eyebrow mb-2.5">Build your AI skills</h2>
-      <div className={zoneWrap}>
-        <div className="grid gap-3 sm:grid-cols-3 stagger-in">
-          {SIMS.map((s) => (
-            <a key={s.slug} href={`/lab/${s.slug}${cohortName && cohortCode ? `?cohort=${encodeURIComponent(cohortCode)}` : ""}`} className="group flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:shadow-sm">
-              <div className="text-2xl">{LAB_ICON[s.kind]}</div>
-              <div className="mt-2 text-sm font-bold text-ink group-hover:text-ai">{s.name}</div>
-              <div className="mt-0.5 line-clamp-2 text-xs text-slate-400">{s.tagline}</div>
-              <span className="mt-3 text-sm font-semibold text-sage">Start →</span>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-
   // ZONE — Your program: what your cohort/org assigned, plus its spotlights.
   // Shows whenever you're in an org context (member OR staff) or have assignments.
   const programZone = (activeOrg || classAssignments.length > 0 || orgAds.length > 0) ? (
@@ -715,10 +691,9 @@ export default async function Dashboard({
         </Dismissible>
       )}
 
-      {/* The zones, each visually demarcated: Your program → Find → Skills lab. */}
+      {/* The zones, each visually demarcated: Your program → Find. */}
       {programZone}
       {findZone}
-      {labZone}
 
       {/* Runs banner only when it's actually urgent — out of runs, or the alumni
           window is open. The header chip carries the balance the rest of the time. */}
