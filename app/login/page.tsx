@@ -35,6 +35,7 @@ function LoginInner() {
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [sso, setSso] = useState<{ domain: string; org: string | null } | null>(null);
   const next = params.get("next") || "/dashboard";
   const supabase = createClient();
 
@@ -46,6 +47,33 @@ function LoginInner() {
   async function upsertProfile(userId: string) {
     const displayName = titleCaseName(name) || email.split("@")[0];
     await supabase.from("profiles").upsert({ id: userId, display_name: displayName });
+  }
+
+  // If the email's domain belongs to an org with SSO, offer the SSO door.
+  async function checkSso() {
+    const at = email.indexOf("@");
+    const domain = at > -1 ? email.slice(at + 1).trim().toLowerCase() : "";
+    if (!domain || !domain.includes(".")) { setSso(null); return; }
+    if (sso?.domain === domain) return;
+    try {
+      const res = await fetch(`/api/sso/lookup?domain=${encodeURIComponent(domain)}`);
+      const d = await res.json().catch(() => ({}));
+      setSso(d?.sso ? { domain, org: d.org || null } : null);
+    } catch { setSso(null); }
+  }
+
+  async function signInWithSSO() {
+    if (!sso) return;
+    reset(); setBusy(true);
+    const { data, error } = await supabase.auth.signInWithSSO({
+      domain: sso.domain,
+      options: { redirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
+    });
+    if (error || !data?.url) {
+      setErr("Single sign-on isn't set up for your organization yet. Use a password or sign-in code below.");
+      setBusy(false); return;
+    }
+    window.location.href = data.url; // hand off to the identity provider
   }
 
   async function signInWithGoogle() {
@@ -162,10 +190,20 @@ function LoginInner() {
           autoFocus={!creating}
           value={email}
           onChange={(e) => { setEmail(e.target.value); setCodeSent(false); }}
+          onBlur={checkSso}
           placeholder="you@example.com"
           required
         />
       </div>
+
+      {sso && (
+        <div className="mb-4">
+          <button type="button" onClick={signInWithSSO} disabled={busy} className="btn-primary w-full">
+            {busy ? "Redirecting…" : `Continue with ${sso.org || "your organization"} SSO`}
+          </button>
+          <p className="mt-1.5 text-center text-xs text-slate-400">Your organization manages this sign-in. Or use a password below.</p>
+        </div>
+      )}
 
       {authMode === "password" ? (
         <form onSubmit={submitPassword} className="space-y-4">
