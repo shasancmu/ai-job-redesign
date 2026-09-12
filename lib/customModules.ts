@@ -250,8 +250,11 @@ export async function localizeCustomModule(input: {
   const attributed_to = (src as any).attributed_to || (src as any).author_id || input.operatorId;
   const attribution_status = (src as any).attribution_status || "active";
 
+  // BuilderSpec modules carry the name in spec.name; a Paper Explainer uses
+  // spec.title. Fall back to the source row's name so the copy is never nameless.
+  const displayName = ((translated as any).name || (translated as any).title || (src as any).name || "").slice(0, 80);
   const baseInsert: any = {
-    slug, exercise, name: (translated.name || "").slice(0, 80), super_type: (src as any).super_type,
+    slug, exercise, name: displayName, super_type: (src as any).super_type,
     spec: translated, org_id: orgId, status: "published", author_id: (src as any).author_id || input.operatorId,
   };
   // language/source_slug are additive; fall back if not migrated. Attribution too.
