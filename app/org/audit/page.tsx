@@ -26,6 +26,7 @@ const ACTION_LABEL: Record<string, string> = {
   "study.randomize": "Froze study randomization",
   "study.status": "Changed study status",
   "study.prereg": "Pre-registered a study plan",
+  "calibration.rate": "Rated a run (L2 calibration)",
 };
 function label(action: string) {
   return ACTION_LABEL[action] || action;
