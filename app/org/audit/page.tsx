@@ -20,7 +20,12 @@ const ACTION_LABEL: Record<string, string> = {
   "account.delete": "Deleted their account",
   "scim.user.provision": "Provisioned a member (SCIM)",
   "scim.user.deactivate": "Deactivated a member (SCIM)",
+  "scim.token.rotate": "Rotated the SCIM token",
   "sso.login": "Signed in via SSO",
+  "study.create": "Created a study",
+  "study.randomize": "Froze study randomization",
+  "study.status": "Changed study status",
+  "study.prereg": "Pre-registered a study plan",
 };
 function label(action: string) {
   return ACTION_LABEL[action] || action;

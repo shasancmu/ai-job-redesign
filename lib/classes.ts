@@ -30,5 +30,15 @@ export async function hasClassAccess(
     .eq("class_id", klass.id)
     .eq("user_id", userId)
     .maybeSingle();
-  return !!member;
+  if (!member) return false;
+
+  // Level-2 studies: a cohort in a RUNNING stepped-wedge study can't reach its
+  // treatment before its wave. Default-open — only a governing study locks it, and
+  // any error (or unmigrated tables) leaves access untouched.
+  try {
+    const { studyLocksCohort } = await import("@/lib/studies");
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    if (await studyLocksCohort(createAdminClient(), cohort)) return false;
+  } catch { /* studies absent → normal access */ }
+  return true;
 }

@@ -7,7 +7,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { computeDynamics } from "@/lib/conversationDynamics";
 import { isHoldout, propensityFor } from "@/lib/holdout";
-import { getBaselineVersion } from "@/lib/experiments";
+import { getBaselineVersion, recordExperimentOutcome } from "@/lib/experiments";
 import { emitXapi } from "@/lib/xapi";
 
 export type Turn = { speaker: "ai" | "human"; text: string; modality?: "text" | "voice" };
@@ -87,6 +87,15 @@ export async function logConversation(input: {
       if (input.module) cf.baseline_version = await getBaselineVersion(admin, input.module);
       await admin.from("conversations").update(cf).eq("conversation_id", input.conversationId);
     } catch { /* counterfactual columns not migrated yet — core log unaffected */ }
+
+    // Level 1 (within-module RCT): mirror the L2 competence outcome into the
+    // experiment engine keyed by the run's A/B key, so ANY module that assesses
+    // competence — not just scored roleplay — contributes to its within-module
+    // experiment. No-ops when the run was assigned to no live experiment.
+    if (typeof input.outcome === "number") {
+      const abKey = input.abKey || input.conversationId;
+      void recordExperimentOutcome(admin, abKey, { score: input.outcome, completed: input.ended !== false });
+    }
 
     // Forward the completion (with its L2 competence score, if scored) to the
     // learner's org LRS as an xAPI statement. Fire-and-forget; emitXapi no-ops

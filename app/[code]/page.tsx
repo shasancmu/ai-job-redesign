@@ -22,11 +22,29 @@ export default async function CodeOrOrgPage({ params }: { params: { code: string
   const org = await getOrgBySlug(params.code.trim().toLowerCase());
   if (org) return <OrgLandingView org={org} />;
 
-  const code = normalizeCode(params.code);
+  let code = normalizeCode(params.code);
   // This route is the root-level catch-all, so an unknown segment is either a
   // mistyped class code or a dead link. Either way it deserves an explanation,
   // not a silent bounce to the marketing homepage.
   if (!code) notFound();
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Study intake (Level-2 person → cohort randomization): a single code may fan out
+  // to a study's cohorts. Resolve the signed-in joiner's frozen cohort before
+  // anything else; a normal class code passes straight through. Randomizing needs a
+  // stable identity, so an intake code requires sign-in first.
+  try {
+    const { resolveStudyIntake } = await import("@/lib/studies");
+    const intake = await resolveStudyIntake(createAdminClient(), code, user?.id);
+    if (intake.isIntake) {
+      if (!user) redirect(`/login?next=/${code}`);
+      if (intake.cohort) code = normalizeCode(intake.cohort);
+    }
+  } catch { /* studies absent → normal join */ }
 
   // Read the class regardless of auth (so a signed-out visitor sees its name).
   let klass: any = null;
@@ -42,11 +60,6 @@ export default async function CodeOrOrgPage({ params }: { params: { code: string
     /* service role not set */
   }
   if (!klass) notFound();
-
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   // Signed-out: invite them to create an account / sign in for THIS class.
   if (!user) {
