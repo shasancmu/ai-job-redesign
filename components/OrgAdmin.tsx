@@ -11,7 +11,7 @@ const PICK_ITEMS = PICKABLE.map((m) => ({ slug: m.slug, name: m.name }));
 type Highlight = { title: string; body: string };
 type Faculty = { name: string; title?: string; image_url?: string };
 type User = { id: string; email: string; name: string };
-type Org = { id: string; slug: string; name: string; tagline: string | null; primary_color: string | null; logo_url: string | null; hero_image_url: string | null; invite_only: boolean; modules: string[] | null; member_can_browse?: boolean | null; about: string | null; highlights: Highlight[] | null; faculty: Faculty[] | null; sso_domain?: string | null; lrs_endpoint?: string | null; lrs_key?: string | null };
+type Org = { id: string; slug: string; name: string; tagline: string | null; primary_color: string | null; logo_url: string | null; hero_image_url: string | null; invite_only: boolean; modules: string[] | null; member_can_browse?: boolean | null; about: string | null; highlights: Highlight[] | null; faculty: Faculty[] | null; sso_domain?: string | null; lrs_endpoint?: string | null; lrs_key?: string | null; scim_token_hash?: string | null };
 type Invite = { email: string; org_role: string };
 
 // Upload a faculty photo to the shared branding bucket; returns its public URL.
@@ -87,8 +87,17 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
   const [ssoDomain, setSsoDomain] = useState(org?.sso_domain || "");
   const [lrsEndpoint, setLrsEndpoint] = useState(org?.lrs_endpoint || "");
   const [lrsKey, setLrsKey] = useState(org?.lrs_key || "");
+  const [scimToken, setScimToken] = useState<{ token: string; endpoint: string } | null>(null);
+  const [scimBusy, setScimBusy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  async function genScimToken() {
+    if (!org) return;
+    setScimBusy(true); setErr(null);
+    try { setScimToken(await post({ action: "scim_token", id: org.id })); }
+    catch (e: any) { setErr(e.message); } finally { setScimBusy(false); }
+  }
 
   const toggleMod = (slug: string) => setMods((s) => { const n = new Set(s); n.has(slug) ? n.delete(slug) : n.add(slug); return n; });
   const setGroup = (slugs: string[], on: boolean) => setMods((s) => { const n = new Set(s); slugs.forEach((sl) => (on ? n.add(sl) : n.delete(sl))); return n; });
@@ -223,6 +232,19 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
               <input className="field font-mono text-xs" value={lrsKey} onChange={(e) => setLrsKey(e.target.value)} placeholder="key:secret" />
             </div>
             <p className="text-xs text-slate-500">Completions, scores, and reactions are forwarded to the LRS as xAPI statements. Leave the endpoint blank to send nothing.</p>
+
+            <div className="border-t border-line pt-3">
+              <label className="lbl mb-0">SCIM provisioning <span className="font-normal text-slate-400">(Okta / Entra auto-manage members)</span></label>
+              <p className="mt-1 text-xs text-slate-500">Generate a bearer token, then paste it and the base URL into the IdP&apos;s SCIM connector. The token is shown once; generating a new one revokes the old.</p>
+              <button type="button" onClick={genScimToken} disabled={scimBusy} className="btn-ghost mt-2 text-sm">{scimBusy ? "Generating…" : org?.scim_token_hash ? "Regenerate SCIM token" : "Generate SCIM token"}</button>
+              {scimToken && (
+                <div className="mt-2 space-y-1 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs">
+                  <div className="font-semibold text-amber-800">Copy this now — it won&apos;t be shown again.</div>
+                  <div><span className="text-slate-500">Base URL:</span> <span className="font-mono break-all">{scimToken.endpoint}</span></div>
+                  <div><span className="text-slate-500">Token:</span> <span className="font-mono break-all">{scimToken.token}</span></div>
+                </div>
+              )}
+            </div>
           </div>
         </details>
       )}

@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isSuperadmin, canEditOrgBranding, getOrgById, ensureMasterCohort, joinMasterCohort, syncMasterModules } from "@/lib/orgs";
 import { MODULES } from "@/lib/modules";
 import { logAudit, clientIp } from "@/lib/audit";
+import { newToken } from "@/lib/scim";
 
 const VALID_MODULES = new Set(MODULES.map((m) => m.slug));
 
@@ -137,6 +138,21 @@ export async function POST(request: Request) {
       } catch (e: any) {
         return Response.json({ error: e?.message || "Delete failed." }, { status: 500 });
       }
+    }
+
+    if (action === "scim_token") {
+      // (Re)generate the org's SCIM bearer token. We store only its hash and return
+      // the raw token ONCE — the operator pastes it into the IdP's SCIM connector.
+      const id = String(body.id || "");
+      if (!id) return Response.json({ error: "Missing org id." }, { status: 400 });
+      const org = await getOrgById(id);
+      if (!org) return Response.json({ error: "Organization not found." }, { status: 404 });
+      const { raw, hash } = newToken();
+      const { error } = await admin.from("organizations").update({ scim_token_hash: hash }).eq("id", id);
+      if (error) return Response.json({ error: error.message }, { status: 400 });
+      await logAudit({ actorId: user.id, actorEmail: user.email, orgId: id, action: "scim.token.rotate", target: org.slug, ip: clientIp(request) });
+      const base = new URL(request.url).origin;
+      return Response.json({ token: raw, endpoint: `${base}/api/scim/v2` });
     }
 
     if (action === "set_facilitator" || action === "set_director" || action === "set_instructor" || action === "add_invites") {
