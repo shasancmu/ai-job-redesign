@@ -8,6 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { computeDynamics } from "@/lib/conversationDynamics";
 import { isHoldout, propensityFor } from "@/lib/holdout";
 import { getBaselineVersion } from "@/lib/experiments";
+import { emitXapi } from "@/lib/xapi";
 
 export type Turn = { speaker: "ai" | "human"; text: string; modality?: "text" | "voice" };
 
@@ -86,5 +87,13 @@ export async function logConversation(input: {
       if (input.module) cf.baseline_version = await getBaselineVersion(admin, input.module);
       await admin.from("conversations").update(cf).eq("conversation_id", input.conversationId);
     } catch { /* counterfactual columns not migrated yet — core log unaffected */ }
+
+    // Forward the completion (with its L2 competence score, if scored) to the
+    // learner's org LRS as an xAPI statement. Fire-and-forget; emitXapi no-ops
+    // when no org has an LRS configured.
+    if (input.ended) {
+      const score = typeof input.outcome === "number" ? input.outcome : null;
+      void emitXapi({ personId: input.personId, module: input.module, verb: "completed", score, cohort: input.cohort ?? null });
+    }
   } catch { /* store not migrated / transient — never block the learner */ }
 }

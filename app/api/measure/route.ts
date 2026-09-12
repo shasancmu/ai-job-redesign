@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { emitXapi } from "@/lib/xapi";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,5 +45,11 @@ export async function POST(request: Request) {
 
   const { error } = await admin.from("learning_measures").upsert(patch, { onConflict: "code" });
   if (error) return Response.json({ ok: false }); // additive; never surface to the learner
+
+  // Forward the L1 reaction (applicability rating) to the org LRS as an xAPI
+  // "rated" statement. Fire-and-forget; no-ops when no LRS is configured.
+  if (patch.reaction && typeof patch.reaction.applicability === "number") {
+    void emitXapi({ personId: user.id, personEmail: user.email, module: patch.module || code, verb: "reacted", raw: patch.reaction.applicability, min: 1, max: 5, cohort: patch.cohort });
+  }
   return Response.json({ ok: true });
 }

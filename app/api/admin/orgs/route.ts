@@ -79,6 +79,11 @@ export async function POST(request: Request) {
           row.invite_only = body.invite_only !== false;
           row.member_can_browse = body.member_can_browse === true;
           if (Array.isArray(body.modules)) row.modules = [...new Set(body.modules.map((s: any) => String(s)).filter((s: string) => VALID_MODULES.has(s)))];
+          // Enterprise config (best-effort — columns are additive; a stale schema just
+          // rejects the write, which surfaces as a 400 the operator can read).
+          if (body.sso_domain !== undefined) row.sso_domain = body.sso_domain ? String(body.sso_domain).trim().toLowerCase().replace(/^@/, "").slice(0, 253) || null : null;
+          if (body.lrs_endpoint !== undefined) row.lrs_endpoint = body.lrs_endpoint ? String(body.lrs_endpoint).trim().slice(0, 500) || null : null;
+          if (body.lrs_key !== undefined) row.lrs_key = body.lrs_key ? String(body.lrs_key).trim().slice(0, 500) || null : null;
         }
         const { data, error } = await admin.from("organizations").update(row).eq("id", editId).select().single();
         if (error) return Response.json({ error: error.message }, { status: 400 });

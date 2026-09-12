@@ -11,7 +11,7 @@ const PICK_ITEMS = PICKABLE.map((m) => ({ slug: m.slug, name: m.name }));
 type Highlight = { title: string; body: string };
 type Faculty = { name: string; title?: string; image_url?: string };
 type User = { id: string; email: string; name: string };
-type Org = { id: string; slug: string; name: string; tagline: string | null; primary_color: string | null; logo_url: string | null; hero_image_url: string | null; invite_only: boolean; modules: string[] | null; member_can_browse?: boolean | null; about: string | null; highlights: Highlight[] | null; faculty: Faculty[] | null };
+type Org = { id: string; slug: string; name: string; tagline: string | null; primary_color: string | null; logo_url: string | null; hero_image_url: string | null; invite_only: boolean; modules: string[] | null; member_can_browse?: boolean | null; about: string | null; highlights: Highlight[] | null; faculty: Faculty[] | null; sso_domain?: string | null; lrs_endpoint?: string | null; lrs_key?: string | null };
 type Invite = { email: string; org_role: string };
 
 // Upload a faculty photo to the shared branding bucket; returns its public URL.
@@ -84,6 +84,9 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
   const [about, setAbout] = useState(org?.about || "");
   const [highlights, setHighlights] = useState<Highlight[]>(org?.highlights || []);
   const [faculty, setFaculty] = useState<Faculty[]>(org?.faculty || []);
+  const [ssoDomain, setSsoDomain] = useState(org?.sso_domain || "");
+  const [lrsEndpoint, setLrsEndpoint] = useState(org?.lrs_endpoint || "");
+  const [lrsKey, setLrsKey] = useState(org?.lrs_key || "");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -98,6 +101,7 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
         about,
         highlights: highlights.filter((h) => h.title.trim() || h.body.trim()),
         faculty: faculty.filter((f) => f.name.trim()),
+        sso_domain: ssoDomain, lrs_endpoint: lrsEndpoint, lrs_key: lrsKey,
       });
       onDone();
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
@@ -201,6 +205,27 @@ function OrgForm({ org, onDone, onCancel }: { org?: Org; onDone: () => void; onC
           ))}
         </div>
       </div>
+
+      {org && (
+        <details className="rounded-xl border border-line bg-slate-50/60 p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-ink">Enterprise (SSO &amp; LRS)</summary>
+          <div className="mt-3 space-y-3">
+            <div>
+              <label className="lbl">SSO email domain <span className="font-normal text-slate-400">(routes sign-ins to this org, e.g. duke.edu)</span></label>
+              <input className="field" value={ssoDomain} onChange={(e) => setSsoDomain(e.target.value)} placeholder="duke.edu" />
+            </div>
+            <div>
+              <label className="lbl">xAPI LRS endpoint <span className="font-normal text-slate-400">(the customer&apos;s Learning Record Store)</span></label>
+              <input className="field" value={lrsEndpoint} onChange={(e) => setLrsEndpoint(e.target.value)} placeholder="https://lrs.example.com/xapi" />
+            </div>
+            <div>
+              <label className="lbl">LRS auth <span className="font-normal text-slate-400">(Basic auth as key:secret)</span></label>
+              <input className="field font-mono text-xs" value={lrsKey} onChange={(e) => setLrsKey(e.target.value)} placeholder="key:secret" />
+            </div>
+            <p className="text-xs text-slate-500">Completions, scores, and reactions are forwarded to the LRS as xAPI statements. Leave the endpoint blank to send nothing.</p>
+          </div>
+        </details>
+      )}
 
       {err && <p className="text-sm text-clay">{err}</p>}
       <div className="flex gap-2">
