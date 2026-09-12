@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { runWallet, runsLeftByModule, grantedModuleSlugs, alumniOffer } from "@/lib/access";
 import { roleplayCatalogMap } from "@/lib/mechanics/store";
 import { interviewMetaBySlugs, CUSTOM_PREFIX } from "@/lib/customModules";
+import { getUserLanguage } from "@/lib/lang";
+import { localizeStrings } from "@/lib/translationCache";
 import { getSignedAttribution } from "@/lib/creator";
 import { PAYMENTS_ENABLED } from "@/lib/stripe";
 import { isAdmin } from "@/lib/admin";
@@ -194,6 +196,17 @@ export default async function Dashboard({
     const attr = await getSignedAttribution(CUSTOM_PREFIX + r.slug);
     if (attr) r.author = { name: attr.creator.name, avatarUrl: attr.creator.avatarUrl, institution: attr.creator.institution, verified: attr.creator.verified, institutionLogoUrl: attr.creator.institutionLogoUrl, showLogo: attr.showLogo };
   }));
+
+  // Localize the assigned custom-module card names to the learner's language
+  // (cached, translated once ever). Built-in module cards already localize via the
+  // messages bundle; this covers the author-written names the bundle can't.
+  const dashLang = await getUserLanguage(supabase, user.id);
+  if (dashLang && classAssignments.length) {
+    try {
+      const trMap = await localizeStrings(classAssignments.map((r) => r.name), dashLang);
+      for (const r of classAssignments) r.name = trMap.get(r.name) || r.name;
+    } catch { /* leave English */ }
+  }
 
   // Wide enough that a module's finished run never falls outside the window —
   // otherwise "Done" would flicker back to "In progress" as newer sessions
