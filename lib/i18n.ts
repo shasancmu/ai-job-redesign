@@ -42,6 +42,16 @@ export function isRTL(locale: string): boolean {
   return RTL.has(locale);
 }
 
+// Raw dictionary value for a dotted key in a locale, or undefined if absent.
+// Used to detect which module cards the bundle DOESN'T cover (new built-ins), so
+// they can be filled from the runtime translation cache instead.
+export function dictValue(locale: string, key: string): string | undefined {
+  const d = DICTS[locale];
+  if (!d) return undefined;
+  const v = key.split(".").reduce<any>((o, k) => (o && typeof o === "object" ? o[k] : undefined), d);
+  return typeof v === "string" ? v : undefined;
+}
+
 function lookup(dict: any, key: string): string | undefined {
   return key.split(".").reduce((o: any, k) => (o == null ? undefined : o[k]), dict);
 }

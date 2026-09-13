@@ -14,7 +14,7 @@ import OrgSwitcher from "@/components/OrgSwitcher";
 import AccountMenu from "@/components/AccountMenu";
 import FacilitatorWelcome from "@/components/FacilitatorWelcome";
 import { titleCaseName } from "@/lib/name";
-import { MODULES, moduleBySlug, CATEGORIES, moduleCategory } from "@/lib/modules";
+import { MODULES, moduleBySlug, CATEGORIES, moduleCategory, outcomeOf } from "@/lib/modules";
 import { levelFor, loadBundles, bundlesFor, bundlesForSlug, nextCertificateStep, type BundleView } from "@/lib/credentials";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { viewAsTarget } from "@/lib/viewAs";
@@ -41,7 +41,7 @@ import { recommenderData, recommendNext } from "@/lib/recommender";
 import { activeAdsForOrg } from "@/lib/ads";
 import PromoCards from "@/components/PromoCards";
 import { getServerLocale } from "@/lib/i18n-server";
-import { makeT } from "@/lib/i18n";
+import { makeT, localeFromLanguage, dictValue } from "@/lib/i18n";
 import Footer from "@/components/Footer";
 import Logo from "@/components/Logo";
 import Tour from "@/components/Tour";
@@ -205,6 +205,27 @@ export default async function Dashboard({
     try {
       const trMap = await localizeStrings(classAssignments.map((r) => r.name), dashLang);
       for (const r of classAssignments) r.name = trMap.get(r.name) || r.name;
+    } catch { /* leave English */ }
+  }
+
+  // Built-in cards the messages bundle doesn't cover yet (new modules like the
+  // labs) show English via tf()'s fallback. Fill just those from the runtime cache
+  // (a small set of misses; translated once then cached), so every card localizes.
+  let catalogTr: Record<string, string> | undefined;
+  if (dashLang) {
+    try {
+      const locale = localeFromLanguage(dashLang);
+      const misses: string[] = [];
+      for (const m of MODULES) {
+        if ((m as any).hidden) continue;
+        if (dictValue(locale, `modules.${m.slug}.name`)) continue; // covered by the bundle
+        misses.push(m.name); if (m.tagline) misses.push(m.tagline);
+        const o = outcomeOf(m.slug); if (o) misses.push(o);
+      }
+      if (misses.length) {
+        const map = await localizeStrings(misses, dashLang);
+        if (map.size) catalogTr = Object.fromEntries(map);
+      }
     } catch { /* leave English */ }
   }
 
@@ -459,6 +480,7 @@ export default async function Dashboard({
       runsThisWeek={runsThisWeek}
       nextUp={nextUp}
       nextUpBecause={nextUpBecause}
+      tr={catalogTr}
     />
   );
 

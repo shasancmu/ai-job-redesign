@@ -77,6 +77,7 @@ export default function Catalog({
   nextUp = [],
   nextUpBecause = null,
   scopeSlugs,
+  tr,
 }: {
   userId: string;
   unlocked: Record<string, boolean>;
@@ -93,6 +94,7 @@ export default function Catalog({
   runsThisWeek?: Record<string, number>; // real run count this week, for the live badge
   nextUp?: string[]; // the Markov recommendation, best-first (drives the lead rail)
   nextUpBecause?: string | null; // the module the recommendation follows from, for the rail title
+  tr?: Record<string, string>; // runtime-cache translations (English source -> target) for cards the messages bundle doesn't cover
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -101,7 +103,8 @@ export default function Catalog({
   // English base), show the registry's own string rather than a raw key.
   const tf = (key: string, fallback: string) => {
     const v = t(key);
-    return v === key ? fallback : v;
+    if (v !== key) return v;              // in the messages bundle
+    return tr?.[fallback] || fallback;    // else the runtime cache, else English
   };
   const cohort = fixedCohort ?? initialCohort;
   const [busy, setBusy] = useState<string | null>(null);
@@ -177,7 +180,8 @@ export default function Catalog({
     const left = runsLeft[m.slug]; // null = unlimited, number = runs remaining
     const out = left === 0; // no runs remaining → send to the paywall
     const canStart = open && !out;
-    const outcome = outcomeOf(m.slug);
+    const outcomeEn = outcomeOf(m.slug);
+    const outcome = (outcomeEn && tr?.[outcomeEn]) || outcomeEn;
     const runsWk = runsThisWeek[m.slug] || 0;
     return (
             <div key={m.slug} className="card group relative flex flex-col p-6 transition hover:shadow-lift">

@@ -6,6 +6,8 @@ import { loadLivingCase, caseAuthorId } from "@/lib/cases/store";
 import { caseEnrollmentGate } from "@/lib/cases/access";
 import { isSuperadmin } from "@/lib/orgs";
 import { createClient } from "@/lib/supabase/server";
+import { getUserLanguage } from "@/lib/lang";
+import { localizeByKeys } from "@/lib/translationCache";
 
 export const dynamic = "force-dynamic";
 
@@ -64,5 +66,7 @@ export default async function CasePage({ params }: { params: { slug: string } })
     revealBeats: genome.revealBeats.map((b) => ({ ...b, teach: undefined })),
   };
 
-  return <LivingCaseReader genome={forView} canTeach={canTeach} />;
+  // Localize the case's display text to the learner's language (cached).
+  const localized = user ? await localizeByKeys(forView, await getUserLanguage(supabase, user.id)) : forView;
+  return <LivingCaseReader genome={localized} canTeach={canTeach} />;
 }
