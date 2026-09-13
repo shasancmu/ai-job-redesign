@@ -10,6 +10,7 @@ import { getUserLanguage } from "@/lib/lang";
 import { localizeByKeys } from "@/lib/translationCache";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const c = caseBySlug(params.slug);

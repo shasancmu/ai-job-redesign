@@ -6,6 +6,7 @@ import { localizePaperx } from "@/lib/translationCache";
 import PaperxReader from "@/components/PaperxReader";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 // The learner-facing run page for a Paper Explainer.
 export default async function PaperxRunPage({ params, searchParams }: { params: { slug: string }; searchParams: { c?: string; cohort?: string } }) {
