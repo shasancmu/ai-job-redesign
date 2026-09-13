@@ -202,7 +202,7 @@ export default function Catalog({
               </div>
               {outcome ? (
                 <>
-                  <div className="mt-4 text-[10px] font-semibold uppercase tracking-wide text-ai/70">You&apos;ll walk out with</div>
+                  <div className="mt-4 text-[10px] font-semibold uppercase tracking-wide text-ai/70">{tr?.["You'll walk out with"] || "You'll walk out with"}</div>
                   <h3 className="mt-0.5 text-[15px] font-bold leading-snug text-ink">{outcome}</h3>
                   <div className="mt-1 text-xs font-medium text-slate-400">{tf("modules." + m.slug + ".name", m.name)}</div>
                 </>

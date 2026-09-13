@@ -215,17 +215,16 @@ export default async function Dashboard({
   if (dashLang) {
     try {
       const locale = localeFromLanguage(dashLang);
-      const misses: string[] = [];
+      const strings: string[] = ["You'll walk out with"]; // the card eyebrow (raw, not in the bundle)
       for (const m of MODULES) {
         if ((m as any).hidden) continue;
-        if (dictValue(locale, `modules.${m.slug}.name`)) continue; // covered by the bundle
-        misses.push(m.name); if (m.tagline) misses.push(m.tagline);
-        const o = outcomeOf(m.slug); if (o) misses.push(o);
+        // Outcome headlines are raw (never in the bundle) — translate them for every
+        // module. Names/taglines only when the bundle doesn't already cover them.
+        const o = outcomeOf(m.slug); if (o) strings.push(o);
+        if (!dictValue(locale, `modules.${m.slug}.name`)) { strings.push(m.name); if (m.tagline) strings.push(m.tagline); }
       }
-      if (misses.length) {
-        const map = await localizeStrings(misses, dashLang);
-        if (map.size) catalogTr = Object.fromEntries(map);
-      }
+      const map = await localizeStrings(strings, dashLang);
+      if (map.size) catalogTr = Object.fromEntries(map);
     } catch { /* leave English */ }
   }
 
