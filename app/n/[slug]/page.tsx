@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { recordModuleEvent } from "@/lib/moduleEvents";
 import { getNegScenario, publicNegScenario } from "@/lib/mechanics/negStore";
 import NegRunner from "@/components/NegRunner";
+import { localizeForViewer } from "@/lib/translationCache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,7 +43,7 @@ export default async function RunNegotiation({ params }: { params: { slug: strin
         <Logo href="/dashboard" />
         <span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">🤝 {(scn as any).name} · preview</span>
       </div>
-      <NegRunner scn={publicNegScenario(scn)} />
+      <NegRunner scn={await localizeForViewer(publicNegScenario(scn), supabase, user?.id)} />
     </main>
   );
 }

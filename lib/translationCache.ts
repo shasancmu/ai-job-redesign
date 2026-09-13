@@ -132,3 +132,16 @@ export async function localizeByKeys(obj: any, language: string | undefined | nu
   walkApply(n);
   return n;
 }
+
+// Convenience for run pages: localize a client-safe spec to the viewer's language.
+// This is the ONE line every module run render should call on its display data, so
+// translation is structural — a new module type is covered by using it. No-op for
+// signed-out or English viewers.
+export async function localizeForViewer<T>(data: T, supabase: any, userId: string | null | undefined): Promise<T> {
+  if (!userId || !data) return data;
+  try {
+    const { getUserLanguage } = await import("@/lib/lang");
+    const lang = await getUserLanguage(supabase, userId);
+    return (await localizeByKeys(data, lang)) as T;
+  } catch { return data; }
+}

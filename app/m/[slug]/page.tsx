@@ -3,6 +3,7 @@ import Logo from "@/components/Logo";
 import { createClient } from "@/lib/supabase/server";
 import { recordModuleEvent } from "@/lib/moduleEvents";
 import { getSpec, publicSpec } from "@/lib/mechanics/store";
+import { localizeForViewer } from "@/lib/translationCache";
 import RoleplaySpecRoom from "@/components/RoleplaySpecRoom";
 
 export const runtime = "nodejs";
@@ -37,5 +38,6 @@ export default async function RunModule({ params, searchParams }: { params: { sl
       </main>
     );
   }
-  return <RoleplaySpecRoom spec={publicSpec(spec)} cohort={cohort || undefined} />;
+  const view = await localizeForViewer(publicSpec(spec), supabase, user.id);
+  return <RoleplaySpecRoom spec={view} cohort={cohort || undefined} />;
 }

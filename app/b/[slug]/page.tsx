@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { recordModuleEvent } from "@/lib/moduleEvents";
 import { getBenchConfig, publicBenchConfig } from "@/lib/mechanics/benchStore";
 import BenchRunner from "@/components/BenchRunner";
+import { localizeForViewer } from "@/lib/translationCache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,7 +35,7 @@ export default async function RunBenchmark({ params }: { params: { slug: string 
       </main>
     );
   }
-  const pub = { ...publicBenchConfig(cfg), slug: params.slug };
+  const pub = { ...(await localizeForViewer(publicBenchConfig(cfg), supabase, user?.id)), slug: params.slug };
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
       <div className="mb-4"><Logo href="/dashboard" /></div>

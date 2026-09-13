@@ -3,6 +3,7 @@ import Logo from "@/components/Logo";
 import { createClient } from "@/lib/supabase/server";
 import { getExplainerSpec } from "@/lib/mechanics/explainerStore";
 import ExplainerRunner from "@/components/ExplainerRunner";
+import { localizeForViewer } from "@/lib/translationCache";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 // Name the tab after the authored module, not its slug. The loader is
@@ -24,7 +25,7 @@ export default async function RunExplainer({ params }: { params: { slug: string 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
       <div className="mb-4 flex items-center gap-3"><Logo href="/dashboard" /><span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{spec.emoji || "📖"} {spec.name}</span></div>
-      <ExplainerRunner spec={spec} />
+      <ExplainerRunner spec={await localizeForViewer(spec, supabase, user?.id)} />
     </main>
   );
 }

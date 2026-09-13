@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { recordModuleEvent } from "@/lib/moduleEvents";
 import { getAnalyticalSpec, publicAnalyticalSpec } from "@/lib/mechanics/analyticalStore";
 import AnalyticalRunner from "@/components/AnalyticalRunner";
+import { localizeForViewer } from "@/lib/translationCache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,7 +27,7 @@ export default async function RunAnalytical({ params }: { params: { slug: string
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
       <div className="mb-4 flex items-center gap-3"><Logo href="/dashboard" /><span className="rounded-full bg-mist px-3 py-1 text-sm font-semibold">{spec.emoji || "📊"} {spec.name} · preview</span></div>
-      <AnalyticalRunner spec={publicAnalyticalSpec(spec)} />
+      <AnalyticalRunner spec={await localizeForViewer(publicAnalyticalSpec(spec), supabase, user?.id)} />
     </main>
   );
 }
