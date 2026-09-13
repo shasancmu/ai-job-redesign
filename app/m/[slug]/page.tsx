@@ -1,9 +1,6 @@
-import { redirect } from "next/navigation";
-import Logo from "@/components/Logo";
-import { createClient } from "@/lib/supabase/server";
-import { recordModuleEvent } from "@/lib/moduleEvents";
 import { getSpec, publicSpec } from "@/lib/mechanics/store";
-import { localizeForViewer } from "@/lib/translationCache";
+import { prepareModuleRun } from "@/lib/moduleRun";
+import ModuleNotFound from "@/components/ModuleNotFound";
 import RoleplaySpecRoom from "@/components/RoleplaySpecRoom";
 
 export const runtime = "nodejs";
@@ -22,22 +19,11 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function RunModule({ params, searchParams }: { params: { slug: string }; searchParams: { class?: string; cohort?: string } }) {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const cohort = searchParams.class || searchParams.cohort || "";
-  if (!user) redirect(`/login?next=${encodeURIComponent(`/m/${params.slug}${cohort ? `?class=${cohort}` : ""}`)}`);
-  await recordModuleEvent(params.slug, "roleplay", "start", user.id);
+  const { cohort, localize } = await prepareModuleRun({ kindId: "roleplay", slug: params.slug, searchParams });
 
   const spec = await getSpec(params.slug);
   if (!spec || spec.mechanic !== "roleplay") {
-    return (
-      <main className="mx-auto flex min-h-[100dvh] max-w-md flex-col items-center justify-center px-6 text-center">
-        <Logo />
-        <h1 className="mt-6 text-xl font-bold text-ink">Module not found</h1>
-        <p className="mt-2 text-sm text-slate2">This module doesn't exist or isn't a role-play module yet.</p>
-      </main>
-    );
+    return <ModuleNotFound title="Module not found" hint="This module doesn't exist or isn't a role-play module yet." />;
   }
-  const view = await localizeForViewer(publicSpec(spec), supabase, user.id);
-  return <RoleplaySpecRoom spec={view} cohort={cohort || undefined} />;
+  return <RoleplaySpecRoom spec={await localize(publicSpec(spec))} cohort={cohort || undefined} />;
 }
