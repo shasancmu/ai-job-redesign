@@ -2,6 +2,7 @@
 // type — so you don't have to remember which kind a module was to get back to
 // it. Reads each engine's spec table (deduped to the latest version per slug),
 // scoped to the author, with an edit link and a preview link.
+import { MODULE_KINDS, moduleKindBySuperType } from "@/lib/moduleKinds";
 
 export type StudioModule = {
   slug: string;
@@ -15,16 +16,12 @@ export type StudioModule = {
   runHref: string | null;
 };
 
-// Each authored engine: its table, how to label it, and where its edit/run pages live.
-const SPEC_TABLES: { table: string; kind: string; label: string; emoji: string; edit: string; run: string }[] = [
-  { table: "explainer_specs", kind: "explainer", label: "Explainer", emoji: "📖", edit: "/studio/explainer/", run: "/e/" },
-  { table: "module_specs", kind: "roleplay", label: "Role-play", emoji: "🎭", edit: "/studio/roleplay/", run: "/m/" },
-  { table: "negotiation_specs", kind: "negotiation", label: "Negotiation", emoji: "🤝", edit: "/studio/negotiation/", run: "/n/" },
-  { table: "benchmark_specs", kind: "benchmark", label: "Quiz", emoji: "⏱️", edit: "/studio/benchmark/", run: "/b/" },
-  { table: "analytical_specs", kind: "analytical", label: "Analytical", emoji: "📊", edit: "/studio/analytical/", run: "/x/" },
-  { table: "redesign_specs", kind: "redesign", label: "Redesign", emoji: "🔧", edit: "/studio/redesign/", run: "/rd/" },
-  { table: "newsframe_specs", kind: "newsframe", label: "In the News", emoji: "🗞️", edit: "/studio/news/", run: "/nf/" },
-];
+// Each authored engine: its table, how to label it, and where its edit/run pages
+// live — derived from the canonical registry (every kind with a spec table).
+const SPEC_TABLES: { table: string; kind: string; label: string; emoji: string; edit: string; run: string }[] =
+  MODULE_KINDS
+    .filter((k) => k.specTable)
+    .map((k) => ({ table: k.specTable!, kind: k.id, label: k.label, emoji: k.emoji, edit: k.editBase, run: k.runBase || "" }));
 
 // `db` is the service-role admin client; we filter to the author explicitly.
 export async function listMyStudioModules(db: any, userId: string): Promise<StudioModule[]> {
@@ -56,10 +53,12 @@ export async function listMyStudioModules(db: any, userId: string): Promise<Stud
       if (seen.has(r.slug)) continue;
       seen.add(r.slug);
       const base = { slug: r.slug, name: r.name || r.spec?.name || r.slug, status: r.status || "draft", updatedAt: r.updated_at || null };
-      if (r.super_type === "paper-explainer") {
-        out.push({ ...base, emoji: r.spec?.emoji || "💡", kind: "paper-explainer", kindLabel: "Paper Explainer", editHref: `/studio/paper/${r.slug}`, runHref: `/px/${r.slug}` });
-      } else if (r.super_type === "living-case") {
-        out.push({ ...base, emoji: r.spec?.emoji || "🎬", kind: "living-case", kindLabel: "Living case", editHref: `/cases/${r.slug}/insights`, runHref: `/cases/${r.slug}` });
+      const kind = moduleKindBySuperType(r.super_type);
+      if (kind?.superType === "paper-explainer") {
+        out.push({ ...base, emoji: r.spec?.emoji || kind.emoji, kind: kind.superType, kindLabel: kind.label, editHref: `${kind.editBase}${r.slug}`, runHref: `${kind.runBase}${r.slug}` });
+      } else if (kind?.superType === "living-case") {
+        // Living case edits through its insights surface, not the plain editBase.
+        out.push({ ...base, emoji: r.spec?.emoji || kind.emoji, kind: kind.superType, kindLabel: kind.label, editHref: `/cases/${r.slug}/insights`, runHref: `${kind.runBase}${r.slug}` });
       } else {
         out.push({ ...base, emoji: r.spec?.emoji || "🗂️", kind: "interview", kindLabel: "Guided interview", editHref: `/studio/interview/${r.slug}`, runHref: null });
       }
