@@ -55,6 +55,9 @@ const DASHBOARD_TOUR = [
 ];
 
 export const metadata = { title: "Dashboard" };
+// First load in a new language warms the module-card translation cache (parallel,
+// then cached), so give the render room; later loads read cache hits and are fast.
+export const maxDuration = 60;
 
 export default async function Dashboard({
   searchParams,
