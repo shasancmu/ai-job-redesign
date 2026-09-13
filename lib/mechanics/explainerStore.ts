@@ -1,7 +1,6 @@
 // Store + schema for authored explainers: a taught, guided walkthrough of a
 // topic. Sections of explanation, each with optional key points and a check.
-import { cache } from "react";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { makeSpecLoader, makeCatalogLister } from "@/lib/mechanics/specStore";
 
 export type ExplainerSection = { title: string; body: string; key?: string[]; check?: string };
 export type ExplainerSpec = {
@@ -12,32 +11,13 @@ export type ExplainerSpec = {
   takeaway?: string; // the one thing to remember
 };
 
-async function getExplainerSpecUncached(slug: string): Promise<ExplainerSpec | null> {
-  try {
-    const { data } = await createAdminClient()
-      .from("explainer_specs").select("spec").eq("slug", String(slug || "").toLowerCase())
-      .order("version", { ascending: false }).limit(1).maybeSingle();
-    if (data?.spec) return data.spec as ExplainerSpec;
-  } catch { /* table missing */ }
-  return null;
-}
-
-// Request-scoped memo: the page and its generateMetadata both need the spec,
-// and cache() collapses that into a single query per request.
-export const getExplainerSpec = cache(getExplainerSpecUncached);
+export const getExplainerSpec = makeSpecLoader<ExplainerSpec>("explainer_specs");
 
 export type ExplainerCatalogEntry = { slug: string; name: string; emoji: string };
-export async function listExplainerCatalog(ownerId?: string): Promise<ExplainerCatalogEntry[]> {
-  try {
-    const admin = createAdminClient();
-    let q = admin.from("explainer_specs").select("slug, spec, owner_id").eq("status", "published").order("updated_at", { ascending: false });
-    if (ownerId) q = q.eq("owner_id", ownerId);
-    const { data } = await q;
-    const seen = new Set<string>(); const out: ExplainerCatalogEntry[] = [];
-    for (const r of ((data as any[]) || [])) { if (seen.has(r.slug)) continue; seen.add(r.slug); out.push({ slug: r.slug, name: r.spec?.name || r.slug, emoji: r.spec?.emoji || "📖" }); }
-    return out;
-  } catch { return []; }
-}
+export const listExplainerCatalog = makeCatalogLister<ExplainerCatalogEntry>(
+  "explainer_specs",
+  (r) => ({ slug: r.slug, name: r.spec?.name || r.slug, emoji: r.spec?.emoji || "📖" }),
+);
 
 export function validateExplainerSpec(s: any): string[] {
   const e: string[] = [];

@@ -1,37 +1,16 @@
 // Store + hygiene for authored benchmarks. A BenchConfig (timed MCQ + answer
 // key) is already the spec; scoreConfig() scores it. Answers are stripped for
 // the client and scoring happens server-side.
-import { cache } from "react";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { coerceConfig, type BenchConfig } from "@/lib/benchmark";
+import { makeSpecLoader, makeCatalogLister } from "@/lib/mechanics/specStore";
 
-async function getBenchConfigUncached(slug: string): Promise<BenchConfig | null> {
-  try {
-    const { data } = await createAdminClient()
-      .from("benchmark_specs").select("spec").eq("slug", String(slug || "").toLowerCase())
-      .order("version", { ascending: false }).limit(1).maybeSingle();
-    if (data?.spec) return coerceConfig(data.spec);
-  } catch { /* table missing */ }
-  return null;
-}
-
-// Request-scoped memo: the page and its generateMetadata both need the spec,
-// and cache() collapses that into a single query per request.
-export const getBenchConfig = cache(getBenchConfigUncached);
+export const getBenchConfig = makeSpecLoader<BenchConfig>("benchmark_specs", { coerce: coerceConfig });
 
 export type BenchCatalogEntry = { slug: string; name: string; count: number };
-export async function listBenchCatalog(ownerId?: string): Promise<BenchCatalogEntry[]> {
-  try {
-    const admin = createAdminClient();
-    let q = admin.from("benchmark_specs").select("slug, spec, owner_id").eq("status", "published").order("updated_at", { ascending: false });
-    if (ownerId) q = q.eq("owner_id", ownerId);
-    const { data } = await q;
-    const seen = new Set<string>();
-    const out: BenchCatalogEntry[] = [];
-    for (const r of ((data as any[]) || [])) { if (seen.has(r.slug)) continue; seen.add(r.slug); out.push({ slug: r.slug, name: r.spec?.name || r.slug, count: (r.spec?.questions || []).length }); }
-    return out;
-  } catch { return []; }
-}
+export const listBenchCatalog = makeCatalogLister<BenchCatalogEntry>(
+  "benchmark_specs",
+  (r) => ({ slug: r.slug, name: r.spec?.name || r.slug, count: (r.spec?.questions || []).length }),
+);
 
 // Client-safe: no answer key.
 export function publicBenchConfig(c: BenchConfig): any {

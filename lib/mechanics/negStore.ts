@@ -2,44 +2,22 @@
 // lib/negotiation) is already the declarative spec — private payoff tables and
 // all — so authoring is: store it, strip the hidden numbers for the client, and
 // run it through the existing counterpartSystem + analyze at runtime.
-import { cache } from "react";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { SCENARIOS, type Scenario } from "@/lib/negotiation";
 import { MODULES } from "@/lib/modules";
+import { makeSpecLoader, makeCatalogLister } from "@/lib/mechanics/specStore";
 
-async function getNegScenarioUncached(slug: string): Promise<Scenario | null> {
-  const s = String(slug || "").toLowerCase();
-  try {
-    const { data } = await createAdminClient()
-      .from("negotiation_specs").select("spec").eq("slug", s)
-      .order("version", { ascending: false }).limit(1).maybeSingle();
-    if (data?.spec) return data.spec as Scenario;
-  } catch { /* table missing */ }
-  return SCENARIOS.find((x) => x.slug === s) || null;
-}
-
-// Request-scoped memo: the page and its generateMetadata both need the spec,
-// and cache() collapses that into a single query per request.
-export const getNegScenario = cache(getNegScenarioUncached);
+// Falls back to the seeded built-in scenarios when nothing is stored for the slug.
+export const getNegScenario = makeSpecLoader<Scenario>("negotiation_specs", {
+  fallback: (s) => SCENARIOS.find((x) => x.slug === s) || null,
+});
 
 export type NegCatalogEntry = { slug: string; name: string; counterpart: string };
-export async function listNegCatalog(ownerId?: string): Promise<NegCatalogEntry[]> {
-  const staticSlugs = new Set(MODULES.map((m) => m.slug));
-  const out: NegCatalogEntry[] = [];
-  const seen = new Set<string>();
-  try {
-    const admin = createAdminClient();
-    let q = admin.from("negotiation_specs").select("slug, spec, owner_id").eq("status", "published").order("updated_at", { ascending: false });
-    if (ownerId) q = q.eq("owner_id", ownerId);
-    const { data } = await q;
-    for (const r of ((data as any[]) || [])) {
-      if (seen.has(r.slug) || staticSlugs.has(r.slug)) continue;
-      seen.add(r.slug);
-      out.push({ slug: r.slug, name: r.spec?.name || r.slug, counterpart: r.spec?.counterpartName || "" });
-    }
-  } catch { /* table missing */ }
-  return out;
-}
+// Static-registry slugs are excluded so the two run paths never clash.
+export const listNegCatalog = makeCatalogLister<NegCatalogEntry>(
+  "negotiation_specs",
+  (r) => ({ slug: r.slug, name: r.spec?.name || r.slug, counterpart: r.spec?.counterpartName || "" }),
+  { exclude: () => new Set(MODULES.map((m) => m.slug)) },
+);
 
 // Client-safe view: strip the counterpart's private payoffs / floor. The learner
 // keeps their OWN points (to optimize) and their own walk-away.

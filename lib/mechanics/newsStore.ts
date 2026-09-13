@@ -1,7 +1,6 @@
 // Store + schema for "In the News" modules: apply a business framework to a
 // current, real news story fetched live at runtime. Never goes stale.
-import { cache } from "react";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { makeSpecLoader, makeCatalogLister } from "@/lib/mechanics/specStore";
 
 export type NewsField = { key: string; label: string; hint: string };
 export type NewsFrameSpec = {
@@ -14,36 +13,17 @@ export type NewsFrameSpec = {
   grading: string; // how to grade the application
 };
 
-async function getNewsSpecUncached(slug: string): Promise<NewsFrameSpec | null> {
-  try {
-    const { data } = await createAdminClient()
-      .from("newsframe_specs").select("spec").eq("slug", String(slug || "").toLowerCase())
-      .order("version", { ascending: false }).limit(1).maybeSingle();
-    if (data?.spec) return data.spec as NewsFrameSpec;
-  } catch { /* table missing */ }
-  return null;
-}
-
-// Request-scoped memo: the page and its generateMetadata both need the spec,
-// and cache() collapses that into a single query per request.
-export const getNewsSpec = cache(getNewsSpecUncached);
+export const getNewsSpec = makeSpecLoader<NewsFrameSpec>("newsframe_specs");
 
 export function publicNewsSpec(s: NewsFrameSpec): any {
   return { slug: s.slug, name: s.name, emoji: s.emoji, topic: s.topic, framework: s.framework, frameworkLogic: s.frameworkLogic, fields: s.fields, verdict: s.verdict };
 }
 
 export type NewsCatalogEntry = { slug: string; name: string; emoji: string };
-export async function listNewsCatalog(ownerId?: string): Promise<NewsCatalogEntry[]> {
-  try {
-    const admin = createAdminClient();
-    let q = admin.from("newsframe_specs").select("slug, spec, owner_id").eq("status", "published").order("updated_at", { ascending: false });
-    if (ownerId) q = q.eq("owner_id", ownerId);
-    const { data } = await q;
-    const seen = new Set<string>(); const out: NewsCatalogEntry[] = [];
-    for (const r of ((data as any[]) || [])) { if (seen.has(r.slug)) continue; seen.add(r.slug); out.push({ slug: r.slug, name: r.spec?.name || r.slug, emoji: r.spec?.emoji || "🗞️" }); }
-    return out;
-  } catch { return []; }
-}
+export const listNewsCatalog = makeCatalogLister<NewsCatalogEntry>(
+  "newsframe_specs",
+  (r) => ({ slug: r.slug, name: r.spec?.name || r.slug, emoji: r.spec?.emoji || "🗞️" }),
+);
 
 export function validateNewsSpec(s: any): string[] {
   const e: string[] = [];

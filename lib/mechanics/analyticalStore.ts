@@ -2,7 +2,7 @@
 // subject into units and score each against author-defined levels, then
 // aggregate. Runtime is a single structured AI call; scoring is deterministic
 // from the level values.
-import { createAdminClient } from "@/lib/supabase/admin";
+import { makeSpecLoader, makeCatalogLister } from "@/lib/mechanics/specStore";
 
 export type Level = { key: string; label: string; desc: string; value: number }; // value 0-100
 export type AnalyticalSpec = {
@@ -16,15 +16,7 @@ export type AnalyticalSpec = {
   aggregateLabel: string; // e.g. "Overall AI exposure"
 };
 
-export async function getAnalyticalSpec(slug: string): Promise<AnalyticalSpec | null> {
-  try {
-    const { data } = await createAdminClient()
-      .from("analytical_specs").select("spec").eq("slug", String(slug || "").toLowerCase())
-      .order("version", { ascending: false }).limit(1).maybeSingle();
-    if (data?.spec) return data.spec as AnalyticalSpec;
-  } catch { /* table missing */ }
-  return null;
-}
+export const getAnalyticalSpec = makeSpecLoader<AnalyticalSpec>("analytical_specs");
 
 export function publicAnalyticalSpec(s: AnalyticalSpec): any {
   // No hidden state here; the whole spec is learner-safe (levels are the shown scale).
@@ -32,17 +24,10 @@ export function publicAnalyticalSpec(s: AnalyticalSpec): any {
 }
 
 export type AnalyticalCatalogEntry = { slug: string; name: string; emoji: string };
-export async function listAnalyticalCatalog(ownerId?: string): Promise<AnalyticalCatalogEntry[]> {
-  try {
-    const admin = createAdminClient();
-    let q = admin.from("analytical_specs").select("slug, spec, owner_id").eq("status", "published").order("updated_at", { ascending: false });
-    if (ownerId) q = q.eq("owner_id", ownerId);
-    const { data } = await q;
-    const seen = new Set<string>(); const out: AnalyticalCatalogEntry[] = [];
-    for (const r of ((data as any[]) || [])) { if (seen.has(r.slug)) continue; seen.add(r.slug); out.push({ slug: r.slug, name: r.spec?.name || r.slug, emoji: r.spec?.emoji || "📊" }); }
-    return out;
-  } catch { return []; }
-}
+export const listAnalyticalCatalog = makeCatalogLister<AnalyticalCatalogEntry>(
+  "analytical_specs",
+  (r) => ({ slug: r.slug, name: r.spec?.name || r.slug, emoji: r.spec?.emoji || "📊" }),
+);
 
 export function validateAnalyticalSpec(s: any): string[] {
   const e: string[] = [];

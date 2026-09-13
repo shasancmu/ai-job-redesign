@@ -3,7 +3,7 @@
 // on a shared instrument, then reveal + feedback. The authoring spec lives in
 // redesign_specs; the runtime reuses the (already-realtime) sessions +
 // workspaces tables, so no new realtime plumbing is added.
-import { createAdminClient } from "@/lib/supabase/admin";
+import { makeSpecLoader, makeCatalogLister } from "@/lib/mechanics/specStore";
 
 export const REDESIGN_PREFIX = "redesign:";
 
@@ -28,28 +28,13 @@ export const REDESIGN_PHASES = [
   { key: "final", title: "The keepable version", mode: "solo", minutes: 4, subtitle: "Redo it with the feedback. This is the artifact your partner keeps." },
 ] as const;
 
-export async function getRedesignSpec(slug: string): Promise<RedesignSpec | null> {
-  try {
-    const { data } = await createAdminClient()
-      .from("redesign_specs").select("spec").eq("slug", String(slug || "").toLowerCase())
-      .order("version", { ascending: false }).limit(1).maybeSingle();
-    if (data?.spec) return data.spec as RedesignSpec;
-  } catch { /* table missing */ }
-  return null;
-}
+export const getRedesignSpec = makeSpecLoader<RedesignSpec>("redesign_specs");
 
 export type RedesignCatalogEntry = { slug: string; name: string; emoji: string };
-export async function listRedesignCatalog(ownerId?: string): Promise<RedesignCatalogEntry[]> {
-  try {
-    const admin = createAdminClient();
-    let q = admin.from("redesign_specs").select("slug, spec, owner_id").eq("status", "published").order("updated_at", { ascending: false });
-    if (ownerId) q = q.eq("owner_id", ownerId);
-    const { data } = await q;
-    const seen = new Set<string>(); const out: RedesignCatalogEntry[] = [];
-    for (const r of ((data as any[]) || [])) { if (seen.has(r.slug)) continue; seen.add(r.slug); out.push({ slug: r.slug, name: r.spec?.name || r.slug, emoji: r.spec?.emoji || "🤝" }); }
-    return out;
-  } catch { return []; }
-}
+export const listRedesignCatalog = makeCatalogLister<RedesignCatalogEntry>(
+  "redesign_specs",
+  (r) => ({ slug: r.slug, name: r.spec?.name || r.slug, emoji: r.spec?.emoji || "🤝" }),
+);
 
 export function validateRedesignSpec(s: any): string[] {
   const e: string[] = [];
